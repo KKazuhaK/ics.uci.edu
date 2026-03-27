@@ -6,11 +6,65 @@
 
 (function($) {
 
-	var	$window = $(window),
-		$body = $('body'),
-		$wrapper = $('#wrapper'),
-		$header = $('#header'),
-		$banner = $('#banner');
+			var	$window = $(window),
+				$body = $('body'),
+				$wrapper = $('#wrapper'),
+				$header = $('#header'),
+				$banner = $('#banner');
+
+			var pageTransitionDuration = 380;
+
+			$body.addClass('is-page-transitioning');
+			$wrapper.addClass('is-transitioning');
+
+			var navigateWithTransition = function(href, delay) {
+
+				if (!href)
+					return;
+
+				$body.addClass('is-page-transitioning');
+				$wrapper.addClass('is-transitioning');
+
+				window.setTimeout(function() {
+					window.location.href = href;
+				}, delay || pageTransitionDuration);
+
+		};
+
+		var shouldTransitionLink = function($link) {
+
+			var href = $link.attr('href'),
+				target = $link.attr('target');
+
+			if (!href || href == '' || href == '#' || href.charAt(0) == '#')
+				return false;
+
+			if (target == '_blank' || $link.is('[download]'))
+				return false;
+
+			if (/^(mailto:|tel:|javascript:)/i.test(href))
+				return false;
+
+			try {
+
+				var url = new URL(href, window.location.href);
+
+				if (url.origin != window.location.origin)
+					return false;
+
+				if (url.pathname == window.location.pathname
+				&&	url.search == window.location.search
+				&&	url.hash)
+					return false;
+
+			}
+			catch (error) {
+				return false;
+			}
+
+			return true;
+
+		};
 
 	// Breakpoints.
 		breakpoints({
@@ -91,12 +145,18 @@
 
 	};
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
+		// Play initial animations on page load.
+			$window.on('load', function() {
+				window.setTimeout(function() {
+					$body.removeClass('is-preload');
+
+					window.setTimeout(function() {
+						$body.removeClass('is-page-transitioning');
+						$wrapper.removeClass('is-transitioning');
+					}, 60);
+
+				}, 100);
+			});
 
 	// Clear transitioning state on unload/hide.
 		$window.on('unload pagehide', function() {
@@ -109,12 +169,35 @@
 		if (browser.name == 'ie' || browser.name == 'edge')
 			$body.addClass('is-ie');
 
-	// Scrolly.
-		$('.scrolly').scrolly({
-			offset: function() {
-				return $header.height() - 2;
-			}
-		});
+		// Scrolly.
+			$('.scrolly').scrolly({
+				offset: function() {
+					return $header.height() - 2;
+				}
+			});
+
+		// Smooth page transitions for internal links opened in the current tab.
+			$body.on('click', 'a', function(event) {
+
+				var $link = $(this);
+
+				if (event.isDefaultPrevented())
+					return;
+
+				if ($link.closest('#menu').length > 0
+				||	$link.closest('.tiles').length > 0
+				||	$link.hasClass('scrolly'))
+					return;
+
+				if (!shouldTransitionLink($link))
+					return;
+
+				event.preventDefault();
+				event.stopPropagation();
+
+				navigateWithTransition($link.attr('href'), pageTransitionDuration);
+
+			});
 
 	// Tiles.
 		var $tiles = $('.tiles > article');
@@ -171,16 +254,41 @@
 									$this.addClass('is-transitioning');
 									$wrapper.addClass('is-transitioning');
 
-								// Redirect.
-									window.setTimeout(function() {
-										location.href = href;
-									}, 500);
+									// Redirect.
+										window.setTimeout(function() {
+											location.href = href;
+										}, pageTransitionDuration);
 
 							}
 
 					});
 
 				}
+
+		});
+
+	// Spotlights.
+		var $spotlights = $('.spotlights > section');
+
+		$spotlights.each(function() {
+
+			var $this = $(this),
+				$image = $this.find('.image'),
+				$img = $image.find('img'),
+				x;
+
+			if ($image.length === 0 || $img.length === 0)
+				return;
+
+			// Set image.
+				$image.css('background-image', 'url(' + $img.attr('src') + ')');
+
+			// Set position.
+				if (x = $img.data('position'))
+					$image.css('background-position', x);
+
+			// Hide original.
+				$img.hide();
 
 		});
 
@@ -292,12 +400,12 @@
 					$menu._hide();
 
 					// Redirect.
-						window.setTimeout(function() {
-							if (target == '_blank')
+						if (target == '_blank')
+							window.setTimeout(function() {
 								window.open(href, '_blank', 'noopener,noreferrer');
-							else
-								window.location.href = href;
-						}, 250);
+							}, 250);
+						else
+							navigateWithTransition(href, pageTransitionDuration);
 
 				});
 
