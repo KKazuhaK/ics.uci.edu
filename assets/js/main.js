@@ -396,16 +396,33 @@
 				event.preventDefault();
 				event.stopPropagation();
 
-				// Hide.
-					$menu._hide();
+				// Open in a new tab.
+					if (target == '_blank') {
 
-					// Redirect.
-						if (target == '_blank')
-							window.setTimeout(function() {
-								window.open(href, '_blank', 'noopener,noreferrer');
-							}, 250);
-						else
-							navigateWithTransition(href, pageTransitionDuration);
+						$menu._hide();
+
+						window.setTimeout(function() {
+							window.open(href, '_blank', 'noopener,noreferrer');
+						}, 250);
+
+					}
+
+				// Internal current-tab navigation: keep the menu state until the page transition starts,
+				// so the blurred background doesn't briefly snap back into focus.
+					else if (shouldTransitionLink($link)) {
+						navigateWithTransition(href, pageTransitionDuration);
+					}
+
+				// Fallback for other link types.
+					else {
+
+						$menu._hide();
+
+						window.setTimeout(function() {
+							window.location.href = href;
+						}, 250);
+
+					}
 
 				});
 
