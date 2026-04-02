@@ -1,0 +1,773 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Markdown Viewer | Kazuha Mo - UC Irvine</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<style>
+			:root {
+				--notes-ink: #23324a;
+				--notes-muted: #516074;
+				--notes-border: rgba(42, 79, 133, 0.16);
+				--notes-slate: #3f4d63;
+				--notes-slate-bg: rgba(63, 77, 99, 0.10);
+				--notes-slate-border: rgba(63, 77, 99, 0.24);
+				--notes-slate-bg-strong: rgba(71, 85, 105, 0.17);
+				--notes-blue: #244f8f;
+				--notes-blue-bg: rgba(36, 79, 143, 0.10);
+				--notes-blue-border: rgba(36, 79, 143, 0.22);
+				--notes-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--notes-teal: #0b7f78;
+				--notes-teal-bg: rgba(11, 127, 120, 0.13);
+				--notes-teal-border: rgba(11, 127, 120, 0.28);
+				--notes-teal-bg-strong: rgba(15, 118, 110, 0.17);
+				--notes-gold: #8b5a18;
+				--notes-gold-bg: rgba(173, 113, 35, 0.11);
+				--notes-gold-border: rgba(139, 90, 24, 0.22);
+				--notes-gold-bg-strong: rgba(173, 113, 35, 0.17);
+			}
+
+			.notes-shell {
+				display: grid;
+				gap: 1.5rem;
+			}
+
+			.notes-shell,
+			.notes-shell p,
+			.notes-shell li,
+			.notes-shell ul,
+			.notes-shell ol,
+			.notes-shell blockquote,
+			.notes-shell table,
+			.notes-shell td,
+			.notes-shell th {
+				color: var(--notes-ink);
+			}
+
+			.notes-intro {
+				padding: 1.5rem 1.75rem;
+				border: 1px solid var(--notes-border);
+				border-radius: 1.2rem;
+				background:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 255, 0.99) 58%, rgba(250, 252, 255, 0.98) 100%);
+				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				color: var(--notes-ink);
+			}
+
+			.notes-kicker {
+				margin: 0 0 0.35rem;
+				color: var(--notes-blue);
+				font-size: 0.85rem;
+				font-weight: 800;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+
+			.notes-intro h2 {
+				margin: 0 0 0.55rem;
+				color: var(--notes-ink);
+			}
+
+			.notes-intro p {
+				margin-bottom: 0.9rem;
+				color: var(--notes-muted);
+			}
+
+			.notes-intro p:last-of-type {
+				margin-bottom: 1rem;
+			}
+
+			.notes-meta {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.75rem;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+
+			.file-chip,
+			.kind-chip,
+			.course-chip,
+			.status-chip {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				box-shadow: inset 0 0 0 1.5px transparent;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				word-break: break-all;
+			}
+
+			.file-chip {
+				background: var(--notes-gold-bg);
+				box-shadow: inset 0 0 0 1.5px var(--notes-gold-border);
+				color: var(--notes-gold);
+			}
+
+			.kind-chip {
+				background: var(--notes-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--notes-blue-border);
+				color: var(--notes-blue);
+			}
+
+			.course-chip {
+				background: var(--notes-teal-bg);
+				box-shadow: inset 0 0 0 1.5px var(--notes-teal-border);
+				color: var(--notes-teal);
+			}
+
+			.status-chip {
+				background: var(--notes-slate-bg);
+				box-shadow: inset 0 0 0 1.5px var(--notes-slate-border);
+				color: var(--notes-slate);
+			}
+
+			.notes-breadcrumb {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.75rem;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+
+			a.status-chip,
+			a.kind-chip,
+			a.course-chip,
+			a.file-chip {
+				text-decoration: none;
+				transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+			}
+
+			a.status-chip,
+			a.kind-chip,
+			a.file-chip {
+				color: inherit !important;
+			}
+
+			a.course-chip {
+				color: inherit !important;
+			}
+
+			a.status-chip:visited,
+			a.kind-chip:visited,
+			a.file-chip:visited,
+			a.course-chip:visited {
+				color: inherit !important;
+			}
+
+			a.status-chip:hover,
+			a.status-chip:active,
+			a.status-chip:focus {
+				background: var(--notes-slate-bg-strong);
+				box-shadow: inset 0 0 0 1.5px var(--notes-slate-border);
+				color: #334155 !important;
+				transform: translateY(-1px);
+			}
+
+			a.kind-chip:hover,
+			a.kind-chip:active,
+			a.kind-chip:focus {
+				background: var(--notes-blue-bg-strong);
+				box-shadow: inset 0 0 0 1.5px var(--notes-blue-border);
+				color: #183b73 !important;
+				transform: translateY(-1px);
+			}
+
+			a.course-chip:hover,
+			a.course-chip:active,
+			a.course-chip:focus {
+				background: var(--notes-teal-bg-strong);
+				box-shadow: inset 0 0 0 1.5px var(--notes-teal-border);
+				color: #0b5e58 !important;
+				transform: translateY(-1px);
+			}
+
+			a.file-chip:hover,
+			a.file-chip:active,
+			a.file-chip:focus {
+				background: var(--notes-gold-bg-strong);
+				box-shadow: inset 0 0 0 1.5px var(--notes-gold-border);
+				color: #71470f !important;
+				transform: translateY(-1px);
+			}
+
+			.viewer-card {
+				padding: 2rem clamp(1.1rem, 3vw, 2.4rem);
+				border: 1px solid rgba(42, 79, 133, 0.14);
+				border-radius: 1.4rem;
+				background: rgba(255, 255, 255, 0.98);
+				box-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				color: var(--notes-ink);
+			}
+
+			.status {
+				color: #6b7280;
+			}
+
+			.error {
+				padding: 1rem 1.1rem;
+				border: 1px solid #f3b5b5;
+				background: #fff1f1;
+				color: #8b1e1e;
+				border-radius: 0.9rem;
+			}
+
+			.markdown-body > :first-child {
+				margin-top: 0;
+			}
+
+			.markdown-body > :last-child {
+				margin-bottom: 0;
+			}
+
+			.markdown-body h1,
+			.markdown-body h2,
+			.markdown-body h3,
+			.markdown-body h4 {
+				line-height: 1.28;
+				margin: 2rem 0 0.9rem;
+				scroll-margin-top: 1rem;
+			}
+
+			.markdown-body h1 {
+				padding-bottom: 0.7rem;
+				border-bottom: 3px solid rgba(42, 79, 133, 0.16);
+			}
+
+			.markdown-body h2 {
+				padding-left: 0.8rem;
+				border-left: 4px solid #2d5b95;
+			}
+
+			.markdown-body h3 {
+				color: #334155;
+			}
+
+			.markdown-body h1,
+			.markdown-body h2,
+			.markdown-body h4,
+			.markdown-body strong,
+			.markdown-body p,
+			.markdown-body li,
+			.markdown-body td,
+			.markdown-body th {
+				color: #23324a;
+			}
+
+			.markdown-body p,
+			.markdown-body ul,
+			.markdown-body ol,
+			.markdown-body blockquote,
+			.markdown-body table,
+			.markdown-body pre {
+				margin: 0 0 1rem;
+			}
+
+			.markdown-body ul,
+			.markdown-body ol {
+				padding-left: 1.5rem;
+			}
+
+			.markdown-body li + li {
+				margin-top: 0.35rem;
+			}
+
+			.markdown-body hr {
+				border: 0;
+				border-top: 1px solid rgba(144, 163, 191, 0.35);
+				margin: 2rem 0;
+			}
+
+			.markdown-body blockquote {
+				padding: 0.9rem 1rem;
+				background: rgba(33, 82, 164, 0.05);
+				border-left: 4px solid rgba(33, 82, 164, 0.45);
+				border-radius: 0 0.9rem 0.9rem 0;
+				color: #42526b;
+			}
+
+			.markdown-body code {
+				padding: 0.12rem 0.4rem;
+				border-radius: 0.35rem;
+				background: rgba(33, 82, 164, 0.08);
+				color: #293e6a;
+				font: 0.92em/1.4 "Fira Code", "Cascadia Code", "Menlo", monospace;
+			}
+
+			.markdown-body pre {
+				padding: 1rem 1.15rem;
+				border-radius: 1rem;
+				overflow-x: auto;
+				background: #1f2937;
+				color: #e5e7eb;
+			}
+
+			.markdown-body pre code {
+				padding: 0;
+				background: transparent;
+				color: inherit;
+			}
+
+			.markdown-body table {
+				width: 100%;
+				border-collapse: collapse;
+				border: 1px solid rgba(144, 163, 191, 0.35);
+			}
+
+			.markdown-body th,
+			.markdown-body td {
+				padding: 0.75rem 0.85rem;
+				border: 1px solid rgba(144, 163, 191, 0.35);
+				text-align: left;
+				vertical-align: top;
+			}
+
+			.markdown-body th {
+				background: rgba(33, 82, 164, 0.06);
+			}
+
+			.markdown-body tr:nth-child(even) td {
+				background: rgba(248, 250, 252, 0.85);
+			}
+
+			.markdown-body a {
+				color: var(--notes-blue);
+				text-decoration-color: rgba(36, 79, 143, 0.28);
+				text-decoration-thickness: 0.08em;
+				text-underline-offset: 0.16em;
+				transition: color 0.2s ease, text-decoration-color 0.2s ease;
+			}
+
+			.markdown-body a:visited {
+				color: #345b93;
+			}
+
+			.markdown-body a:hover,
+			.markdown-body a:focus {
+				color: #183b73;
+				text-decoration-color: rgba(24, 59, 115, 0.52);
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<div id="wrapper">
+
+			<header id="header">
+				<div class="logo"><a href="../../index.html" class="logo-mark"><strong><img src="../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
+				<nav>
+					<a href="#menu">Menu</a>
+				</nav>
+			</header>
+
+			<nav id="menu">
+				<ul class="links">
+					<li><a href="../../index.html">Home</a></li>
+					<li><a href="../../notes/">Notes</a></li>
+					<li><a href="../../tools.html">Tools</a></li>
+				</ul>
+				<ul class="actions stacked">
+					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
+					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
+				</ul>
+			</nav>
+
+			<div id="main" class="alt">
+				<section id="one">
+					<div class="inner notes-shell">
+						<header class="major">
+							<p class="notes-kicker">Notes</p>
+							<h1 id="page-title">Notes</h1>
+						</header>
+
+						<div class="notes-intro">
+							<h2 id="reader-heading">Weekly note reading page</h2>
+							<p id="reader-description">你正在阅读一份笔记。下面这条路径会带你返回 Notes 总入口、Course Notes、课程主页，或当前这份笔记所在的位置。</p>
+							<div class="notes-breadcrumb">
+								<a href="../../notes/index.html" class="status-chip" id="notes-home-link">Notes</a>
+								<a href="../../notes/course_notes/index.html" class="kind-chip" id="notes-kind-link">Course Notes</a>
+								<a href="../../notes/course_notes/ICS-45C/index.html" class="course-chip" id="course-link">ICS-45C</a>
+								<a href="../../notes/course_notes/ICS-45C/ICS45C_Week1_Notes.md" class="file-chip" id="raw-link">ICS45C_Week1_Notes.md</a>
+							</div>
+						</div>
+
+						<div class="viewer-card">
+							<div class="status" id="status">Loading markdown...</div>
+							<article class="markdown-body" id="content" hidden></article>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<section id="contact" class="contact-compact">
+				<div class="inner">
+					<section class="split">
+						<section>
+							<div class="contact-method">
+								<span class="icon solid alt fa-envelope"></span>
+								<h3>Email</h3>
+								<a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>
+							</div>
+						</section>
+					</section>
+				</div>
+			</section>
+
+			<footer id="footer">
+				<div class="inner">
+					<ul class="icons">
+						<li><a href="https://github.com/KKazuhaK" class="icon brands alt fa-github" target="_blank" rel="noopener noreferrer"><span class="label">GitHub</span></a></li>
+						<li><a href="#" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
+					</ul>
+					<ul class="copyright">
+						<li>&copy; Kazuha Hub</li><li><a href="https://www.kazuhahub.com" target="_blank" rel="noopener noreferrer">Kazuha Hub Official Website</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		</div>
+
+		<script src="../../assets/js/jquery.min.js"></script>
+		<script src="../../assets/js/jquery.scrolly.min.js"></script>
+		<script src="../../assets/js/jquery.scrollex.min.js"></script>
+		<script src="../../assets/js/browser.min.js"></script>
+		<script src="../../assets/js/breakpoints.min.js"></script>
+		<script src="../../assets/js/util.js"></script>
+		<script src="../../assets/js/main.js"></script>
+		<script>
+			function escapeHtml(text) {
+				return text
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;");
+			}
+
+			function parseInline(text) {
+				let value = escapeHtml(text);
+				value = value.replace(/`([^`]+)`/g, "<code>$1</code>");
+				value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+				value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+				value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+				return value;
+			}
+
+			function isTableSeparator(line) {
+				return /^\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?$/.test(line.trim());
+			}
+
+			function parseTableRow(line) {
+				let row = line.trim();
+				if (row.startsWith("|")) row = row.slice(1);
+				if (row.endsWith("|")) row = row.slice(0, -1);
+				return row.split("|").map((cell) => parseInline(cell.trim()));
+			}
+
+			function plainTextForSlug(text) {
+				return text
+					.replace(/`([^`]+)`/g, "$1")
+					.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+					.replace(/\*\*([^*]+)\*\*/g, "$1")
+					.replace(/\*([^*]+)\*/g, "$1")
+					.replace(/<[^>]+>/g, "")
+					.trim();
+			}
+
+			function slugifyHeading(text, slugCounts) {
+				const base = plainTextForSlug(text)
+					.toLowerCase()
+					.replace(/[^\p{L}\p{N}\s-]/gu, "")
+					.replace(/\s/g, "-")
+					.replace(/^-+|-+$/g, "") || "section";
+
+				const seen = slugCounts.get(base) || 0;
+				slugCounts.set(base, seen + 1);
+
+				if (seen === 0) {
+					return base;
+				}
+
+				return base + "-" + seen;
+			}
+
+			function scrollToCurrentHash() {
+				if (!window.location.hash) {
+					return;
+				}
+
+				const targetId = decodeURIComponent(window.location.hash.slice(1));
+				const target = document.getElementById(targetId);
+				if (!target) {
+					return;
+				}
+
+				requestAnimationFrame(() => {
+					target.scrollIntoView({ block: "start" });
+				});
+			}
+
+			function markdownToHtml(markdown) {
+				const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+				const html = [];
+				const slugCounts = new Map();
+				let i = 0;
+
+				while (i < lines.length) {
+					const line = lines[i];
+					const trimmed = line.trim();
+
+					if (!trimmed) {
+						i += 1;
+						continue;
+					}
+
+					const anchorMatch = trimmed.match(/^<a\s+id="([A-Za-z0-9._:-]+)"\s*><\/a>$/);
+					if (anchorMatch) {
+						html.push('<a id="' + anchorMatch[1] + '"></a>');
+						i += 1;
+						continue;
+					}
+
+					if (trimmed.startsWith("```")) {
+						const codeLines = [];
+						i += 1;
+						while (i < lines.length && !lines[i].trim().startsWith("```")) {
+							codeLines.push(lines[i]);
+							i += 1;
+						}
+						html.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+						i += 1;
+						continue;
+					}
+
+					const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+					if (headingMatch) {
+						const level = headingMatch[1].length;
+						const headingText = headingMatch[2];
+						const headingId = slugifyHeading(headingText, slugCounts);
+						html.push('<h' + level + ' id="' + headingId + '">' + parseInline(headingText) + "</h" + level + ">");
+						i += 1;
+						continue;
+					}
+
+					if (/^---+$/.test(trimmed) || /^___+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+						html.push("<hr>");
+						i += 1;
+						continue;
+					}
+
+					if (trimmed.startsWith(">")) {
+						const quoteLines = [];
+						while (i < lines.length && lines[i].trim().startsWith(">")) {
+							quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
+							i += 1;
+						}
+						html.push("<blockquote><p>" + quoteLines.map(parseInline).join("<br>") + "</p></blockquote>");
+						continue;
+					}
+
+					if (trimmed.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+						const headers = parseTableRow(lines[i]);
+						const rows = [];
+						i += 2;
+						while (i < lines.length && lines[i].trim().includes("|") && lines[i].trim()) {
+							rows.push(parseTableRow(lines[i]));
+							i += 1;
+						}
+
+						let tableHtml = "<table><thead><tr>";
+						tableHtml += headers.map((cell) => "<th>" + cell + "</th>").join("");
+						tableHtml += "</tr></thead><tbody>";
+						tableHtml += rows.map((row) => "<tr>" + row.map((cell) => "<td>" + cell + "</td>").join("") + "</tr>").join("");
+						tableHtml += "</tbody></table>";
+						html.push(tableHtml);
+						continue;
+					}
+
+					const unorderedMatch = trimmed.match(/^[-*]\s+/);
+					const orderedMatch = trimmed.match(/^\d+\.\s+/);
+					if (unorderedMatch || orderedMatch) {
+						const tag = unorderedMatch ? "ul" : "ol";
+						const items = [];
+						while (i < lines.length) {
+							const current = lines[i].trim();
+							const matcher = unorderedMatch ? /^[-*]\s+(.*)$/ : /^\d+\.\s+(.*)$/;
+							const match = current.match(matcher);
+							if (!match) break;
+							items.push("<li>" + parseInline(match[1]) + "</li>");
+							i += 1;
+						}
+						html.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
+						continue;
+					}
+
+					const paragraphLines = [trimmed];
+					i += 1;
+					while (i < lines.length) {
+						const next = lines[i].trim();
+						if (!next) break;
+						if (
+							next.startsWith("```") ||
+							next.startsWith(">") ||
+							next.match(/^(#{1,6})\s+/) ||
+							next.match(/^[-*]\s+/) ||
+							next.match(/^\d+\.\s+/) ||
+							next.match(/^---+$/) ||
+							next.match(/^___+$/) ||
+							next.match(/^\*\*\*+$/) ||
+							(next.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1]))
+						) {
+							break;
+						}
+						paragraphLines.push(next);
+						i += 1;
+					}
+					html.push("<p>" + parseInline(paragraphLines.join(" ")) + "</p>");
+				}
+
+				return html.join("\n");
+			}
+
+			function sanitizeCourse(course) {
+				if (!course || !/^[A-Za-z0-9_-]+$/.test(course)) {
+					throw new Error("Invalid course name.");
+				}
+				return course;
+			}
+
+			function sanitizeNote(note) {
+				if (!note || !/^[A-Za-z0-9._-]+\.md$/i.test(note)) {
+					throw new Error("Invalid note filename.");
+				}
+				return note;
+			}
+
+			function sanitizeKind(kind) {
+				if (!kind || !/^[A-Za-z0-9_-]+$/.test(kind)) {
+					throw new Error("Invalid notes kind.");
+				}
+				return kind;
+			}
+
+			function notesKindLabel(kind) {
+				const labels = {
+					course_notes: "Course Notes"
+				};
+				return labels[kind] || kind.replace(/_/g, " ");
+			}
+
+			function noteLabelFromFilename(note) {
+				return note
+					.replace(/\.md$/i, "")
+					.replace(/_/g, " ")
+					.replace(/-/g, " ")
+					.replace(/Week\s*(\d+)/gi, "Week $1")
+					.replace(/\s+/g, " ")
+					.trim();
+			}
+
+			function buildReaderCopy(course, note) {
+				const courseProfiles = {
+					"ICS-45C": {
+						title: "ICS 45C Notes",
+						heading: "C++ 课程阅读笔记",
+						description: "这页整理的是 ICS 45C 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+					},
+					"IN4MATX-43": {
+						title: "IN4MATX-43 Notes",
+						heading: "软件工程课程阅读笔记",
+						description: "这页整理的是 IN4MATX-43 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+					}
+				};
+
+				const profile = courseProfiles[course];
+				if (profile) {
+					return profile;
+				}
+
+				return {
+					title: course + " Notes",
+					heading: noteLabelFromFilename(note),
+					description: "你正在阅读一份笔记。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+				};
+			}
+
+			function resolveRequest(params) {
+				const legacyFile = params.get("file");
+				if (legacyFile) {
+					const parts = legacyFile.split("/").filter(Boolean);
+					if (parts.length !== 2) {
+						throw new Error("Legacy file path must look like <course>/<note>.md");
+					}
+					return {
+						kind: "course_notes",
+						course: sanitizeCourse(parts[0]),
+						note: sanitizeNote(parts[1])
+					};
+				}
+
+				return {
+					kind: sanitizeKind(params.get("kind") || "course_notes"),
+					course: sanitizeCourse(params.get("course") || "ICS-45C"),
+					note: sanitizeNote(params.get("note") || "ICS45C_Week1_Notes.md")
+				};
+			}
+
+			async function init() {
+				const params = new URLSearchParams(window.location.search);
+				const status = document.getElementById("status");
+				const content = document.getElementById("content");
+				const courseLink = document.getElementById("course-link");
+				const notesHomeLink = document.getElementById("notes-home-link");
+				const notesKindLink = document.getElementById("notes-kind-link");
+				const rawLink = document.getElementById("raw-link");
+				const pageTitle = document.getElementById("page-title");
+				const readerHeading = document.getElementById("reader-heading");
+				const readerDescription = document.getElementById("reader-description");
+
+				try {
+					const request = resolveRequest(params);
+					const markdownPath = "../../notes/" + request.kind + "/" + request.course + "/" + request.note;
+					const notesKindPath = "../../notes/" + request.kind + "/index.html";
+					const coursePath = "../../notes/" + request.kind + "/" + request.course + "/index.html";
+					const notesHomePath = "../../notes/index.html";
+					const readerCopy = buildReaderCopy(request.course, request.note);
+
+					document.title = readerCopy.title + " | Kazuha Mo - UC Irvine";
+					pageTitle.textContent = readerCopy.title;
+					readerHeading.textContent = readerCopy.heading;
+					readerDescription.textContent = readerCopy.description;
+					notesHomeLink.href = notesHomePath;
+					notesKindLink.href = notesKindPath;
+					notesKindLink.textContent = notesKindLabel(request.kind);
+					courseLink.href = coursePath;
+					courseLink.textContent = request.course;
+					rawLink.href = markdownPath;
+					rawLink.textContent = request.note;
+
+					const response = await fetch(markdownPath);
+					if (!response.ok) {
+						throw new Error("Failed to load " + request.course + "/" + request.note + " (" + response.status + ")");
+					}
+
+					const markdown = await response.text();
+					content.innerHTML = markdownToHtml(markdown);
+					content.hidden = false;
+					status.remove();
+					scrollToCurrentHash();
+				} catch (error) {
+					status.outerHTML = '<div class="error">' + escapeHtml(error.message) + "</div>";
+				}
+			}
+
+			window.addEventListener("hashchange", scrollToCurrentHash);
+			init();
+		</script>
+	</body>
+</html>
