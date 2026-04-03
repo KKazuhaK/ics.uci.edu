@@ -23,7 +23,7 @@ public_html/
 ```
 
 `assets/sass/` 是主题原始 SASS 源文件，**未接入构建流程**，`main.css` 直接手动维护。  
-`templates/` 是 HTML5 UP 原始模板，仅供参考，不对外提供访问。
+`templates/` 主要放页面模板与参考模板：既包含 HTML5 UP 原始示例，也包含站内自定义模板（如 `course_notes.html`）。该目录默认不作为公开导航入口使用。
 
 ---
 
@@ -86,6 +86,29 @@ public_html/
 示例：ICS45C_Week1_Notes_zh-CN.md
 ```
 
+### Markdown 代码块
+
+`tools/md-viewer/index.html` 现在会对 fenced code block 做轻量语法高亮。  
+如果希望代码框带颜色，必须在三反引号后标注语言，例如：
+
+````md
+```cpp
+int main() {}
+```
+
+```python
+print("hello")
+```
+````
+
+当前优先支持并已在站内笔记中大量使用的语言：
+- `cpp`
+- `bash`
+- `python`
+- `text`（纯文本，无语法高亮，仅保留代码框样式）
+
+没有语言标签的代码块仍然可以渲染，但会按纯文本显示，不会自动着色。
+
 ### 课程目录页的数据结构
 
 每个课程 `index.html` 内嵌一个 `notesCatalog` 数组，结构：
@@ -95,21 +118,31 @@ public_html/
   title:   { "en-US": "...", "zh-CN": "..." },
   summary: { "en-US": "...", "zh-CN": "..." },
   availability: {
-    "en-US": "文件名.md",   // null 表示暂无
-    "zh-CN": "文件名.md"
+    "en-US": { note: "文件名.md" },   // 没有版本时可省略该键
+    "zh-CN": { note: "文件名.md" }
   }
 }
 ```
 
 ### md-viewer 的课程识别
 
-`tools/md-viewer/index.html` 内有 `courseProfiles` 对象，用于匹配课程名称和页面描述。**新增课程时必须同时在此添加一条**，否则阅读器页面显示不出课程名和描述：
+`tools/md-viewer/index.html` 内有 `courseProfiles` 对象，用于匹配课程显示名、阅读器副标题和说明文案。**新增课程时必须同时在此添加一条**，否则阅读器页面显示不出合适的课程标题和介绍：
 ```js
 "COURSE_CODE": {
-  "en-US": { name: "显示名", description: "课程描述" },
-  "zh-CN": { name: "显示名", description: "课程描述（中文）" }
+  displayName: "显示名",
+  "en-US": {
+    headingBase: "英文副标题",
+    descriptionTemplate: "包含 {course} 和 {weekPhrase} 占位符的英文说明"
+  },
+  "zh-CN": {
+    headingBase: "中文副标题",
+    descriptionTemplate: "包含 {course} 和 {weekPhrase} 占位符的中文说明"
+  }
 }
 ```
+
+`md-viewer` 会从笔记文件名里自动提取 `Week N`，并拼接到顶部页头标题与说明文案里。  
+例如 `ICS45C_Week1_Notes_en-US.md` 会显示成 `ICS 45C Week 1 Notes`。
 
 ---
 
@@ -128,10 +161,11 @@ public_html/
 ## 新增课程流程
 
 1. `notes/course_notes/` 下建新文件夹
-2. 复制现有课程的 `index.html`，修改 `<title>`、`pageCopy`、`notesCatalog`
-3. 在 `tools/md-viewer/index.html` 的 `courseProfiles` 中新增对应条目
-4. 笔记 `.md` 文件放入新文件夹，命名遵循规范
-5. 所有新文件执行 `chmod 644`（新建文件默认权限可能是 600，Apache 读不到会报 403）
+2. 优先复制 `templates/course_notes.html` 到 `notes/course_notes/<COURSE>/index.html`
+3. 修改课程页里的 `<title>`、页头课程名、`pageCopy`、`notesCatalog`、`createNoteUrl()`，并把模板中的相对路径从 `../` 改成 `../../../`
+4. 在 `tools/md-viewer/index.html` 的 `courseProfiles` 中新增对应条目
+5. 笔记 `.md` 文件放入新文件夹，命名遵循规范
+6. 所有新文件执行 `chmod 644`（新建文件默认权限可能是 600，Apache 读不到会报 403）
 
 ---
 
@@ -141,3 +175,4 @@ public_html/
 - SASS 源文件（`assets/sass/`）与实际 `main.css` 已不同步，以 `main.css` 为准
 - 页面级样式写在各页面 `<head>` 内的 `<style>` 块，不要改全局 `main.css` 来处理单页问题
 - 移动端适配用 `@media (max-width: 736px)`（主题 small 断点）
+- 只要改了模板相关实现，必须同步检查 `templates/` 与 `SITE_DOCS.md` 是否需要一起更新，避免模板、文档、实际页面三者漂移

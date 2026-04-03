@@ -1,4 +1,4 @@
-# ICS 45C Week 1 — 整合 Reading 笔记
+# Information and Computer Science 45C — Week 1 整合 Reading 笔记
 
 ## 目录
 

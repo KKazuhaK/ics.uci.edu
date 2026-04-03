@@ -58,13 +58,18 @@
 				color: var(--notes-ink);
 			}
 
-			.notes-kicker {
-				margin: 0 0 0.35rem;
-				color: var(--notes-blue);
-				font-size: 0.85rem;
-				font-weight: 800;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
+			.notes-shell > header.major > #page-title {
+				margin-bottom: 0;
+				width: calc(100% + 0.5em);
+			}
+
+			.notes-shell > header.major > #page-title:after {
+				content: "";
+				background-color: #ffffff;
+				display: block;
+				height: 2px;
+				margin: 0.325em 0 0.5em 0;
+				width: 100%;
 			}
 
 			.notes-intro h2 {
@@ -129,8 +134,16 @@
 			}
 
 			.breadcrumb-sep {
-				font-size: 0.82rem;
-				color: #b0bbc8;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				align-self: center;
+				min-width: 0.9rem;
+				padding: 0 0.14rem;
+				font-size: 1.18rem;
+				font-weight: 700;
+				line-height: 1;
+				color: #97a7bb;
 				user-select: none;
 			}
 
@@ -278,14 +291,54 @@
 				padding: 1rem 1.15rem;
 				border-radius: 1rem;
 				overflow-x: auto;
-				background: #1f2937;
-				color: #e5e7eb;
+				background: #1e1e1e;
+				color: #d4d4d4;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				font: 0.95em/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
 			}
 
 			.markdown-body pre code {
 				padding: 0;
 				background: transparent;
 				color: inherit;
+			}
+
+			.markdown-body pre code .token-comment {
+				color: #6a9955;
+			}
+
+			.markdown-body pre code .token-keyword {
+				color: #569cd6;
+			}
+
+			.markdown-body pre code .token-string {
+				color: #ce9178;
+			}
+
+			.markdown-body pre code .token-number {
+				color: #b5cea8;
+			}
+
+			.markdown-body pre code .token-function {
+				color: #dcdcaa;
+			}
+
+			.markdown-body pre code .token-preprocessor {
+				color: #c586c0;
+			}
+
+			.markdown-body pre code .token-builtin,
+			.markdown-body pre code .token-command,
+			.markdown-body pre code .token-property {
+				color: #9cdcfe;
+			}
+
+			.markdown-body pre code .token-variable {
+				color: #9cdcfe;
+			}
+
+			.markdown-body pre code .token-decorator {
+				color: #c586c0;
 			}
 
 			.markdown-body table {
@@ -350,11 +403,6 @@
 					margin-bottom: 0;
 				}
 
-				.notes-kicker {
-					font-size: 0.72rem;
-					margin-bottom: 0.15rem;
-				}
-
 				#page-title {
 					font-size: 1.35rem;
 					margin: 0;
@@ -398,7 +446,9 @@
 				}
 
 				.breadcrumb-sep {
-					font-size: 0.72rem;
+					min-width: 0.78rem;
+					padding: 0 0.1rem;
+					font-size: 1.02rem;
 				}
 
 				.notes-breadcrumb {
@@ -558,11 +608,10 @@
 
 			<div id="main" class="alt">
 				<section id="one">
-					<div class="inner notes-shell">
-						<header class="major">
-							<p class="notes-kicker">Notes</p>
-							<h1 id="page-title">Notes</h1>
-						</header>
+						<div class="inner notes-shell">
+							<header class="major">
+								<h1 id="page-title">Notes</h1>
+							</header>
 
 						<div class="notes-intro">
 							<h2 id="reader-heading">Weekly note reading page</h2>
@@ -643,6 +692,252 @@
 				value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
 				value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 				return value;
+			}
+
+			function createTokenStore() {
+				const tokens = [];
+				return {
+					stash(html) {
+						const key = String.fromCharCode(0xE000 + tokens.length);
+						tokens.push(html);
+						return key;
+					},
+					restore(text) {
+						return text.replace(/[\uE000-\uF8FF]/g, function(match) {
+							return tokens[match.charCodeAt(0) - 0xE000] || match;
+						});
+					}
+				};
+			}
+
+			function wrapHighlighted(className, value) {
+				return '<span class="token-' + className + '">' + escapeHtml(value) + "</span>";
+			}
+
+			function stashMatches(text, pattern, className, store) {
+				return text.replace(pattern, function(match) {
+					return store.stash(wrapHighlighted(className, match));
+				});
+			}
+
+			function highlightWords(text, words, className, store) {
+				if (!words.length) {
+					return text;
+				}
+
+				const pattern = new RegExp("\\b(?:" + words.join("|") + ")\\b", "g");
+				return text.replace(pattern, function(match) {
+					return store.stash(wrapHighlighted(className, match));
+				});
+			}
+
+			function highlightNumbers(text, store) {
+				return text.replace(/\b(?:0[xX][0-9A-Fa-f]+|0[bB][01]+|(?:\d+\.\d*|\.\d+|\d+)(?:[eE][+-]?\d+)?(?:[uUlLfF]+)?)\b/g, function(match) {
+					return store.stash(wrapHighlighted("number", match));
+				});
+			}
+
+			function highlightFunctionCalls(text, reservedWords, store) {
+				return text.replace(/\b([A-Za-z_]\w*)(?=\s*\()/g, function(match, name) {
+					return reservedWords.has(name)
+						? match
+						: store.stash(wrapHighlighted("function", name));
+				});
+			}
+
+			function restoreHighlightedText(text, store) {
+				return store.restore(escapeHtml(text));
+			}
+
+			function normalizeCodeLanguage(language) {
+				const raw = (language || "").toLowerCase();
+
+				if (!raw) {
+					return "";
+				}
+
+				if (["cpp", "c++", "cc", "cxx", "hpp", "h++", "hxx"].includes(raw)) {
+					return "cpp";
+				}
+
+				if (["c", "h"].includes(raw)) {
+					return "c";
+				}
+
+				if (["py", "python"].includes(raw)) {
+					return "python";
+				}
+
+				if (["bash", "sh", "shell", "zsh"].includes(raw)) {
+					return "bash";
+				}
+
+				if (["js", "javascript", "mjs", "cjs"].includes(raw)) {
+					return "javascript";
+				}
+
+				if (["json"].includes(raw)) {
+					return "json";
+				}
+
+				if (["text", "plain", "plaintext", "txt"].includes(raw)) {
+					return "text";
+				}
+
+				return raw;
+			}
+
+			function highlightCppLikeCode(code) {
+				const store = createTokenStore();
+				let text = code;
+				const keywords = [
+					"alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor", "bool",
+					"break", "case", "catch", "char", "char8_t", "char16_t", "char32_t", "class",
+					"compl", "concept", "const", "consteval", "constexpr", "constinit", "const_cast",
+					"continue", "co_await", "co_return", "co_yield", "decltype", "default", "delete",
+					"do", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extern",
+					"false", "float", "for", "friend", "goto", "if", "inline", "int", "long",
+					"mutable", "namespace", "new", "noexcept", "nullptr", "operator", "or", "or_eq",
+					"private", "protected", "public", "register", "reinterpret_cast", "requires",
+					"return", "short", "signed", "sizeof", "static", "static_assert", "static_cast",
+					"struct", "switch", "template", "this", "thread_local", "throw", "true", "try",
+					"typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void",
+					"volatile", "wchar_t", "while", "xor", "xor_eq"
+				];
+				const reservedWords = new Set(keywords);
+
+				text = stashMatches(text, /^[ \t]*#.*$/gm, "preprocessor", store);
+				text = stashMatches(text, /\/\*[\s\S]*?\*\//g, "comment", store);
+				text = stashMatches(text, /\/\/.*$/gm, "comment", store);
+				text = stashMatches(text, /(?:u8|u|U|L)?"(?:\\.|[^"\\])*"|(?:u8|u|U|L)?'(?:\\.|[^'\\])*'/g, "string", store);
+				text = highlightWords(text, keywords, "keyword", store);
+				text = highlightNumbers(text, store);
+				text = highlightFunctionCalls(text, reservedWords, store);
+
+				return restoreHighlightedText(text, store);
+			}
+
+			function highlightPythonCode(code) {
+				const store = createTokenStore();
+				let text = code;
+				const keywords = [
+					"False", "None", "True", "and", "as", "assert", "async", "await", "break",
+					"class", "continue", "def", "del", "elif", "else", "except", "finally", "for",
+					"from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or",
+					"pass", "raise", "return", "try", "while", "with", "yield"
+				];
+				const builtins = [
+					"bool", "dict", "float", "input", "int", "len", "list", "print", "range",
+					"set", "str", "tuple"
+				];
+
+				text = stashMatches(text, /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "string", store);
+				text = stashMatches(text, /#.*$/gm, "comment", store);
+				text = text.replace(/(^|\s)(@[A-Za-z_][\w.]*)/gm, function(match, prefix, decorator) {
+					return prefix + store.stash(wrapHighlighted("decorator", decorator));
+				});
+				text = text.replace(/\b(def|class)(\s+)([A-Za-z_]\w*)/g, function(match, keyword, spacing, name) {
+					return store.stash(
+						wrapHighlighted("keyword", keyword) +
+						spacing +
+						wrapHighlighted("function", name)
+					);
+				});
+				text = highlightWords(text, keywords, "keyword", store);
+				text = highlightWords(text, builtins, "builtin", store);
+				text = highlightNumbers(text, store);
+
+				return restoreHighlightedText(text, store);
+			}
+
+			function highlightBashCode(code) {
+				const store = createTokenStore();
+				let text = code;
+				const keywords = [
+					"if", "then", "else", "elif", "fi", "for", "in", "do", "done", "case", "esac",
+					"while", "until", "function", "select", "time", "coproc", "break", "continue",
+					"return", "exit", "local", "export", "readonly", "declare", "typeset", "unset",
+					"source"
+				];
+				const reservedWords = new Set(keywords);
+
+				text = stashMatches(text, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`[^`]*`/g, "string", store);
+				text = text.replace(/(^|[^\\])(#[^\n]*)/g, function(match, prefix, comment) {
+					return prefix + store.stash(wrapHighlighted("comment", comment));
+				});
+				text = highlightWords(text, keywords, "keyword", store);
+				text = text.replace(/\$(?:[A-Za-z_][A-Za-z0-9_]*|[@*#?$!-]|\d+|\{[^}\n]+\})/g, function(match) {
+					return store.stash(wrapHighlighted("variable", match));
+				});
+				text = highlightNumbers(text, store);
+				text = text.replace(/(^|\n)(\s*)([A-Za-z./][\w./-]*)(?=\s|$)/g, function(match, lead, spacing, command) {
+					return reservedWords.has(command)
+						? match
+						: lead + spacing + store.stash(wrapHighlighted("command", command));
+				});
+
+				return restoreHighlightedText(text, store);
+			}
+
+			function highlightJsonCode(code) {
+				const store = createTokenStore();
+				let text = code;
+
+				text = stashMatches(text, /"(?:\\.|[^"\\])*"(?=\s*:)/g, "property", store);
+				text = stashMatches(text, /"(?:\\.|[^"\\])*"/g, "string", store);
+				text = highlightWords(text, ["true", "false", "null"], "builtin", store);
+				text = highlightNumbers(text, store);
+
+				return restoreHighlightedText(text, store);
+			}
+
+			function highlightJavaScriptCode(code) {
+				const store = createTokenStore();
+				let text = code;
+				const keywords = [
+					"await", "break", "case", "catch", "class", "const", "continue", "default",
+					"delete", "do", "else", "export", "extends", "false", "finally", "for",
+					"function", "if", "import", "in", "instanceof", "let", "new", "null", "return",
+					"super", "switch", "this", "throw", "true", "try", "typeof", "var", "void",
+					"while", "yield"
+				];
+				const builtins = ["Array", "Boolean", "Date", "JSON", "Math", "Number", "Object", "String", "console"];
+				const reservedWords = new Set(keywords);
+
+				text = stashMatches(text, /\/\*[\s\S]*?\*\//g, "comment", store);
+				text = stashMatches(text, /\/\/.*$/gm, "comment", store);
+				text = stashMatches(text, /`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "string", store);
+				text = highlightWords(text, keywords, "keyword", store);
+				text = highlightWords(text, builtins, "builtin", store);
+				text = highlightNumbers(text, store);
+				text = highlightFunctionCalls(text, reservedWords, store);
+
+				return restoreHighlightedText(text, store);
+			}
+
+			function highlightCode(code, language) {
+				switch (language) {
+					case "cpp":
+					case "c":
+						return highlightCppLikeCode(code);
+					case "python":
+						return highlightPythonCode(code);
+					case "bash":
+						return highlightBashCode(code);
+					case "json":
+						return highlightJsonCode(code);
+					case "javascript":
+						return highlightJavaScriptCode(code);
+					default:
+						return escapeHtml(code);
+				}
+			}
+
+			function buildCodeBlockHtml(code, language) {
+				const normalizedLanguage = normalizeCodeLanguage(language);
+				const languageAttribute = normalizedLanguage ? ' data-language="' + normalizedLanguage + '"' : "";
+				const codeClass = normalizedLanguage ? ' class="language-' + normalizedLanguage + '"' : "";
+				return "<pre" + languageAttribute + "><code" + codeClass + ">" + highlightCode(code, normalizedLanguage) + "</code></pre>";
 			}
 
 			function isTableSeparator(line) {
@@ -758,13 +1053,14 @@
 					}
 
 					if (trimmed.startsWith("```")) {
+						const fenceLanguage = trimmed.slice(3).trim().split(/\s+/)[0] || "";
 						const codeLines = [];
 						i += 1;
 						while (i < lines.length && !lines[i].trim().startsWith("```")) {
 							codeLines.push(lines[i]);
 							i += 1;
 						}
-						html.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+						html.push(buildCodeBlockHtml(codeLines.join("\n"), fenceLanguage));
 						i += 1;
 						continue;
 					}
@@ -895,6 +1191,21 @@
 					.trim();
 			}
 
+			function displayCourseName(course) {
+				return course.replace(/-/g, " ");
+			}
+
+			function extractWeekLabel(note) {
+				const match = note.match(/(?:^|_)Week\s*([0-9]+)/i);
+				return match ? "Week " + match[1] : "";
+			}
+
+			function formatReaderDescription(template, courseName, weekLabel) {
+				return template
+					.replace("{course}", courseName)
+					.replace("{weekPhrase}", weekLabel ? " " + weekLabel : "");
+			}
+
 			function sanitizeLanguage(language) {
 				return language === "zh-CN" ? "zh-CN" : "en-US";
 			}
@@ -904,40 +1215,53 @@
 			}
 
 			function buildReaderCopy(course, note, language) {
+				const weekLabel = extractWeekLabel(note);
 				const courseProfiles = {
 					"ICS-45C": {
+						displayName: "ICS 45C",
 						"en-US": {
-							title: "ICS 45C Notes",
-							heading: "C++ Weekly Reading Notes",
-							description: "This page presents ICS 45C notes in a structured reading format so you can review syntax, program structure, testing, and problem solving week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+							headingBase: "C++ Weekly Reading Notes",
+							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a structured reading format so you can review syntax, program structure, testing, and problem solving week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file."
 						},
 						"zh-CN": {
-							title: "ICS 45C Notes",
-							heading: "C++ 课程阅读笔记",
-							description: "这页整理的是 ICS 45C 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+							headingBase: "C++ 课程阅读笔记",
+							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
 						}
 					},
 					"IN4MATX-43": {
+						displayName: "IN4MATX 43",
 						"en-US": {
-							title: "IN4MATX-43 Notes",
-							heading: "Software Engineering Reading Notes",
-							description: "This page presents IN4MATX-43 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+							headingBase: "Software Engineering Reading Notes",
+							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file."
 						},
 						"zh-CN": {
-							title: "IN4MATX-43 Notes",
-							heading: "软件工程课程阅读笔记",
-							description: "这页整理的是 IN4MATX-43 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+							headingBase: "软件工程课程阅读笔记",
+							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
 						}
 					}
 				};
 
 				const profile = courseProfiles[course];
 				if (profile) {
-					return profile[language] || profile["en-US"];
+					const localized = profile[language] || profile["en-US"];
+					const title = weekLabel
+						? profile.displayName + " " + weekLabel + " Notes"
+						: profile.displayName + " Notes";
+					const heading = weekLabel
+						? weekLabel + " " + localized.headingBase
+						: localized.headingBase;
+					return {
+						title,
+						heading,
+						description: formatReaderDescription(localized.descriptionTemplate, profile.displayName, weekLabel)
+					};
 				}
 
+				const courseName = displayCourseName(course);
 				return {
-					title: course + " Notes",
+					title: weekLabel
+						? courseName + " " + weekLabel + " Notes"
+						: courseName + " Notes",
 					heading: noteLabelFromFilename(note),
 					description: language === "zh-CN"
 						? "你正在阅读一份笔记。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
