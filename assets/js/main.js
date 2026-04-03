@@ -305,8 +305,19 @@
 				$banner.scrollex({
 					bottom:		$header.height() + 10,
 					terminate:	function() { $header.removeClass('alt'); },
-					enter:		function() { $header.addClass('alt'); },
-					leave:		function() { $header.removeClass('alt'); $header.addClass('reveal'); }
+					enter:		function() {
+						$window.on('scroll.headerEnter', function() {
+							if (window.scrollY <= 0) {
+								$window.off('scroll.headerEnter');
+								$header.removeClass('reveal').addClass('alt');
+							}
+						});
+					},
+					leave:		function() {
+						$window.off('scroll.headerEnter');
+						$header.removeClass('alt');
+						$header.addClass('reveal');
+					}
 				});
 
 				window.setTimeout(function() {
