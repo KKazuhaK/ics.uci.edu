@@ -2,69 +2,69 @@
 
 ## Table of Contents
 
-- [1. Course Overview and Learning Path](#1-course-overview-and-learning-path)
-- [2. Your First Program and the Compilation Pipeline](#2-your-first-program-and-the-compilation-pipeline)
-- [3. Variables, Types, and Initialization](#3-variables-types-and-initialization)
-- [4. Input, Output, and Strings](#4-input-output-and-strings)
-- [5. Operators, Expressions, and Basic Data](#5-operators-expressions-and-basic-data)
+- [1. Big Picture & Learning Path](#1-big-picture--learning-path)
+- [2. Your First Program & the Build Pipeline](#2-your-first-program--the-build-pipeline)
+- [3. Variables, Types & Initialization](#3-variables-types--initialization)
+- [4. Input, Output & Strings](#4-input-output--strings)
+- [5. Operators, Expressions & Primitive Data](#5-operators-expressions--primitive-data)
 - [6. Control Structures](#6-control-structures)
-- [7. Functions, Parameters, and Scope](#7-functions-parameters-and-scope)
-- [8. Arrays, Pointers, and Memory Ideas](#8-arrays-pointers-and-memory-ideas)
-- [9. Getting Started with GoogleTest](#9-getting-started-with-googletest)
-- [10. Sample Quiz 0](#10-sample-quiz-0)
-- [11. Combined Cheat Sheet](#11-combined-cheat-sheet)
+- [7. Functions, Parameters & Scope](#7-functions-parameters--scope)
+- [8. Arrays & Pointers](#8-arrays--pointers)
+- [9. GoogleTest Primer](#9-googletest-primer)
+- [10. Sample Quiz 0 (Week 2)](#10-sample-quiz-0-week-2)
+- [11. Quick Reference Table](#11-quick-reference-table)
 
 > UCI ICS 45C: Programming in C++ (35770)  
-> This note merges overlapping Week 1 material from `cpp4python` and `LearnCpp.com` and reorganizes it into one reading order.
+> This document merges overlapping Week 1 content from `cpp4python` and `LearnCpp.com`, organized in learning order.
 
 ---
 
-## 1. Course Overview and Learning Path
+## 1. Big Picture & Learning Path
 
-The goal of Week 1 is not to memorize a huge amount of syntax. The real goal is to build a complete beginner path into C++:
+The goal of Week 1 is not "learn a lot of syntax" but rather to build a complete introductory chain for C++:
 
-1. understand how a C++ program becomes an executable
-2. learn the basic structure of a program: `main()`, statements, comments, formatting
-3. learn variables, types, initialization, input/output, and expressions
-4. move into conditionals, loops, functions, arrays, and pointers
-5. get a first look at GoogleTest
+1. First, understand how a C++ program goes from source code to an executable
+2. Then, master the basic program structure: `main()`, statements, comments, formatting
+3. Next, learn variables, types, initialization, I/O, and expressions
+4. Build on that to cover conditionals, loops, functions, arrays, and pointers
+5. Finally, get introduced to the testing tool GoogleTest
 
-**Study suggestions**
+**Study Tips:**
 
-- type in example code by hand instead of only reading it
-- predict the output before running the program
-- change one thing at a time and observe what happens
-- compile often instead of collecting many errors at once
-- when you get stuck, ask which layer is failing: syntax, type system, logic, or compilation
+- Type out every example by hand — don't just read
+- Predict the output first, then run to verify
+- Change one small thing at a time and observe the effect
+- Compile as you go — don't accumulate a pile of errors
+- When stuck, first identify *which layer* is the problem: syntax, types, logic, or the build pipeline
 
-**The five-step development process**
+**Five Steps of Development:**
 
-1. **Define the problem**: what are we trying to solve?
-2. **Determine a solution**: design something simple, modular, and error-aware
-3. **Write the program**
-4. **Compile**
-5. **Test and debug**
+1. **Define the problem** — What are you solving?
+2. **Determine solution** — Design it: keep it simple, modular, error-aware
+3. **Write the program** — Code it up
+4. **Compile** — Build into an executable
+5. **Test and debug** — Verify and fix
 
-> A good summary of Week 1 is this: first learn how a program exists, then learn how it runs.
+> Think of Week 1 as: first learn *how a program exists*, then learn *how it runs*.
 
 ---
 
-## 2. Your First Program and the Compilation Pipeline
+## 2. Your First Program & the Build Pipeline
 
-### 2.1 C++ vs. Python: compiled vs. interpreted
+### 2.1 C++ vs Python: Compiled vs Interpreted
 
-C++ is a **compiled language**. Python is usually treated as an **interpreted language**.
+C++ is a **compiled language**; Python is an **interpreted language**.
 
 ```bash
 g++ -o myprogram myprogram.cpp
 ./myprogram
 ```
 
-- C++ source code must be compiled before it runs
-- many syntax and type errors are caught during compilation
-- this is one reason C++ often feels stricter than Python
+- C++ code must be compiled before it can run
+- The compilation phase catches many syntax and type errors early
+- This is one reason C++ is "stricter"
 
-### 2.2 A minimal C++ program
+### 2.2 A Minimal C++ Program
 
 ```cpp
 #include <iostream>
@@ -75,17 +75,17 @@ int main() {
 }
 ```
 
-Important Week 1 pieces in this program:
+Key elements you must recognize in Week 1:
 
-- `#include <iostream>`: include the standard I/O library
-- `main()`: the entry point of the program
-- `{}`: a block of code
-- `;`: the end of a statement
-- `return 0;`: tell the operating system the program finished successfully
+- `#include <iostream>` — brings in the standard I/O library
+- `main()` — the program entry point
+- `{}` — code blocks
+- `;` — statement terminator
+- `return 0;` — tells the OS the program finished successfully
 
-### 2.3 `main()`, statements, and comments
+### 2.3 `main()`, Statements, and Comments
 
-A **statement** is one complete unit of execution in C++. Statements usually end with `;`.
+A **statement** is the smallest independent unit of execution in C++, usually ending with `;`.
 
 ```cpp
 int x;
@@ -94,7 +94,7 @@ std::cout << x;
 return 0;
 ```
 
-C++ comments come in two forms:
+**Comments** come in two forms:
 
 ```cpp
 // single-line comment
@@ -102,9 +102,9 @@ C++ comments come in two forms:
    comment */
 ```
 
-Good comments should usually explain **why**, not only **what**.
+Good comments explain **why**, not just **what**.
 
-### 2.4 Headers, namespaces, and source files
+### 2.4 Headers & Namespaces
 
 ```cpp
 #include <iostream>
@@ -113,72 +113,67 @@ using namespace std;
 
 - `#include` is a **preprocessor directive**
 - `<iostream>` provides `cout` and `cin`
-- `using namespace std;` lets you omit `std::`
+- `using namespace std;` lets you skip writing `std::` everywhere
 
-Still, it is usually better to write `std::cout` and `std::cin` explicitly because:
+However, explicitly writing `std::cout` / `std::cin` is preferred because:
 
-- the code is clearer
-- it reduces naming conflicts
-- it matches modern C++ style more closely
+- Better readability
+- Avoids naming conflicts
+- Aligns with modern C++ conventions
 
-**File organization**
+### 2.5 Compiler, Linker, Loader
 
-- header files `*.h` or `*.hpp`: declarations
-- source files `*.cpp`: definitions
-
-### 2.5 Compiler, linker, and loader
-
-The full process can be pictured like this:
+The full pipeline can be understood as:
 
 ```text
-source code (.cpp/.hpp)
-  -> preprocessor
-  -> compiler
-  -> object file
-  -> linker
-  -> executable
-  -> loader
-  -> execution begins at main()
+Source code (.cpp/.hpp)
+  -> Preprocessor
+  -> Compiler
+  -> Object file
+  -> Linker
+  -> Executable
+  -> Loader
+  -> Execution starts at main()
 ```
 
-What each part does:
+Responsibilities:
 
-- **preprocessor**: handles `#include`, `#define`, and related directives
-- **compiler**: checks syntax and translates `.cpp` into object code
-- **linker**: combines object files and libraries
-- **loader**: places the executable into memory when the program runs
+- **Preprocessor** — handles `#include`, `#define`, etc.
+- **Compiler** — checks syntax, translates `.cpp` into object files
+- **Linker** — combines multiple object files and libraries into one executable
+- **Loader** — loads the executable into memory at runtime
 
-A **library** is a reusable package of prewritten code.
+A **library** is a pre-written, reusable collection of code:
 
-- standard library examples: `iostream`, `string`
-- third-party example you will soon see: GoogleTest
+- Standard library: e.g., `iostream`, `string`
+- Third-party libraries: e.g., GoogleTest (used later)
 
-### 2.6 Formatting and naming
+### 2.6 Code Formatting & Naming
 
-- C++ ignores most whitespace, but humans do not
-- keep brace style consistent
-- use consistent indentation
-- choose descriptive names
+- C++ ignores most whitespace, but **humans don't**
+- Keep brace style consistent
+- Keep indentation uniform
+- Use descriptive identifiers
 
-**Naming rules**
+**Naming rules:**
 
-- names may contain letters, digits, and underscores
-- names cannot begin with a digit
-- C++ is case-sensitive
-- keywords such as `int`, `return`, and `while` cannot be used as identifiers
+- May contain letters, digits, and underscores
+- Cannot start with a digit
+- Case-sensitive
+- Cannot use keywords like `int`, `return`, `while`
 
 ---
 
-## 3. Variables, Types, and Initialization
+## 3. Variables, Types & Initialization
 
-### 3.1 Data, objects, variables, and static typing
+### 3.1 Objects, Variables & Static Typing
 
-Important Week 1 terms:
+Core concepts:
 
-- **data**: information
-- **object**: a region of memory that stores a value
-- **variable**: a named object
-- **identifier**: the variable's name
+- **data** — information
+- **object** — a region of memory that holds a value
+- **variable** — a named object
+- **identifier** — the variable's name
 
 ```cpp
 int x;
@@ -186,14 +181,21 @@ double price;
 bool done;
 ```
 
-C++ is a **statically typed** language:
+C++ is a **statically typed language**:
 
-- every variable must have a type when it is created
-- once the type is fixed, it determines how the value is stored and interpreted
+- Every variable must have a type when created
+- Once the type is set, it determines how the value is stored and interpreted
 
-That is different from Python, where the same name can later hold a completely different kind of value.
+This differs from Python, where you can write:
 
-### 3.2 Definition, assignment, and initialization
+```python
+x = 5
+x = "hello"
+```
+
+In C++, an `int x` cannot later become a string variable.
+
+### 3.2 Definition, Assignment, Initialization
 
 ```cpp
 int x;      // definition
@@ -205,47 +207,47 @@ int c{5};   // brace initialization
 int d{};    // value initialization -> 0
 ```
 
-The most important Week 1 rules are:
+The most important Week 1 takeaway:
 
-- initialize variables when you define them
-- prefer `{}` when possible
+- **Initialize variables at the point of definition**
+- **Prefer `{}`**
 
 ```cpp
-int x{4.5};   // compile-time error: narrowing conversion blocked
-int y = 4.5;  // compiles, but y becomes 4
+int x{4.5};   // compile error — prevents narrowing conversion
+int y = 4.5;  // compiles, but value becomes 4
 ```
 
-Brace initialization is safer because it prevents narrowing in many cases.
+So `{}` is safer.
 
-### 3.3 Uninitialized variables and undefined behavior
+### 3.3 Uninitialized Variables & Undefined Behavior
 
 ```cpp
 int x;
 std::cout << x;   // dangerous
 ```
 
-If a local variable is not initialized, it usually contains garbage.
+If a local variable is not initialized, it typically contains a **garbage value**.
 
-This can produce **undefined behavior (UB)**:
+This leads to **undefined behavior (UB)**:
 
-- strange output
-- crashes
-- or code that appears to work by accident
+- Might output a strange number
+- Might crash
+- Might "appear to work fine"
 
-The rule is simple:
+But "appears to work fine" does not mean the code is correct.
 
-**Always initialize a variable when you create it.**
+**Best practice: always initialize a variable when you create it.**
 
-### 3.4 Constants and magic numbers
+### 3.4 Constants & Magic Numbers
 
 ```cpp
 constexpr double pi{3.1415926};
 constexpr char newline{'\n'};
 ```
 
-- `constexpr` creates a compile-time constant
-- constants cannot be reassigned
-- named constants are clearer than mysterious hard-coded numbers
+- `constexpr` denotes a compile-time constant
+- Constants cannot be modified
+- Named constants are clearer than raw numbers
 
 ```cpp
 double area(double r) {
@@ -253,29 +255,29 @@ double area(double r) {
 }
 ```
 
-### 3.5 Common primitive types in Week 1
+### 3.5 Common Fundamental Types in Week 1
 
 | Type | Purpose |
-|------|------|
-| `int` | integer |
-| `float` / `double` | floating-point number |
-| `bool` | true / false |
-| `char` | a single character |
-| `pointer` | an address |
+|------|---------|
+| `int` | Integers |
+| `float` / `double` | Floating-point numbers |
+| `bool` | True / false |
+| `char` | A single character |
+| `pointer` | An address |
 
-Common modifiers:
+Modifiers:
 
 - `short`
 - `long`
 - `unsigned`
 
-These affect range and sometimes memory usage.
+These affect the range of values or memory usage.
 
 ---
 
-## 4. Input, Output, and Strings
+## 4. Input, Output & Strings
 
-### 4.1 `cout`, `cin`, and `endl`
+### 4.1 `cout`, `cin`, `endl`
 
 ```cpp
 #include <iostream>
@@ -288,27 +290,27 @@ int main() {
 }
 ```
 
-- `std::cout <<` outputs data
-- `std::cin >>` reads input
-- `std::endl` prints a newline and flushes the buffer
-- `'\n'` prints only a newline and is usually more efficient
+- `std::cout <<` — output
+- `std::cin >>` — input
+- `std::endl` — newline *and* flushes the buffer
+- `'\n'` — newline only, usually more efficient
 
 ```cpp
 std::cout << "Hello" << std::endl;
 std::cout << "Hello\n";
 ```
 
-In Week 1, prefer `'\n'` unless you specifically need a flush.
+Week 1 recommendation: prefer `'\n'`.
 
-### 4.2 Insertion and extraction operators
+### 4.2 Insertion / Extraction Operators
 
 ```cpp
 std::cout << "A" << "B" << '\n';
 std::cin >> value;
 ```
 
-- `<<` is the **insertion operator**
-- `>>` is the **extraction operator**
+- `<<` — insertion operator
+- `>>` — extraction operator
 
 They can be chained:
 
@@ -316,16 +318,16 @@ They can be chained:
 std::cout << "x = " << x << '\n';
 ```
 
-### 4.3 Reading one word vs. a full line
+### 4.3 Word Input vs Line Input
 
 ```cpp
 std::string name{};
 std::cin >> name;
 ```
 
-This reads only the next word and stops at whitespace.
+This reads only the **next word** — it stops at whitespace.
 
-To read a whole line:
+To read an entire line:
 
 ```cpp
 #include <string>
@@ -343,11 +345,11 @@ std::string name{"Hello"};
 
 - `'A'` is a `char`
 - `"Hello"` is a string literal
-- when you see single quotes in Week 1, think "single character"
+- In this course, single quotes → think "single character"
 
-Unlike Python, `'a'` and `"a"` are not basically the same thing in C++.
+In Python, `'a'` and `"a"` are essentially the same; in C++ they are different concepts.
 
-### 4.5 Basic string operations
+### 4.5 Basic `string` Operations
 
 ```cpp
 #include <string>
@@ -361,15 +363,15 @@ for (char c : s) {
 }
 ```
 
-- `s[i]`: access a character by index
-- `s.size()`: length of the string
-- a range-based `for` loop can iterate over the characters
+- `s[i]` — access character by index
+- `s.size()` — length
+- Range-based `for` iterates character by character
 
 ---
 
-## 5. Operators, Expressions, and Basic Data
+## 5. Operators, Expressions & Primitive Data
 
-### 5.1 Numeric types and integer division
+### 5.1 Numeric Types & Integer Division
 
 ```cpp
 std::cout << 7 / 3 << '\n';     // 2
@@ -377,10 +379,10 @@ std::cout << 7.0 / 3 << '\n';   // 2.333...
 std::cout << 7 % 3 << '\n';     // 1
 ```
 
-Important rules:
+Critical rules:
 
 - `int / int` performs **integer division**
-- `%` is remainder and only works with integers
+- `%` is the modulus operator, integers only
 
 | Python | C++ |
 |--------|-----|
@@ -388,7 +390,7 @@ Important rules:
 | `7 / 3` | `7.0 / 3` |
 | `2 ** 10` | `pow(2, 10)` |
 
-### 5.2 Booleans and logical operators
+### 5.2 Booleans & Logical Operators
 
 ```cpp
 bool flag{true};
@@ -398,19 +400,14 @@ bool test{false};
 | Python | C++ |
 |--------|-----|
 | `and` | `&&` |
-| `or` | `||` |
+| `or` | `\|\|` |
 | `not` | `!` |
 
 Relational operators:
 
-- `<`
-- `>`
-- `<=`
-- `>=`
-- `==`
-- `!=`
+- `<`, `>`, `<=`, `>=`, `==`, `!=`
 
-### 5.3 Literals and operators
+### 5.3 Literals & Operators
 
 A **literal** is a value written directly in code:
 
@@ -422,14 +419,14 @@ A **literal** is a value written directly in code:
 true
 ```
 
-An **operator** performs an action on values:
+An **operator** is a symbol that performs an operation on values:
 
-- arithmetic: `+ - * / %`
-- assignment: `= += -= *= /= %=`
-- comparison: `== != < >`
-- logic: `&& || !`
+- Arithmetic: `+ - * / %`
+- Assignment: `= += -= *= /= %=`
+- Comparison: `== != < >`
+- Logical: `&& || !`
 
-### 5.4 Increment, decrement, and precedence
+### 5.4 Increment, Decrement & Precedence
 
 ```cpp
 int x{10};
@@ -437,17 +434,17 @@ x++;
 x--;
 ```
 
-- `x++`: increment
-- `x--`: decrement
+- `x++` — increment
+- `x--` — decrement
 
-If you are unsure about precedence, use parentheses.
+When in doubt about precedence, the safest approach is to **use parentheses**.
 
 ```cpp
 2 + 3 * 4;    // 14
 (2 + 3) * 4;  // 20
 ```
 
-### 5.5 Expressions and expression statements
+### 5.5 Expressions & Expression Statements
 
 ```cpp
 2 + 3
@@ -457,17 +454,17 @@ x
 
 These are all **expressions**.
 
-Once you add a semicolon, an expression becomes an **expression statement**:
+An expression followed by a semicolon becomes an **expression statement**:
 
 ```cpp
 x = 5;
 ```
 
-### 5.6 Core conclusions
+### 5.6 Key Takeaways
 
-- values and types are tightly connected in C++
-- operators behave differently depending on operand types
-- `int / int` is one of the easiest Week 1 mistakes to make
+- In C++, values and types are bound more tightly
+- Operators are affected by the types of their operands
+- `int / int` is one of the easiest Week 1 pitfalls
 
 ---
 
@@ -485,8 +482,8 @@ if (score >= 90) {
 }
 ```
 
-- conditions go inside `()`
-- code blocks usually go inside `{}`
+- Conditions must be in `()`
+- Code blocks go in `{}`
 - Python's `elif` becomes `else if` in C++
 
 ### 6.2 `switch`
@@ -499,11 +496,11 @@ switch (grade) {
 }
 ```
 
-Key properties:
+Key points:
 
-- useful for discrete value selection
-- `break` is usually necessary after each `case`
-- `default` means "all other cases"
+- Good for discrete-value checks
+- Usually needs `break` after each `case`
+- `default` handles "everything else"
 
 ### 6.3 `while`
 
@@ -523,7 +520,7 @@ for (int i{0}; i < 10; ++i) {
 }
 ```
 
-Comparison with Python:
+Python equivalent:
 
 | Python | C++ |
 |--------|-----|
@@ -537,7 +534,7 @@ for (int n : nums) {
 }
 ```
 
-This is much closer to:
+This is closer to Python's:
 
 ```python
 for x in nums:
@@ -558,25 +555,25 @@ for (int i{0}; i < 10; ++i) {
 }
 ```
 
-- `continue`: skip the rest of the current iteration
-- `break`: stop the entire loop
+- `continue` — skip the rest of the current iteration
+- `break` — exit the entire loop
 
 ---
 
-## 7. Functions, Parameters, and Scope
+## 7. Functions, Parameters & Scope
 
-### 7.1 Why functions matter
+### 7.1 Why Use Functions
 
-Functions are valuable because they:
+Four key benefits:
 
-1. break large problems into smaller ones
-2. make code reusable
-3. make testing easier
-4. make maintenance and extension easier
+1. Break large problems into smaller ones
+2. Reuse code, avoid repetition
+3. Easier to test
+4. Easier to maintain and extend
 
-**A good rule is that one function should do one job.**
+**Ideally, each function should do one thing.**
 
-### 7.2 Defining functions
+### 7.2 Defining Functions
 
 ```cpp
 int add(int a, int b) {
@@ -588,11 +585,11 @@ void greet(std::string name) {
 }
 ```
 
-- every function must declare a return type
-- every parameter must declare a type
+- Functions must specify a return type
+- Parameters must also have types
 - `void` means no return value
 
-### 7.3 Declarations and definitions
+### 7.3 Declaration vs Definition
 
 ```cpp
 double average(double x, double y);   // declaration
@@ -606,11 +603,11 @@ double average(double x, double y) {  // definition
 }
 ```
 
-- a **declaration** tells the compiler a function exists
-- a **definition** provides the implementation
-- before a call happens, the compiler must at least have seen a declaration
+- **Declaration** — tells the compiler "this exists"
+- **Definition** — provides the actual implementation
+- Before a call, the compiler must have seen at least the declaration
 
-### 7.4 Return values and `void`
+### 7.4 Return Values & `void`
 
 ```cpp
 int getValueFromUser() {
@@ -628,11 +625,11 @@ void printHello() {
 
 Rules:
 
-- an `int` function must return an `int`
-- a `void` function does not return a value
-- forgetting `return` in a non-`void` function can cause undefined behavior
+- An `int` function must return an `int`
+- A `void` function returns nothing
+- Forgetting `return` in a non-`void` function may cause UB
 
-### 7.5 Parameters, arguments, and pass-by-value
+### 7.5 Parameters, Arguments & Pass by Value
 
 ```cpp
 void print(int x) {
@@ -642,13 +639,13 @@ void print(int x) {
 print(5);
 ```
 
-- `x` is a **parameter**
-- `5` is an **argument**
+- `x` is the **parameter** (formal parameter)
+- `5` is the **argument** (actual parameter)
 
 By default, C++ uses **pass by value**:
 
-- the function receives a copy
-- changing the copy does not change the original
+- The function receives a copy
+- Modifying the copy does not affect the original variable
 
 ```cpp
 void addOne(int x) {
@@ -656,40 +653,7 @@ void addOne(int x) {
 }
 ```
 
-### 7.6 Pass by reference
-
-```cpp
-void increment(int& x) {
-    ++x;
-}
-```
-
-```cpp
-int z{10};
-increment(z);
-std::cout << z << '\n';   // 11
-```
-
-- `int& x` means a reference parameter
-- it allows the function to modify the caller's variable directly
-
-### 7.7 Default arguments and overloading
-
-```cpp
-double toCentigrade(double fahrenheitTemp = 32.0) {
-    return 5.0 * (fahrenheitTemp - 32.0) / 9.0;
-}
-```
-
-```cpp
-double calc(int n)    { return n * n; }
-double calc(double x) { return x * x + 0.5; }
-```
-
-- **default arguments** let callers omit some values
-- **function overloading** means multiple functions share one name but have different parameter lists
-
-### 7.8 Local scope
+### 7.6 Local Scope
 
 ```cpp
 void func() {
@@ -698,13 +662,13 @@ void func() {
 }
 ```
 
-- local variables are created where they are defined
-- they are destroyed at the end of their block
-- two different functions can each have a local variable with the same name without conflict
+- Local variables are created at the point of definition
+- They are destroyed when their enclosing block ends
+- Identically named locals in different functions are independent
 
 ---
 
-## 8. Arrays, Pointers, and Memory Ideas
+## 8. Arrays & Pointers
 
 ### 8.1 Arrays
 
@@ -714,13 +678,13 @@ std::cout << scores[0] << '\n';
 ```
 
 | Python list | C++ array |
-|-------------|----------|
-| dynamic size | fixed size |
-| mixed types allowed | elements must share one type |
-| out-of-range usually raises an error | out-of-range may cause UB |
-| `append()` available | no built-in `append()` |
+|-------------|-----------|
+| Dynamic size | Fixed size |
+| Mixed types allowed | Must be same type |
+| Out-of-bounds → exception | Out-of-bounds → possible UB |
+| `append()` | Not supported |
 
-### 8.2 Arrays as parameters
+### 8.2 Arrays as Function Parameters
 
 ```cpp
 double average(int list[], int length) {
@@ -732,7 +696,7 @@ double average(int list[], int length) {
 }
 ```
 
-When a function receives an array, you usually also pass the length.
+When passing an array to a function, you typically pass the length as well.
 
 ### 8.3 Pointers
 
@@ -747,11 +711,11 @@ std::cout << &value << '\n';
 std::cout << *ptr << '\n';
 ```
 
-You must clearly separate three ideas:
+Three things you must distinguish:
 
-- `&x`: get the address
-- `int* ptr`: declare a pointer
-- `*ptr`: dereference the pointer to read or write the pointed value
+- `&x` — address-of operator
+- `int* ptr` — declares a pointer
+- `*ptr` — dereference, retrieves the value pointed to
 
 ```cpp
 *ptr = 2000;
@@ -764,74 +728,32 @@ std::cout << value << '\n';   // 2000
 int* ptr{nullptr};
 ```
 
-- `nullptr` means the pointer points to nothing
-- dereferencing a null pointer is a serious error
-
-### 8.5 File input and output
-
-```cpp
-#include <fstream>
-#include <string>
-
-std::ifstream in("input.txt");
-std::ofstream out("output.txt");
-std::string line{};
-
-while (std::getline(in, line)) {
-    out << line << '\n';
-}
-```
-
-- `ifstream`: file input
-- `ofstream`: file output
-- `while (getline(...))` is the standard pattern for reading a file line by line
-
-### 8.6 Memory regions and lifetime
-
-Common storage regions:
-
-- **static storage**: globals and `static` variables
-- **stack**: local variables and function parameters
-- **heap / free store**: objects managed with `new` and `delete`
-
-One way to remember an object's lifetime:
-
-1. birth
-2. allocation
-3. construction
-4. life
-5. death
-6. destruction
-7. deallocation
-
-The instructor specifically emphasized:
-
-- the correct term is **destruction**
-- not **deconstruction**
+- `nullptr` means "points to nothing"
+- Dereferencing a null pointer is a serious error
 
 ---
 
-## 9. Getting Started with GoogleTest
+## 9. GoogleTest Primer
 
-### 9.1 Basic hierarchy
+### 9.1 Basic Hierarchy
 
 ```text
-test program
-  -> test suite
-    -> test
-      -> assertion
+Test Program
+  -> Test Suite
+    -> Test
+      -> Assertion
 ```
 
-- **assertion**: checks one condition
-- **test**: a group of assertions
-- **test suite**: a collection of related tests
+- **Assertion** — checks a condition
+- **Test** — a group of assertions
+- **Test Suite** — a collection of related tests
 
-### 9.2 `EXPECT_*` vs. `ASSERT_*`
+### 9.2 `EXPECT_*` vs `ASSERT_*`
 
-| Type | What happens after failure | Good use case |
-|------|-----------|---------|
-| `EXPECT_*` | non-fatal, execution continues | most situations |
-| `ASSERT_*` | fatal, stop the current function immediately | when later code depends on the checked condition |
+| Type | On Failure | Use When |
+|------|-----------|----------|
+| `EXPECT_*` | Non-fatal, continues execution | Most cases |
+| `ASSERT_*` | Fatal, stops the current function | Subsequent code depends on this condition |
 
 Common assertions:
 
@@ -845,7 +767,7 @@ Common assertions:
 - `EXPECT_GE(a, b)`
 - `EXPECT_STREQ(s1, s2)`
 
-### 9.3 A simple test
+### 9.3 A Simple Test
 
 ```cpp
 #include <gtest/gtest.h>
@@ -863,11 +785,11 @@ TEST(FactorialTest, HandlesPositiveInput) {
 
 Rules:
 
-- use `TEST(SuiteName, TestName)`
-- names cannot contain underscores
-- test names inside one suite must be unique
+- `TEST(TestSuiteName, TestName)`
+- Names cannot contain underscores `_`
+- Test names within the same suite must be unique
 
-### 9.4 When to use `ASSERT_*`
+### 9.4 When to Use `ASSERT_*`
 
 ```cpp
 TEST(QueueTest, DequeueWorks) {
@@ -882,24 +804,26 @@ TEST(QueueTest, DequeueWorks) {
 }
 ```
 
-If you do not first check that `n != nullptr`, the later `*n` may crash the test.
+Without first asserting `n != nullptr`, the subsequent `*n` could crash.
 
 ---
 
-## 10. Sample Quiz 0
+## 10. Sample Quiz 0 (Week 2)
 
+> ⚠️ **Note**: Sample Quiz 0 is **Week 2** content (given Thursday of Week 2). Included here for early reference.
+>
 > Assume all necessary `#include`s are present and correct.
 
-### 10.1 Operator precedence
+### 10.1 Operator Precedence
 
-Question:
+Problem:
 
 ```cpp
 x = +a + b * c - d / -e
 y = z = -a - b / c * d
 ```
 
-With full parentheses:
+Fully parenthesized:
 
 ```cpp
 (x = (((+a) + (b * c)) - (d / (-e))))
@@ -914,7 +838,7 @@ int square(int i) {
 }
 ```
 
-### 10.3 Print `1` through `10` and their squares
+### 10.3 Print `1` through `10` with Their Squares
 
 ```cpp
 int main() {
@@ -925,47 +849,64 @@ int main() {
 }
 ```
 
-### 10.4 What this quiz is testing
+### 10.4 Object Lifetime
 
-This sample quiz is really checking four things at once:
+**Question:** Give the specific word describing each step in the lifetime of an object in C++.
 
-- whether you understand operator precedence
-- whether you can write a minimal function
-- whether you can write a `for` loop
-- whether you remember the basic lifetime and execution ideas from Week 1
+**Answer:**
+
+```
+1) Birth
+   1a) Allocation    — memory is reserved
+   1b) Construction  — object is initialized
+2) Life
+3) Death
+   3a) Destruction   — object is cleaned up
+   3b) Deallocation  — memory is released
+```
+
+> ⚠️ It's **Destruction**, NOT ~~Deconstruction~~. -5 pts if you write "con".
+
+### 10.5 What This Quiz Tests
+
+This quiz simultaneously checks four things:
+
+- Can you read operator precedence?
+- Can you write a minimal function?
+- Can you write a `for` loop?
+- Do you have the "object lifetime" concept down?
 
 ---
 
-## 11. Combined Cheat Sheet
+## 11. Quick Reference Table
 
 | Concept | Python | C++ |
-|------|--------|-----|
+|---------|--------|-----|
 | Output | `print("hi")` | `cout << "hi" << '\n';` |
 | Input | `x = input()` | `cin >> x;` |
 | Variable | `x = 5` | `int x{5};` |
-| Types | dynamic | static |
+| Typing | Dynamic | Static |
 | Integer division | `7 // 3` | `7 / 3` |
 | Power | `2 ** 10` | `pow(2, 10)` |
 | Boolean | `True / False` | `true / false` |
-| Logic | `and / or / not` | `&& / || / !` |
-| Condition | `if x > 0:` | `if (x > 0) {}` |
+| Logic | `and / or / not` | `&& / \|\| / !` |
+| Conditional | `if x > 0:` | `if (x > 0) {}` |
 | `elif` | `elif` | `else if` |
 | Loop | `for i in range(n):` | `for (int i = 0; i < n; ++i)` |
 | Function | `def f(x):` | `int f(int x) {}` |
-| No return value | `def f():` | `void f() {}` |
-| Character | `'a'` | `'a'` is a `char` |
+| No return | `def f():` | `void f() {}` |
+| Character | `'a'` | `'a'` is `char` |
 | String | `"abc"` | `std::string{"abc"}` |
 | Array | `[1, 2, 3]` | `int a[]{1, 2, 3};` |
-| Pointer | no direct equivalent | `int* p = &x;` |
+| Pointer | No direct equivalent | `int* p = &x;` |
 | Null pointer | `None` | `nullptr` |
-| Pass by reference | similar effects sometimes happen with mutable objects | `void f(int& x)` |
 | Increment | `x += 1` | `++x` or `x++` |
 | Testing | `assert` / `unittest` | GoogleTest |
 
-**The five most important Week 1 facts to remember**
+**Five Most Important Week 1 Takeaways:**
 
-1. C++ is statically typed.
-2. Initialize variables when you define them, and prefer `{}`.
-3. `int / int` performs integer division.
-4. `main()` is the program entry point.
-5. The default parameter-passing model is pass by value; reference parameters can modify the original variable.
+1. C++ is a statically typed language
+2. Initialize variables at definition — prefer `{}`
+3. `int / int` is integer division
+4. `main()` is the program entry point
+5. Functions must be declared before they are called; the default passing mode is pass by value
