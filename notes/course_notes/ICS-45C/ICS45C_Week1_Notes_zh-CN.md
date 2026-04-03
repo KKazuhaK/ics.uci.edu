@@ -268,7 +268,7 @@ double area(double r) {
 | `float` / `double` | 浮点数 |
 | `bool` | 真 / 假 |
 | `char` | 单个字符 |
-| pointer | 地址 |
+| `pointer` | 地址 |
 
 修饰符：
 

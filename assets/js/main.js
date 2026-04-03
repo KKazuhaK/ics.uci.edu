@@ -12,7 +12,7 @@
 				$header = $('#header'),
 				$banner = $('#banner');
 
-			var pageTransitionDuration = 380;
+			var pageTransitionDuration = 220;
 
 			$body.addClass('is-page-transitioning');
 			$wrapper.addClass('is-transitioning');

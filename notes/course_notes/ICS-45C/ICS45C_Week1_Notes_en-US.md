@@ -261,7 +261,7 @@ double area(double r) {
 | `float` / `double` | floating-point number |
 | `bool` | true / false |
 | `char` | a single character |
-| pointer | an address |
+| `pointer` | an address |
 
 Common modifiers:
 
