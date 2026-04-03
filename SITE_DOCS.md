@@ -112,6 +112,31 @@ print("hello")
 也可以继续添加其他标准语言标签；如果 Shiki 能识别，就会按对应语法着色。  
 没有语言标签的代码块仍然可以渲染，但会按纯文本显示，不会自动着色。
 
+### Markdown 数学公式
+
+`tools/md-viewer/index.html` 支持 KaTeX 数学公式渲染（按需加载，仅在页面含 `$` 时才加载库）。
+
+**Block math**（独立居中显示）：
+````md
+$$\boxed{E = mc^2}$$
+````
+
+或多行：
+````md
+$$
+\frac{a}{b} + c
+$$
+````
+
+**Inline math**（行内）：
+```md
+设 $x = 1$，则...
+```
+
+KaTeX 不支持的公式会静默降级显示为原始文本，不会破坏页面。
+
+---
+
 ### 课程目录页的数据结构
 
 每个课程 `index.html` 内嵌一个 `notesCatalog` 数组，结构：
@@ -167,8 +192,9 @@ print("hello")
 2. 优先复制 `templates/course_notes.html` 到 `notes/course_notes/<COURSE>/index.html`
 3. 修改课程页里的 `<title>`、页头课程名、`pageCopy`、`notesCatalog`、`createNoteUrl()`，并把模板中的相对路径从 `../` 改成 `../../../`
 4. 在 `tools/md-viewer/index.html` 的 `courseProfiles` 中新增对应条目
-5. 笔记 `.md` 文件放入新文件夹，命名遵循规范
-6. 所有新文件执行 `chmod 644`（新建文件默认权限可能是 600，Apache 读不到会报 403）
+5. 在 `index.html` 的 tiles 区域（`#one` section）新增一个 `<article>` 入口，替换一个 "Upcoming" 占位格
+6. 笔记 `.md` 文件放入新文件夹，命名遵循规范
+7. 所有新文件执行 `chmod 644`（新建文件默认权限可能是 600，Apache 读不到会报 403）
 
 ---
 
