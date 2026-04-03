@@ -9,9 +9,9 @@
 - [五、运算符、表达式与基本数据](#五运算符表达式与基本数据)
 - [六、控制结构](#六控制结构)
 - [七、函数、参数与作用域](#七函数参数与作用域)
-- [八、数组、指针与内存观念](#八数组指针与内存观念)
+- [八、数组与指针](#八数组与指针)
 - [九、GoogleTest 入门](#九googletest-入门)
-- [十、Sample Quiz 0](#十sample-quiz-0)
+- [十、Sample Quiz 0（Week 2）](#十sample-quiz-0)
 - [十一、综合速查表](#十一综合速查表)
 
 > UCI ICS 45C: Programming in C++ (35770)  
@@ -104,7 +104,7 @@ return 0;
 
 好的注释应该解释 **why**，而不只是解释 **what**。
 
-### 2.4 头文件、命名空间、源文件
+### 2.4 头文件与命名空间
 
 ```cpp
 #include <iostream>
@@ -120,11 +120,6 @@ using namespace std;
 - 可读性更清楚
 - 减少命名冲突
 - 更符合现代 C++ 习惯
-
-**文件组织：**
-
-- 头文件 `*.h / *.hpp`：放声明
-- 源文件 `*.cpp`：放定义
 
 ### 2.5 编译器、链接器、加载器
 
@@ -663,40 +658,7 @@ void addOne(int x) {
 }
 ```
 
-### 7.6 引用传递
-
-```cpp
-void increment(int& x) {
-    ++x;
-}
-```
-
-```cpp
-int z{10};
-increment(z);
-std::cout << z << '\n';   // 11
-```
-
-- `int& x` 表示引用参数
-- 它允许函数直接修改调用者里的变量
-
-### 7.7 默认参数与重载
-
-```cpp
-double toCentigrade(double fahrenheitTemp = 32.0) {
-    return 5.0 * (fahrenheitTemp - 32.0) / 9.0;
-}
-```
-
-```cpp
-double calc(int n)    { return n * n; }
-double calc(double x) { return x * x + 0.5; }
-```
-
-- **默认参数**：调用时可以省略某些值
-- **函数重载**：同名函数，参数列表不同
-
-### 7.8 局部作用域
+### 7.6 局部作用域
 
 ```cpp
 void func() {
@@ -711,7 +673,7 @@ void func() {
 
 ---
 
-## 八、数组、指针与内存观念
+## 八、数组与指针
 
 ### 8.1 数组
 
@@ -773,48 +735,6 @@ int* ptr{nullptr};
 
 - `nullptr` 表示“不指向任何对象”
 - 解引用空指针是严重错误
-
-### 8.5 文件输入输出
-
-```cpp
-#include <fstream>
-#include <string>
-
-std::ifstream in("input.txt");
-std::ofstream out("output.txt");
-std::string line{};
-
-while (std::getline(in, line)) {
-    out << line << '\n';
-}
-```
-
-- `ifstream`：读文件
-- `ofstream`：写文件
-- `while (getline(...))` 是标准逐行读取模式
-
-### 8.6 内存区域与生命周期
-
-常见存储区域：
-
-- **静态区**：全局变量、`static` 变量
-- **栈**：局部变量、函数参数
-- **堆 / free store**：`new` / `delete` 管理的对象
-
-对象生命周期可记成：
-
-1. Birth
-2. Allocation
-3. Construction
-4. Life
-5. Death
-6. Destruction
-7. Deallocation
-
-老师特别强调：
-
-- 是 **destruction**
-- 不是 **deconstruction**
 
 ---
 
@@ -895,6 +815,8 @@ TEST(QueueTest, DequeueWorks) {
 
 ## 十、Sample Quiz 0
 
+> ⚠️ **注意**：Sample Quiz 0 是 **Week 2** 的内容（Week 2 Thursday 考），这里保留作为提前参考。
+>
 > Assume all necessary `#include`s are present and correct.
 
 ### 10.1 运算符优先级
@@ -932,7 +854,25 @@ int main() {
 }
 ```
 
-### 10.4 这题在考什么
+### 10.4 对象生命周期
+
+**题目：** 给出 C++ 中对象生命周期每一步的具体术语。
+
+**答案：**
+
+```
+1) Birth（诞生）
+   1a) Allocation    — 分配内存
+   1b) Construction  — 构造对象
+2) Life（存活）
+3) Death（死亡）
+   3a) Destruction   — 析构对象
+   3b) Deallocation  — 释放内存
+```
+
+> ⚠️ 是 **Destruction**，不是 ~~Deconstruction~~。写错扣 5 分。
+
+### 10.5 这题在考什么
 
 这份 Quiz 其实在同时检查四件事：
 
@@ -965,14 +905,13 @@ int main() {
 | 数组 | `[1, 2, 3]` | `int a[]{1, 2, 3};` |
 | 指针 | 无直接等价 | `int* p = &x;` |
 | 空指针 | `None` | `nullptr` |
-| 引用传参 | 可变对象常有类似效果 | `void f(int& x)` |
 | 自增 | `x += 1` | `++x` 或 `x++` |
 | 测试 | `assert` / `unittest` | GoogleTest |
 
 **Week 1 最重要的五条记忆：**
 
 1. C++ 是静态类型语言
-2. 变量定义时就初始化，优先用 `{}` 
+2. 变量定义时就初始化，优先用 `{}`
 3. `int / int` 是整数除法
 4. `main()` 是程序入口
-5. 默认参数传递方式是值传递；引用参数会改到原变量
+5. 函数必须先声明再调用；默认参数传递方式是值传递
