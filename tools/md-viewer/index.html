@@ -294,7 +294,7 @@
 				background: #1e1e1e;
 				color: #d4d4d4;
 				border: 1px solid rgba(255, 255, 255, 0.08);
-				font: 0.95em/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				font: 0.88em/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
 			}
 
 			.markdown-body pre code {
@@ -303,42 +303,28 @@
 				color: inherit;
 			}
 
-			.markdown-body pre code .token-comment {
-				color: #6a9955;
+			.markdown-body pre.shiki {
+				background: #1e1e1e !important;
+				color: #d4d4d4 !important;
 			}
 
-			.markdown-body pre code .token-keyword {
-				color: #569cd6;
+			.markdown-body pre.shiki code {
+				display: block;
+				padding: 0;
+				background: transparent;
+				color: inherit;
+				font: inherit;
+				white-space: normal;
 			}
 
-			.markdown-body pre code .token-string {
-				color: #ce9178;
+			.markdown-body pre.shiki code .line {
+				display: block;
+				min-height: 1.6em;
+				white-space: pre;
 			}
 
-			.markdown-body pre code .token-number {
-				color: #b5cea8;
-			}
-
-			.markdown-body pre code .token-function {
-				color: #dcdcaa;
-			}
-
-			.markdown-body pre code .token-preprocessor {
-				color: #c586c0;
-			}
-
-			.markdown-body pre code .token-builtin,
-			.markdown-body pre code .token-command,
-			.markdown-body pre code .token-property {
-				color: #9cdcfe;
-			}
-
-			.markdown-body pre code .token-variable {
-				color: #9cdcfe;
-			}
-
-			.markdown-body pre code .token-decorator {
-				color: #c586c0;
+			.markdown-body pre.shiki code .line:empty::before {
+				content: " ";
 			}
 
 			.markdown-body table {
@@ -694,66 +680,43 @@
 				return value;
 			}
 
-			function createTokenStore() {
-				const tokens = [];
-				return {
-					stash(html) {
-						const key = String.fromCharCode(0xE000 + tokens.length);
-						tokens.push(html);
-						return key;
-					},
-					restore(text) {
-						return text.replace(/[\uE000-\uF8FF]/g, function(match) {
-							return tokens[match.charCodeAt(0) - 0xE000] || match;
-						});
-					}
-				};
-			}
-
-			function wrapHighlighted(className, value) {
-				return '<span class="token-' + className + '">' + escapeHtml(value) + "</span>";
-			}
-
-			function stashMatches(text, pattern, className, store) {
-				return text.replace(pattern, function(match) {
-					return store.stash(wrapHighlighted(className, match));
-				});
-			}
-
-			function highlightWords(text, words, className, store) {
-				if (!words.length) {
-					return text;
-				}
-
-				const pattern = new RegExp("\\b(?:" + words.join("|") + ")\\b", "g");
-				return text.replace(pattern, function(match) {
-					return store.stash(wrapHighlighted(className, match));
-				});
-			}
-
-			function highlightNumbers(text, store) {
-				return text.replace(/\b(?:0[xX][0-9A-Fa-f]+|0[bB][01]+|(?:\d+\.\d*|\.\d+|\d+)(?:[eE][+-]?\d+)?(?:[uUlLfF]+)?)\b/g, function(match) {
-					return store.stash(wrapHighlighted("number", match));
-				});
-			}
-
-			function highlightFunctionCalls(text, reservedWords, store) {
-				return text.replace(/\b([A-Za-z_]\w*)(?=\s*\()/g, function(match, name) {
-					return reservedWords.has(name)
-						? match
-						: store.stash(wrapHighlighted("function", name));
-				});
-			}
-
-			function restoreHighlightedText(text, store) {
-				return store.restore(escapeHtml(text));
-			}
+			const SHIKI_IMPORT_URL = "https://esm.sh/shiki@3.0.0";
+			const SHIKI_THEME = "dark-plus";
+			let shikiModulePromise = null;
 
 			function normalizeCodeLanguage(language) {
-				const raw = (language || "").toLowerCase();
+				const raw = (language || "").trim().toLowerCase();
 
 				if (!raw) {
 					return "";
+				}
+
+				const aliases = {
+					"c++": "cpp",
+					cc: "cpp",
+					cxx: "cpp",
+					hpp: "cpp",
+					"h++": "cpp",
+					hxx: "cpp",
+					py: "python",
+					sh: "bash",
+					shell: "bash",
+					zsh: "bash",
+					js: "javascript",
+					mjs: "javascript",
+					cjs: "javascript",
+					ts: "typescript",
+					mts: "typescript",
+					cts: "typescript",
+					yml: "yaml",
+					md: "markdown",
+					plain: "text",
+					plaintext: "text",
+					txt: "text"
+				};
+
+				if (aliases[raw]) {
+					return aliases[raw];
 				}
 
 				if (["cpp", "c++", "cc", "cxx", "hpp", "h++", "hxx"].includes(raw)) {
@@ -787,157 +750,67 @@
 				return raw;
 			}
 
-			function highlightCppLikeCode(code) {
-				const store = createTokenStore();
-				let text = code;
-				const keywords = [
-					"alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor", "bool",
-					"break", "case", "catch", "char", "char8_t", "char16_t", "char32_t", "class",
-					"compl", "concept", "const", "consteval", "constexpr", "constinit", "const_cast",
-					"continue", "co_await", "co_return", "co_yield", "decltype", "default", "delete",
-					"do", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extern",
-					"false", "float", "for", "friend", "goto", "if", "inline", "int", "long",
-					"mutable", "namespace", "new", "noexcept", "nullptr", "operator", "or", "or_eq",
-					"private", "protected", "public", "register", "reinterpret_cast", "requires",
-					"return", "short", "signed", "sizeof", "static", "static_assert", "static_cast",
-					"struct", "switch", "template", "this", "thread_local", "throw", "true", "try",
-					"typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void",
-					"volatile", "wchar_t", "while", "xor", "xor_eq"
-				];
-				const reservedWords = new Set(keywords);
-
-				text = stashMatches(text, /^[ \t]*#.*$/gm, "preprocessor", store);
-				text = stashMatches(text, /\/\*[\s\S]*?\*\//g, "comment", store);
-				text = stashMatches(text, /\/\/.*$/gm, "comment", store);
-				text = stashMatches(text, /(?:u8|u|U|L)?"(?:\\.|[^"\\])*"|(?:u8|u|U|L)?'(?:\\.|[^'\\])*'/g, "string", store);
-				text = highlightWords(text, keywords, "keyword", store);
-				text = highlightNumbers(text, store);
-				text = highlightFunctionCalls(text, reservedWords, store);
-
-				return restoreHighlightedText(text, store);
-			}
-
-			function highlightPythonCode(code) {
-				const store = createTokenStore();
-				let text = code;
-				const keywords = [
-					"False", "None", "True", "and", "as", "assert", "async", "await", "break",
-					"class", "continue", "def", "del", "elif", "else", "except", "finally", "for",
-					"from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or",
-					"pass", "raise", "return", "try", "while", "with", "yield"
-				];
-				const builtins = [
-					"bool", "dict", "float", "input", "int", "len", "list", "print", "range",
-					"set", "str", "tuple"
-				];
-
-				text = stashMatches(text, /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "string", store);
-				text = stashMatches(text, /#.*$/gm, "comment", store);
-				text = text.replace(/(^|\s)(@[A-Za-z_][\w.]*)/gm, function(match, prefix, decorator) {
-					return prefix + store.stash(wrapHighlighted("decorator", decorator));
-				});
-				text = text.replace(/\b(def|class)(\s+)([A-Za-z_]\w*)/g, function(match, keyword, spacing, name) {
-					return store.stash(
-						wrapHighlighted("keyword", keyword) +
-						spacing +
-						wrapHighlighted("function", name)
-					);
-				});
-				text = highlightWords(text, keywords, "keyword", store);
-				text = highlightWords(text, builtins, "builtin", store);
-				text = highlightNumbers(text, store);
-
-				return restoreHighlightedText(text, store);
-			}
-
-			function highlightBashCode(code) {
-				const store = createTokenStore();
-				let text = code;
-				const keywords = [
-					"if", "then", "else", "elif", "fi", "for", "in", "do", "done", "case", "esac",
-					"while", "until", "function", "select", "time", "coproc", "break", "continue",
-					"return", "exit", "local", "export", "readonly", "declare", "typeset", "unset",
-					"source"
-				];
-				const reservedWords = new Set(keywords);
-
-				text = stashMatches(text, /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`[^`]*`/g, "string", store);
-				text = text.replace(/(^|[^\\])(#[^\n]*)/g, function(match, prefix, comment) {
-					return prefix + store.stash(wrapHighlighted("comment", comment));
-				});
-				text = highlightWords(text, keywords, "keyword", store);
-				text = text.replace(/\$(?:[A-Za-z_][A-Za-z0-9_]*|[@*#?$!-]|\d+|\{[^}\n]+\})/g, function(match) {
-					return store.stash(wrapHighlighted("variable", match));
-				});
-				text = highlightNumbers(text, store);
-				text = text.replace(/(^|\n)(\s*)([A-Za-z./][\w./-]*)(?=\s|$)/g, function(match, lead, spacing, command) {
-					return reservedWords.has(command)
-						? match
-						: lead + spacing + store.stash(wrapHighlighted("command", command));
-				});
-
-				return restoreHighlightedText(text, store);
-			}
-
-			function highlightJsonCode(code) {
-				const store = createTokenStore();
-				let text = code;
-
-				text = stashMatches(text, /"(?:\\.|[^"\\])*"(?=\s*:)/g, "property", store);
-				text = stashMatches(text, /"(?:\\.|[^"\\])*"/g, "string", store);
-				text = highlightWords(text, ["true", "false", "null"], "builtin", store);
-				text = highlightNumbers(text, store);
-
-				return restoreHighlightedText(text, store);
-			}
-
-			function highlightJavaScriptCode(code) {
-				const store = createTokenStore();
-				let text = code;
-				const keywords = [
-					"await", "break", "case", "catch", "class", "const", "continue", "default",
-					"delete", "do", "else", "export", "extends", "false", "finally", "for",
-					"function", "if", "import", "in", "instanceof", "let", "new", "null", "return",
-					"super", "switch", "this", "throw", "true", "try", "typeof", "var", "void",
-					"while", "yield"
-				];
-				const builtins = ["Array", "Boolean", "Date", "JSON", "Math", "Number", "Object", "String", "console"];
-				const reservedWords = new Set(keywords);
-
-				text = stashMatches(text, /\/\*[\s\S]*?\*\//g, "comment", store);
-				text = stashMatches(text, /\/\/.*$/gm, "comment", store);
-				text = stashMatches(text, /`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "string", store);
-				text = highlightWords(text, keywords, "keyword", store);
-				text = highlightWords(text, builtins, "builtin", store);
-				text = highlightNumbers(text, store);
-				text = highlightFunctionCalls(text, reservedWords, store);
-
-				return restoreHighlightedText(text, store);
-			}
-
-			function highlightCode(code, language) {
-				switch (language) {
-					case "cpp":
-					case "c":
-						return highlightCppLikeCode(code);
-					case "python":
-						return highlightPythonCode(code);
-					case "bash":
-						return highlightBashCode(code);
-					case "json":
-						return highlightJsonCode(code);
-					case "javascript":
-						return highlightJavaScriptCode(code);
-					default:
-						return escapeHtml(code);
-				}
-			}
-
 			function buildCodeBlockHtml(code, language) {
 				const normalizedLanguage = normalizeCodeLanguage(language);
 				const languageAttribute = normalizedLanguage ? ' data-language="' + normalizedLanguage + '"' : "";
 				const codeClass = normalizedLanguage ? ' class="language-' + normalizedLanguage + '"' : "";
-				return "<pre" + languageAttribute + "><code" + codeClass + ">" + highlightCode(code, normalizedLanguage) + "</code></pre>";
+				return "<pre" + languageAttribute + "><code" + codeClass + ">" + escapeHtml(code) + "</code></pre>";
+			}
+
+			async function getShikiCodeToHtml() {
+				if (!shikiModulePromise) {
+					shikiModulePromise = import(SHIKI_IMPORT_URL)
+						.catch(function(error) {
+							shikiModulePromise = null;
+							throw error;
+						});
+				}
+
+				const shiki = await shikiModulePromise;
+				return shiki.codeToHtml;
+			}
+
+			async function applySyntaxHighlighting(container) {
+				const codeBlocks = Array.from(container.querySelectorAll("pre > code"));
+				const highlightableBlocks = codeBlocks.filter(function(codeElement) {
+					const normalizedLanguage = normalizeCodeLanguage(codeElement.parentElement.dataset.language || "");
+					return normalizedLanguage !== "" && normalizedLanguage !== "text";
+				});
+
+				if (!highlightableBlocks.length) {
+					return;
+				}
+
+				let codeToHtml;
+				try {
+					codeToHtml = await getShikiCodeToHtml();
+				} catch (error) {
+					console.warn("Shiki failed to initialize. Falling back to plain code blocks.", error);
+					return;
+				}
+
+				for (const codeElement of highlightableBlocks) {
+					const originalPre = codeElement.parentElement;
+					const shikiLanguage = normalizeCodeLanguage(originalPre.dataset.language || "");
+
+					try {
+						const highlightedHtml = await codeToHtml(codeElement.textContent || "", {
+							lang: shikiLanguage,
+							theme: SHIKI_THEME
+						});
+						const template = document.createElement("template");
+						template.innerHTML = highlightedHtml.trim();
+						const highlightedPre = template.content.firstElementChild;
+						if (!highlightedPre) {
+							continue;
+						}
+
+						highlightedPre.dataset.language = shikiLanguage;
+						originalPre.replaceWith(highlightedPre);
+					} catch (error) {
+						console.warn("Shiki failed to highlight a code block.", error);
+					}
+				}
 			}
 
 			function isTableSeparator(line) {
@@ -1338,6 +1211,7 @@
 					content.hidden = false;
 					status.remove();
 					scrollToCurrentHash();
+					void applySyntaxHighlighting(content);
 				} catch (error) {
 					status.outerHTML = '<div class="error">' + escapeHtml(error.message) + "</div>";
 				}
