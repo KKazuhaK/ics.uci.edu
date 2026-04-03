@@ -20,10 +20,10 @@
 				--notes-blue-bg: rgba(36, 79, 143, 0.10);
 				--notes-blue-border: rgba(36, 79, 143, 0.22);
 				--notes-blue-bg-strong: rgba(36, 79, 143, 0.17);
-				--notes-teal: #0b7f78;
-				--notes-teal-bg: rgba(11, 127, 120, 0.13);
-				--notes-teal-border: rgba(11, 127, 120, 0.28);
-				--notes-teal-bg-strong: rgba(15, 118, 110, 0.17);
+				--notes-teal: #0c8a5f;
+				--notes-teal-bg: rgba(12, 138, 95, 0.13);
+				--notes-teal-border: rgba(12, 138, 95, 0.28);
+				--notes-teal-bg-strong: rgba(12, 138, 95, 0.19);
 				--notes-gold: #8b5a18;
 				--notes-gold-bg: rgba(173, 113, 35, 0.11);
 				--notes-gold-border: rgba(139, 90, 24, 0.22);
@@ -140,6 +140,7 @@
 			a.course-chip,
 			a.file-chip {
 				text-decoration: none;
+				border-bottom: 0 !important;
 				transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 			}
 
@@ -194,6 +195,13 @@
 				box-shadow: inset 0 0 0 1.5px var(--notes-gold-border);
 				color: #71470f !important;
 				transform: translateY(-1px);
+			}
+
+			.notes-breadcrumb a,
+			.notes-breadcrumb a:hover,
+			.notes-breadcrumb a:active,
+			.notes-breadcrumb a:focus {
+				border-bottom: 0 !important;
 			}
 
 			.viewer-card {
@@ -672,29 +680,53 @@
 					.trim();
 			}
 
-			function buildReaderCopy(course, note) {
+			function sanitizeLanguage(language) {
+				return language === "zh" ? "zh" : "en";
+			}
+
+			function inferLanguageFromNote(note) {
+				return /_EN\.md$/i.test(note) ? "en" : "zh";
+			}
+
+			function buildReaderCopy(course, note, language) {
 				const courseProfiles = {
 					"ICS-45C": {
-						title: "ICS 45C Notes",
-						heading: "C++ 课程阅读笔记",
-						description: "这页整理的是 ICS 45C 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+						en: {
+							title: "ICS 45C Notes",
+							heading: "C++ Weekly Reading Notes",
+							description: "This page presents ICS 45C notes in a structured reading format so you can review syntax, program structure, testing, and problem solving week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+						},
+						zh: {
+							title: "ICS 45C Notes",
+							heading: "C++ 课程阅读笔记",
+							description: "这页整理的是 ICS 45C 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+						}
 					},
 					"IN4MATX-43": {
-						title: "IN4MATX-43 Notes",
-						heading: "软件工程课程阅读笔记",
-						description: "这页整理的是 IN4MATX-43 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+						en: {
+							title: "IN4MATX-43 Notes",
+							heading: "Software Engineering Reading Notes",
+							description: "This page presents IN4MATX-43 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+						},
+						zh: {
+							title: "IN4MATX-43 Notes",
+							heading: "软件工程课程阅读笔记",
+							description: "这页整理的是 IN4MATX-43 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+						}
 					}
 				};
 
 				const profile = courseProfiles[course];
 				if (profile) {
-					return profile;
+					return profile[language] || profile.en;
 				}
 
 				return {
 					title: course + " Notes",
 					heading: noteLabelFromFilename(note),
-					description: "你正在阅读一份笔记。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+					description: language === "zh"
+						? "你正在阅读一份笔记。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+						: "You are reading a note. The path below takes you back to Notes, Course Notes, the course page, or this note file."
 				};
 			}
 
@@ -705,17 +737,21 @@
 					if (parts.length !== 2) {
 						throw new Error("Legacy file path must look like <course>/<note>.md");
 					}
+					const note = sanitizeNote(parts[1]);
 					return {
 						kind: "course_notes",
 						course: sanitizeCourse(parts[0]),
-						note: sanitizeNote(parts[1])
+						note,
+						lang: sanitizeLanguage(params.get("lang") || inferLanguageFromNote(note))
 					};
 				}
 
+				const note = sanitizeNote(params.get("note") || "ICS45C_Week1_Notes.md");
 				return {
 					kind: sanitizeKind(params.get("kind") || "course_notes"),
 					course: sanitizeCourse(params.get("course") || "ICS-45C"),
-					note: sanitizeNote(params.get("note") || "ICS45C_Week1_Notes.md")
+					note,
+					lang: sanitizeLanguage(params.get("lang") || inferLanguageFromNote(note))
 				};
 			}
 
@@ -737,7 +773,7 @@
 					const notesKindPath = "../../notes/" + request.kind + "/index.html";
 					const coursePath = "../../notes/" + request.kind + "/" + request.course + "/index.html";
 					const notesHomePath = "../../notes/index.html";
-					const readerCopy = buildReaderCopy(request.course, request.note);
+					const readerCopy = buildReaderCopy(request.course, request.note, request.lang);
 
 					document.title = readerCopy.title + " | Kazuha Mo - UC Irvine";
 					pageTitle.textContent = readerCopy.title;
