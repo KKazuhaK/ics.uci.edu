@@ -7,6 +7,7 @@
 		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
 		<link rel="stylesheet" href="../../assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
 		<style>
 			:root {
 				--notes-ink: #23324a;
@@ -301,6 +302,16 @@
 				padding: 0;
 				background: transparent;
 				color: inherit;
+			}
+
+			.markdown-body .math-block {
+				overflow-x: auto;
+				text-align: center;
+				margin: 1rem 0;
+			}
+
+			.markdown-body .math-block .katex-display {
+				margin: 0;
 			}
 
 			.markdown-body pre.shiki {
@@ -823,6 +834,41 @@
 				return value;
 			}
 
+			const KATEX_JS_URL = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
+			const KATEX_AR_URL = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js";
+			let katexReady = null;
+
+			function loadKatex() {
+				if (!katexReady) {
+					katexReady = new Promise(function(resolve) {
+						const s1 = document.createElement("script");
+						s1.src = KATEX_JS_URL;
+						s1.crossOrigin = "anonymous";
+						s1.onload = function() {
+							const s2 = document.createElement("script");
+							s2.src = KATEX_AR_URL;
+							s2.crossOrigin = "anonymous";
+							s2.onload = resolve;
+							document.head.appendChild(s2);
+						};
+						document.head.appendChild(s1);
+					});
+				}
+				return katexReady;
+			}
+
+			async function applyMathRendering(element) {
+				if (!element.querySelector(".math-block") && !/\$/.test(element.textContent)) return;
+				await loadKatex();
+				renderMathInElement(element, {
+					delimiters: [
+						{ left: "$$", right: "$$", display: true },
+						{ left: "$",  right: "$",  display: false }
+					],
+					throwOnError: false
+				});
+			}
+
 			const SHIKI_IMPORT_URL = "https://esm.sh/shiki@3.0.0";
 			const SHIKI_THEME = "dark-plus";
 			let shikiModulePromise = null;
@@ -1065,6 +1111,27 @@
 					if (anchorMatch) {
 						html.push('<a id="' + anchorMatch[1] + '"></a>');
 						i += 1;
+						continue;
+					}
+
+					// Block math: $$...$$ (single-line or multi-line)
+					if (trimmed.startsWith("$$")) {
+						if (trimmed.length > 4 && trimmed.endsWith("$$")) {
+							// single-line: $$...$$ → keep as-is for KaTeX
+							html.push('<div class="math-block">' + trimmed + "</div>");
+							i += 1;
+						} else {
+							// multi-line: collect until closing $$
+							const mathLines = [trimmed];
+							i += 1;
+							while (i < lines.length && lines[i].trim() !== "$$") {
+								mathLines.push(lines[i]);
+								i += 1;
+							}
+							mathLines.push("$$");
+							html.push('<div class="math-block">' + mathLines.join("\n") + "</div>");
+							i += 1;
+						}
 						continue;
 					}
 
@@ -1349,6 +1416,7 @@
 						content.hidden = false;
 						viewerCard.hidden = false;
 						void applySyntaxHighlighting(content);
+						void applyMathRendering(content);
 					};
 					reader.onerror = function() {
 						crumbEnd.textContent = "Markdown Viewer";
@@ -1468,6 +1536,7 @@
 					status.remove();
 					scrollToCurrentHash();
 					void applySyntaxHighlighting(content);
+					void applyMathRendering(content);
 				} catch (error) {
 					status.outerHTML = '<div class="error">' + escapeHtml(error.message) + "</div>";
 				}
