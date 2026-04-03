@@ -65,9 +65,10 @@
 				--crumb-blue-bg: rgba(36, 80, 143, 0.10);
 				--crumb-blue-border: rgba(36, 80, 143, 0.22);
 				--crumb-blue-bg-strong: rgba(36, 80, 143, 0.17);
-				--crumb-teal: #0b7f78;
-				--crumb-teal-bg: rgba(11, 127, 120, 0.13);
-				--crumb-teal-border: rgba(11, 127, 120, 0.28);
+				--crumb-teal: #0c8a5f;
+				--crumb-teal-bg: rgba(12, 138, 95, 0.13);
+				--crumb-teal-border: rgba(12, 138, 95, 0.28);
+				--crumb-teal-bg-strong: rgba(12, 138, 95, 0.19);
 			}
 
 			.course-chip,
@@ -103,6 +104,7 @@
 			a.status-chip,
 			a.kind-chip {
 				text-decoration: none;
+				border-bottom: 0 !important;
 				transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 			}
 
@@ -138,6 +140,13 @@
 				box-shadow: inset 0 0 0 1.5px var(--crumb-blue-border);
 				color: #183b73 !important;
 				transform: translateY(-1px);
+			}
+
+			.course-meta a,
+			.course-meta a:hover,
+			.course-meta a:active,
+			.course-meta a:focus {
+				border-bottom: 0 !important;
 			}
 
 			.course-controls {
@@ -418,6 +427,7 @@
 						zh: "整合 Runestone、LearnCpp 和 GoogleTest primer 的阅读笔记，整理成一份结构化导读。"
 					},
 					availability: {
+						en: { note: "ICS45C_Week1_Notes_EN.md" },
 						zh: { note: "ICS45C_Week1_Notes.md" }
 					}
 				},
@@ -449,8 +459,8 @@
 
 			let activeLanguage = "en";
 
-			function createNoteUrl(noteFile) {
-				return "../../../tools/md-viewer/?kind=course_notes&course=ICS-45C&note=" + encodeURIComponent(noteFile);
+			function createNoteUrl(noteFile, language) {
+				return "../../../tools/md-viewer/?kind=course_notes&course=ICS-45C&lang=" + encodeURIComponent(language) + "&note=" + encodeURIComponent(noteFile);
 			}
 
 			function getFallbackLanguage(entry) {
@@ -482,7 +492,7 @@
 					const fallbackLanguage = getFallbackLanguage(entry);
 					const fallbackVersion = fallbackLanguage ? entry.availability[fallbackLanguage] : null;
 					const primaryVersion = currentVersion || fallbackVersion;
-					const isFallback = !currentVersion && Boolean(fallbackVersion);
+					const noteLanguage = currentVersion ? activeLanguage : fallbackLanguage;
 					const hasVersion = Boolean(primaryVersion);
 					const stateText = currentVersion
 						? (activeLanguage === "zh" ? "已就绪" : "Available")
@@ -492,7 +502,7 @@
 					const buttonClass = hasVersion
 						? "button small primary-link"
 						: "button small disabled";
-					const href = hasVersion ? createNoteUrl(primaryVersion.note) : "#";
+					const href = hasVersion ? createNoteUrl(primaryVersion.note, noteLanguage) : "#";
 					const buttonText = currentVersion
 						? (activeLanguage === "zh" ? "进入阅读页" : "Open Viewer")
 						: fallbackVersion
