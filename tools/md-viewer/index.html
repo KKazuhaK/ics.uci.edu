@@ -567,6 +567,129 @@
 					padding: 0.42rem 0.8rem 0.42rem 0.62rem;
 				}
 			}
+
+			/* ── upload mode ── */
+			.upload-intro {
+				padding: 1.5rem 1.75rem;
+				border: 1px solid var(--notes-border);
+				border-radius: 1.2rem;
+				background:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				box-shadow: 0 1.25rem 3rem rgba(23,43,77,0.08);
+				color: var(--notes-ink);
+			}
+
+			.upload-intro h2 {
+				margin: 0 0 0.55rem;
+				color: var(--notes-ink);
+			}
+
+			.upload-intro p {
+				margin-bottom: 1.1rem;
+				color: var(--notes-muted);
+			}
+
+			.upload-zone {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.45rem;
+				padding: 2rem 1.5rem;
+				border: 2px dashed var(--notes-blue-border);
+				border-radius: 1rem;
+				background: var(--notes-blue-bg);
+				cursor: pointer;
+				transition: border-color 0.2s ease, background 0.2s ease;
+				text-align: center;
+			}
+
+			.upload-zone:hover,
+			.upload-zone.drag-over {
+				border-color: var(--notes-blue);
+				background: var(--notes-blue-bg-strong);
+			}
+
+			.upload-zone input[type="file"] {
+				display: none;
+			}
+
+			.upload-zone-icon {
+				font-size: 1.8rem;
+				line-height: 1;
+				user-select: none;
+			}
+
+			.upload-zone-label {
+				color: var(--notes-blue);
+				font-weight: 700;
+				font-size: 0.95rem;
+			}
+
+			.upload-zone-hint {
+				color: var(--notes-muted);
+				font-size: 0.8rem;
+			}
+
+			.upload-header-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+				margin-bottom: 1rem;
+			}
+
+			.upload-header-row .notes-breadcrumb {
+				margin-bottom: 0;
+			}
+
+			#upload-prompt p {
+				margin-bottom: 0.9rem;
+				color: var(--notes-muted);
+			}
+
+			.upload-zone-label,
+			.upload-zone-hint {
+				letter-spacing: 0;
+				text-transform: none;
+			}
+
+			.upload-reload-btn {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.35rem 0.9rem;
+				border-radius: 999px;
+				border: 1.5px solid var(--notes-blue-border);
+				background: transparent;
+				color: var(--notes-blue);
+				font: 700 0.82rem/1 inherit;
+				letter-spacing: 0;
+				text-transform: none;
+				cursor: pointer;
+				transition: background 0.18s ease, color 0.18s ease;
+				white-space: nowrap;
+			}
+
+			.upload-reload-btn:hover {
+				background: var(--notes-blue-bg-strong);
+				color: #183b73;
+			}
+
+			.upload-reload-btn[hidden] {
+				display: none !important;
+			}
+
+			@media screen and (max-width: 736px) {
+				.upload-intro {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+					padding: 0.8rem 1rem;
+					box-shadow: none;
+				}
+			}
 		</style>
 	</head>
 	<body class="is-preload">
@@ -584,7 +707,7 @@
 				<ul class="links">
 					<li><a href="../../index.html">Home</a></li>
 					<li><a href="../../notes/">Notes</a></li>
-					<li><a href="../../tools.html">Tools</a></li>
+					<li><a href="../../tools/">Tools</a></li>
 				</ul>
 				<ul class="actions stacked">
 					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
@@ -599,7 +722,7 @@
 								<h1 id="page-title">Notes</h1>
 							</header>
 
-						<div class="notes-intro">
+						<div class="notes-intro" id="notes-intro">
 							<h2 id="reader-heading">Weekly note reading page</h2>
 							<p id="reader-description">你正在阅读一份笔记。下面这条路径会带你返回 Notes 总入口、Course Notes、课程主页，或当前这份笔记所在的位置。</p>
 							<div class="notes-breadcrumb">
@@ -613,7 +736,27 @@
 							</div>
 						</div>
 
-						<div class="viewer-card">
+						<div class="upload-intro" id="upload-intro" hidden>
+							<div class="upload-header-row">
+								<div class="notes-breadcrumb">
+									<a href="../../tools/" class="status-chip">Tools</a>
+									<span class="breadcrumb-sep">›</span>
+									<span class="file-chip" id="upload-crumb-end">Markdown Viewer</span>
+								</div>
+								<button class="upload-reload-btn" id="open-another" hidden>Open another file</button>
+							</div>
+							<div id="upload-prompt">
+								<p>Select or drag a <code>.md</code> file from your device to render it here.</p>
+								<label class="upload-zone" id="upload-zone">
+									<input type="file" id="file-input" accept=".md,.markdown,text/markdown,text/plain" />
+									<span class="upload-zone-icon">📄</span>
+									<span class="upload-zone-label">Drop file here or click to browse</span>
+									<span class="upload-zone-hint">.md / .markdown / .txt</span>
+								</label>
+							</div>
+						</div>
+
+						<div class="viewer-card" id="viewer-card">
 							<div class="status" id="status">Loading markdown...</div>
 							<article class="markdown-body" id="content" hidden></article>
 						</div>
@@ -1167,8 +1310,121 @@
 				};
 			}
 
+			function isUploadMode(params) {
+				return !params.has("kind") && !params.has("course") && !params.has("note") && !params.has("file");
+			}
+
+			function setupFileUpload() {
+				const uploadPrompt = document.getElementById("upload-prompt");
+				const openAnother = document.getElementById("open-another");
+				const crumbEnd = document.getElementById("upload-crumb-end");
+				const viewerCard = document.getElementById("viewer-card");
+				const content = document.getElementById("content");
+				const pageTitle = document.getElementById("page-title");
+				const zone = document.getElementById("upload-zone");
+				const fileInput = document.getElementById("file-input");
+
+				function loadFile(file) {
+					if (!file) return;
+					const allowed = [".md", ".markdown", ".txt"];
+					const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+					if (!allowed.includes(ext)) {
+						showUploadError("Unsupported file type \"" + escapeHtml(ext) + "\". Please select a .md, .markdown, or .txt file.");
+						return;
+					}
+					const MAX_MB = 5;
+					if (file.size > MAX_MB * 1024 * 1024) {
+						showUploadError("File is too large (" + (file.size / 1024 / 1024).toFixed(1) + " MB). Maximum allowed size is " + MAX_MB + " MB.");
+						return;
+					}
+					clearUploadError();
+					const reader = new FileReader();
+					reader.onload = function(e) {
+						document.title = file.name + " | Kazuha Mo - UC Irvine";
+						pageTitle.textContent = file.name;
+						crumbEnd.textContent = file.name;
+						openAnother.hidden = false;
+						uploadPrompt.hidden = true;
+						content.innerHTML = markdownToHtml(e.target.result);
+						content.hidden = false;
+						viewerCard.hidden = false;
+						void applySyntaxHighlighting(content);
+					};
+					reader.onerror = function() {
+						crumbEnd.textContent = "Markdown Viewer";
+						openAnother.hidden = true;
+						uploadPrompt.hidden = false;
+					};
+					reader.readAsText(file);
+				}
+
+				function resetUpload() {
+					crumbEnd.textContent = "Markdown Viewer";
+					openAnother.hidden = true;
+					uploadPrompt.hidden = false;
+					clearUploadError();
+					content.innerHTML = "";
+					content.hidden = true;
+					viewerCard.hidden = true;
+					pageTitle.textContent = "Markdown Viewer";
+					document.title = "Markdown Viewer | Kazuha Mo - UC Irvine";
+					fileInput.value = "";
+				}
+
+				function showUploadError(msg) {
+					let err = document.getElementById("upload-error");
+					if (!err) {
+						err = document.createElement("div");
+						err.id = "upload-error";
+						err.className = "error";
+						uploadPrompt.insertBefore(err, uploadPrompt.firstChild);
+					}
+					err.textContent = msg;
+					fileInput.value = "";
+				}
+
+				function clearUploadError() {
+					const err = document.getElementById("upload-error");
+					if (err) err.remove();
+				}
+
+				openAnother.addEventListener("click", resetUpload);
+
+				fileInput.addEventListener("change", function() {
+					if (fileInput.files.length > 0) loadFile(fileInput.files[0]);
+				});
+
+				zone.addEventListener("dragover", function(e) {
+					e.preventDefault();
+					zone.classList.add("drag-over");
+				});
+				zone.addEventListener("dragleave", function() {
+					zone.classList.remove("drag-over");
+				});
+				zone.addEventListener("drop", function(e) {
+					e.preventDefault();
+					zone.classList.remove("drag-over");
+					const file = e.dataTransfer.files[0];
+					if (file) loadFile(file);
+				});
+			}
+
 			async function init() {
 				const params = new URLSearchParams(window.location.search);
+
+				if (isUploadMode(params)) {
+					const pageTitle = document.getElementById("page-title");
+					const viewerCard = document.getElementById("viewer-card");
+					document.getElementById("notes-intro").hidden = true;
+					document.getElementById("upload-intro").hidden = false;
+					document.getElementById("status").remove();
+					viewerCard.hidden = true;
+					pageTitle.textContent = "Markdown Viewer";
+					document.title = "Markdown Viewer | Kazuha Mo - UC Irvine";
+					setupFileUpload();
+					return;
+				}
+
 				const status = document.getElementById("status");
 				const content = document.getElementById("content");
 				const courseLink = document.getElementById("course-link");
