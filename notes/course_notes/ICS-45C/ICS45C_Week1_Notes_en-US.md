@@ -1,4 +1,4 @@
-# ICS 45C Week 1 — Integrated Reading Notes
+# Information and Computer Science 45C — Week 1 Integrated Reading Notes
 
 ## Table of Contents
 
