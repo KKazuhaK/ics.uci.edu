@@ -75,6 +75,11 @@ int main() {
 }
 ```
 
+```text
+// 输出:
+Hello, world!
+```
+
 这个程序里有几个 Week 1 必须认识的元素：
 
 - `#include <iostream>`：引入标准输入输出库
@@ -90,7 +95,7 @@ int main() {
 ```cpp
 int x;
 x = 5;
-std::cout << x;
+std::cout << x;   // 输出: 5
 return 0;
 ```
 
@@ -290,6 +295,12 @@ int main() {
 }
 ```
 
+```text
+// 输入: 42
+// 输出:
+You entered: 42
+```
+
 - `std::cout <<`：输出
 - `std::cin >>`：输入
 - `std::endl`：换行并刷新缓冲区
@@ -305,7 +316,7 @@ Week 1 推荐优先用 `'\n'`。
 ### 4.2 insertion / extraction operator
 
 ```cpp
-std::cout << "A" << "B" << '\n';
+std::cout << "A" << "B" << '\n';   // 输出: AB
 std::cin >> value;
 ```
 
@@ -355,12 +366,13 @@ Python 里 `'a'` 和 `"a"` 几乎没差，但 C++ 里它们是不同概念。
 #include <string>
 
 std::string s{"Hello"};
-std::cout << s[0] << '\n';
-std::cout << s.size() << '\n';
+std::cout << s[0] << '\n';         // 输出: H
+std::cout << s.size() << '\n';     // 输出: 5
 
 for (char c : s) {
     std::cout << c << ' ';
 }
+// 输出: H e l l o
 ```
 
 - `s[i]`：按下标访问字符
@@ -517,12 +529,35 @@ while (count < 5) {
 }
 ```
 
+```text
+// 输出:
+0
+1
+2
+3
+4
+```
+
 ### 6.4 `for`
 
 ```cpp
 for (int i{0}; i < 10; ++i) {
     std::cout << i << '\n';
 }
+```
+
+```text
+// 输出:
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
 ```
 
 对应 Python：
@@ -558,6 +593,17 @@ for (int i{0}; i < 10; ++i) {
     }
     std::cout << i << '\n';
 }
+```
+
+```text
+// 输出: (跳过 3，在 8 时停止)
+0
+1
+2
+4
+5
+6
+7
 ```
 
 - `continue`：跳过本轮
@@ -600,7 +646,7 @@ void greet(std::string name) {
 double average(double x, double y);   // declaration
 
 int main() {
-    std::cout << average(2.0, 3.0) << '\n';
+    std::cout << average(2.0, 3.0) << '\n';   // 输出: 2.5
 }
 
 double average(double x, double y) {  // definition
@@ -641,7 +687,7 @@ void print(int x) {
     std::cout << x << '\n';
 }
 
-print(5);
+print(5);   // 输出: 5
 ```
 
 - `x` 是参数（parameter / 形参）
@@ -654,8 +700,12 @@ print(5);
 
 ```cpp
 void addOne(int x) {
-    ++x;
+    ++x;   // 只修改了副本，原变量不受影响
 }
+
+int a{5};
+addOne(a);
+std::cout << a << '\n';   // 输出: 5 (a 没有变)
 ```
 
 ### 7.6 局部作用域
@@ -679,7 +729,7 @@ void func() {
 
 ```cpp
 int scores[5] = {90, 85, 78, 92, 88};
-std::cout << scores[0] << '\n';
+std::cout << scores[0] << '\n';   // 输出: 90
 ```
 
 | Python list | C++ 数组 |
@@ -711,9 +761,9 @@ double average(int list[], int length) {
 int value{100};
 int* ptr{&value};
 
-std::cout << value << '\n';
-std::cout << &value << '\n';
-std::cout << *ptr << '\n';
+std::cout << value << '\n';    // 输出: 100
+std::cout << &value << '\n';   // 输出: 某内存地址，如 0x7ffd5e3a2b4c
+std::cout << *ptr << '\n';     // 输出: 100
 ```
 
 三件事必须分清：
@@ -852,6 +902,20 @@ int main() {
     }
     return 0;
 }
+```
+
+```text
+// 输出:
+1 1
+2 4
+3 9
+4 16
+5 25
+6 36
+7 49
+8 64
+9 81
+10 100
 ```
 
 ### 10.4 对象生命周期
