@@ -75,6 +75,11 @@ int main() {
 }
 ```
 
+```text
+// Output:
+Hello, world!
+```
+
 Key elements you must recognize in Week 1:
 
 - `#include <iostream>` — brings in the standard I/O library
@@ -90,7 +95,7 @@ A **statement** is the smallest independent unit of execution in C++, usually en
 ```cpp
 int x;
 x = 5;
-std::cout << x;
+std::cout << x;   // Output: 5
 return 0;
 ```
 
@@ -290,6 +295,12 @@ int main() {
 }
 ```
 
+```text
+// Input: 42
+// Output:
+You entered: 42
+```
+
 - `std::cout <<` — output
 - `std::cin >>` — input
 - `std::endl` — newline *and* flushes the buffer
@@ -305,7 +316,7 @@ Week 1 recommendation: prefer `'\n'`.
 ### 4.2 Insertion / Extraction Operators
 
 ```cpp
-std::cout << "A" << "B" << '\n';
+std::cout << "A" << "B" << '\n';   // Output: AB
 std::cin >> value;
 ```
 
@@ -355,12 +366,13 @@ In Python, `'a'` and `"a"` are essentially the same; in C++ they are different c
 #include <string>
 
 std::string s{"Hello"};
-std::cout << s[0] << '\n';
-std::cout << s.size() << '\n';
+std::cout << s[0] << '\n';         // Output: H
+std::cout << s.size() << '\n';     // Output: 5
 
 for (char c : s) {
     std::cout << c << ' ';
 }
+// Output: H e l l o
 ```
 
 - `s[i]` — access character by index
@@ -512,12 +524,35 @@ while (count < 5) {
 }
 ```
 
+```text
+// Output:
+0
+1
+2
+3
+4
+```
+
 ### 6.4 `for`
 
 ```cpp
 for (int i{0}; i < 10; ++i) {
     std::cout << i << '\n';
 }
+```
+
+```text
+// Output:
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
 ```
 
 Python equivalent:
@@ -553,6 +588,17 @@ for (int i{0}; i < 10; ++i) {
     }
     std::cout << i << '\n';
 }
+```
+
+```text
+// Output: (skips 3, stops at 8)
+0
+1
+2
+4
+5
+6
+7
 ```
 
 - `continue` — skip the rest of the current iteration
@@ -595,7 +641,7 @@ void greet(std::string name) {
 double average(double x, double y);   // declaration
 
 int main() {
-    std::cout << average(2.0, 3.0) << '\n';
+    std::cout << average(2.0, 3.0) << '\n';   // Output: 2.5
 }
 
 double average(double x, double y) {  // definition
@@ -636,7 +682,7 @@ void print(int x) {
     std::cout << x << '\n';
 }
 
-print(5);
+print(5);   // Output: 5
 ```
 
 - `x` is the **parameter** (formal parameter)
@@ -649,8 +695,12 @@ By default, C++ uses **pass by value**:
 
 ```cpp
 void addOne(int x) {
-    ++x;
+    ++x;   // only modifies the copy — original is unchanged
 }
+
+int a{5};
+addOne(a);
+std::cout << a << '\n';   // Output: 5 (a is unchanged)
 ```
 
 ### 7.6 Local Scope
@@ -674,7 +724,7 @@ void func() {
 
 ```cpp
 int scores[5] = {90, 85, 78, 92, 88};
-std::cout << scores[0] << '\n';
+std::cout << scores[0] << '\n';   // Output: 90
 ```
 
 | Python list | C++ array |
@@ -706,9 +756,9 @@ When passing an array to a function, you typically pass the length as well.
 int value{100};
 int* ptr{&value};
 
-std::cout << value << '\n';
-std::cout << &value << '\n';
-std::cout << *ptr << '\n';
+std::cout << value << '\n';    // Output: 100
+std::cout << &value << '\n';   // Output: a memory address, e.g. 0x7ffd5e3a2b4c
+std::cout << *ptr << '\n';     // Output: 100
 ```
 
 Three things you must distinguish:
@@ -847,6 +897,20 @@ int main() {
     }
     return 0;
 }
+```
+
+```text
+// Output:
+1 1
+2 4
+3 9
+4 16
+5 25
+6 36
+7 49
+8 64
+9 81
+10 100
 ```
 
 ### 10.4 Object Lifetime
