@@ -9,6 +9,12 @@
 		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
 		<style>
+			@media screen and (min-width: 1681px) {
+				body, input, select, textarea {
+					font-size: 14pt;
+				}
+			}
+
 			:root {
 				--notes-ink: #23324a;
 				--notes-muted: #516074;
@@ -579,6 +585,146 @@
 				}
 			}
 
+			/* ── table of contents sidebar ── */
+			/* ── TOC Sidebar ── */
+			#toc-sidebar {
+				position: fixed;
+				top: 50%;
+				right: 0;
+				transform: translateY(-50%);
+				z-index: 200;
+			}
+
+			@media screen and (max-width: 768px) {
+				#toc-sidebar { display: none !important; }
+			}
+
+			/* ── collapsed: marks ── */
+			.toc-marks {
+				max-height: 40vh;
+				cursor: pointer;
+				transition: opacity 0.22s ease, visibility 0.22s ease;
+				background: rgba(15, 20, 32, 0.75);
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				border-right: none;
+				border-radius: 0.6rem 0 0 0.6rem;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.toc-marks-icon {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 36px;
+				height: 28px;
+				flex-shrink: 0;
+				padding-top: 6px;
+				color: rgba(255, 255, 255, 0.55);
+				font-size: 1.05rem;
+				line-height: 1;
+			}
+
+			.toc-marks:hover {
+				background: rgba(15, 20, 32, 0.6);
+			}
+
+			.toc-marks-track {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+				gap: 3px;
+				padding: 4px 8px 12px 10px;
+				overflow-y: auto;
+				overflow-x: hidden;
+				scroll-behavior: smooth;
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+			}
+			.toc-marks-track::-webkit-scrollbar { display: none; }
+
+			.toc-mark {
+				height: 2.5px;
+				border-radius: 999px;
+				background: rgba(255, 255, 255, 0.22);
+				flex-shrink: 0;
+				transition: background 0.2s ease;
+			}
+
+			.toc-mark.mark-h1 { width: 18px; }
+			.toc-mark.mark-h2 { width: 12px; }
+			.toc-mark.mark-h3 { width: 7px; }
+			.toc-mark.mark-h4 { width: 4px; }
+
+			.toc-mark.mark-active { background: rgba(255, 255, 255, 0.85); }
+
+			#toc-sidebar:hover .toc-marks {
+				opacity: 0;
+				visibility: hidden;
+			}
+
+			/* ── expanded: panel ── */
+			.toc-panel {
+				position: absolute;
+				top: 50%;
+				right: 0;
+				transform: translateY(-50%);
+				width: 280px;
+				overscroll-behavior: contain;
+				max-height: 72vh;
+				overflow-y: auto;
+				overflow-x: hidden;
+				background: rgba(13, 17, 28, 0.95);
+				backdrop-filter: blur(14px);
+				-webkit-backdrop-filter: blur(14px);
+				border: 1px solid rgba(255, 255, 255, 0.07);
+				border-right: none;
+				border-radius: 1rem 0 0 1rem;
+				box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+				padding: 0.65rem 0.65rem 0.65rem 0.85rem;
+				box-sizing: border-box;
+				scrollbar-width: thin;
+				scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity 0.22s ease, visibility 0.22s ease;
+			}
+
+			.toc-panel::-webkit-scrollbar { width: 3px; }
+			.toc-panel::-webkit-scrollbar-track { background: transparent; }
+			.toc-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+
+			#toc-sidebar:hover .toc-panel {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.toc-item a {
+				display: block;
+				font-size: 0.82rem;
+				font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+				color: #8fa8cc;
+				padding: 0.2rem 0.35rem;
+				text-decoration: none !important;
+				border-bottom: none !important;
+				border-radius: 0.3rem;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				transition: color 0.15s ease, background 0.15s ease;
+				line-height: 1.5;
+			}
+
+			.toc-item a:hover { color: #e2eaf5; background: rgba(255,255,255,0.06); }
+
+			.toc-item.toc-h1 a { color: #6aa3f5; font-weight: 700; font-size: 0.84rem; }
+			.toc-item.toc-h2 a { padding-left: 0.7rem; color: #c8d8ec; font-weight: 600; }
+			.toc-item.toc-h3 a { padding-left: 1.3rem; font-size: 0.78rem; color: #97adc2; }
+			.toc-item.toc-h4 a { padding-left: 1.9rem; font-size: 0.74rem; color: #8299ae; }
+
+			.toc-item.active a { color: #dde8f8 !important; background: rgba(255,255,255,0.07); }
+			.toc-item.toc-h1.active a { color: #8bbcff !important; }
+
 			/* ── upload mode ── */
 			.upload-intro {
 				padding: 1.5rem 1.75rem;
@@ -801,6 +947,14 @@
 				</div>
 			</footer>
 
+		</div>
+
+		<div id="toc-sidebar" hidden>
+			<div class="toc-marks" id="toc-marks">
+				<div class="toc-marks-icon" title="目录 · Table of Contents">≡</div>
+				<div class="toc-marks-track" id="toc-marks-track"></div>
+			</div>
+			<div class="toc-panel" id="toc-panel"></div>
 		</div>
 
 		<button id="back-to-top" aria-label="Back to top">
@@ -1304,22 +1458,22 @@
 						displayName: "ICS 45C",
 						"en-US": {
 							headingBase: "C++ Weekly Reading Notes",
-							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a structured reading format so you can review syntax, program structure, testing, and problem solving week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a structured reading format so you can review syntax, program structure, testing, and problem solving week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents."
 						},
 						"zh-CN": {
 							headingBase: "C++ 课程阅读笔记",
-							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。"
 						}
 					},
 					"IN4MATX-43": {
 						displayName: "IN4MATX 43",
 						"en-US": {
 							headingBase: "Software Engineering Reading Notes",
-							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file."
+							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents."
 						},
 						"zh-CN": {
 							headingBase: "软件工程课程阅读笔记",
-							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。"
+							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。"
 						}
 					}
 				};
@@ -1415,6 +1569,7 @@
 						content.innerHTML = markdownToHtml(e.target.result);
 						content.hidden = false;
 						viewerCard.hidden = false;
+						buildToc(content);
 						void applySyntaxHighlighting(content);
 						void applyMathRendering(content);
 					};
@@ -1437,6 +1592,10 @@
 					pageTitle.textContent = "Markdown Viewer";
 					document.title = "Markdown Viewer | Kazuha Mo - UC Irvine";
 					fileInput.value = "";
+					var tocSidebar = document.getElementById("toc-sidebar");
+					document.getElementById("toc-marks-track").innerHTML = "";
+					document.getElementById("toc-panel").innerHTML = "";
+					tocSidebar.hidden = true;
 				}
 
 				function showUploadError(msg) {
@@ -1534,12 +1693,88 @@
 					content.innerHTML = markdownToHtml(markdown);
 					content.hidden = false;
 					status.remove();
+					buildToc(content);
 					scrollToCurrentHash();
 					void applySyntaxHighlighting(content);
 					void applyMathRendering(content);
 				} catch (error) {
 					status.outerHTML = '<div class="error">' + escapeHtml(error.message) + "</div>";
 				}
+			}
+
+			function buildToc(contentEl) {
+				const sidebar = document.getElementById("toc-sidebar");
+				const marksEl = document.getElementById("toc-marks");
+				const panelEl = document.getElementById("toc-panel");
+				const headings = Array.from(contentEl.querySelectorAll("h1, h2, h3, h4"));
+				if (headings.length < 4) return;
+
+				// marks (collapsed view) — fixed spacing, scrolls with page
+				var trackEl = document.getElementById("toc-marks-track");
+				trackEl.innerHTML = headings.map(function(h, i) {
+					var level = parseInt(h.tagName[1], 10);
+					return '<span class="toc-mark mark-h' + level + '"></span>';
+				}).join("");
+
+				// panel (expanded view)
+				panelEl.innerHTML = headings.map(function(h) {
+					var level = parseInt(h.tagName[1], 10);
+					var id = h.id;
+					var text = h.textContent.trim();
+					return '<div class="toc-item toc-h' + level + '" data-id="' + escapeHtml(id) + '">'
+						+ '<a href="#' + escapeHtml(id) + '">' + escapeHtml(text) + '</a>'
+						+ '</div>';
+				}).join("");
+
+				sidebar.hidden = false;
+
+				var marks = Array.from(trackEl.querySelectorAll(".toc-mark"));
+				var items = Array.from(panelEl.querySelectorAll(".toc-item"));
+
+				function updateActive() {
+					var scrollY = window.scrollY + 130;
+					var activeIdx = 0;
+					for (var j = 0; j < headings.length; j++) {
+						if (headings[j].offsetTop <= scrollY) { activeIdx = j; } else { break; }
+					}
+					marks.forEach(function(m, i) { m.classList.toggle("mark-active", i === activeIdx); });
+					items.forEach(function(el, i) { el.classList.toggle("active", i === activeIdx); });
+
+					// scroll track so active mark is visible
+					var totalH = trackEl.scrollHeight;
+					var viewH = trackEl.clientHeight;
+					if (totalH > viewH) {
+						var progress = headings.length > 1 ? activeIdx / (headings.length - 1) : 0;
+						trackEl.scrollTop = Math.round(progress * (totalH - viewH));
+					}
+
+					// scroll panel so active item stays visible
+					var activeItem = items[activeIdx];
+					if (activeItem) {
+						var elTop = activeItem.offsetTop;
+						var elH = activeItem.offsetHeight;
+						var pH = panelEl.clientHeight;
+						var pScroll = panelEl.scrollTop;
+						if (elTop < pScroll || elTop + elH > pScroll + pH) {
+							panelEl.scrollTop = elTop - pH / 2 + elH / 2;
+						}
+					}
+				}
+
+				window.addEventListener("scroll", updateActive, { passive: true });
+				updateActive();
+
+				panelEl.addEventListener("click", function(e) {
+					var a = e.target.closest("a");
+					if (!a) return;
+					e.preventDefault();
+					var id = decodeURIComponent(a.getAttribute("href").slice(1));
+					var target = document.getElementById(id);
+					if (target) {
+						target.scrollIntoView({ behavior: "smooth", block: "start" });
+						history.pushState(null, "", a.getAttribute("href"));
+					}
+				});
 			}
 
 			window.addEventListener("hashchange", scrollToCurrentHash);
