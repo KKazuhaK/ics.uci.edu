@@ -172,6 +172,34 @@ KaTeX 不支持的公式会静默降级显示为原始文本，不会破坏页�
 `md-viewer` 会从笔记文件名里自动提取 `Week N`，并拼接到顶部页头标题与说明文案里。  
 例如 `ICS45C_Week1_Notes_en-US.md` 会显示成 `ICS 45C Week 1 Notes`。
 
+### md-viewer 目录侧边栏（TOC Sidebar）
+
+当笔记包含 4 个以上标题时，页面右侧会出现 Notion 风格的目录侧边栏：
+
+- **收起状态**：显示 ≡ 图标 + 缩略横条（minimap），横条宽度按标题级别区分（h1 最宽，h4 最窄）
+- **展开状态**：鼠标悬停时横条消失，展开完整文字目录面板（280px 宽）
+- **自动跟踪**：随页面滚动高亮当前标题，横条和面板同步滚动
+- **点击跳转**：点击目录项平滑滚动到对应标题，跳转期间 TOC 不会因中间标题闪烁
+- **移动端隐藏**：`max-width: 768px` 时 TOC 不显示
+- **滚动隔离**：面板设有 `overscroll-behavior: contain`，防止滚动穿透到页面
+
+TOC 相关的 CSS 类名：`#toc-sidebar`、`.toc-marks`、`.toc-marks-icon`、`.toc-marks-track`、`.toc-mark`、`.toc-panel`、`.toc-item`。  
+JS 入口函数：`buildToc(contentEl)`，在笔记渲染和文件上传渲染后调用。
+
+### md-viewer 大屏字体覆盖
+
+全局 `main.css` 在 `min-width: 1681px` 时将 `body` 字体设为 `17pt`，在大屏显示器（如 32 寸）上偏大。  
+md-viewer 页面内通过 `<style>` 将 `min-width: 1681px` 时的 `body` 字体覆盖为 `14pt`，仅影响阅读器页面。
+
+### md-viewer 文件上传模式
+
+当 URL 不含 `kind`、`course`、`note`、`file` 参数时，md-viewer 进入文件上传模式：
+
+- 显示拖拽/选择区域，支持 `.md`、`.markdown`、`.txt` 文件
+- 文件大小限制 5 MB
+- 渲染后同样会触发 TOC、语法高亮、KaTeX
+- "Open another file" 按钮可重置回上传界面
+
 ---
 
 ## 访问控制

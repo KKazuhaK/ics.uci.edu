@@ -93,14 +93,6 @@
 				margin-bottom: 1rem;
 			}
 
-			.notes-meta {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.75rem;
-				align-items: center;
-				margin-bottom: 1rem;
-			}
-
 			.file-chip,
 			.kind-chip,
 			.course-chip,
@@ -585,7 +577,6 @@
 				}
 			}
 
-			/* ── table of contents sidebar ── */
 			/* ── TOC Sidebar ── */
 			#toc-sidebar {
 				position: fixed;
@@ -1058,39 +1049,7 @@
 					txt: "text"
 				};
 
-				if (aliases[raw]) {
-					return aliases[raw];
-				}
-
-				if (["cpp", "c++", "cc", "cxx", "hpp", "h++", "hxx"].includes(raw)) {
-					return "cpp";
-				}
-
-				if (["c", "h"].includes(raw)) {
-					return "c";
-				}
-
-				if (["py", "python"].includes(raw)) {
-					return "python";
-				}
-
-				if (["bash", "sh", "shell", "zsh"].includes(raw)) {
-					return "bash";
-				}
-
-				if (["js", "javascript", "mjs", "cjs"].includes(raw)) {
-					return "javascript";
-				}
-
-				if (["json"].includes(raw)) {
-					return "json";
-				}
-
-				if (["text", "plain", "plaintext", "txt"].includes(raw)) {
-					return "text";
-				}
-
-				return raw;
+				return aliases[raw] || raw;
 			}
 
 			function buildCodeBlockHtml(code, language) {
@@ -1704,7 +1663,6 @@
 
 			function buildToc(contentEl) {
 				const sidebar = document.getElementById("toc-sidebar");
-				const marksEl = document.getElementById("toc-marks");
 				const panelEl = document.getElementById("toc-panel");
 				const headings = Array.from(contentEl.querySelectorAll("h1, h2, h3, h4"));
 				if (headings.length < 4) return;
@@ -1730,6 +1688,8 @@
 
 				var marks = Array.from(trackEl.querySelectorAll(".toc-mark"));
 				var items = Array.from(panelEl.querySelectorAll(".toc-item"));
+				var tocClickScrolling = false;
+				var tocClickTimer = null;
 
 				function updateActive() {
 					var scrollY = window.scrollY + 130;
@@ -1739,6 +1699,8 @@
 					}
 					marks.forEach(function(m, i) { m.classList.toggle("mark-active", i === activeIdx); });
 					items.forEach(function(el, i) { el.classList.toggle("active", i === activeIdx); });
+
+					if (tocClickScrolling) return;
 
 					// scroll track so active mark is visible
 					var totalH = trackEl.scrollHeight;
@@ -1771,6 +1733,9 @@
 					var id = decodeURIComponent(a.getAttribute("href").slice(1));
 					var target = document.getElementById(id);
 					if (target) {
+						tocClickScrolling = true;
+						if (tocClickTimer) clearTimeout(tocClickTimer);
+						tocClickTimer = setTimeout(function() { tocClickScrolling = false; }, 800);
 						target.scrollIntoView({ behavior: "smooth", block: "start" });
 						history.pushState(null, "", a.getAttribute("href"));
 					}
