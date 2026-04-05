@@ -209,6 +209,12 @@
 				color: #516074;
 			}
 
+			.note-date {
+				font-size: 0.78rem;
+				color: #8899ab;
+				margin: 0 0 0.6rem;
+			}
+
 			.note-topline {
 				display: flex;
 				flex-wrap: wrap;
@@ -486,6 +492,15 @@
 
 			let activeLanguage = "en-US";
 
+			function formatDate(dateStr, lang) {
+				var d = new Date(dateStr);
+				if (isNaN(d)) return "";
+				if (lang === "zh-CN") {
+					return "最后编辑于 " + d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日";
+				}
+				return "Last edited " + d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+			}
+
 			function createNoteUrl(noteFile, language) {
 				return "../../../tools/md-viewer/?kind=course_notes&course=IN4MATX-43&lang=" + encodeURIComponent(language) + "&note=" + encodeURIComponent(noteFile);
 			}
@@ -534,6 +549,7 @@
 						: fallbackVersion
 							? (activeLanguage === "zh-CN" ? "打开现有版本" : "Open Chinese Version")
 							: (activeLanguage === "zh-CN" ? "等待更新" : "Not Ready Yet");
+					var noteFile = primaryVersion ? primaryVersion.note : "";
 					return `
 						<article class="note-card">
 							<div class="note-topline">
@@ -542,12 +558,25 @@
 							</div>
 							<h3>${entry.title[activeLanguage]}</h3>
 							<p>${entry.summary[activeLanguage]}</p>
+							<p class="note-date" data-note="${noteFile}"></p>
 							<div class="note-actions">
 								<a href="${href}" class="${buttonClass}">${buttonText}</a>
 							</div>
 						</article>
 					`;
 				}).join("");
+
+				document.querySelectorAll(".note-date[data-note]").forEach(function(el) {
+					var note = el.dataset.note;
+					if (!note) return;
+					var url = "./" + note + "?v=" + Date.now();
+					fetch(url, { method: "HEAD", cache: "no-store" }).then(function(res) {
+						var lm = res.headers.get("Last-Modified");
+						if (lm) {
+							el.textContent = formatDate(lm, activeLanguage);
+						}
+					}).catch(function() {});
+				});
 			}
 
 			document.querySelectorAll("[data-language]").forEach((button) => {
