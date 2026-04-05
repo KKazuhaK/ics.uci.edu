@@ -45,6 +45,25 @@ The goal of Week 1 is not "learn a lot of syntax" but rather to build a complete
 4. **Compile** — Build into an executable
 5. **Test and debug** — Verify and fix
 
+**Incremental Development (from LearnCpp 1.11):**
+
+A common beginner mistake is trying to write the entire program at once, then being overwhelmed by a flood of errors. The correct approach is **incremental development**:
+
+1. **Add one small piece of code** at a time (e.g., one function)
+2. **Compile** — make sure there are no syntax errors
+3. **Test** — verify this piece works correctly
+4. **Once confirmed, move on** to the next piece
+
+After the program works, the job isn't done yet. The next phase is **code cleanup**:
+
+- Remove or comment out temporary debugging code
+- Add necessary comments
+- Handle error cases (error handling)
+- Format code properly and follow best practices
+- Look for redundant logic that can be simplified or consolidated
+
+> 💡 **First make it work, then make it right.** Don't aim for perfection from the start — but don't stop once it merely runs, either.
+
 > Think of Week 1 as: first learn *how a program exists*, then learn *how it runs*.
 
 ---
@@ -610,12 +629,23 @@ for (int i{0}; i < 10; ++i) {
 
 ### 7.1 Why Use Functions
 
-Four key benefits:
+Five key benefits (from LearnCpp 2.6):
 
-1. Break large problems into smaller ones
-2. Reuse code, avoid repetition
-3. Easier to test
-4. Easier to maintain and extend
+1. **Organization** — Break large problems into smaller, manageable pieces; each function handles one task
+2. **Reusability** — Write once, call anywhere; avoid repeating code (DRY principle)
+3. **Testing** — Small functions are easier to test individually, and bugs are easier to locate
+4. **Extensibility** — Easier to maintain and extend
+5. **Abstraction** — The caller only needs to know *what* a function does (interface), not *how* it does it (implementation)
+
+```cpp
+// The caller only needs to know: pass in two ints, get back their sum
+int result = add(3, 4);
+// No need to care how add() is implemented internally
+```
+
+Abstraction reduces complexity. It's like driving a car — you don't need to know how the engine works; you just need to know that the gas pedal accelerates and the brake pedal stops.
+
+> 💡 This concept directly connects to **encapsulation** in Week 2: classes bundle data and functions together, exposing only the interface while hiding internal implementation.
 
 **Ideally, each function should do one thing.**
 
