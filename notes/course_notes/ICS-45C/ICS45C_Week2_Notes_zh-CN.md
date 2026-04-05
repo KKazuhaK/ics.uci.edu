@@ -2,40 +2,40 @@
 
 ## 目录
 
-- [一、代码测试入门](#一代码测试入门)
-- [二、多文件程序与头文件](#二多文件程序与头文件)
-- [三、常量变量（Named Constants）](#三常量变量named-constants)
-- [四、自增自减运算符与副作用](#四自增自减运算符与副作用)
-- [五、auto 类型推导](#五auto-类型推导)
-- [六、复合数据类型入门](#六复合数据类型入门)
-- [七、值类别：左值与右值](#七值类别左值与右值)
-- [八、左值引用（Lvalue References）](#八左值引用lvalue-references)
-- [九、const 左值引用](#九const-左值引用)
-- [十、引用传参（Pass by Reference）](#十引用传参pass-by-reference)
-- [十一、const 引用传参](#十一const-引用传参)
-- [十二、面向对象编程入门](#十二面向对象编程入门)
-- [十三、类（Class）入门](#十三类class入门)
-- [十四、成员函数](#十四成员函数)
-- [十五、const 对象与 const 成员函数](#十五const-对象与-const-成员函数)
-- [十六、public 与 private 访问控制](#十六public-与-private-访问控制)
-- [十七、构造函数入门](#十七构造函数入门)
-- [十八、构造函数成员初始化列表](#十八构造函数成员初始化列表)
-- [十九、析构函数](#十九析构函数)
-- [二十、类与头文件的分离](#二十类与头文件的分离)
-- [二十一、class vs struct](#二十一class-vs-struct)
-- [二十二、数组（C Arrays）—— 课堂 PPT 补充](#二十二数组c-arrays-课堂-ppt-补充)
-- [二十三、C 风格字符串（C-style Strings）](#二十三c-风格字符串c-style-strings)
-- [二十四、operator<< 重载与引用参数模式](#二十四operator-重载与引用参数模式)
-- [二十五、STL 容器初步：set 与 map（可能属于 Week 3）](#二十五stl-容器初步set-与-map可能属于-week-3)
-- [二十六、文件 I/O 初步（可能属于 Week 3）](#二十六文件-io-初步可能属于-week-3)
-- [二十七、综合速查表](#二十七综合速查表)
+- [1. 代码测试入门](#1-代码测试入门)
+- [2. 多文件程序与头文件](#2-多文件程序与头文件)
+- [3. 常量变量（Named Constants）](#3-常量变量named-constants)
+- [4. 自增自减运算符与副作用](#4-自增自减运算符与副作用)
+- [5. auto 类型推导](#5-auto-类型推导)
+- [6. 复合数据类型入门](#6-复合数据类型入门)
+- [7. 值类别：左值与右值](#7-值类别左值与右值)
+- [8. 左值引用（Lvalue References）](#8-左值引用lvalue-references)
+- [9. const 左值引用](#9-const-左值引用)
+- [10. 引用传参（Pass by Reference）](#10-引用传参pass-by-reference)
+- [11. const 引用传参](#11-const-引用传参)
+- [12. 面向对象编程入门](#12-面向对象编程入门)
+- [13. 类（Class）入门](#13-类class入门)
+- [14. 成员函数](#14-成员函数)
+- [15. const 对象与 const 成员函数](#15-const-对象与-const-成员函数)
+- [16. public 与 private 访问控制](#16-public-与-private-访问控制)
+- [17. 构造函数入门](#17-构造函数入门)
+- [18. 构造函数成员初始化列表](#18-构造函数成员初始化列表)
+- [19. 析构函数](#19-析构函数)
+- [20. 类与头文件的分离](#20-类与头文件的分离)
+- [21. class vs struct](#21-class-vs-struct)
+- [22. 数组（C Arrays）—— 课堂 PPT 补充](#22-数组c-arrays-课堂-ppt-补充)
+- [23. C 风格字符串（C-style Strings）](#23-c-风格字符串c-style-strings)
+- [24. operator<< 重载与引用参数模式](#24-operator-重载与引用参数模式)
+- [25. STL 容器初步：set 与 map（可能属于 Week 3）](#25-stl-容器初步set-与-map可能属于-week-3)
+- [26. 文件 I/O 初步（可能属于 Week 3）](#26-文件-io-初步可能属于-week-3)
+- [27. 综合速查表](#27-综合速查表)
 
 > UCI ICS 45C: Programming in C++ (35770)  
 > 本笔记整合了 Week 2 Assigned Reading（LearnCpp 章节）与课堂 PPT 内容，按学习顺序整理。
 
 ---
 
-## 一、代码测试入门
+## 1. 代码测试入门
 
 > 对应 LearnCpp 9.1 — Introduction to testing your code
 
@@ -127,7 +127,7 @@ int testVowel() {
 
 ---
 
-## 二、多文件程序与头文件
+## 2. 多文件程序与头文件
 
 > 对应 LearnCpp 2.8 — Programs with multiple code files  
 > 对应 LearnCpp 2.11 — Header files
@@ -278,7 +278,7 @@ int add(int x, int y) {
 
 ---
 
-## 三、常量变量（Named Constants）
+## 3. 常量变量（Named Constants）
 
 > 对应 LearnCpp 5.1 — Constant variables (named constants)
 
@@ -339,7 +339,7 @@ x = 20;   // 编译错误！不能修改 const 变量
 
 ---
 
-## 四、自增自减运算符与副作用
+## 4. 自增自减运算符与副作用
 
 > 对应 LearnCpp 6.4 — Increment/decrement operators, and side effects
 
@@ -431,7 +431,7 @@ int y = x + ++x;   // unspecified behavior!
 
 ---
 
-## 五、auto 类型推导
+## 5. auto 类型推导
 
 > 对应 LearnCpp 10.8 — Type deduction for objects using the auto keyword  
 > ⚠️ 阅读材料说明：了解概念即可，目前不要使用 auto
@@ -496,7 +496,7 @@ for (auto E : A) cout << E.first << E.second;  // map 遍历
 
 ---
 
-## 六、复合数据类型入门
+## 6. 复合数据类型入门
 
 > 对应 LearnCpp 12.1 — Introduction to compound data types
 
@@ -523,7 +523,7 @@ Week 2 重点学习：**引用** 和 **类**。
 
 ---
 
-## 七、值类别：左值与右值
+## 7. 值类别：左值与右值
 
 > 对应 LearnCpp 12.2 — Value categories (lvalues and rvalues)
 
@@ -589,7 +589,7 @@ x = 10;    // OK：x 是 modifiable lvalue
 
 ---
 
-## 八、左值引用（Lvalue References）
+## 8. 左值引用（Lvalue References）
 
 > 对应 LearnCpp 12.3 — Lvalue references
 
@@ -667,7 +667,7 @@ int& ref{x};       // OK
 
 ---
 
-## 九、const 左值引用
+## 9. const 左值引用
 
 > 对应 LearnCpp 12.4 — Lvalue references to const
 
@@ -734,7 +734,7 @@ std::cout << r2 << '\n'; // 输出 97（'a' 的 ASCII 值），因为 r2 是 int
 
 ---
 
-## 十、引用传参（Pass by Reference）
+## 10. 引用传参（Pass by Reference）
 
 > 对应 LearnCpp 12.5 — Pass by lvalue reference
 
@@ -807,7 +807,7 @@ void addElement(vector<int>& v) {
 
 ---
 
-## 十一、const 引用传参
+## 11. const 引用传参
 
 > 对应 LearnCpp 12.6 — Pass by const lvalue reference
 
@@ -869,7 +869,7 @@ void foo(int a, int& b, const std::string& c) {
 
 ---
 
-## 十二、面向对象编程入门
+## 12. 面向对象编程入门
 
 > 对应 LearnCpp 14.1 — Introduction to object-oriented programming
 
@@ -906,7 +906,7 @@ C++ 的类本质上和 Python 一样：把数据和行为绑定在一起。语�
 
 ---
 
-## 十三、类（Class）入门
+## 13. 类（Class）入门
 
 > 对应 LearnCpp 14.2 — Introduction to classes
 
@@ -966,7 +966,7 @@ Complex c2(2.5, 2.7);   // 再创建一个
 
 ---
 
-## 十四、成员函数
+## 14. 成员函数
 
 > 对应 LearnCpp 14.3 — Member functions  
 > 结合课堂 PPT：The Hidden 'this' Parameter
@@ -1035,7 +1035,7 @@ Complex add(Complex c) {
 
 ---
 
-## 十五、const 对象与 const 成员函数
+## 15. const 对象与 const 成员函数
 
 > 对应 LearnCpp 14.4 — Const class objects and const member functions
 
@@ -1081,18 +1081,20 @@ c.print(cout);    // OK：print 是 const 成员函数
 
 ---
 
-## 十六、public 与 private 访问控制
+## 16. public 与 private 访问控制
 
 > 对应 LearnCpp 14.5 — Public and private members and access specifiers  
 > 结合课堂 PPT：Public or Private
 
 ### 16.1 三种访问级别
 
-| 访问修饰符 | 谁能访问 |
-|-----------|---------|
-| `public` | 任何人 |
-| `private` | 只有本类的成员函数 |
-| `protected` | 本类和子类（后面学继承时再讲） |
+| 访问级别 | 访问修饰符 | 本类成员可访问？ | 派生类可访问？ | 类外可访问？ |
+|---------|-----------|--------------|-------------|------------|
+| Public | `public:` | 是 | 是 | 是 |
+| Protected | `protected:` | 是 | 是 | 否 |
+| Private | `private:` | 是 | 否 | 否 |
+
+一个类可以按任意顺序、任意次数使用访问修饰符（例如先写一些 public 成员，再写 private 成员，再写更多 public 成员）。
 
 ### 16.2 语法
 
@@ -1144,7 +1146,7 @@ public:
 
 ---
 
-## 十七、构造函数入门
+## 17. 构造函数入门
 
 > 对应 LearnCpp 14.9 — Introduction to constructors  
 > 结合课堂 PPT：Defining a Constructor
@@ -1242,7 +1244,7 @@ public:
 
 ---
 
-## 十八、构造函数成员初始化列表
+## 18. 构造函数成员初始化列表
 
 > 对应 LearnCpp 14.10 — Constructor member initializer lists
 
@@ -1342,7 +1344,7 @@ Foo foo{6, 7};
 
 ---
 
-## 十九、析构函数
+## 19. 析构函数
 
 > 结合课堂 PPT：Defining a Destructor
 
@@ -1389,7 +1391,7 @@ int main() {
 
 ---
 
-## 二十、类与头文件的分离
+## 20. 类与头文件的分离
 
 > 对应 LearnCpp 15.2 — Classes and header files  
 > 结合课堂 PPT：Declaring a Class / Defining Member Functions
@@ -1484,7 +1486,7 @@ int main() {
 
 ---
 
-## 二十一、class vs struct
+## 21. class vs struct
 
 > 结合课堂 PPT：class vs. struct
 
@@ -1520,7 +1522,7 @@ public:
 
 ---
 
-## 二十二、数组（C Arrays）—— 课堂 PPT 补充
+## 22. 数组（C Arrays）—— 课堂 PPT 补充
 
 > 来自 Week 2 课堂 PPT
 
@@ -1603,7 +1605,7 @@ int index = letter - 'A';   // 'C' - 'A' = 2
 
 ---
 
-## 二十三、C 风格字符串（C-style Strings）
+## 23. C 风格字符串（C-style Strings）
 
 > 来自 Week 2 课堂 PPT
 
@@ -1656,7 +1658,7 @@ for (char* p = s; *p != '\0'; ++p)
 
 ---
 
-## 二十四、operator<< 重载与引用参数模式
+## 24. operator<< 重载与引用参数模式
 
 > 结合课堂 PPT：Defining Inserter: operator<<
 
@@ -1716,7 +1718,7 @@ istream& operator>>(istream& in, Complex& c) {
 
 ---
 
-## 二十五、STL 容器初步：set 与 map（可能属于 Week 3）
+## 25. STL 容器初步：set 与 map（可能属于 Week 3）
 
 > ⚠️ 以下内容出现在 Week 2-3 的 PPT 中，不在 Week 2 的 Assigned Reading 里。如果不确定属于哪周，这里先记录。
 
@@ -1773,7 +1775,7 @@ for (auto E : A)
 
 ---
 
-## 二十六、文件 I/O 初步（可能属于 Week 3）
+## 26. 文件 I/O 初步（可能属于 Week 3）
 
 > ⚠️ 同样出现在 Week 2-3 PPT 中，不在 Week 2 Assigned Reading 里。
 
@@ -1802,7 +1804,7 @@ int main() {
 
 ---
 
-## 二十七、综合速查表
+## 27. 综合速查表
 
 ### 引用速查
 

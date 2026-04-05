@@ -1083,11 +1083,13 @@ This mirrors the principle of `const` reference parameters: add `const` wherever
 
 ### 16.1 Three Access Levels
 
-| Access Specifier | Who Can Access |
-|-----------------|----------------|
-| `public` | Anyone |
-| `private` | Only member functions of this class |
-| `protected` | This class and subclasses (covered when we get to inheritance) |
+| Access Level | Access Specifier | Member Access | Derived Class Access | Public Access |
+|-------------|-----------------|---------------|---------------------|---------------|
+| Public | `public:` | yes | yes | yes |
+| Protected | `protected:` | yes | yes | no |
+| Private | `private:` | yes | no | no |
+
+A class type is allowed to use any number of access specifiers in any order, and they can be used repeatedly (e.g. you can have some public members, then some private ones, then more public ones).
 
 ### 16.2 Syntax
 

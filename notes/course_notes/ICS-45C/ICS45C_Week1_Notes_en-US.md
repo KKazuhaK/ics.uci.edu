@@ -475,7 +475,55 @@ When in doubt about precedence, the safest approach is to **use parentheses**.
 (2 + 3) * 4;  // 20
 ```
 
-### 5.5 Expressions & Expression Statements
+### 5.5 Operator Precedence & Associativity
+
+When an expression contains multiple operators, C++ uses **precedence** and **associativity** to determine the order of evaluation.
+
+**Precedence**: higher number = evaluated first.
+
+| Precedence | Operators | Description | Associativity |
+|-----------|-----------|-------------|---------------|
+| 1 (highest) | `::` | Scope resolution | Left→Right |
+| 2 | `()` `[]` `.` `->` `++`(postfix) `--`(postfix) | Postfix / call | Left→Right |
+| 3 | `++`(prefix) `--`(prefix) `+`(unary) `-`(unary) `!` `~` `(type)` `*`(deref) `&`(addr) `sizeof` | Prefix / unary | Right→Left |
+| 4 | `*` `/` `%` | Multiplication, division, modulo | Left→Right |
+| 5 | `+` `-` | Addition, subtraction | Left→Right |
+| 6 | `<<` `>>` | Bitwise shift / stream I/O | Left→Right |
+| 7 | `<` `<=` `>` `>=` | Relational comparison | Left→Right |
+| 8 | `==` `!=` | Equality | Left→Right |
+| 9 | `&` | Bitwise AND | Left→Right |
+| 10 | `^` | Bitwise XOR | Left→Right |
+| 11 | `\|` | Bitwise OR | Left→Right |
+| 12 | `&&` | Logical AND | Left→Right |
+| 13 | `\|\|` | Logical OR | Left→Right |
+| 14 | `?:` | Ternary conditional | Right→Left |
+| 15 | `=` `+=` `-=` `*=` `/=` `%=` etc. | Assignment | Right→Left |
+| 16 (lowest) | `,` | Comma | Left→Right |
+
+**Associativity** determines the order when operators share the same precedence:
+
+```cpp
+// Left→Right: same-precedence operators evaluated left to right
+8 - 3 - 2     // = (8 - 3) - 2 = 3, NOT 8 - (3 - 2) = 7
+
+// Right→Left: assignment chains evaluate right to left
+int a, b, c;
+a = b = c = 5;   // = a = (b = (c = 5)), c first, then b, then a
+```
+
+**Common examples:**
+
+```cpp
+2 + 3 * 4       // 14: * has higher precedence than +, so 3*4=12 first, then 2+12
+!x == 0         // (!x) == 0: ! is unary, higher precedence than ==
+x = y == 5      // x = (y == 5): == has higher precedence than =
+a && b || c     // (a && b) || c: && has higher precedence than ||
+cout << x + 1   // cout << (x + 1): + has higher precedence than <<
+```
+
+> 💡 **Best practice**: when in doubt, add parentheses `()` — they have the highest precedence and make your code easier to read.
+
+### 5.6 Expressions & Expression Statements
 
 ```cpp
 2 + 3
@@ -491,7 +539,7 @@ An expression followed by a semicolon becomes an **expression statement**:
 x = 5;
 ```
 
-### 5.6 Key Takeaways
+### 5.7 Key Takeaways
 
 - In C++, values and types are bound more tightly
 - Operators are affected by the types of their operands
