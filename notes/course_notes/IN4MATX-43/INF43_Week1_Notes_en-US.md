@@ -111,7 +111,7 @@ Other valid perspectives include:
 
 ## 4. The Three Core Elements of Software Engineering
 
-**People + Processes + Tools**
+$$\boxed{\textbf{People} + \textbf{Processes} + \textbf{Tools}}$$
 
 This is one of the central formulas of the course.
 
