@@ -13,6 +13,8 @@
 public_html/
 ├── index.html / about.html / tools.html   # 顶层页面
 ├── notes/                                 # 笔记系统（见下）
+│   ├── course_notes/                      # 课程笔记
+│   └── demo_notes/                        # LA/TA 演示笔记（见下）
 ├── tools/md-viewer/                       # Markdown 阅读器
 ├── tools/speedtest/                       # 第三方测速工具，勿动
 ├── remote_profiles/                       # Clash 订阅配置
@@ -22,8 +24,7 @@ public_html/
 └── assets/js/*.min.js                     # 第三方库，勿动
 ```
 
-`assets/sass/` 是主题原始 SASS 源文件，**未接入构建流程**，`main.css` 直接手动维护。  
-`templates/` 主要放页面模板与参考模板：既包含 HTML5 UP 原始示例，也包含站内自定义模板（如 `course_notes.html`）。该目录默认不作为公开导航入口使用。
+`assets/sass/` 是主题原始 SASS 源文件，**未接入构建流程**，`main.css` 直接手动维护。
 
 ---
 
@@ -70,11 +71,49 @@ public_html/
 
 ### 结构
 
+笔记系统分为两个子分类，在 `notes/index.html` 主页并列展示：
+
+#### Course Notes（课程笔记）
+
 每门课对应：
 - `notes/course_notes/<COURSE>/index.html` — 课程笔记目录页（类型 B）
 - 同目录下的 `.md` 文件 — 实际笔记内容
 
 笔记通过 `tools/md-viewer/index.html` 渲染，用 URL 参数传递目标文件和语言。
+
+#### LA/TA Demo Notes（演示笔记）
+
+LA/TA 教学用的交互式演示，结构：
+```
+notes/demo_notes/
+├── index.html                  # Demo Notes 目录页（类型 A，按课程分组）
+└── <COURSE>/
+    ├── index.html              # 课程演示列表页（类型 B，卡片网格，数据驱动）
+    └── <demo>.html             # 单个交互演示页面（类型 B）
+```
+
+课程列表页内嵌 `weekCatalog` 数组驱动卡片渲染（按 Week 分组），新增一周只需往数组加一条并放入对应 HTML 文件：
+```js
+{ week: 2, title: "Basic Types, Operators & Modules | Expressions & Strings", summary: "...", labs: 2, file: "week-2.html" }
+```
+
+Week 页面（如 `week-2.html`）包含该周所有 Lab 的交互演示，使用 tab 切换。支持 URL hash 直接链接到具体 Lab（如 `#lab-2_27`）。
+
+演示页面的面包屑导航格式：`Notes / Demo Notes / <COURSE> / <Lab>`。
+
+### Demo 代码高亮
+
+演示页面中的代码块使用内置的 `highlightPy()` 函数做 VS Code Dark+（`#1e1e1e` 深色背景）风格的 Python 语法高亮。  
+这是一个轻量级的纯前端正则 tokenizer，不依赖外部库，支持关键字、内置函数、字符串、数字、注释、运算符的着色。  
+新增演示页面时，需要在页面 `<script>` 中包含 `highlightPy()` 和 `escHtml()` 两个函数，并在渲染代码框时调用 `highlightPy(code)` 替代直接输出纯文本。
+
+### Demo 交互控件
+
+- **步骤工具栏**：步骤按钮（Step 1/2/3/4）在左，Prev/Next 导航在右，同一行排列（`.step-toolbar`）
+- **防跳动**：所有步骤切换函数通过 `keepScroll()` 包裹，防止内容高度变化导致页面滚动
+- **导航按钮**：第一步时 Prev 按钮变灰（`.disabled`），最后一步时 Next 按钮变灰
+- **内容可见性控制**：在 `labs` 数组中添加 `hidden: true` 可隐藏某个 Lab tab；在 `weekCatalog` 中添加 `hidden: true` 可隐藏某周卡片
+- **变量监视面板**（`.var-watch`）：VS Code 调试器风格的变量面板，用于计算类 demo（如 Pizza Party），逐步展示变量值变化
 
 ### 语言系统
 
@@ -217,8 +256,8 @@ md-viewer 页面内通过 `<style>` 将 `min-width: 1681px` 时的 `body` 字体
 ## 新增课程流程
 
 1. `notes/course_notes/` 下建新文件夹
-2. 优先复制 `templates/course_notes.html` 到 `notes/course_notes/<COURSE>/index.html`
-3. 修改课程页里的 `<title>`、页头课程名、`pageCopy`、`notesCatalog`、`createNoteUrl()`，并把模板中的相对路径从 `../` 改成 `../../../`
+2. 复制一个现有课程页（如 `notes/course_notes/ICS-45C/index.html`）到 `notes/course_notes/<COURSE>/index.html`
+3. 修改课程页里的 `<title>`、页头课程名、`pageCopy`、`notesCatalog`、`createNoteUrl()`
 4. 在 `tools/md-viewer/index.html` 的 `courseProfiles` 中新增对应条目
 5. 在 `index.html` 的 tiles 区域（`#one` section）新增一个 `<article>` 入口，替换一个 "Upcoming" 占位格
 6. 笔记 `.md` 文件放入新文件夹，命名遵循规范
@@ -232,4 +271,4 @@ md-viewer 页面内通过 `<style>` 将 `min-width: 1681px` 时的 `body` 字体
 - SASS 源文件（`assets/sass/`）与实际 `main.css` 已不同步，以 `main.css` 为准
 - 页面级样式写在各页面 `<head>` 内的 `<style>` 块，不要改全局 `main.css` 来处理单页问题
 - 移动端适配用 `@media (max-width: 736px)`（主题 small 断点）
-- 只要改了模板相关实现，必须同步检查 `templates/` 与 `SITE_DOCS.md` 是否需要一起更新，避免模板、文档、实际页面三者漂移
+- 改了页面通用结构（header、footer、scroll 逻辑等）时，检查 `SITE_DOCS.md` 是否需要同步更新
