@@ -125,6 +125,9 @@ Week 页面（如 `week-2.html`）包含该周所有 Lab 的交互演示，使�
 示例：ICS45C_Week1_Notes_zh-CN.md
 ```
 
+**中文笔记标题编号规范：**  
+大标题（`##`）统一使用阿拉伯数字编号（`## 1.`、`## 2.`），不要使用中文数字（~~一、二、三~~）。子标题同理。英文版和中文版保持一致的编号风格。
+
 ### Markdown 代码块
 
 `tools/md-viewer/index.html` 现在使用 `Shiki` 做 fenced code block 语法高亮，主题对齐 VS Code 的 `Dark+`。  

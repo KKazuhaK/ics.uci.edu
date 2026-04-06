@@ -151,16 +151,63 @@ This is one of the central formulas of the course.
 
 ### 5.2 INF 43 core principles
 
-| Principle | Meaning |
-|------|------|
-| **Rigor and Formality** | Replace ad hoc work with disciplined, systematic methods. Use explicit representations and clear reasoning. |
-| **Separation of Concerns** | Break a complex problem into smaller, manageable parts. |
-| **Modularity** | Split a system into modules with clear responsibilities. |
-| **Divide and Conquer** | Solve a large problem by solving smaller subproblems. |
-| **Abstraction** | Hide unnecessary detail and expose only what matters. |
-| **Anticipation of Change** | Design with future change in mind so software is easier to modify. |
-| **Generality** | Prefer solutions that can apply more broadly instead of solving only one narrow case. |
-| **Incrementality** | Build software step by step instead of trying to finish everything at once. |
+#### Rigor and Formality
+
+Software engineering must be practiced systematically. Rigor is a necessary complement to creativity that increases our confidence in our developments. Computers cannot handle vague commands the way humans can, so precise specification matters. Formality is rigor at the highest degree — the software process is driven and evaluated by mathematical laws.
+
+**Examples:**
+- Mathematical (formal) analysis of program correctness
+- Systematic (rigorous) test data derivation
+- Rigorous documentation of development steps helps project management and assessment of timeliness
+
+#### Separation of Concerns
+
+Separate the complexities and concentrate on one at a time — "divide and conquer." For example, keep product requirements separate: functionality, performance, usability. This supports parallelization of efforts and separation of responsibilities.
+
+#### Modularity
+
+A complex system may be divided into simpler pieces called **modules**. A system composed of modules is called **modular**. Modularity supports the application of separation of concerns: when dealing with a module, we can ignore details of other modules.
+
+#### Abstraction
+
+Identify the important aspects of a phenomenon and ignore its details. Abstraction is a special case of separation of concerns. The type of abstraction to apply depends on purpose or role:
+
+- **User** of a software: concerns *what* it does, not *how* it does it.
+- **Designer** in a team: concerns *what* and *how* of their own part, and only the *what* of other parts that belong to other team members.
+- After a module is fully tested and verified, only the *what* part is concerned by its user.
+
+#### Anticipation of Change
+
+The ability to support software evolution requires anticipating potential future changes. The goal is to minimize changes to existing modules and leave spots in the program for future features. This is the basis for software evolvability.
+
+**Example:**
+- A sorting program based on an array of fixed length vs. a sorting program based on a linked list of dynamic length — the latter anticipates growth.
+
+#### Generality
+
+Discover if a problem is an instance of a more general problem whose solution can be reused in other cases. This increases reusability, but generality must be carefully balanced against performance and cost — the solution to a generalized problem is most likely more expensive than the solution to a special problem.
+
+**Example:**
+- A program that can handle multiplication between two **general matrices** vs. a program specially designed to handle multiplication between two **sparse matrices** — the general version is reusable but slower for the special case.
+
+#### Incrementality
+
+The process proceeds in a stepwise fashion (increments). Deliver subsets of a system (prototypes) early to get early feedback from expected users, then add new features incrementally. Deal first with functionality, then turn to performance: first a quick-and-dirty solution, then a more efficient (cleaner) design.
+
+**Example (Game Design):**
+- First release a 2-D version, then work on 3-D design.
+- First use coarse-grained textures, then refine to fine-grained textures.
+
+### 5.3 Top causes of software failure
+
+When these principles are not followed, projects fail. The most common causes include:
+
+- Lack of user input
+- Incomplete requirements and specifications
+- Changing requirements and specifications
+- Lack of discipline in the development process
+- Lack of methodical usage of metrics
+- Lack of resources
 
 ---
 
