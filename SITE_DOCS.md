@@ -268,6 +268,59 @@ md-viewer 页面内通过 `<style>` 将 `min-width: 1681px` 时的 `body` 字体
 
 ---
 
+## AI 聊天系统
+
+全站集成了 Mistral AI 聊天功能，分为两个入口：
+
+### 浮窗 Ask AI（所有页面）
+
+- **文件**：`assets/js/chat-widget.js`，由 `assets/js/main.js` 末尾动态加载
+- **按钮**：固定在右下角的蓝色药丸按钮（附件图标 + "Ask AI"），与 md-viewer 的 TOP 按钮共存于 `#cw-btn-group` flex 容器
+- **功能**：读取当前页面文本（最多 16000 字符）作为上下文，AI 回答与页面相关的问题
+- **不加载**：`/tools/ask-ai/` 页面（独立聊天页）自动跳过
+- **渲染**：支持 Markdown（粗体、斜体、代码块、列表、标题、链接）和 KaTeX 数学公式（`$`/`$$`/`\(\)`/`\[\]`，按需加载，流式实时渲染）
+- **文件上传**：支持图片（Mistral Vision）、PDF（`document_url`）、文本文件（直接注入内容），最大 8MB，支持剪贴板粘贴图片
+
+### 独立聊天页
+
+- **文件**：`tools/ask-ai/index.html`
+- **功能**：自由对话，不限于页面内容，支持文件上传（图片/PDF/文本）
+- **认证**：双重登录方式
+  - **Kazuha Hub SSO**：通过 Entra ID (Azure AD) OAuth 2.0，登录后签发 JWT（7天有效）
+  - **Access Code**：通过 Cloudflare Worker 环境变量 `CHAT_PASSWORD`（支持多个逗号分隔），隐藏在 "Use Access Code" 折叠区
+- **登录流程**：SSO 按钮 → Worker `/auth/login` → Entra ID 授权 → `/auth/callback` 换 code → 签发 JWT → 重定向回前端
+- **Sitemap 知识库**：Worker 自动拉取 `sitemap.json`（1小时缓存），注入 system prompt 让 AI 了解全站结构
+- **代码高亮**：Shiki（与 md-viewer 同库），按需加载，流式输出完成后自动上色
+- **登录声明**：登录前展示使用须知（学术诚信、AI 不准确性、隐私等）
+
+### Cloudflare Worker 代理
+
+- **参考文件**：`tools/ask-ai/worker.js`（仅供参考，实际部署在 Cloudflare）
+- **Worker URL**：`https://ics-uci-edu-chat-ai.kazuhahub.workers.dev`
+- **环境变量**：
+  - `MISTRAL_API_KEY` — Mistral API 密钥
+  - `CHAT_PASSWORD` — 逗号分隔的 Access Code 列表
+  - `AZURE_CLIENT_ID` — Entra ID 应用 Client ID
+  - `AZURE_CLIENT_SECRET` — Entra ID Client Secret
+  - `AZURE_TENANT_ID` — Entra ID 租户 ID
+  - `JWT_SECRET` — JWT 签名密钥（HMAC-SHA256）
+- **路由**：
+  - `GET /auth/login` — 跳转 Entra ID 授权页
+  - `GET /auth/callback` — OAuth 回调，换 code、签发 JWT、重定向
+  - `POST /` — 聊天 API（`mode: "page"` 浮窗 / `mode: "chat"` 独立页）
+- **认证逻辑**：JWT 或 Access Code，任一通过即可；JWT 登录会将用户名注入 system prompt
+- **CORS**：仅允许 `https://ics.uci.edu` 和 `http://localhost`
+- **Sitemap**：自动拉取 `sitemap.json` 作为 AI 知识库，1小时内存缓存
+- **修改 prompt、模型或认证逻辑后需重新部署 Worker**
+
+### Sitemap 知识库
+
+- **文件**：`sitemap.json`，AI 的站点知识来源
+- **自动生成**：`bash tools/generate-sitemap.sh`，扫描全站 HTML/MD 文件并生成
+- **内容**：站点信息、所有页面路径/标题/分类、About Me 详细信息、Markdown 笔记列表
+
+---
+
 ## 注意事项
 
 - `assets/js/*.min.js` 和 `tools/speedtest/` 是第三方文件，不要修改
