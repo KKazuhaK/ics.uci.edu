@@ -6,6 +6,22 @@
 
 (function($) {
 
+	// Force passive scroll/touch listeners globally for smoother mobile scrolling
+	(function() {
+		var supportsPassive = false;
+		try { var opts = Object.defineProperty({}, 'passive', { get: function() { supportsPassive = true; } }); window.addEventListener('test', null, opts); } catch(e) {}
+		if (supportsPassive) {
+			var orig = EventTarget.prototype.addEventListener;
+			EventTarget.prototype.addEventListener = function(type, fn, opts) {
+				if ((type === 'scroll' || type === 'touchmove' || type === 'touchstart' || type === 'wheel')
+					&& opts !== false && (typeof opts !== 'object' || opts.passive === undefined)) {
+					opts = typeof opts === 'object' ? Object.assign({}, opts, { passive: true }) : { passive: true };
+				}
+				return orig.call(this, type, fn, opts);
+			};
+		}
+	})();
+
 			var	$window = $(window),
 				$body = $('body'),
 				$wrapper = $('#wrapper'),
@@ -146,17 +162,26 @@
 	};
 
 		// Play initial animations on page load.
-			$window.on('load', function() {
+			// Use both DOMContentLoaded (fast, unblocks interaction) and load (fallback).
+			var initialRevealDone = false;
+			function revealPage() {
+				if (initialRevealDone) return;
+				initialRevealDone = true;
+				$body.removeClass('is-preload');
 				window.setTimeout(function() {
-					$body.removeClass('is-preload');
+					$body.removeClass('is-page-transitioning');
+					$wrapper.removeClass('is-transitioning');
+				}, 60);
+			}
 
-					window.setTimeout(function() {
-						$body.removeClass('is-page-transitioning');
-						$wrapper.removeClass('is-transitioning');
-					}, 60);
-
-				}, 100);
-			});
+			if (document.readyState === 'complete' || document.readyState === 'interactive') {
+				window.setTimeout(revealPage, 50);
+			} else {
+				document.addEventListener('DOMContentLoaded', function() {
+					window.setTimeout(revealPage, 50);
+				});
+			}
+			$window.on('load', revealPage);
 
 	// Clear transitioning state on unload/hide.
 		$window.on('unload pagehide', function() {
@@ -474,3 +499,6 @@
 			});
 
 })(jQuery);
+
+/* Chat Widget Loader */
+(function(){var s=document.createElement("script");s.src=(document.querySelector('script[src*="main.js"]').src.replace("main.js","chat-widget.js"));s.defer=true;document.body.appendChild(s);})();
