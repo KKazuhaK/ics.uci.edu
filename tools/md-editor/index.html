@@ -1,0 +1,988 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Markdown Editor | Kazuha Mo - UC Irvine</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" href="../../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2/dist/easymde.min.css" />
+		<style>
+			:root {
+				--me-blue: #244f8f;
+				--me-blue-bg: rgba(36, 79, 143, 0.10);
+				--me-blue-border: rgba(36, 79, 143, 0.22);
+				--me-border: rgba(42, 79, 133, 0.16);
+				--me-ink: #23324a;
+				--me-muted: #516074;
+			}
+
+			/* Shell */
+			.me-shell {
+				display: grid;
+				gap: 1.5rem;
+			}
+
+			.me-shell > header.major {
+				display: none;
+			}
+
+			/* Intro / Breadcrumb */
+			.me-intro {
+				padding: 1.1rem 1.75rem;
+				border: 1px solid var(--me-border);
+				border-radius: 1.2rem;
+				background:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+			}
+
+			.me-breadcrumb {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+				align-items: center;
+			}
+
+			.me-chip {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				text-decoration: none;
+				border-bottom: 0 !important;
+				background: var(--me-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--me-blue-border);
+				color: var(--me-blue) !important;
+				transition: background 0.2s ease, transform 0.2s ease;
+			}
+
+			.me-chip:hover {
+				background: rgba(36, 79, 143, 0.17);
+				transform: translateY(-1px);
+				color: #183b73 !important;
+			}
+
+			.me-chip-current {
+				background: var(--me-blue);
+				box-shadow: none;
+				color: #ffffff !important;
+				cursor: default;
+			}
+
+			.me-chip-current:hover {
+				background: var(--me-blue);
+				transform: none;
+				color: #ffffff !important;
+			}
+
+			.me-sep {
+				font-size: 1.18rem;
+				font-weight: 700;
+				color: #97a7bb;
+				user-select: none;
+				line-height: 1;
+			}
+
+			/* ── Editor card ───────────────────────────── */
+			.me-editor-card {
+				border: 1px solid rgba(42, 79, 133, 0.14);
+				border-radius: 1.4rem;
+				background: rgba(255, 255, 255, 0.98);
+				box-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				overflow: hidden;
+				padding: 0;
+			}
+
+			/* ── EasyMDE theme overrides ───────────────── */
+
+			/* Container */
+			.me-editor-card .EasyMDEContainer {
+				margin: 0;
+			}
+
+			/* Toolbar — reset Forty theme button styles */
+			.me-editor-card .editor-toolbar {
+				border-top: none;
+				border-left: none;
+				border-right: none;
+				border-bottom: 1px solid rgba(42, 79, 133, 0.12);
+				background: #f8f9fb;
+				padding: 6px 10px;
+				border-radius: 0;
+				opacity: 1;
+				display: flex !important;
+				align-items: center !important;
+				flex-wrap: wrap;
+				gap: 1px;
+			}
+
+			.me-editor-card .editor-toolbar:not(.fullscreen) {
+				position: relative;
+				z-index: 3;
+			}
+
+			.me-editor-card .editor-toolbar::before,
+			.me-editor-card .editor-toolbar::after {
+				display: none;
+			}
+
+			.me-editor-card .editor-toolbar button {
+				-webkit-appearance: none !important;
+				-moz-appearance: none !important;
+				appearance: none !important;
+				display: inline-flex !important;
+				align-items: center !important;
+				justify-content: center !important;
+				width: 30px !important;
+				height: 30px !important;
+				min-height: 0 !important;
+				padding: 0 !important;
+				margin: 1px 2px !important;
+				border: 1px solid transparent !important;
+				border-radius: 4px !important;
+				background: transparent !important;
+				color: #555 !important;
+				text-align: center !important;
+				cursor: pointer !important;
+				box-shadow: none !important;
+				text-decoration: none !important;
+				text-transform: none !important;
+				letter-spacing: 0 !important;
+				font-weight: normal !important;
+				font-size: 1rem !important;
+				transition: background 0.15s, border-color 0.15s !important;
+			}
+
+			.me-editor-card .editor-toolbar button:hover {
+				background: rgba(36, 79, 143, 0.08) !important;
+				border-color: rgba(42, 79, 133, 0.18) !important;
+				color: var(--me-blue) !important;
+				transform: none !important;
+			}
+
+			.me-editor-card .editor-toolbar button.active,
+			.me-editor-card .editor-toolbar button.active:hover {
+				background: rgba(36, 79, 143, 0.14) !important;
+				border-color: rgba(42, 79, 133, 0.22) !important;
+				color: var(--me-blue) !important;
+			}
+
+			.me-editor-card .editor-toolbar button.me-export-btn {
+				background: var(--me-blue-bg) !important;
+				border-color: var(--me-blue-border) !important;
+				color: var(--me-blue) !important;
+				width: auto !important;
+				padding: 0 10px !important;
+				font-size: 0.78rem !important;
+				font-weight: 700 !important;
+				font-family: 'Source Sans Pro', -apple-system, sans-serif !important;
+			}
+
+			.me-editor-card .editor-toolbar button.me-export-btn:hover {
+				background: var(--me-blue) !important;
+				color: #fff !important;
+			}
+
+			/* Normalize heading button sizes */
+			.me-editor-card .editor-toolbar button.heading-1,
+			.me-editor-card .editor-toolbar button.heading-2,
+			.me-editor-card .editor-toolbar button.heading-3 {
+				font-size: 1rem !important;
+			}
+
+			.me-editor-card .editor-toolbar i.separator {
+				border-left: 1px solid rgba(42, 79, 133, 0.14) !important;
+				border-right: none !important;
+				margin: 0 4px !important;
+				align-self: center !important;
+				height: 20px !important;
+			}
+
+			/* ── CodeMirror — light theme ──────────────── */
+			.me-editor-card .CodeMirror {
+				border: none;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+				height: 65vh;
+				min-height: 400px;
+				font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+				font-size: 0.9rem;
+				line-height: 1.65;
+				padding: 12px 16px;
+				color: var(--me-ink);
+				background: #ffffff;
+			}
+
+			.me-editor-card .CodeMirror-cursor {
+				border-left-color: var(--me-ink);
+			}
+
+			.me-editor-card .CodeMirror-selected {
+				background: rgba(36, 79, 143, 0.12) !important;
+			}
+
+			.me-editor-card .CodeMirror-focused .CodeMirror-selected {
+				background: rgba(36, 79, 143, 0.18) !important;
+			}
+
+			/* Light syntax tokens */
+			.me-editor-card .cm-header      { color: #244f8f; font-weight: 700; }
+			.me-editor-card .cm-header-1     { font-size: 1.4em; }
+			.me-editor-card .cm-header-2     { font-size: 1.2em; }
+			.me-editor-card .cm-header-3     { font-size: 1.08em; }
+			.me-editor-card .cm-strong       { color: #1a1a2e; font-weight: 700; }
+			.me-editor-card .cm-em           { color: #8b5a18; font-style: italic; }
+			.me-editor-card .cm-strikethrough { color: #999; text-decoration: line-through; }
+			.me-editor-card .cm-link         { color: #0c8a5f; text-decoration: none; }
+			.me-editor-card .cm-url          { color: #2d5b95; text-decoration: underline; }
+			.me-editor-card .cm-comment      { color: #6a737d; }
+			.me-editor-card .cm-quote        { color: #42526b; font-style: italic; }
+			.me-editor-card .cm-tag          { color: #808080; }
+			.me-editor-card .cm-string       { color: #c7254e; }
+			.me-editor-card .cm-keyword      { color: #244f8f; }
+			.me-editor-card .cm-variable-2   { color: #2d5b95; }
+			.me-editor-card .cm-hr           { color: #aab3c0; }
+			.me-editor-card .cm-formatting   { color: #aab3c0; }
+
+			/* Gutters */
+			.me-editor-card .CodeMirror-gutters {
+				background: #f8f9fb;
+				border-right: 1px solid rgba(42, 79, 133, 0.10);
+			}
+
+			.me-editor-card .CodeMirror-linenumber {
+				color: #aab3c0;
+			}
+
+			/* ── Side-by-side / Preview pane ───────────── */
+			.me-editor-card .editor-preview-side,
+			.me-editor-card .editor-preview {
+				background: #fafbfd;
+				border-left: 1px solid rgba(42, 79, 133, 0.12);
+				padding: 1.5rem 2rem;
+				color: var(--me-ink);
+				font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+				font-size: 1rem;
+				line-height: 1.7;
+			}
+
+			.me-editor-card .editor-preview-active-side {
+				display: block;
+			}
+
+			/* Constrain preview height to match editor, enable independent scroll */
+			.me-editor-card .editor-preview-side {
+				height: 65vh !important;
+				min-height: 400px !important;
+				overflow-y: auto !important;
+			}
+
+			/* ── Preview content (match md-viewer) ─────── */
+
+			.me-editor-card .editor-preview h1,
+			.me-editor-card .editor-preview-side h1 {
+				font-size: 1.75em;
+				padding-bottom: 0.5rem;
+				border-bottom: 3px solid rgba(42, 79, 133, 0.16);
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview h1:first-child,
+			.me-editor-card .editor-preview-side h1:first-child { margin-top: 0; }
+
+			.me-editor-card .editor-preview h2,
+			.me-editor-card .editor-preview-side h2 {
+				font-size: 1.4em;
+				padding-left: 0.8rem;
+				border-left: 4px solid #2d5b95;
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview h3,
+			.me-editor-card .editor-preview-side h3 {
+				font-size: 1.18em;
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: #334155;
+			}
+
+			.me-editor-card .editor-preview h4,
+			.me-editor-card .editor-preview-side h4 {
+				font-size: 1.05em;
+				font-weight: 700;
+				margin: 1.2rem 0 0.4rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview p,
+			.me-editor-card .editor-preview-side p { margin: 0 0 0.65rem; }
+
+			.me-editor-card .editor-preview strong,
+			.me-editor-card .editor-preview-side strong {
+				color: var(--me-ink);
+				font-weight: 700;
+			}
+
+			.me-editor-card .editor-preview a,
+			.me-editor-card .editor-preview-side a {
+				color: var(--me-blue);
+				text-decoration: underline;
+				text-decoration-color: rgba(36, 79, 143, 0.28);
+				text-decoration-thickness: 0.08em;
+				text-underline-offset: 0.16em;
+				border-bottom: none;
+			}
+
+			.me-editor-card .editor-preview a:hover,
+			.me-editor-card .editor-preview-side a:hover {
+				color: #183b73;
+				text-decoration-color: rgba(24, 59, 115, 0.52);
+			}
+
+			.me-editor-card .editor-preview code,
+			.me-editor-card .editor-preview-side code {
+				padding: 0.12rem 0.4rem;
+				border-radius: 0.35rem;
+				background: rgba(33, 82, 164, 0.08);
+				color: #293e6a;
+				font: 0.92em/1.4 "Fira Code", "Cascadia Code", "Menlo", monospace;
+			}
+
+			.me-editor-card .editor-preview pre,
+			.me-editor-card .editor-preview-side pre {
+				padding: 1rem 1.15rem;
+				border-radius: 1rem;
+				overflow-x: auto;
+				background: #1e1e1e;
+				color: #d4d4d4;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				font: 0.88em/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview pre code,
+			.me-editor-card .editor-preview-side pre code {
+				display: block;
+				padding: 0;
+				background: transparent;
+				color: inherit;
+				border-radius: 0;
+				font-size: inherit;
+				line-height: inherit;
+			}
+
+.me-editor-card .editor-preview blockquote,
+			.me-editor-card .editor-preview-side blockquote {
+				padding: 0.9rem 1rem;
+				background: rgba(33, 82, 164, 0.05);
+				border-left: 4px solid rgba(33, 82, 164, 0.45);
+				border-radius: 0 0.9rem 0.9rem 0;
+				color: #42526b;
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview blockquote p:last-child,
+			.me-editor-card .editor-preview-side blockquote p:last-child { margin-bottom: 0; }
+
+			.me-editor-card .editor-preview ul,
+			.me-editor-card .editor-preview ol,
+			.me-editor-card .editor-preview-side ul,
+			.me-editor-card .editor-preview-side ol {
+				padding-left: 1.5rem;
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview li + li,
+			.me-editor-card .editor-preview-side li + li { margin-top: 0.18rem; }
+
+			.me-editor-card .editor-preview hr,
+			.me-editor-card .editor-preview-side hr {
+				border: 0;
+				border-top: 1px solid rgba(144, 163, 191, 0.35);
+				margin: 1.2rem 0;
+			}
+
+			.me-editor-card .editor-preview table,
+			.me-editor-card .editor-preview-side table {
+				width: 100%;
+				border-collapse: collapse;
+				border: 1px solid rgba(144, 163, 191, 0.35);
+				margin: 0 0 0.65rem;
+				font-size: 0.95em;
+			}
+
+			.me-editor-card .editor-preview th,
+			.me-editor-card .editor-preview td,
+			.me-editor-card .editor-preview-side th,
+			.me-editor-card .editor-preview-side td {
+				padding: 0.75rem 0.85rem !important;
+				border: 1px solid rgba(144, 163, 191, 0.35) !important;
+				text-align: left !important;
+				vertical-align: top !important;
+				color: var(--me-ink) !important;
+				background: transparent !important;
+			}
+
+			.me-editor-card .editor-preview th,
+			.me-editor-card .editor-preview-side th {
+				background: rgba(33, 82, 164, 0.06) !important;
+				font-weight: 700 !important;
+				color: var(--me-ink) !important;
+			}
+
+			.me-editor-card .editor-preview tr:nth-child(even) td,
+			.me-editor-card .editor-preview-side tr:nth-child(even) td {
+				background: rgba(248, 250, 252, 0.85) !important;
+			}
+
+			.me-editor-card .editor-preview img,
+			.me-editor-card .editor-preview-side img { max-width: 100%; border-radius: .5rem; }
+
+			/* Math (KaTeX) */
+			.math-block {
+				overflow-x: hidden;
+				text-align: center;
+				margin: 1rem 0;
+			}
+
+			.math-block .katex-display { margin: 0; }
+
+			.math-block .katex-display > .katex {
+				max-width: 100%;
+				overflow-x: auto;
+				overflow-y: hidden;
+				padding: 2px 0;
+			}
+
+			/* Status bar */
+			.me-editor-card .editor-statusbar {
+				border-top: 1px solid rgba(42, 79, 133, 0.10);
+				padding: 6px 14px;
+				color: var(--me-muted);
+				font-size: 0.8rem;
+				background: #f8f9fb;
+			}
+
+			.me-editor-card .editor-statusbar .autosave {
+				font-size: 0.8rem;
+			}
+
+			/* ── Fullscreen fix (z-index above header + preview full height) */
+			.me-editor-card .editor-toolbar.fullscreen {
+				z-index: 10010 !important;
+			}
+
+			.me-editor-card .CodeMirror-fullscreen {
+				z-index: 10009 !important;
+			}
+
+			/* Only raise z-index in fullscreen (sibling of fullscreen toolbar) */
+			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview-side {
+				z-index: 10009 !important;
+			}
+
+			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview {
+				z-index: 10009 !important;
+			}
+
+			/* In fullscreen, let preview fill available space instead of 65vh */
+			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview-side {
+				height: auto !important;
+				min-height: 0 !important;
+			}
+
+			/* ── Mobile ────────────────────────────────── */
+			@media screen and (max-width: 736px) {
+				#main > * > .inner {
+					width: 100% !important;
+					max-width: 100vw !important;
+					box-sizing: border-box !important;
+					padding: 0.75rem 0 1rem 0 !important;
+				}
+
+				.me-shell { gap: 0.6rem; }
+
+				.me-shell > header.major {
+					padding: 0 1rem;
+					margin-bottom: 0;
+				}
+
+				.me-intro {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+					padding: 0.8rem 1rem;
+					box-shadow: none;
+				}
+
+				.me-editor-card {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+					box-shadow: none;
+				}
+
+				.me-editor-card .CodeMirror {
+					height: 55vh;
+					min-height: 300px;
+				}
+
+				.me-editor-card .editor-preview-side,
+				.me-editor-card .editor-preview {
+					padding: 1rem;
+				}
+
+				.me-editor-card .editor-preview-side {
+					height: 55vh !important;
+					min-height: 300px !important;
+				}
+
+				.me-editor-card .editor-toolbar {
+					padding: 4px 6px;
+				}
+
+				.me-editor-card .editor-toolbar button {
+					width: 26px !important;
+					height: 26px !important;
+					line-height: 26px !important;
+					font-size: 0.85rem !important;
+				}
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<div id="wrapper">
+
+			<header id="header" class="alt">
+				<div class="logo"><a href="../../index.html" class="logo-mark"><strong><img src="../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
+				<nav>
+					<a href="#menu">Menu</a>
+				</nav>
+			</header>
+
+			<nav id="menu">
+				<ul class="links">
+					<li><a href="../../index.html">Home</a></li>
+					<li><a href="../../notes/">Notes</a></li>
+					<li><a href="../../tools/">Tools</a></li>
+				</ul>
+				<ul class="actions stacked">
+					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
+					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
+				</ul>
+			</nav>
+
+			<div id="main" class="alt">
+				<section id="one">
+					<div class="inner me-shell">
+						<header class="major">
+							<h1>Markdown Editor</h1>
+						</header>
+
+						<div class="me-intro">
+							<div class="me-breadcrumb">
+								<a href="../../tools/" class="me-chip">Tools</a>
+								<span class="me-sep">&#x203A;</span>
+								<span class="me-chip me-chip-current">Markdown Editor</span>
+								<span style="color:#97a7bb;font-size:0.9rem;user-select:none;">|</span>
+								<span style="display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:#e67e22;">Beta</span>
+							</div>
+						</div>
+
+						<input type="file" id="me-file-input" accept=".md,.markdown,.txt" style="display:none" />
+						<div class="me-editor-card">
+							<textarea id="me-textarea"># Hello, Markdown Editor!
+
+Write your **Markdown** here and see the _live preview_ on the right.
+
+## Features
+
+- **Bold**, *italic*, and `inline code`
+- Headings, lists, blockquotes
+- Code blocks with syntax highlighting
+- Math formulas with KaTeX: $E = mc^2$
+- Tables, links, images, and more
+- Auto-save to browser storage
+
+## Code Example
+
+```javascript
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+console.log(greet("World"));
+```
+
+## Math
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+
+## Table
+
+| Feature | Status |
+|---------|--------|
+| Live preview | Yes |
+| Syntax highlight | Yes |
+| KaTeX math | Yes |
+| Auto-save | Yes |
+
+> **Tip:** Your draft is auto-saved to the browser.
+</textarea>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<footer id="footer" class="footer-compact">
+				<div class="inner">
+<ul class="copyright">
+						<li>&copy; Kazuha Hub</li><li><a href="../../about.html">About Me</a></li><li>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a></li>
+					</ul>
+				</div>
+			</footer>
+
+		</div>
+
+		<script src="../../assets/js/jquery.min.js"></script>
+		<script src="../../assets/js/jquery.scrolly.min.js"></script>
+		<script src="../../assets/js/jquery.scrollex.min.js"></script>
+		<script src="../../assets/js/browser.min.js"></script>
+		<script src="../../assets/js/breakpoints.min.js"></script>
+		<script src="../../assets/js/util.js"></script>
+		<script src="../../assets/js/main.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/easymde@2/dist/easymde.min.js"></script>
+
+		<script>
+		(function() {
+			'use strict';
+
+/* ── KaTeX (same as md-viewer: auto-render) ── */
+
+			var katexReady = null;
+
+			var KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
+			var KATEX_JS  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
+			var KATEX_AR  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js";
+
+			function loadKatex() {
+				if (!katexReady) {
+					katexReady = new Promise(function(resolve) {
+						var link = document.createElement('link');
+						link.rel = 'stylesheet';
+						link.href = KATEX_CSS;
+						document.head.appendChild(link);
+
+						var s1 = document.createElement('script');
+						s1.src = KATEX_JS;
+						s1.crossOrigin = 'anonymous';
+						s1.onload = function() {
+							var s2 = document.createElement('script');
+							s2.src = KATEX_AR;
+							s2.crossOrigin = 'anonymous';
+							s2.onload = resolve;
+							document.head.appendChild(s2);
+						};
+						document.head.appendChild(s1);
+					});
+				}
+				return katexReady;
+			}
+
+			function applyMathRendering(container) {
+				if (!/\$/.test(container.textContent) && !container.querySelector('.math-block')) return;
+				loadKatex().then(function() {
+					if (window.renderMathInElement) {
+						renderMathInElement(container, {
+							delimiters: [
+								{ left: "$$", right: "$$", display: true },
+								{ left: "$",  right: "$",  display: false }
+							],
+							throwOnError: false
+						});
+					}
+				});
+			}
+
+			/* ── Preview render pipeline ───────────────── */
+
+			function addHeadingIds(container) {
+				container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(el) {
+					var text = el.textContent.trim();
+					el.id = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+				});
+			}
+
+			function renderPreview(plainText, preview) {
+				// Pre-process: wrap block math $$...$$ in div to survive marked parsing
+				var src = plainText.replace(/\$\$([\s\S]+?)\$\$/g, function(match) {
+					return '\n<div class="math-block">\n\n' + match + '\n\n</div>\n';
+				});
+
+				var html = marked.parse(src, { breaks: false, gfm: true });
+				preview.innerHTML = html;
+				addHeadingIds(preview);
+
+				// Handle anchor clicks within preview pane
+				preview.querySelectorAll('a[href^="#"]').forEach(function(a) {
+					a.addEventListener('click', function(e) {
+						var id = decodeURIComponent(a.getAttribute('href').slice(1));
+						var target = preview.querySelector('#' + CSS.escape(id));
+						if (target) {
+							e.preventDefault();
+							var containerRect = preview.getBoundingClientRect();
+							var targetRect = target.getBoundingClientRect();
+							preview.scrollTo({
+								top: preview.scrollTop + targetRect.top - containerRect.top,
+								behavior: 'smooth'
+							});
+						}
+					});
+				});
+
+				// KaTeX auto-render (handles both $...$ and $$...$$)
+				applyMathRendering(preview);
+
+	return null; // we set innerHTML ourselves
+			}
+
+			/* ── Custom toolbar actions ────────────────── */
+
+			function actionInlineCode(editor) {
+				var cm = editor.codemirror;
+				var sel = cm.getSelection();
+				cm.replaceSelection('`' + (sel || 'code') + '`');
+				if (!sel) { var cur = cm.getCursor(); cm.setSelection({ line: cur.line, ch: cur.ch - 5 }, { line: cur.line, ch: cur.ch - 1 }); }
+				cm.focus();
+			}
+
+			function actionMath(editor) {
+				var cm = editor.codemirror;
+				var sel = cm.getSelection();
+				cm.replaceSelection('$' + (sel || 'formula') + '$');
+				if (!sel) { var cur = cm.getCursor(); cm.setSelection({ line: cur.line, ch: cur.ch - 8 }, { line: cur.line, ch: cur.ch - 1 }); }
+				cm.focus();
+			}
+
+			function actionToc(editor) {
+				var cm = editor.codemirror;
+				var lines = cm.getValue().split('\n');
+				var toc = [];
+				var inCode = false;
+				for (var i = 0; i < lines.length; i++) {
+					var line = lines[i];
+					if (/^```/.test(line)) { inCode = !inCode; continue; }
+					if (inCode) continue;
+					var m = line.match(/^(#{1,6})\s+(.+)/);
+					if (!m) continue;
+					var level = m[1].length;
+					var text = m[2].replace(/[*_`\[\]]/g, '').trim();
+					var anchor = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+					var indent = '  '.repeat(level - 1);
+					toc.push(indent + '1. [' + text + '](#' + anchor + ')');
+				}
+				if (!toc.length) return;
+				var result = '## Table of Contents\n\n' + toc.join('\n') + '\n\n';
+				cm.replaceSelection(result);
+				cm.focus();
+			}
+
+			function actionUpload(editor) {
+				var input = document.getElementById('me-file-input');
+				input.value = '';
+				input.onchange = function() {
+					var file = input.files[0];
+					if (!file) return;
+					if (file.size > 5 * 1024 * 1024) {
+						alert('File too large (max 5 MB)');
+						return;
+					}
+					var reader = new FileReader();
+					reader.onload = function() {
+						editor.value(reader.result);
+						editor.codemirror.focus();
+					};
+					reader.readAsText(file);
+				};
+				input.click();
+			}
+
+			function actionDownload(editor) {
+				var src = editor.value();
+				var blob = new Blob([src], { type: 'text/markdown;charset=utf-8' });
+				var a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = 'document.md';
+				a.click();
+				URL.revokeObjectURL(a.href);
+			}
+
+	function actionOpenInViewer(editor) {
+				var src = editor.value();
+				try { localStorage.setItem('mv-transfer', src); } catch(e) {}
+				window.open('../md-viewer/', '_blank');
+			}
+
+			function actionCopyHtml(editor) {
+				var el = document.querySelector('.editor-preview-side') || document.querySelector('.editor-preview');
+				var html = el ? el.innerHTML : marked.parse(editor.value());
+				navigator.clipboard.writeText(html).then(function() {
+					var bar = document.querySelector('.editor-statusbar');
+					if (bar) {
+						var msg = document.createElement('span');
+						msg.textContent = ' HTML copied!';
+						msg.style.cssText = 'color:#27ae60;font-weight:600;';
+						bar.appendChild(msg);
+						setTimeout(function() { msg.remove(); }, 2000);
+					}
+				});
+			}
+
+			/* ── Init EasyMDE ──────────────────────────── */
+
+			var easyMDE = new EasyMDE({
+				element: document.getElementById('me-textarea'),
+				spellChecker: false,
+				autoDownloadFontAwesome: true,
+				sideBySideFullscreen: false,
+				autosave: {
+					enabled: true,
+					uniqueId: 'md-editor-draft',
+					delay: 1000,
+					text: 'Draft saved: '
+				},
+				placeholder: 'Start writing Markdown...',
+				status: ['autosave', 'lines', 'words', 'cursor'],
+				toolbar: [
+					'bold', 'italic', 'strikethrough', '|',
+					'heading-1', 'heading-2', 'heading-3', '|',
+					{
+						name: 'inline-code',
+						action: actionInlineCode,
+						className: 'fa fa-terminal',
+						title: 'Inline Code'
+					},
+					'code', '|',
+					'link', 'image', '|',
+					'unordered-list', 'ordered-list', '|',
+					'quote', 'horizontal-rule',
+					{
+						name: 'math',
+						action: actionMath,
+						className: 'fa fa-superscript',
+						title: 'Math Formula ($)'
+					},
+					'table',
+					{
+						name: 'toc',
+						action: actionToc,
+						className: 'fa fa-sitemap',
+						title: 'Insert Table of Contents'
+					}, '|',
+					'side-by-side', 'fullscreen', '|',
+					{
+						name: 'open-in-viewer',
+						action: actionOpenInViewer,
+						className: 'fa fa-eye me-export-btn',
+						title: 'Open in Viewer'
+					},
+					{
+						name: 'upload-md',
+						action: actionUpload,
+						className: 'fa fa-upload me-export-btn',
+						title: 'Open .md file'
+					},
+					{
+						name: 'download-md',
+						action: actionDownload,
+						className: 'fa fa-download me-export-btn',
+						title: 'Download .md'
+					},
+					{
+						name: 'copy-html',
+						action: actionCopyHtml,
+						className: 'fa fa-clipboard me-export-btn',
+						title: 'Copy HTML'
+					}
+				],
+				previewRender: renderPreview
+			});
+
+			// Add text labels to export buttons
+			[
+				{ title: 'Open in Viewer', label: 'Viewer' },
+				{ title: 'Open .md file', label: 'Open' },
+				{ title: 'Download .md',  label: 'Save' },
+				{ title: 'Copy HTML',     label: 'HTML' }
+			].forEach(function(item) {
+				var btn = document.querySelector('.editor-toolbar button[title="' + item.title + '"]');
+				if (!btn) return;
+				var icon = btn.querySelector('i');
+				if (icon) icon.style.marginRight = '0.3em';
+				btn.appendChild(document.createTextNode(item.label));
+			});
+
+			// Scroll sync: editor → preview (proportional)
+			easyMDE.codemirror.on('scroll', function() {
+				var preview = document.querySelector('.editor-preview-active-side');
+				if (!preview) return;
+				var info = easyMDE.codemirror.getScrollInfo();
+				var maxEditor = info.height - info.clientHeight;
+				if (maxEditor <= 0) return;
+				var ratio = info.top / maxEditor;
+				var maxPreview = preview.scrollHeight - preview.clientHeight;
+				preview.scrollTop = ratio * maxPreview;
+			});
+
+			// Load transferred content from md-viewer
+			var transferred = localStorage.getItem('me-transfer');
+			if (transferred) {
+				localStorage.removeItem('me-transfer');
+				easyMDE.value(transferred);
+			}
+
+			// Side-by-side not enabled by default; user can toggle via toolbar
+
+			// Pre-load KaTeX if initial content has $
+			if (/\$/.test(easyMDE.value())) loadKatex();
+
+		})();
+		</script>
+
+		<!-- Header scroll detection (Type B — no banner) -->
+		<script>
+			(function() {
+				var header = document.getElementById("header");
+				var isRevealed = false;
+				window.addEventListener("scroll", function() {
+					var y = window.scrollY;
+					if (!isRevealed && y > 80) {
+						isRevealed = true;
+						header.classList.remove("alt");
+						header.classList.add("reveal");
+					} else if (isRevealed && y <= 0) {
+						isRevealed = false;
+						header.classList.remove("reveal");
+						header.classList.add("alt");
+					}
+				}, { passive: true });
+			})();
+		</script>
+
+	</body>
+</html>

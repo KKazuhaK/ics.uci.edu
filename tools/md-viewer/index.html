@@ -890,6 +890,7 @@
 								<a href="../../notes/course_notes/ICS-45C/index.html" class="course-chip" id="course-link">ICS-45C</a>
 								<span class="breadcrumb-sep">›</span>
 								<span class="file-chip" id="raw-link">ICS45C_Week1_Notes_zh-CN.md</span>
+									<a id="edit-in-editor" style="cursor:pointer;margin-left:auto;display:none;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>Open in Editor</a>
 							</div>
 							<p class="notes-date" id="notes-date" hidden></p>
 						</div>
@@ -899,9 +900,14 @@
 								<div class="notes-breadcrumb">
 									<a href="../../tools/" class="status-chip">Tools</a>
 									<span class="breadcrumb-sep">›</span>
-									<span class="file-chip" id="upload-crumb-end">Markdown Viewer</span>
+									<span class="file-chip" id="upload-crumb-viewer">Markdown Viewer</span>
+									<span class="breadcrumb-sep" id="upload-crumb-sep" style="display:none;">›</span>
+									<span class="file-chip" id="upload-crumb-end" style="display:none;"></span>
 								</div>
-								<button class="upload-reload-btn" id="open-another" hidden>Open another file</button>
+								<div style="display:flex;gap:0.5rem;align-items:center;margin-left:auto;">
+										<a id="open-another" style="cursor:pointer;display:none;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(192,57,43,0.10);box-shadow:inset 0 0 0 1.5px rgba(192,57,43,0.35);color:#c0392b !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-sync-alt" style="margin-right:0.3em;"></i>Open another file</a>
+										<a id="edit-in-editor-upload" style="cursor:pointer;display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>Open Editor</a>
+									</div>
 							</div>
 							<div id="upload-prompt">
 								<p>Select or drag a <code>.md</code> file from your device to render it here.</p>
@@ -1492,6 +1498,31 @@
 				};
 			}
 
+			function updateEditButton() {
+				["edit-in-editor", "edit-in-editor-upload"].forEach(function(id) {
+					var btn = document.getElementById(id);
+					if (!btn) return;
+					var hasFile = !!window._rawMarkdown;
+					btn.innerHTML = '<i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>' + (hasFile ? "Open in Editor" : "Open Editor");
+				});
+			}
+
+			function showEditButton() {
+				function go() {
+					if (window._rawMarkdown) {
+						try { localStorage.setItem("me-transfer", window._rawMarkdown); } catch(e) {}
+					}
+					window.open("../md-editor/", "_blank");
+				}
+				["edit-in-editor", "edit-in-editor-upload"].forEach(function(id) {
+					var btn = document.getElementById(id);
+					if (!btn) return;
+					btn.style.display = "inline-flex";
+					if (!btn._bound) { btn.addEventListener("click", go); btn._bound = true; }
+				});
+				updateEditButton();
+			}
+
 			function isUploadMode(params) {
 				return !params.has("kind") && !params.has("course") && !params.has("note") && !params.has("file");
 			}
@@ -1525,26 +1556,40 @@
 						document.title = file.name + " | Kazuha Mo - UC Irvine";
 						pageTitle.textContent = file.name;
 						crumbEnd.textContent = file.name;
-						openAnother.hidden = false;
+						crumbEnd.style.display = "";
+						document.getElementById("upload-crumb-sep").style.display = "";
+						var viewerChip = document.getElementById("upload-crumb-viewer");
+						viewerChip.className = "status-chip";
+						viewerChip.style.cursor = "pointer";
+						openAnother.style.display = "inline-flex";
 						uploadPrompt.hidden = true;
+						window._rawMarkdown = e.target.result;
 						content.innerHTML = markdownToHtml(e.target.result);
 						content.hidden = false;
+						showEditButton();
 						viewerCard.hidden = false;
 						buildToc(content);
 						void applySyntaxHighlighting(content);
 						void applyMathRendering(content);
 					};
 					reader.onerror = function() {
-						crumbEnd.textContent = "Markdown Viewer";
-						openAnother.hidden = true;
+						crumbEnd.style.display = "none";
+						document.getElementById("upload-crumb-sep").style.display = "none";
+						openAnother.style.display = "none";
 						uploadPrompt.hidden = false;
 					};
 					reader.readAsText(file);
 				}
 
 				function resetUpload() {
-					crumbEnd.textContent = "Markdown Viewer";
-					openAnother.hidden = true;
+					crumbEnd.style.display = "none";
+					document.getElementById("upload-crumb-sep").style.display = "none";
+					var viewerChip = document.getElementById("upload-crumb-viewer");
+					viewerChip.className = "file-chip";
+					viewerChip.style.cursor = "default";
+					openAnother.style.display = "none";
+					window._rawMarkdown = null;
+					updateEditButton();
 					uploadPrompt.hidden = false;
 					clearUploadError();
 					content.innerHTML = "";
@@ -1610,6 +1655,33 @@
 					pageTitle.textContent = "Markdown Viewer";
 					document.title = "Markdown Viewer | Kazuha Mo - UC Irvine";
 					setupFileUpload();
+					showEditButton();
+
+					// Check for transferred content from md-editor
+					(function() {
+						var tr = localStorage.getItem('mv-transfer');
+						if (!tr) return;
+						localStorage.removeItem('mv-transfer');
+						var ct = document.getElementById("content");
+						var up = document.getElementById("upload-prompt");
+						var ce = document.getElementById("upload-crumb-end");
+						var oa = document.getElementById("open-another");
+						window._rawMarkdown = tr;
+						pageTitle.textContent = "Transferred Document";
+						ce.textContent = "Transferred Document";
+						ce.style.display = "";
+						document.getElementById("upload-crumb-sep").style.display = "";
+						oa.style.display = "inline-flex";
+						if (up) up.hidden = true;
+						ct.innerHTML = markdownToHtml(tr);
+						ct.hidden = false;
+						viewerCard.hidden = false;
+						buildToc(ct);
+						void applySyntaxHighlighting(ct);
+						void applyMathRendering(ct);
+						showEditButton();
+					})();
+
 					return;
 				}
 
@@ -1652,7 +1724,9 @@
 
 					const lastMod = response.headers.get("Last-Modified");
 					const markdown = await response.text();
+					window._rawMarkdown = markdown;
 					content.innerHTML = markdownToHtml(markdown);
+					showEditButton();
 					content.hidden = false;
 					status.remove();
 
