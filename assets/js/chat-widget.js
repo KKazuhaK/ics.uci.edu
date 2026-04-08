@@ -375,7 +375,7 @@
     '<div id="cw-header">' +
       '<span>Ask about this page<span class="cw-badge">Beta</span></span>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
-        '<button id="cw-new" title="New chat">&#x21bb; New Chat</button>' +
+        '<button id="cw-new" title="New chat"><i class="fa fa-edit" style="margin-right:0.3em;"></i>New Chat</button>' +
         '<button id="cw-close" title="Close">&times;</button>' +
       '</div>' +
     '</div>' +

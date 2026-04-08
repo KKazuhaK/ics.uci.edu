@@ -1617,6 +1617,16 @@ char* s4 = "Hello World";    // points to a string literal (do not modify)
 char* s5;                     // uninitialized pointer! dangerous!
 ```
 
+**Summary comparison:**
+
+| Declaration | Size | Initialized | Safe? |
+|-------------|------|-------------|-------|
+| `char s[12] = "Hello World"` | Manually specified 12 | ✅ Yes | ✅ |
+| `char s2[] = "Hello World"` | Auto-deduced 12 | ✅ Yes | ✅ |
+| `char s3[12]` | 12 | ❌ No | ⚠️ Garbage values |
+| `char *s4 = "Hello World"` | — | ✅ Yes | ⚠️ Immutable |
+| `char *s5` | — | ❌ No | ❌ Dangling pointer |
+
 ### 23.2 Physical Length vs Logical Length
 
 ```
@@ -1651,6 +1661,16 @@ for (char* p = s; *p != '\0'; ++p)
 ```
 
 Methods 4 and 5 are the recommended ways to iterate over C-style strings.
+
+### 23.4 C Arrays vs. Pointers vs. vector
+
+| Feature | **C Array** | **Pointer** | **vector** |
+|---------|------------|------------|-----------|
+| Fixed size? | ✅ Fixed | — | ❌ Variable |
+| Knows its own length? | ❌ | ❌ | ✅ `.size()` |
+| Loses length when passed to function? | ❌ Lost | ❌ Lost | ✅ Retained |
+| range-for? | Only at definition site | ❌ | ✅ |
+| Safety | Low | Lowest | High |
 
 ---
 
