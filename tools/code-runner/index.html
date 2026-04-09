@@ -197,18 +197,21 @@
 				flex-direction: column;
 				min-width: 0;
 				overflow: hidden;
-			}
-			.cr-right-top {
-				overflow-y: auto;
 				background: var(--cr-dark);
+			}
+			.cr-section {
 				display: flex;
 				flex-direction: column;
+				min-height: 0;
+				overflow: hidden;
 			}
-			.cr-right-bottom {
+			.cr-section.collapsed { flex: 0 0 auto !important; }
+			.cr-section-body {
 				flex: 1;
 				display: flex;
 				flex-direction: column;
 				min-height: 0;
+				overflow: auto;
 			}
 
 			/* Resizers */
@@ -238,18 +241,6 @@
 				background-size: 4px 4px;
 				background-position: center;
 			}
-			.cr-resizer-v {
-				height: 8px;
-				cursor: row-resize;
-			}
-			.cr-resizer-v::after {
-				content: '';
-				width: 28px; height: 4px;
-				border-radius: 2px;
-				background-image: radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px);
-				background-size: 4px 4px;
-				background-position: center;
-			}
 
 			/* Editor */
 			#cr-editor {
@@ -259,24 +250,36 @@
 			}
 
 			/* Stdin */
-			.cr-stdin-wrap {
-				background: var(--cr-dark);
-				padding: 0.4rem 1rem 0.5rem;
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				min-height: 0;
+			/* Collapsible section headers */
+			.cr-section-hdr {
+				display: flex; align-items: center; gap: 0.5rem;
+				padding: 0.5rem 1rem;
+				background: #252526;
+				cursor: pointer;
+				user-select: none;
+				transition: background 0.12s;
 			}
-			.cr-stdin-label {
-				display: block;
-				font-size: 0.7rem; font-weight: 700;
-				text-transform: uppercase; letter-spacing: 0.4px;
-				color: rgba(255,255,255,0.45);
-				margin-bottom: 0.25rem;
+			.cr-section-hdr:hover { background: #2d2d2d; }
+			.cr-section-chevron {
+				width: 14px; height: 14px; flex-shrink: 0;
+				stroke: rgba(255,255,255,0.4); fill: none;
+				stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+				transition: transform 0.2s;
+			}
+			.cr-section-hdr.collapsed .cr-section-chevron {
+				transform: rotate(-90deg);
+			}
+			.cr-section-title {
+				font-size: 0.78rem; font-weight: 700;
+				text-transform: uppercase; letter-spacing: 0.5px;
+				color: #93c5fd;
 			}
 			.cr-stdin-hint {
 				font-weight: 400; text-transform: none;
 				letter-spacing: 0; color: rgba(255,255,255,0.25); font-size: 0.68rem;
+			}
+			.cr-stdin-body {
+				padding: 0.4rem 1rem 0.5rem;
 			}
 			.cr-stdin-area {
 				display: block; width: 100%; box-sizing: border-box;
@@ -294,16 +297,6 @@
 			.cr-stdin-area::placeholder { color: rgba(255,255,255,0.18); }
 
 			/* Output */
-			.cr-output-header {
-				display: flex; align-items: center; justify-content: space-between;
-				padding: 0.5rem 1rem;
-				background: #2d2d2d;
-			}
-			.cr-output-title {
-				font-size: 0.78rem; font-weight: 700;
-				text-transform: uppercase; letter-spacing: 0.5px;
-				color: rgba(255,255,255,0.55);
-			}
 			.cr-output-status {
 				font-size: 0.75rem; color: rgba(255,255,255,0.45);
 				font-family: "Consolas", "Cascadia Code", monospace;
@@ -345,22 +338,6 @@
 			}
 
 			/* Test Cases Panel */
-			.cr-tc-wrap {
-				background: #252526;
-				overflow-y: auto;
-				flex: 1;
-				min-height: 0;
-			}
-			.cr-tc-header {
-				display: flex; align-items: center; justify-content: space-between;
-				padding: 0.5rem 1rem 0.3rem;
-				position: sticky; top: 0; background: #252526; z-index: 1;
-			}
-			.cr-tc-title {
-				font-size: 0.75rem; font-weight: 700;
-				text-transform: uppercase; letter-spacing: 0.5px;
-				color: rgba(255,255,255,0.45);
-			}
 			.cr-tc-addbtn {
 				all: unset !important;
 				box-sizing: border-box !important;
@@ -544,7 +521,6 @@
 								<div class="cr-toolbar-left">
 									<select id="cr-lang" class="cr-lang-select"></select>
 									<select id="cr-ver" class="cr-input-select" title="Compiler/runtime version"></select>
-									<button type="button" id="cr-btn-tests" class="cr-btn cr-btn-secondary" title="Add input/output test cases to auto-judge your code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Test Cases</button>
 								</div>
 								<input type="file" id="cr-file-input" style="display:none" />
 								<div class="cr-toolbar-right">
@@ -567,33 +543,34 @@
 								<div class="cr-resizer cr-resizer-h" id="cr-resizer-h"></div>
 
 								<!-- Right: Stdin + Test Cases + Output -->
-								<div class="cr-body-right">
-									<div class="cr-right-top" id="cr-right-top">
-										<div class="cr-stdin-wrap" id="cr-stdin-wrap">
-											<label class="cr-stdin-label">Stdin <span class="cr-stdin-hint">— Leave empty if not needed</span></label>
-											<textarea id="cr-stdin" class="cr-stdin-area" placeholder="(empty)" rows="3"></textarea>
+								<div class="cr-body-right" id="cr-body-right">
+									<div class="cr-section" id="cr-sec-stdin">
+										<div class="cr-section-hdr" data-section="stdin">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Stdin</span>
+											<span class="cr-stdin-hint">— Leave empty if not needed</span>
 										</div>
-
-										<div class="cr-resizer cr-resizer-v cr-resizer-tc" id="cr-resizer-tc" style="display:none"></div>
-
-										<div id="cr-tc-wrap" class="cr-tc-wrap" style="display:none">
-											<div class="cr-tc-header">
-												<span class="cr-tc-title">Test Cases</span>
-												<button type="button" class="cr-tc-addbtn" id="cr-tc-add">+ Add</button>
-											</div>
-											<div class="cr-tc-list" id="cr-tc-list"></div>
+										<div class="cr-section-body cr-stdin-body">
+											<textarea id="cr-stdin" class="cr-stdin-area" placeholder="(empty)" rows="3"></textarea>
 										</div>
 									</div>
 
-									<!-- Vertical resizer -->
-									<div class="cr-resizer cr-resizer-v" id="cr-resizer-v"></div>
-
-									<div class="cr-right-bottom">
-										<div class="cr-output-header">
-											<span class="cr-output-title">Output</span>
-											<span class="cr-output-status" id="cr-status"></span>
+									<div class="cr-section" id="cr-sec-tc">
+										<div class="cr-section-hdr" data-section="tc">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Test Cases</span>
+											<button type="button" class="cr-tc-addbtn" id="cr-tc-add" style="margin-left:auto">+ Add</button>
 										</div>
-										<pre class="cr-output" id="cr-output"><span class="cr-placeholder">Click &#9654; Run or press Ctrl+Enter to execute your code.</span></pre>
+										<div class="cr-section-body cr-tc-list" id="cr-tc-list"></div>
+									</div>
+
+									<div class="cr-section" id="cr-sec-output">
+										<div class="cr-section-hdr" data-section="output">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Output</span>
+											<span class="cr-output-status" id="cr-status" style="margin-left:auto"></span>
+										</div>
+										<pre class="cr-section-body cr-output" id="cr-output"><span class="cr-placeholder">Click &#9654; Run or press Ctrl+Enter to execute your code.</span></pre>
 									</div>
 								</div>
 							</div>
@@ -897,8 +874,6 @@
 			(function() {
 				var body     = document.getElementById('cr-body');
 				var rH       = document.getElementById('cr-resizer-h');
-				var rV       = document.getElementById('cr-resizer-v');
-				var rightTop = document.getElementById('cr-right-top');
 
 				// ── Horizontal: left/right split ──
 				rH.addEventListener('mousedown', function(e) {
@@ -928,69 +903,6 @@
 					document.addEventListener('mouseup', onUp);
 				});
 
-				// ── Vertical: right-top / output-bottom ──
-				rV.addEventListener('mousedown', function(e) {
-					e.preventDefault();
-					var startY  = e.clientY;
-					var startH  = rightTop.offsetHeight;
-
-					rV.classList.add('dragging');
-					document.body.style.cursor = 'row-resize';
-					document.body.style.userSelect = 'none';
-
-					var rightPanel = rightTop.parentElement;
-					var panelH = rightPanel.offsetHeight;
-					var tcVisible = document.getElementById('cr-tc-wrap').style.display !== 'none';
-					var stdinH = document.getElementById('cr-stdin-wrap').offsetHeight;
-
-					function onMove(e) {
-						var newH = startH + e.clientY - startY;
-						// When test cases open: min = stdin height + resizer + 100px for test cases
-						var minH = tcVisible ? stdinH + 108 : 80;
-						newH = Math.max(minH, Math.min(panelH - 60, newH));
-						rightTop.style.height = newH + 'px';
-						rightTop.style.flexShrink = '0';
-					}
-					function onUp() {
-						rV.classList.remove('dragging');
-						document.body.style.cursor = '';
-						document.body.style.userSelect = '';
-						document.removeEventListener('mousemove', onMove);
-						document.removeEventListener('mouseup', onUp);
-					}
-					document.addEventListener('mousemove', onMove);
-					document.addEventListener('mouseup', onUp);
-				});
-
-				// ── Vertical: stdin / test-cases (inside right-top) ──
-				var rTC = document.getElementById('cr-resizer-tc');
-				var stdinW = document.getElementById('cr-stdin-wrap');
-
-				rTC.addEventListener('mousedown', function(e) {
-					e.preventDefault();
-					var startY = e.clientY;
-					var startH = stdinW.offsetHeight;
-
-					rTC.classList.add('dragging');
-					document.body.style.cursor = 'row-resize';
-					document.body.style.userSelect = 'none';
-
-					function onMove(e) {
-						var newH = startH + e.clientY - startY;
-						newH = Math.max(40, Math.min(rightTop.offsetHeight - 60, newH));
-						stdinW.style.height = newH + 'px';
-						stdinW.style.flex = '0 0 auto';
-					}
-					function onUp() {
-						rTC.classList.remove('dragging');
-						document.body.style.cursor = '';
-						document.body.style.userSelect = '';
-						document.removeEventListener('mousemove', onMove);
-						document.removeEventListener('mouseup', onUp);
-					}
-					document.addEventListener('mousemove', onMove);
-					document.addEventListener('mouseup', onUp);
-				});
 			})();
 
 			/* ── Open / Save file ───────────────────────── */
@@ -1049,10 +961,8 @@
 			var running  = false;
 
 			/* ── Test Cases ─────────────────────────────── */
-			var tcWrap   = document.getElementById('cr-tc-wrap');
 			var tcList   = document.getElementById('cr-tc-list');
 			var tcAddBtn = document.getElementById('cr-tc-add');
-			var testsBtn = document.getElementById('cr-btn-tests');
 			var testCases = [];
 
 			function esc(s) {
@@ -1115,26 +1025,38 @@
 				if (fields.length) fields[fields.length - 1].focus();
 			});
 
-			var resizerTC = document.getElementById('cr-resizer-tc');
-			var stdinWrap = document.getElementById('cr-stdin-wrap');
+			var stdinSec  = document.getElementById('cr-sec-stdin');
+			var tcSec     = document.getElementById('cr-sec-tc');
+			var outputSec = document.getElementById('cr-sec-output');
+			var allSections = [stdinSec, tcSec, outputSec];
 
-			testsBtn.addEventListener('click', function() {
-				var show = tcWrap.style.display === 'none';
-				tcWrap.style.display = show ? '' : 'none';
-				resizerTC.style.display = show ? '' : 'none';
-				// When test cases visible, stdin takes fixed space; otherwise fills
-				if (show) {
-					stdinWrap.style.flex = '0 0 auto';
-				} else {
-					stdinWrap.style.flex = '1';
-					stdinWrap.style.height = '';
+			/* ── Distribute flex: last expanded visible section fills ── */
+			function syncSections() {
+				var expanded = allSections.filter(function(s) {
+					return s.style.display !== 'none' && !s.classList.contains('collapsed');
+				});
+				allSections.forEach(function(s) { s.style.flex = ''; });
+				if (expanded.length) {
+					expanded[expanded.length - 1].style.flex = '1';
 				}
-				testsBtn.classList.toggle('active', show);
-				updateRunBtn();
+			}
+
+			/* ── Collapsible section headers ── */
+			document.querySelectorAll('.cr-section-hdr[data-section]').forEach(function(hdr) {
+				hdr.addEventListener('click', function(e) {
+					if (e.target.closest('button')) return;
+					var sec = hdr.closest('.cr-section');
+					var body = sec.querySelector('.cr-section-body');
+					var isCollapsed = sec.classList.toggle('collapsed');
+					body.style.display = isCollapsed ? 'none' : '';
+					hdr.classList.toggle('collapsed', isCollapsed);
+					syncSections();
+					updateRunBtn();
+				});
 			});
 
 			function isJudgeMode() {
-				return tcWrap.style.display !== 'none' && testCases.length > 0;
+				return !tcSec.classList.contains('collapsed') && testCases.length > 0;
 			}
 
 			function updateRunBtn() {
@@ -1146,6 +1068,7 @@
 			}
 
 			loadTestCases();
+			syncSections();
 
 			/* ── Clear all ──────────────────────────────── */
 			document.getElementById('cr-btn-clear').addEventListener('click', function() {
