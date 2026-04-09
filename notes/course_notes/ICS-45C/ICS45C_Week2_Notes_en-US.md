@@ -1199,7 +1199,42 @@ Complex result{};     // OK: brace initialization is safer
 
 This is a notorious C++ pitfall called the **"most vexing parse."**
 
-### 17.5 When Is the Constructor Called?
+### 17.5 Parentheses: Variable Declaration or Function Call?
+
+Both variable declarations and function calls use parentheses, which can look confusing. The key is: **is there a type name in front?**
+
+```cpp
+ifstream in("input.txt");  // type name `ifstream` in front → variable declaration
+in("input.txt");           // no type name in front        → function call
+```
+
+**The pattern:**
+
+```cpp
+TypeName varName(args);    // variable declaration + initialization
+         funcName(args);   // function call
+```
+
+More examples:
+
+```cpp
+int x(5);              // `int` is a type    → declares variable x
+square(5);             // no type            → calls function square
+
+Complex c(1.0, 2.0);  // `Complex` is a type → declares variable c
+c.add(other);          // no type            → calls member function add
+```
+
+| Expression | Type name in front? | What is it? |
+|------------|---------------------|-------------|
+| `int x(5)` | Yes | Variable declaration |
+| `square(5)` | No | Function call |
+| `ifstream in("a.txt")` | Yes | Variable declaration |
+| `in >> word` | No | Using a variable |
+
+> 💡 Type name in front → declaring a variable. No type name → calling a function.
+
+### 17.6 When Is the Constructor Called?
 
 Object lifetime:
 
@@ -1213,7 +1248,7 @@ Object lifetime:
 
 The constructor is called after memory is allocated and before the object is used.
 
-### 17.6 Comparison with Python
+### 17.7 Comparison with Python
 
 ```python
 class Complex:
@@ -1505,8 +1540,8 @@ public:
 
 **The only difference: default access level**
 
-| | `class` | `struct` |
-|--|---------|---------|
+|   | `class` | `struct` |
+|---|---------|----------|
 | Default access | `private` | `public` |
 
 Beyond that, `class` and `struct` are completely identical in C++.
