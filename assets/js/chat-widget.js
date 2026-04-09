@@ -664,6 +664,11 @@
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
       var buffer = "";
+      var userScrolledUp = false;
+      messagesEl.addEventListener("scroll", function onScroll() {
+        if (!isStreaming) { messagesEl.removeEventListener("scroll", onScroll); return; }
+        userScrolledUp = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight > 40;
+      });
 
       while (true) {
         var result = await reader.read();
@@ -692,7 +697,7 @@
                 katexLoading = true; loadKatex();
               }
               assistantDiv.innerHTML = renderMd(fullText);
-              messagesEl.scrollTop = messagesEl.scrollHeight;
+              if (!userScrolledUp) messagesEl.scrollTop = messagesEl.scrollHeight;
             }
           } catch (e) { /* skip */ }
         }

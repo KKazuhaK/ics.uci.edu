@@ -431,7 +431,7 @@ bool test{false};
 | Python | C++ |
 |--------|-----|
 | `and` | `&&` |
-| `or` | `\|\|` |
+| `or` | `||` |
 | `not` | `!` |
 
 Relational operators:
@@ -493,9 +493,9 @@ When an expression contains multiple operators, C++ uses **precedence** and **as
 | 8 | `==` `!=` | Equality | Left→Right |
 | 9 | `&` | Bitwise AND | Left→Right |
 | 10 | `^` | Bitwise XOR | Left→Right |
-| 11 | `\|` | Bitwise OR | Left→Right |
+| 11 | `|` | Bitwise OR | Left→Right |
 | 12 | `&&` | Logical AND | Left→Right |
-| 13 | `\|\|` | Logical OR | Left→Right |
+| 13 | `||` | Logical OR | Left→Right |
 | 14 | `?:` | Ternary conditional | Right→Left |
 | 15 | `=` `+=` `-=` `*=` `/=` `%=` etc. | Assignment | Right→Left |
 | 16 (lowest) | `,` | Comma | Left→Right |
@@ -1031,7 +1031,7 @@ This quiz simultaneously checks four things:
 | Integer division | `7 // 3` | `7 / 3` |
 | Power | `2 ** 10` | `pow(2, 10)` |
 | Boolean | `True / False` | `true / false` |
-| Logic | `and / or / not` | `&& / \|\| / !` |
+| Logic | `and / or / not` | `&& / || / !` |
 | Conditional | `if x > 0:` | `if (x > 0) {}` |
 | `elif` | `elif` | `else if` |
 | Loop | `for i in range(n):` | `for (int i = 0; i < n; ++i)` |
