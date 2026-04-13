@@ -26,8 +26,8 @@
 - [22. 数组（C Arrays）—— 课堂 PPT 补充](#22-数组c-arrays-课堂-ppt-补充)
 - [23. C 风格字符串（C-style Strings）](#23-c-风格字符串c-style-strings)
 - [24. operator<< 重载与引用参数模式](#24-operator-重载与引用参数模式)
-- [25. STL 容器初步：set 与 map（可能属于 Week 3）](#25-stl-容器初步set-与-map可能属于-week-3)
-- [26. 文件 I/O 初步（可能属于 Week 3）](#26-文件-io-初步可能属于-week-3)
+- [25. STL 容器初步：set 与 map](#25-stl-容器初步set-与-map)
+- [26. 文件 I/O 初步 → 已迁移至 Week 3 §12](#26-文件-io-初步--已迁移至-week-3-12)
 - [27. 综合速查表](#27-综合速查表)
 
 > UCI ICS 45C: Programming in C++ (35770)  
@@ -1740,6 +1740,23 @@ ostream& operator<<(ostream& out, const Complex& c) {
 
 **为什么不能是成员函数？** 因为 `cout << c` 的语法意味着左操作数是 `cout`（`ostream` 类型），而我们不能修改 `ostream` 类。
 
+**另一种写法：`friend` 声明。** 上面的例子是委托给公有的 `print()` 方法，所以不需要访问私有成员。如果你更喜欢直接访问 `re` / `im` 而不走 `print()` 辅助函数，就在类里把 `operator<<` 声明为 **`friend`** —— 这样既能访问私有成员，又保持它是非成员函数：
+
+```cpp
+class Complex {
+    float re, im;
+public:
+    Complex(float r = 0, float i = 0) : re(r), im(i) {}
+    friend ostream& operator<<(ostream& out, const Complex& c);  // 授予访问 re/im 的权限
+};
+
+ostream& operator<<(ostream& out, const Complex& c) {
+    return out << "(" << c.re << "+" << c.im << "i)";  // 直接访问私有成员
+}
+```
+
+`friend` 方式和 `print()` 委托方式在行为上是等价的 —— 挑对你的类读起来更顺的那个就行。
+
 ### 24.3 为什么返回 ostream&
 
 返回引用是为了支持**链式调用**：
@@ -1773,9 +1790,9 @@ istream& operator>>(istream& in, Complex& c) {
 
 ---
 
-## 25. STL 容器初步：set 与 map（可能属于 Week 3）
+## 25. STL 容器初步：set 与 map
 
-> ⚠️ 以下内容出现在 Week 2-3 的 PPT 中，不在 Week 2 的 Assigned Reading 里。如果不确定属于哪周，这里先记录。
+> 来自 Week 2 课堂 PPT（不在 Week 2 的 Assigned Reading 里，但课堂上讲过）。
 
 ### 25.1 set（集合）
 
@@ -1794,15 +1811,21 @@ for (auto E : S)
 
 if (S.find('A') != S.end())
     cout << "A is in there" << endl;
+
+// C++20: contains() —— 比 find/end 对比更简洁
+if (S.contains('A'))
+    cout << "A is in there" << endl;
 ```
 
 特点：
 
 - 自动**去重**
 - 元素自动**排序**
+- 范围 for 遍历：`for (auto E : S)` —— 按排序顺序遍历
 - 查找用 `find()`，返回迭代器
+- `contains()`（C++20）：直接返回 `bool`，比 `find() != end()` 更简洁
 
-类比 Python 的 `set`。
+类比 Python 的 `set`。类似 Python 的 `for x in S`，C++ 范围 for 也会遍历所有元素——但始终按排序顺序。
 
 ### 25.2 map（映射/字典）
 
@@ -1815,47 +1838,51 @@ A["Bill"] = 33;
 A["George"] = 29;
 A["Al"] = 27;
 
+// C++17 之前：通过 .first / .second 访问键值
 for (auto E : A)
     cout << E.first << " is " << E.second << " ";
 // 输出: Al is 27 Bill is 33 George is 29（按 key 字母序排列）
+
+// C++17：结构化绑定 —— 直接解包为 [key, value]
+for (auto [name, age] : A)
+    cout << name << " is " << age << " ";
+// 输出相同，但可读性更好
 ```
+
+```cpp
+// 按键访问
+cout << A["Bill"] << endl;      // 33 —— 键不存在时会自动插入默认值！
+cout << A.at("Bill") << endl;   // 33 —— 键不存在时抛 std::out_of_range（更安全）
+
+// C++20: contains()
+if (A.contains("Bill"))
+    cout << "Bill is in the map" << endl;
+```
+
+**各版本 C++ 写法演进：**
+
+| 操作 | C++17 之前 | C++17+ | C++20+ |
+|------|-----------|--------|--------|
+| 遍历 | `for (auto E : A)` → `E.first`、`E.second` | `for (auto [k, v] : A)` —— 结构化绑定 | 同左 |
+| 判断键是否存在 | `A.find(k) != A.end()` 或 `A.count(k)` | 同左 | `A.contains(k)` —— 直接返回 `bool` |
+| 安全读取值 | `A.at(k)`（键不存在则抛异常） | 同左 | 同左 |
+| 读取/自动插入 | `A[k]`（键不存在则插入默认值） | 同左 | 同左 |
 
 特点：
 
 - 键值对存储
 - 按**键排序**
-- `E.first` 是键，`E.second` 是值
+- 遍历：`for (auto [key, value] : A)`（C++17）或 `E.first`/`E.second`（旧写法）
+- `operator[]` 在键不存在时会插入默认值；`at()` 则抛异常（只读访问更安全）
+- `contains()`（C++20）：直接返回 `bool`，比 `find() != end()` 更简洁
 
 类比 Python 的 `dict`，但 C++ 的 `map` 是有序的。
 
 ---
 
-## 26. 文件 I/O 初步（可能属于 Week 3）
+## 26. 文件 I/O 初步 → 已迁移至 Week 3 §12
 
-> ⚠️ 同样出现在 Week 2-3 PPT 中，不在 Week 2 Assigned Reading 里。
-
-### 26.1 基本文件读写
-
-```cpp
-#include <fstream>
-
-int main() {
-    ifstream in("input.txt");    // 打开文件读取
-    ofstream out("output.txt");  // 打开文件写入
-    
-    string word;
-    while (in >> word) {          // 逐词读取，EOF 时返回 false
-        out << word << endl;
-    }
-    
-    in.close();
-    out.close();
-}
-```
-
-- `ifstream`：input file stream，用于读文件
-- `ofstream`：output file stream，用于写文件
-- `>>` 和 `<<` 的用法和 `cin`/`cout` 完全一致
+> 📖 文件 I/O 在 Week 2 课堂 PPT 里只是作为预告提了一下，完整内容在 **Week 3 §12「基础文件 I/O」** —— 包括 6 个文件模式的完整对照表（`app` / `ate` / `binary` / `in` / `out` / `trunc`）、用 `|` 组合多模式、RAII 自动关闭、`>>` vs `getline` 的选用、错误检查、缓冲机制，以及 `std::endl` 的性能陷阱。
 
 ---
 

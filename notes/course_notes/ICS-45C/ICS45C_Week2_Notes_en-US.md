@@ -26,8 +26,8 @@
 - [22. C Arrays — Lecture Supplement](#22-c-arrays--lecture-supplement)
 - [23. C-style Strings](#23-c-style-strings)
 - [24. Overloading operator<< and the Reference Parameter Pattern](#24-overloading-operator-and-the-reference-parameter-pattern)
-- [25. STL Containers: set and map (Possibly Week 3)](#25-stl-containers-set-and-map-possibly-week-3)
-- [26. Basic File I/O (Possibly Week 3)](#26-basic-file-io-possibly-week-3)
+- [25. STL Containers: set and map](#25-stl-containers-set-and-map)
+- [26. Basic File I/O → Moved to Week 3 §12](#26-basic-file-io--moved-to-week-3-12)
 - [27. Quick Reference Summary](#27-quick-reference-summary)
 
 > UCI ICS 45C: Programming in C++ (35770)  
@@ -1736,6 +1736,23 @@ ostream& operator<<(ostream& out, const Complex& c) {
 
 **Why can't it be a member function?** Because `cout << c` implies the left operand is `cout` (type `ostream`), and we can't modify the `ostream` class.
 
+**Alternative: `friend` declaration.** The example above delegates to a public `print()` method, so it doesn't need access to private members. If you prefer to access `re` / `im` directly without going through a `print()` helper, declare `operator<<` as a **`friend`** inside the class — this grants it access to private members while still keeping it a non-member function:
+
+```cpp
+class Complex {
+    float re, im;
+public:
+    Complex(float r = 0, float i = 0) : re(r), im(i) {}
+    friend ostream& operator<<(ostream& out, const Complex& c);  // grant access to re/im
+};
+
+ostream& operator<<(ostream& out, const Complex& c) {
+    return out << "(" << c.re << "+" << c.im << "i)";  // direct private access
+}
+```
+
+The `friend` approach and the `print()` delegation approach are equivalent in behavior — pick whichever reads better for your class.
+
 ### 24.3 Why Return ostream&?
 
 Returning a reference enables **chained calls**:
@@ -1769,9 +1786,9 @@ istream& operator>>(istream& in, Complex& c) {
 
 ---
 
-## 25. STL Containers: set and map (Possibly Week 3)
+## 25. STL Containers: set and map
 
-> ⚠️ The following content appears in Week 2–3 slides but is not in the Week 2 assigned reading. Recorded here for reference.
+> From Week 2 lecture slides (not in the Week 2 assigned reading, but introduced in lecture).
 
 ### 25.1 set
 
@@ -1790,14 +1807,20 @@ for (auto E : S)
 
 if (S.find('A') != S.end())
     cout << "A is in there" << endl;
+
+// C++20: contains() — cleaner than find/end comparison
+if (S.contains('A'))
+    cout << "A is in there" << endl;
 ```
 
 Characteristics:
 - Automatically **de-duplicates**
 - Elements automatically **sorted**
+- Traverse with range-based for: `for (auto E : S)` — iterates in sorted order
 - Search with `find()`, returns an iterator
+- `contains()` (C++20): returns `bool` directly — cleaner than `find() != end()`
 
-Analogous to Python's `set`.
+Analogous to Python's `set`. Like Python's `for x in S`, C++ range-based for iterates over every element — but always in sorted order.
 
 ### 25.2 map
 
@@ -1810,46 +1833,50 @@ A["Bill"] = 33;
 A["George"] = 29;
 A["Al"] = 27;
 
+// Pre-C++17: access key/value via .first / .second
 for (auto E : A)
     cout << E.first << " is " << E.second << " ";
 // output: Al is 27 Bill is 33 George is 29 (sorted by key alphabetically)
+
+// C++17: structured bindings — directly unpack into [key, value]
+for (auto [name, age] : A)
+    cout << name << " is " << age << " ";
+// same output, but much more readable
 ```
+
+```cpp
+// Access by key
+cout << A["Bill"] << endl;      // 33 — creates entry if key missing!
+cout << A.at("Bill") << endl;   // 33 — throws std::out_of_range if key missing (safer)
+
+// C++20: contains()
+if (A.contains("Bill"))
+    cout << "Bill is in the map" << endl;
+```
+
+**Evolution across C++ standards:**
+
+| Task | Pre-C++17 | C++17+ | C++20+ |
+|------|-----------|--------|--------|
+| Iterate | `for (auto E : A)` → `E.first`, `E.second` | `for (auto [k, v] : A)` — structured bindings | same |
+| Check key exists | `A.find(k) != A.end()` or `A.count(k)` | same | `A.contains(k)` — returns `bool` directly |
+| Read value safely | `A.at(k)` (throws if missing) | same | same |
+| Read/insert value | `A[k]` (inserts default if missing) | same | same |
 
 Characteristics:
 - Key-value pair storage
 - Sorted **by key**
-- `E.first` is the key, `E.second` is the value
+- Iterate: `for (auto [key, value] : A)` (C++17) or `E.first`/`E.second` (older)
+- `operator[]` inserts a default value if the key doesn't exist; `at()` throws instead (safer for read-only access)
+- `contains()` (C++20): returns `bool` directly — cleaner than `find() != end()`
 
 Analogous to Python's `dict`, but C++'s `map` is always ordered.
 
 ---
 
-## 26. Basic File I/O (Possibly Week 3)
+## 26. Basic File I/O → Moved to Week 3 §12
 
-> ⚠️ Also appears in Week 2–3 slides, not in Week 2 assigned reading.
-
-### 26.1 Basic File Read/Write
-
-```cpp
-#include <fstream>
-
-int main() {
-    ifstream in("input.txt");    // open file for reading
-    ofstream out("output.txt");  // open file for writing
-    
-    string word;
-    while (in >> word) {          // read word by word; returns false at EOF
-        out << word << endl;
-    }
-    
-    in.close();
-    out.close();
-}
-```
-
-- `ifstream`: input file stream — for reading files
-- `ofstream`: output file stream — for writing files
-- `>>` and `<<` work exactly like `cin`/`cout`
+> 📖 File I/O was previewed in Week 2 lecture slides but the full treatment lives in **Week 3 §12 "Basic File I/O"** — complete file-mode table (`app` / `ate` / `binary` / `in` / `out` / `trunc`), combining modes with `|`, RAII auto-close, `>>` vs `getline` choice, error checking, buffering, and the `std::endl` performance trap.
 
 ---
 
