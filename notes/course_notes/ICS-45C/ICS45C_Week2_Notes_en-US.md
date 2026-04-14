@@ -13,22 +13,16 @@
 - [9. Lvalue References to const](#9-lvalue-references-to-const)
 - [10. Pass by Reference](#10-pass-by-reference)
 - [11. Pass by const Lvalue Reference](#11-pass-by-const-lvalue-reference)
-- [12. Introduction to Object-Oriented Programming](#12-introduction-to-object-oriented-programming)
-- [13. Introduction to Classes](#13-introduction-to-classes)
-- [14. Member Functions](#14-member-functions)
-- [15. Const Objects and Const Member Functions](#15-const-objects-and-const-member-functions)
-- [16. Public and Private Access Control](#16-public-and-private-access-control)
-- [17. Introduction to Constructors](#17-introduction-to-constructors)
-- [18. Constructor Member Initializer Lists](#18-constructor-member-initializer-lists)
-- [19. Destructors](#19-destructors)
-- [20. Classes and Header Files](#20-classes-and-header-files)
-- [21. class vs struct](#21-class-vs-struct)
-- [22. C Arrays — Lecture Supplement](#22-c-arrays--lecture-supplement)
-- [23. C-style Strings](#23-c-style-strings)
-- [24. Overloading operator<< and the Reference Parameter Pattern](#24-overloading-operator-and-the-reference-parameter-pattern)
-- [25. STL Containers: set and map](#25-stl-containers-set-and-map)
-- [26. Basic File I/O → Moved to Week 3 §12](#26-basic-file-io--moved-to-week-3-12)
-- [27. Quick Reference Summary](#27-quick-reference-summary)
+- [12. Introduction to OOP and Classes](#12-introduction-to-oop-and-classes)
+- [13. Member Functions, const, and Access Control](#13-member-functions-const-and-access-control)
+- [14. Constructors, Initializer Lists, and Destructors](#14-constructors-initializer-lists-and-destructors)
+- [15. Classes and Header Files](#15-classes-and-header-files)
+- [16. C Arrays — Lecture Supplement](#16-c-arrays--lecture-supplement)
+- [17. C-style Strings](#17-c-style-strings)
+- [18. Overloading operator<< and the Reference Parameter Pattern](#18-overloading-operator-and-the-reference-parameter-pattern)
+- [19. STL Containers: set and map](#19-stl-containers-set-and-map)
+- [20. Basic File I/O → Moved to Week 3 §12](#20-basic-file-io--moved-to-week-3-12)
+- [21. Quick Reference Summary](#21-quick-reference-summary)
 
 > UCI ICS 45C: Programming in C++ (35770)  
 > These notes integrate Week 2 Assigned Reading (LearnCpp chapters) with lecture slides, organized in study order.
@@ -865,7 +859,7 @@ void foo(int a, int& b, const std::string& c) {
 
 ---
 
-## 12. Introduction to Object-Oriented Programming
+## 12. Introduction to OOP and Classes
 
 > Corresponds to LearnCpp 14.1 — Introduction to object-oriented programming
 
@@ -900,13 +894,10 @@ class Dog:
 
 C++ classes are fundamentally the same as Python classes: they bind data and behavior together. The syntax is different, but the concept is identical.
 
----
-
-## 13. Introduction to Classes
 
 > Corresponds to LearnCpp 14.2 — Introduction to classes
 
-### 13.1 Defining a Class
+### 12.4 Defining a Class
 
 ```cpp
 class Complex {
@@ -916,7 +907,7 @@ public:
 };
 ```
 
-### 13.2 Why Use class Instead of Just struct?
+### 12.5 Why Use class Instead of Just struct?
 
 A `struct` has a problem: it cannot effectively enforce **class invariants**.
 
@@ -933,7 +924,7 @@ Fraction f{5, 0};   // problem! struct can't prevent users from creating invalid
 
 As an aggregate, `struct` lets users directly access and set any value — there's no way to prevent invalid state. A **class** solves this with private members and constructors: the constructor can validate arguments.
 
-### 13.3 Basic Structure of a Class
+### 12.6 Basic Structure of a Class
 
 A class contains:
 
@@ -941,7 +932,7 @@ A class contains:
 - **Member functions (methods)**: operate on the data
 - **Access control**: `public` / `private`
 
-### 13.4 Creating Objects
+### 12.7 Creating Objects
 
 ```cpp
 Complex c1(1.5, 5.3);   // create a Complex object
@@ -950,7 +941,7 @@ Complex c2(2.5, 2.7);   // create another
 
 Each object has **its own copy of data members**, but **shares the same set of member functions**.
 
-### 13.5 Class vs Python Class
+### 12.8 Class vs Python Class
 
 | Python | C++ |
 |--------|-----|
@@ -960,14 +951,47 @@ Each object has **its own copy of data members**, but **shares the same set of m
 | `__init__` | Constructor (same name as the class) |
 | Can add attributes dynamically | All members must be declared inside the class |
 
+
+> Combined with lecture slides: class vs. struct
+
+### 12.9 The Only Difference
+
+```cpp
+struct Complex {
+private:             // struct defaults to public, so private must be written explicitly
+    float re, im;
+public:
+    // ...
+};
+
+class Complex {
+    float re, im;    // class defaults to private — no need to write it
+public:
+    // ...
+};
+```
+
+**The only difference: default access level**
+
+|   | `class` | `struct` |
+|---|---------|----------|
+| Default access | `private` | `public` |
+
+Beyond that, `class` and `struct` are completely identical in C++.
+
+### 12.10 Convention
+
+- Simple data-only types with no complex behavior → use `struct`
+- Types with encapsulation and complex behavior → use `class`
+
 ---
 
-## 14. Member Functions
+## 13. Member Functions, const, and Access Control
 
 > Corresponds to LearnCpp 14.3 — Member functions  
 > Combined with lecture slides: The Hidden 'this' Parameter
 
-### 14.1 Defining Member Functions
+### 13.1 Defining Member Functions
 
 ```cpp
 class Complex {
@@ -985,7 +1009,7 @@ public:
 
 > 💡 **Member functions defined inside the class definition are implicitly inline**, so even if the class definition is `#include`d by multiple `.cpp` files, there's no ODR violation. This is why short getters/setters are typically written directly inside the class definition.
 
-### 14.2 The Hidden this Parameter
+### 13.2 The Hidden this Parameter
 
 Every member function has a **hidden additional parameter** called `this` — a pointer to the object that invoked it.
 
@@ -1004,7 +1028,7 @@ Analogous to Python's `self`:
 | `self` must be declared explicitly as the first parameter | `this` is hidden — no need to declare it |
 | `self.re` | `re` or `this->re` |
 
-### 14.3 Calling Member Functions
+### 13.3 Calling Member Functions
 
 ```cpp
 Complex c1(1.0, 1.0);
@@ -1015,7 +1039,7 @@ result.print(cout);             // result is this
 
 Use the `.` operator to call member functions. The object on the left of the dot becomes `this`.
 
-### 14.4 Member Functions Can Access Private Members of Any Instance
+### 13.4 Member Functions Can Access Private Members of Any Instance
 
 Member functions can access the private members of **any object of the same class**:
 
@@ -1029,20 +1053,17 @@ Complex add(Complex c) {
 
 This may be surprising: `add` can access not only `this->re` but also `c.re`. **Objects of the same class have no privacy from each other.**
 
----
-
-## 15. Const Objects and Const Member Functions
 
 > Corresponds to LearnCpp 14.4 — Const class objects and const member functions
 
-### 15.1 Const Objects
+### 13.5 Const Objects
 
 ```cpp
 const Complex c1(1.0, 2.0);   // c1 is a const object
 // c1's data members cannot be modified
 ```
 
-### 15.2 Const Member Functions
+### 13.6 Const Member Functions
 
 If a member function **does not modify any data members**, it should be marked `const`:
 
@@ -1054,7 +1075,7 @@ void print(ostream& out) const {   // note the position of const
 
 `const` is placed after the parameter list but before the function body.
 
-### 15.3 Why Const Member Functions Are Needed
+### 13.7 Why Const Member Functions Are Needed
 
 **Const objects can only call const member functions:**
 
@@ -1068,20 +1089,17 @@ Rules:
 - const object → can only call const member functions
 - Non-const object → can call both const and non-const member functions
 
-### 15.4 Best Practice
+### 13.8 Best Practice
 
 **All member functions that don't modify the object's state should be declared const.**
 
 This mirrors the principle of `const` reference parameters: add `const` wherever possible to limit modification rights.
 
----
-
-## 16. Public and Private Access Control
 
 > Corresponds to LearnCpp 14.5 — Public and private members and access specifiers  
 > Combined with lecture slides: Public or Private
 
-### 16.1 Three Access Levels
+### 13.9 Three Access Levels
 
 | Access Level | Access Specifier | Member Access | Derived Class Access | Public Access |
 |-------------|-----------------|---------------|---------------------|---------------|
@@ -1091,7 +1109,7 @@ This mirrors the principle of `const` reference parameters: add `const` wherever
 
 A class type is allowed to use any number of access specifiers in any order, and they can be used repeatedly (e.g. you can have some public members, then some private ones, then more public ones).
 
-### 16.2 Syntax
+### 13.10 Syntax
 
 ```cpp
 class Complex {
@@ -1105,7 +1123,7 @@ public:               // the following members are public
 };
 ```
 
-### 16.3 Default Access Level for class Is private
+### 13.11 Default Access Level for class Is private
 
 ```cpp
 class Foo {
@@ -1115,14 +1133,14 @@ public:
 };
 ```
 
-### 16.4 Encapsulation Analogy
+### 13.12 Encapsulation Analogy
 
 From lecture — a great analogy:
 
 - **public** (interface) = steering wheel, accelerator, brake pedal → what the user directly interacts with
 - **private** (implementation) = engine, transmission, fuel injection system → internal details the user doesn't need to and shouldn't touch directly
 
-### 16.5 Simple Rules (Week 2 Stage)
+### 13.13 Simple Rules (Week 2 Stage)
 
 - **Data members → private**
 - **Most member functions, constructors, and destructors → public**
@@ -1141,12 +1159,12 @@ public:
 
 ---
 
-## 17. Introduction to Constructors
+## 14. Constructors, Initializer Lists, and Destructors
 
 > Corresponds to LearnCpp 14.9 — Introduction to constructors  
 > Combined with lecture slides: Defining a Constructor
 
-### 17.1 What Is a Constructor?
+### 14.1 What Is a Constructor?
 
 A **constructor** is a special member function that is **called automatically when an object is created**.
 
@@ -1164,7 +1182,7 @@ public:
 };
 ```
 
-### 17.2 Special Properties of Constructors
+### 14.2 Special Properties of Constructors
 
 - The function name **is the same as the class name**
 - **No return type** (not even `void`)
@@ -1174,7 +1192,7 @@ public:
 
 > ⚠️ **Constructors don't create the object**: the compiler allocates memory first, then calls the constructor on that uninitialized memory. The constructor's job is *initialization*, not *creation*. But if no matching constructor is found, the compiler will error and prevent object creation.
 
-### 17.3 Default Constructors
+### 14.3 Default Constructors
 
 A **default constructor** is one that can be called with no arguments:
 
@@ -1189,7 +1207,7 @@ Complex c2(1.0, 2.0);   // calls the parameterized constructor
 Complex c3{};            // calls the default constructor (brace initialization)
 ```
 
-### 17.4 ⚠️ Don't Add Empty Parentheses When Creating Objects
+### 14.4 ⚠️ Don't Add Empty Parentheses When Creating Objects
 
 ```cpp
 Complex result;       // OK: calls the default constructor
@@ -1199,13 +1217,13 @@ Complex result{};     // OK: brace initialization is safer
 
 This is a notorious C++ pitfall called the **"most vexing parse."**
 
-### 17.5 Parentheses: Variable Declaration or Function Call?
+### 14.5 Parentheses: Variable Declaration or Function Call?
 
 Both variable declarations and function calls use parentheses, which can look confusing. The key is: **is there a type name in front?**
 
 ```cpp
-ifstream in("input.txt");  // type name `ifstream` in front → variable declaration
-in("input.txt");           // no type name in front        → function call
+Complex c(1.0, 2.0);      // type name `Complex` in front → variable declaration
+c.print(cout);             // no type name in front        → function call
 ```
 
 **The pattern:**
@@ -1221,20 +1239,20 @@ More examples:
 int x(5);              // `int` is a type    → declares variable x
 square(5);             // no type            → calls function square
 
-Complex c(1.0, 2.0);  // `Complex` is a type → declares variable c
-c.add(other);          // no type            → calls member function add
+double d(3.14);        // `double` is a type → declares variable d
+d = sqrt(2.0);         // no type            → calls function sqrt
 ```
 
 | Expression | Type name in front? | What is it? |
 |------------|---------------------|-------------|
 | `int x(5)` | Yes | Variable declaration |
 | `square(5)` | No | Function call |
-| `ifstream in("a.txt")` | Yes | Variable declaration |
-| `in >> word` | No | Using a variable |
+| `Complex c(1.0, 2.0)` | Yes | Variable declaration |
+| `c.add(other)` | No | Function call (member) |
 
 > 💡 Type name in front → declaring a variable. No type name → calling a function.
 
-### 17.6 When Is the Constructor Called?
+### 14.6 When Is the Constructor Called?
 
 Object lifetime:
 
@@ -1248,7 +1266,7 @@ Object lifetime:
 
 The constructor is called after memory is allocated and before the object is used.
 
-### 17.7 Comparison with Python
+### 14.7 Comparison with Python
 
 ```python
 class Complex:
@@ -1272,13 +1290,10 @@ public:
 | `self.re = re` | `: re(newRe)` in initializer list |
 | Always has explicit `self` | Implicit `this` |
 
----
-
-## 18. Constructor Member Initializer Lists
 
 > Corresponds to LearnCpp 14.10 — Constructor member initializer lists
 
-### 18.1 What Is a Member Initializer List?
+### 14.8 What Is a Member Initializer List?
 
 A member initializer list (MIL) is the syntax used to **directly initialize data members** in a constructor:
 
@@ -1292,7 +1307,7 @@ Complex(float newRe, float newIm)
 
 Written after `:`, separated by commas, before the function body `{}`.
 
-### 18.2 Initializer List vs Assignment in the Body
+### 14.9 Initializer List vs Assignment in the Body
 
 ```cpp
 // Option 1: member initializer list (preferred)
@@ -1315,7 +1330,7 @@ The difference:
 
 **Always prefer member initializer lists.** Some types (e.g., `const` members, reference members) **must** use them — they cannot be assigned in the body.
 
-### 18.3 Initialization Priority
+### 14.10 Initialization Priority
 
 When an object is constructed, each member is initialized according to this priority:
 
@@ -1340,7 +1355,7 @@ Foo foo{6};
 // m_x = 6, m_y = 2, m_z = garbage (undefined behavior if read)
 ```
 
-### 18.4 Initialization Order
+### 14.11 Initialization Order
 
 Members are initialized **in the order they are declared**, not in the order they appear in the initializer list:
 
@@ -1373,13 +1388,10 @@ Foo foo{6, 7};
 
 Best practice: keep the initializer list order consistent with the declaration order. Avoid using one member to initialize another.
 
----
-
-## 19. Destructors
 
 > Combined with lecture slides: Defining a Destructor
 
-### 19.1 What Is a Destructor?
+### 14.12 What Is a Destructor?
 
 A **destructor** is called **automatically when an object is destroyed**, and is used to clean up resources.
 
@@ -1395,7 +1407,7 @@ public:
 };
 ```
 
-### 19.2 Properties of Destructors
+### 14.13 Properties of Destructors
 
 - Named `~ClassName`
 - No parameters
@@ -1403,7 +1415,7 @@ public:
 - Each class has at most one destructor
 - Called automatically when the object goes out of scope
 
-### 19.3 Complete Object Lifetime Example
+### 14.14 Complete Object Lifetime Example
 
 ```cpp
 int main() {
@@ -1422,12 +1434,12 @@ int main() {
 
 ---
 
-## 20. Classes and Header Files
+## 15. Classes and Header Files
 
 > Corresponds to LearnCpp 15.2 — Classes and header files  
 > Combined with lecture slides: Declaring a Class / Defining Member Functions
 
-### 20.1 The Typical Separation Pattern
+### 15.1 The Typical Separation Pattern
 
 A class is typically split into two files:
 
@@ -1436,7 +1448,7 @@ Complex.hpp — class declaration
 Complex.cpp — member function definitions
 ```
 
-### 20.2 Header File (.hpp): Class Declaration
+### 15.2 Header File (.hpp): Class Declaration
 
 ```cpp
 // Complex.hpp
@@ -1466,7 +1478,7 @@ The header file contains:
 - Header guard
 - **Short accessor functions (getters/setters) can be defined directly inside the class definition** in the header (they are implicitly inline)
 
-### 20.3 Source File (.cpp): Member Function Definitions
+### 15.3 Source File (.cpp): Member Function Definitions
 
 ```cpp
 // Complex.cpp
@@ -1495,13 +1507,13 @@ Note the use of the **scope resolution operator `::`**:
 > - Header: `void print(std::ostream& out) const;`
 > - Source: `void Complex::print(std::ostream& out) const { ... }`
 
-### 20.4 Why Separate?
+### 15.4 Why Separate?
 
 - **Compilation efficiency**: modifying a `.cpp` only requires recompiling that file
 - **Clear interface**: reading `.hpp` tells you what the class offers
 - **Hidden implementation**: when distributing a library, you can ship only `.hpp` and compiled `.o` files, keeping the source private
 
-### 20.5 Using the Class
+### 15.5 Using the Class
 
 ```cpp
 // main.cpp
@@ -1517,47 +1529,11 @@ int main() {
 
 ---
 
-## 21. class vs struct
-
-> Combined with lecture slides: class vs. struct
-
-### 21.1 The Only Difference
-
-```cpp
-struct Complex {
-private:             // struct defaults to public, so private must be written explicitly
-    float re, im;
-public:
-    // ...
-};
-
-class Complex {
-    float re, im;    // class defaults to private — no need to write it
-public:
-    // ...
-};
-```
-
-**The only difference: default access level**
-
-|   | `class` | `struct` |
-|---|---------|----------|
-| Default access | `private` | `public` |
-
-Beyond that, `class` and `struct` are completely identical in C++.
-
-### 21.2 Convention
-
-- Simple data-only types with no complex behavior → use `struct`
-- Types with encapsulation and complex behavior → use `class`
-
----
-
-## 22. C Arrays — Lecture Supplement
+## 16. C Arrays — Lecture Supplement
 
 > From Week 2 lecture slides
 
-### 22.1 Arrays as Function Parameters
+### 16.1 Arrays as Function Parameters
 
 ```cpp
 void fill(int a[], int N) {
@@ -1576,7 +1552,7 @@ void print(int a[], int N) {
 
 **Key point**: when you pass an array to a function, you're actually passing a pointer (the address of the first element). Modifying the array inside the function **affects the original**. This is effectively **automatic pass by reference**.
 
-### 22.2 Array Initialization
+### 16.2 Array Initialization
 
 ```cpp
 constexpr int len = 5;
@@ -1585,7 +1561,7 @@ int a[len] = {0};   // all elements initialized to 0
 
 `= {0}` means: set the first element to 0; the remaining elements are **zero-initialized** as well.
 
-### 22.3 Out-of-Bounds Access
+### 16.3 Out-of-Bounds Access
 
 ```cpp
 int a[5] = {0};
@@ -1599,7 +1575,7 @@ Unlike Python, C++ won't throw an exception. Out-of-bounds access may:
 - Crash the program
 - "Appear to work" while silently corrupting state
 
-### 22.4 Range-based for and Array Parameters
+### 16.4 Range-based for and Array Parameters
 
 ```cpp
 int main() {
@@ -1618,7 +1594,7 @@ void f(string P[], int len) {
 
 **Key distinction**: once an array is passed as a parameter, it **decays to a pointer** and range-based for no longer works.
 
-### 22.5 char as Array Index
+### 16.5 char as Array Index
 
 ```cpp
 int counts[26] = {0};   // counter for each letter
@@ -1636,11 +1612,11 @@ int index = letter - 'A';   // 'C' - 'A' = 2
 
 ---
 
-## 23. C-style Strings
+## 17. C-style Strings
 
 > From Week 2 lecture slides
 
-### 23.1 What Is a C-style String?
+### 17.1 What Is a C-style String?
 
 A C-style string is a `char` array terminated by a **null character `'\0'`**.
 
@@ -1662,7 +1638,7 @@ char* s5;                     // uninitialized pointer! dangerous!
 | `char *s4 = "Hello World"` | — | ✅ Yes | ⚠️ Immutable |
 | `char *s5` | — | ❌ No | ❌ Dangling pointer |
 
-### 23.2 Physical Length vs Logical Length
+### 17.2 Physical Length vs Logical Length
 
 ```
 Physical length: total allocated size of the array (e.g., 128)
@@ -1671,7 +1647,7 @@ Logical length:  number of valid characters (before '\0')
 
 Similar to HW1's Stack: the array has a physical capacity, but only part of it is in use.
 
-### 23.3 Iterating over C-style Strings
+### 17.3 Iterating over C-style Strings
 
 ```cpp
 char s[128] = "Hello World";
@@ -1697,7 +1673,7 @@ for (char* p = s; *p != '\0'; ++p)
 
 Methods 4 and 5 are the recommended ways to iterate over C-style strings.
 
-### 23.4 C Arrays vs. Pointers vs. vector
+### 17.4 C Arrays vs. Pointers vs. vector
 
 | Feature | **C Array** | **Pointer** | **vector** |
 |---------|------------|------------|-----------|
@@ -1709,11 +1685,11 @@ Methods 4 and 5 are the recommended ways to iterate over C-style strings.
 
 ---
 
-## 24. Overloading operator<< and the Reference Parameter Pattern
+## 18. Overloading operator<< and the Reference Parameter Pattern
 
 > Combined with lecture slides: Defining Inserter: operator<<
 
-### 24.1 Why Overload operator<<?
+### 18.1 Why Overload operator<<?
 
 We want to output custom types like this:
 
@@ -1724,7 +1700,7 @@ cout << "Sink at location: " << mySink << endl;
 
 To make this work, we need to define `operator<<`.
 
-### 24.2 operator<< Must Be a Non-member Function
+### 18.2 operator<< Must Be a Non-member Function
 
 ```cpp
 // Must be defined as a non-member function!
@@ -1753,7 +1729,7 @@ ostream& operator<<(ostream& out, const Complex& c) {
 
 The `friend` approach and the `print()` delegation approach are equivalent in behavior — pick whichever reads better for your class.
 
-### 24.3 Why Return ostream&?
+### 18.3 Why Return ostream&?
 
 Returning a reference enables **chained calls**:
 
@@ -1765,7 +1741,7 @@ cout << "value: " << mySink << endl;
 
 Without returning a reference, chaining would break.
 
-### 24.4 Decoding the Parameter Signatures
+### 18.4 Decoding the Parameter Signatures
 
 ```cpp
 ostream& operator<<(ostream& out, const Complex& c)
@@ -1775,7 +1751,7 @@ ostream& operator<<(ostream& out, const Complex& c)
 - `const Complex& c`: const reference — efficient, and doesn't modify `c`
 - Returns `ostream&`: reference return to support chaining
 
-### 24.5 Similarly, Overloading operator>>
+### 18.5 Similarly, Overloading operator>>
 
 ```cpp
 istream& operator>>(istream& in, Complex& c) {
@@ -1786,11 +1762,11 @@ istream& operator>>(istream& in, Complex& c) {
 
 ---
 
-## 25. STL Containers: set and map
+## 19. STL Containers: set and map
 
 > From Week 2 lecture slides (not in the Week 2 assigned reading, but introduced in lecture).
 
-### 25.1 set
+### 19.1 set
 
 ```cpp
 #include <set>
@@ -1822,7 +1798,7 @@ Characteristics:
 
 Analogous to Python's `set`. Like Python's `for x in S`, C++ range-based for iterates over every element — but always in sorted order.
 
-### 25.2 map
+### 19.2 map
 
 ```cpp
 #include <map>
@@ -1874,13 +1850,13 @@ Analogous to Python's `dict`, but C++'s `map` is always ordered.
 
 ---
 
-## 26. Basic File I/O → Moved to Week 3 §12
+## 20. Basic File I/O → Moved to Week 3 §12
 
 > 📖 File I/O was previewed in Week 2 lecture slides but the full treatment lives in **Week 3 §12 "Basic File I/O"** — complete file-mode table (`app` / `ate` / `binary` / `in` / `out` / `trunc`), combining modes with `|`, RAII auto-close, `>>` vs `getline` choice, error checking, buffering, and the `std::endl` performance trap.
 
 ---
 
-## 27. Quick Reference Summary
+## 21. Quick Reference Summary
 
 ### References
 
