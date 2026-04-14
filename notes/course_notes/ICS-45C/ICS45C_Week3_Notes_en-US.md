@@ -546,7 +546,7 @@ arr[-1];     // ❌ undefined behavior (but compiles silently)
 
 ### 5.4 Using char as an Index
 
-> 📖 **Covered in Week 2 §22.5** — the `int counts[26]{0}; index = letter - 'A'; ++counts[index];` idiom for per-letter bookkeeping, with the warning about not using a literal character as the index (`'A'` is 65, way out of bounds).
+> 📖 **Covered in Week 2 §16.5** — the `int counts[26]{0}; index = letter - 'A'; ++counts[index];` idiom for per-letter bookkeeping, with the warning about not using a literal character as the index (`'A'` is 65, way out of bounds).
 
 ### 5.5 Getting the Length of an Array
 
@@ -688,7 +688,7 @@ Arrays do NOT decay when used with: `sizeof()`, `typeid()`, `operator&`, passed 
 
 ### 6.4 Range-based for and Decay
 
-> 📖 **Covered in Week 2 §22.4** — range-based for works on a non-decayed array (e.g., inside `main()`), but **fails** once the array has decayed to a pointer parameter. The Week 2 section also shows the index-based alternative that still works after decay. (Connection to section 7.5: range-for is just pointer arithmetic underneath — that's why it can't handle a bare pointer.)
+> 📖 **Covered in Week 2 §16.4** — range-based for works on a non-decayed array (e.g., inside `main()`), but **fails** once the array has decayed to a pointer parameter. The Week 2 section also shows the index-based alternative that still works after decay. (Connection to section 7.5: range-for is just pointer arithmetic underneath — that's why it can't handle a bare pointer.)
 
 ---
 
@@ -829,11 +829,11 @@ for (auto __it = __begin; __it != __end; ++__it) {
 
 ### 8.1 What Is a C-style String?
 
-> 📖 **Covered in Week 2 §23.1–23.2** — a C-style string is a `char` array terminated by `'\0'`; the five forms of initialization (`char s[12] = "..."`, `char s2[] = "..."`, `char s3[12]`, `const char* s4 = "..."`, `char* s5`) with their safety tradeoffs; and the **physical length** (total array size) vs **logical length** (characters before `'\0'`) distinction.
+> 📖 **Covered in Week 2 §17.1–17.2** — a C-style string is a `char` array terminated by `'\0'`; the five forms of initialization (`char s[12] = "..."`, `char s2[] = "..."`, `char s3[12]`, `const char* s4 = "..."`, `char* s5`) with their safety tradeoffs; and the **physical length** (total array size) vs **logical length** (characters before `'\0'`) distinction.
 
 ### 8.2 Traversing C-style Strings
 
-> 📖 **Covered in Week 2 §23.3** — the five iteration methods compared:
+> 📖 **Covered in Week 2 §17.3** — the five iteration methods compared:
 > 1. `s.size()` ❌ doesn't exist on C arrays
 > 2. `strlen()` ⚠️ works but O(n) per call (avoid in loop conditions — see 8.5 below)
 > 3. range-based for ⚠️ iterates the physical length, not the logical length
@@ -1025,7 +1025,7 @@ a = b = c;   // parses right-to-left as a = (b = c);
 - Return by value → works, but every link in the chain costs an extra copy
 - **Return by reference → correct AND efficient**
 
-The same logic applies to `operator<<`: it returns `std::ostream&` so you can chain `cout << x << y << z` (see Week 2 §24.3 for the full treatment).
+The same logic applies to `operator<<`: it returns `std::ostream&` so you can chain `cout << x << y << z` (see Week 2 §18.3 for the full treatment).
 
 > 💡 **Rule of thumb:** Ask yourself — "**Does this operator change `*this`?**" If yes → return `Type&`. If no → return `Type` (or `bool`, etc.) by value.
 
@@ -1064,7 +1064,7 @@ And you **cannot change this** — operator precedence is baked into the languag
 
 ## 10. Overloading the I/O Operators
 
-> 📖 **Moved to Week 2 §24.** The full treatment of `operator<<` overloading — why it **must be a non-member function**, the `ostream& operator<<(ostream& out, const Complex& c)` signature, why you return `ostream&` for chaining, the parallel `operator>>`, and the **`friend` declaration alternative** — all lives in **Week 2 §24 "Overloading `operator<<` and the Reference Parameter Pattern"**.
+> 📖 **Moved to Week 2 §18.** The full treatment of `operator<<` overloading — why it **must be a non-member function**, the `ostream& operator<<(ostream& out, const Complex& c)` signature, why you return `ostream&` for chaining, the parallel `operator>>`, and the **`friend` declaration alternative** — all lives in **Week 2 §18 "Overloading `operator<<` and the Reference Parameter Pattern"**.
 >
 > This section's concepts (return-by-reference conventions) connect back to **§9.3 above** — the same "return `Type&` for chaining" rule that `operator=` follows.
 

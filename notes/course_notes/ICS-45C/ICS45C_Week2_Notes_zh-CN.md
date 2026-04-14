@@ -13,22 +13,16 @@
 - [9. const 左值引用](#9-const-左值引用)
 - [10. 引用传参（Pass by Reference）](#10-引用传参pass-by-reference)
 - [11. const 引用传参](#11-const-引用传参)
-- [12. 面向对象编程入门](#12-面向对象编程入门)
-- [13. 类（Class）入门](#13-类class入门)
-- [14. 成员函数](#14-成员函数)
-- [15. const 对象与 const 成员函数](#15-const-对象与-const-成员函数)
-- [16. public 与 private 访问控制](#16-public-与-private-访问控制)
-- [17. 构造函数入门](#17-构造函数入门)
-- [18. 构造函数成员初始化列表](#18-构造函数成员初始化列表)
-- [19. 析构函数](#19-析构函数)
-- [20. 类与头文件的分离](#20-类与头文件的分离)
-- [21. class vs struct](#21-class-vs-struct)
-- [22. 数组（C Arrays）—— 课堂 PPT 补充](#22-数组c-arrays-课堂-ppt-补充)
-- [23. C 风格字符串（C-style Strings）](#23-c-风格字符串c-style-strings)
-- [24. operator<< 重载与引用参数模式](#24-operator-重载与引用参数模式)
-- [25. STL 容器初步：set 与 map](#25-stl-容器初步set-与-map)
-- [26. 文件 I/O 初步 → 已迁移至 Week 3 §12](#26-文件-io-初步--已迁移至-week-3-12)
-- [27. 综合速查表](#27-综合速查表)
+- [12. 面向对象编程与类入门](#12-面向对象编程与类入门)
+- [13. 成员函数、const 与访问控制](#13-成员函数const-与访问控制)
+- [14. 构造函数、初始化列表与析构函数](#14-构造函数初始化列表与析构函数)
+- [15. 类与头文件的分离](#15-类与头文件的分离)
+- [16. 数组（C Arrays）—— 课堂 PPT 补充](#16-数组c-arrays-课堂-ppt-补充)
+- [17. C 风格字符串（C-style Strings）](#17-c-风格字符串c-style-strings)
+- [18. operator<< 重载与引用参数模式](#18-operator-重载与引用参数模式)
+- [19. STL 容器初步：set 与 map](#19-stl-容器初步set-与-map)
+- [20. 文件 I/O 初步 → 已迁移至 Week 3 §12](#20-文件-io-初步--已迁移至-week-3-12)
+- [21. 综合速查表](#21-综合速查表)
 
 > UCI ICS 45C: Programming in C++ (35770)  
 > 本笔记整合了 Week 2 Assigned Reading（LearnCpp 章节）与课堂 PPT 内容，按学习顺序整理。
@@ -578,7 +572,7 @@ x = 10;    // OK：x 是 modifiable lvalue
 - 函数返回值（非引用）：`add(3, 4)`
 - `static_cast` 结果：`static_cast<int>(d)`
 
-### 7.3 为什么要分左值和右值
+### 7.5 为什么要分左值和右值
 
 这在理解**引用**时非常关键：
 
@@ -869,7 +863,7 @@ void foo(int a, int& b, const std::string& c) {
 
 ---
 
-## 12. 面向对象编程入门
+## 12. 面向对象编程与类入门
 
 > 对应 LearnCpp 14.1 — Introduction to object-oriented programming
 
@@ -904,13 +898,10 @@ class Dog:
 
 C++ 的类本质上和 Python 一样：把数据和行为绑定在一起。语法不同而已。
 
----
-
-## 13. 类（Class）入门
 
 > 对应 LearnCpp 14.2 — Introduction to classes
 
-### 13.1 定义一个类
+### 12.4 定义一个类
 
 ```cpp
 class Complex {
@@ -920,7 +911,7 @@ public:
 };
 ```
 
-### 13.2 为什么需要 class（而不是只用 struct）
+### 12.5 为什么需要 class（而不是只用 struct）
 
 struct 有一个问题：无法有效地保护**类不变量（class invariant）**。
 
@@ -937,7 +928,7 @@ Fraction f{5, 0};   // 糟糕！struct 无法阻止用户创建无效对象
 
 struct 作为聚合体（aggregate），用户可以直接访问和设置任意值，无法防止创建无效状态的对象。**class** 通过 private 成员 + 构造函数来解决这个问题：构造函数可以验证参数是否合法。
 
-### 13.3 类的基本结构
+### 12.6 类的基本结构
 
 一个类包含：
 
@@ -945,7 +936,7 @@ struct 作为聚合体（aggregate），用户可以直接访问和设置任意�
 - **成员函数（member functions / methods）**：操作数据
 - **访问控制**：`public` / `private`
 
-### 13.3 创建对象
+### 12.7 创建对象
 
 ```cpp
 Complex c1(1.5, 5.3);   // 创建一个 Complex 对象
@@ -954,7 +945,7 @@ Complex c2(2.5, 2.7);   // 再创建一个
 
 每个对象有**自己的数据成员副本**，但**共享同一套成员函数**。
 
-### 13.4 类 vs Python 类对比
+### 12.8 类 vs Python 类对比
 
 | Python | C++ |
 |--------|-----|
@@ -964,14 +955,47 @@ Complex c2(2.5, 2.7);   // 再创建一个
 | `__init__` | 构造函数（和类同名） |
 | 动态添加属性 | 所有成员必须在类定义里声明 |
 
+
+> 结合课堂 PPT：class vs. struct
+
+### 12.9 唯一的区别
+
+```cpp
+struct Complex {
+private:             // struct 默认 public，所以要手动写 private
+    float re, im;
+public:
+    // ...
+};
+
+class Complex {
+    float re, im;    // class 默认 private，不用写
+public:
+    // ...
+};
+```
+
+**唯一的区别：默认访问级别**
+
+|   | `class` | `struct` |
+|---|---------|----------|
+| 默认访问级别 | `private` | `public` |
+
+除此之外，`class` 和 `struct` 完全一样。
+
+### 12.10 使用习惯
+
+- 只有数据、没有复杂行为的简单类型 → 用 `struct`
+- 有封装、有复杂行为的类型 → 用 `class`
+
 ---
 
-## 14. 成员函数
+## 13. 成员函数、const 与访问控制
 
 > 对应 LearnCpp 14.3 — Member functions  
 > 结合课堂 PPT：The Hidden 'this' Parameter
 
-### 14.1 定义成员函数
+### 13.1 定义成员函数
 
 ```cpp
 class Complex {
@@ -989,7 +1013,7 @@ public:
 
 > 💡 **在类定义内部定义的成员函数是隐式 inline 的**，所以即使类定义在头文件中被多个 `.cpp` 文件 `#include`，也不会违反 ODR。这就是为什么简短的 getter/setter 函数通常直接写在类定义里。
 
-### 14.2 隐藏的 this 参数
+### 13.2 隐藏的 this 参数
 
 每个成员函数都有一个**隐藏的额外参数** `this`，它是一个指向调用对象的指针。
 
@@ -1008,7 +1032,7 @@ void print(ostream& out) const {
 | `self` 必须显式声明为第一个参数 | `this` 是隐藏的，不需要声明 |
 | `self.re` | `re` 或 `this->re` |
 
-### 14.3 调用成员函数
+### 13.3 调用成员函数
 
 ```cpp
 Complex c1(1.0, 1.0);
@@ -1019,7 +1043,7 @@ result.print(cout);             // result 是 this
 
 用 `.` 运算符调用成员函数。点号左边的对象就是 `this`。
 
-### 14.4 成员函数可以访问私有成员
+### 13.4 成员函数可以访问私有成员
 
 成员函数可以访问**同类任何对象**的私有成员：
 
@@ -1033,20 +1057,17 @@ Complex add(Complex c) {
 
 这一点可能让人意外：`add` 函数不仅能访问 `this` 的 `re`，也能访问参数 `c` 的 `re`。**同类对象之间没有隐私**。
 
----
-
-## 15. const 对象与 const 成员函数
 
 > 对应 LearnCpp 14.4 — Const class objects and const member functions
 
-### 15.1 const 对象
+### 13.5 const 对象
 
 ```cpp
 const Complex c1(1.0, 2.0);   // c1 是 const 对象
 // c1 的数据成员不能被修改
 ```
 
-### 15.2 const 成员函数
+### 13.6 const 成员函数
 
 如果一个成员函数**不会修改对象的数据成员**，就应该标记为 `const`：
 
@@ -1058,7 +1079,7 @@ void print(ostream& out) const {   // 注意 const 的位置
 
 `const` 写在参数列表后面、函数体前面。
 
-### 15.3 为什么需要 const 成员函数
+### 13.7 为什么需要 const 成员函数
 
 **const 对象只能调用 const 成员函数：**
 
@@ -1073,20 +1094,17 @@ c.print(cout);    // OK：print 是 const 成员函数
 - const 对象 → 只能调用 const 成员函数
 - 非 const 对象 → 可以调用 const 和非 const 成员函数
 
-### 15.4 最佳实践
+### 13.8 最佳实践
 
 **所有不修改对象状态的成员函数都应该声明为 const。**
 
 这和 `const` 引用传参的思路一样：能加 `const` 就加 `const`，尽可能限制修改权限。
 
----
-
-## 16. public 与 private 访问控制
 
 > 对应 LearnCpp 14.5 — Public and private members and access specifiers  
 > 结合课堂 PPT：Public or Private
 
-### 16.1 三种访问级别
+### 13.9 三种访问级别
 
 | 访问级别 | 访问修饰符 | 本类成员可访问？ | 派生类可访问？ | 类外可访问？ |
 |---------|-----------|--------------|-------------|------------|
@@ -1096,7 +1114,7 @@ c.print(cout);    // OK：print 是 const 成员函数
 
 一个类可以按任意顺序、任意次数使用访问修饰符（例如先写一些 public 成员，再写 private 成员，再写更多 public 成员）。
 
-### 16.2 语法
+### 13.10 语法
 
 ```cpp
 class Complex {
@@ -1110,7 +1128,7 @@ public:               // 以下成员是公开的
 };
 ```
 
-### 16.3 class 的默认访问级别是 private
+### 13.11 class 的默认访问级别是 private
 
 ```cpp
 class Foo {
@@ -1120,14 +1138,14 @@ public:
 };
 ```
 
-### 16.4 封装的类比
+### 13.12 封装的类比
 
 PPT 中的精彩比喻：
 
 - **public**（接口）= 汽车的方向盘、油门、刹车 → 用户直接使用的部分
 - **private**（实现）= 汽车的引擎、齿轮、燃油注入系统 → 内部细节，用户不需要也不应该直接碰
 
-### 16.5 简单规则（Week 2 阶段）
+### 13.13 简单规则（Week 2 阶段）
 
 - **数据成员设为 private**
 - **大部分成员函数和构造函数/析构函数设为 public**
@@ -1146,12 +1164,12 @@ public:
 
 ---
 
-## 17. 构造函数入门
+## 14. 构造函数、初始化列表与析构函数
 
 > 对应 LearnCpp 14.9 — Introduction to constructors  
 > 结合课堂 PPT：Defining a Constructor
 
-### 17.1 什么是构造函数
+### 14.1 什么是构造函数
 
 **构造函数（constructor）** 是一种特殊的成员函数，在对象创建时**自动调用**。
 
@@ -1169,7 +1187,7 @@ public:
 };
 ```
 
-### 17.2 构造函数的特殊性
+### 14.2 构造函数的特殊性
 
 - 函数名**和类名相同**
 - **没有返回类型**（连 `void` 都不写）
@@ -1179,7 +1197,7 @@ public:
 
 > ⚠️ **构造函数不负责创建对象**：编译器先分配内存，然后在这块未初始化的内存上调用构造函数。构造函数负责的是"初始化"，不是"创建"。但如果找不到匹配的构造函数，编译器会报错阻止对象创建。
 
-### 17.3 默认构造函数
+### 14.3 默认构造函数
 
 **默认构造函数** 是可以不带参数调用的构造函数：
 
@@ -1194,7 +1212,7 @@ Complex c2(1.0, 2.0);   // 调用带参构造函数
 Complex c3{};            // 调用默认构造函数（brace initialization）
 ```
 
-### 17.4 ⚠️ 注意：创建对象时不要加空括号
+### 14.4 ⚠️ 注意：创建对象时不要加空括号
 
 ```cpp
 Complex result;       // OK：调用默认构造函数
@@ -1204,13 +1222,13 @@ Complex result{};     // OK：用花括号更安全
 
 这是 C++ 的一个著名坑，叫做 **"most vexing parse"**。
 
-### 17.5 圆括号：变量声明还是函数调用？
+### 14.5 圆括号：变量声明还是函数调用？
 
 变量声明和函数调用都用圆括号，容易混淆。关键看：**前面有没有类型名？**
 
 ```cpp
-ifstream in("input.txt");  // 前面有类型名 ifstream → 变量声明
-in("input.txt");           // 前面没有类型名        → 函数调用
+Complex c(1.0, 2.0);      // 前面有类型名 Complex → 变量声明
+c.print(cout);             // 前面没有类型名       → 函数调用
 ```
 
 **规律：**
@@ -1226,20 +1244,20 @@ in("input.txt");           // 前面没有类型名        → 函数调用
 int x(5);              // int 是类型    → 声明变量 x
 square(5);             // 没有类型      → 调用函数 square
 
-Complex c(1.0, 2.0);  // Complex 是类型 → 声明变量 c
-c.add(other);          // 没有类型      → 调用成员函数 add
+double d(3.14);        // double 是类型 → 声明变量 d
+d = sqrt(2.0);         // 没有类型      → 调用函数 sqrt
 ```
 
 | 写法 | 前面有类型名？ | 是什么 |
 |------|---------------|--------|
 | `int x(5)` | 有 | 变量声明 |
 | `square(5)` | 没有 | 函数调用 |
-| `ifstream in("a.txt")` | 有 | 变量声明 |
-| `in >> word` | 没有 | 使用变量 |
+| `Complex c(1.0, 2.0)` | 有 | 变量声明 |
+| `c.add(other)` | 没有 | 函数调用（成员）|
 
 > 💡 前面有类型名 → 声明变量；没有类型名 → 调用函数。
 
-### 17.6 何时调用构造函数
+### 14.6 何时调用构造函数
 
 对象的生命周期：
 
@@ -1253,7 +1271,7 @@ c.add(other);          // 没有类型      → 调用成员函数 add
 
 构造函数在分配内存之后、对象正式使用之前被调用。
 
-### 17.7 Python 对比
+### 14.7 Python 对比
 
 ```python
 class Complex:
@@ -1277,13 +1295,10 @@ public:
 | `self.re = re` | `: re(newRe)` 初始化列表 |
 | 始终有 `self` | 隐含 `this` |
 
----
-
-## 18. 构造函数成员初始化列表
 
 > 对应 LearnCpp 14.10 — Constructor member initializer lists
 
-### 18.1 什么是成员初始化列表
+### 14.8 什么是成员初始化列表
 
 成员初始化列表（member initializer list）是构造函数中，用于**直接初始化数据成员**的语法：
 
@@ -1297,7 +1312,7 @@ Complex(float newRe, float newIm)
 
 写在 `:` 后面，用逗号分隔，在函数体 `{}` 之前。
 
-### 18.2 初始化列表 vs 函数体内赋值
+### 14.9 初始化列表 vs 函数体内赋值
 
 ```cpp
 // 方式一：成员初始化列表（推荐）
@@ -1320,7 +1335,7 @@ Complex(float newRe, float newIm)
 
 **始终优先使用成员初始化列表。** 有些类型（如 `const` 成员、引用成员）**必须**用初始化列表。
 
-### 18.3 成员初始化的优先级
+### 14.10 成员初始化的优先级
 
 当构造对象时，每个成员按以下优先级初始化：
 
@@ -1345,7 +1360,7 @@ Foo foo{6};
 // m_x = 6, m_y = 2, m_z = 垃圾值（undefined behavior if read）
 ```
 
-### 18.4 初始化顺序
+### 14.11 初始化顺序
 
 成员初始化的顺序**取决于声明顺序**，而不是初始化列表中写的顺序：
 
@@ -1377,13 +1392,10 @@ Foo foo{6, 7};
 
 最佳实践：让初始化列表的顺序和声明顺序一致，避免用一个成员去初始化另一个成员。
 
----
-
-## 19. 析构函数
 
 > 结合课堂 PPT：Defining a Destructor
 
-### 19.1 什么是析构函数
+### 14.12 什么是析构函数
 
 **析构函数（destructor）** 在对象销毁时**自动调用**，用于清理资源。
 
@@ -1399,7 +1411,7 @@ public:
 };
 ```
 
-### 19.2 析构函数的特点
+### 14.13 析构函数的特点
 
 - 名字是 `~ClassName`
 - 没有参数
@@ -1407,7 +1419,7 @@ public:
 - 每个类最多只有一个析构函数
 - 对象离开作用域时自动调用
 
-### 19.3 对象生命周期完整例子
+### 14.14 对象生命周期完整例子
 
 ```cpp
 int main() {
@@ -1426,12 +1438,12 @@ int main() {
 
 ---
 
-## 20. 类与头文件的分离
+## 15. 类与头文件的分离
 
 > 对应 LearnCpp 15.2 — Classes and header files  
 > 结合课堂 PPT：Declaring a Class / Defining Member Functions
 
-### 20.1 典型的分离模式
+### 15.1 典型的分离模式
 
 一个类通常分成两个文件：
 
@@ -1440,7 +1452,7 @@ Complex.hpp — 类的声明
 Complex.cpp — 成员函数的定义
 ```
 
-### 20.2 头文件（.hpp）：类的声明
+### 15.2 头文件（.hpp）：类的声明
 
 ```cpp
 // Complex.hpp
@@ -1470,7 +1482,7 @@ std::ostream& operator<<(std::ostream& out, const Complex& c);
 - Header guard
 - **简短的访问函数（getter/setter）可以直接在头文件中的类定义内实现**（它们是隐式 inline 的）
 
-### 20.3 源文件（.cpp）：成员函数的定义
+### 15.3 源文件（.cpp）：成员函数的定义
 
 ```cpp
 // Complex.cpp
@@ -1499,13 +1511,13 @@ void Complex::print(std::ostream& out) const {
 > - 头文件中：`void print(std::ostream& out) const;`
 > - 源文件中：`void Complex::print(std::ostream& out) const { ... }`
 
-### 20.4 为什么要分离
+### 15.4 为什么要分离
 
 - **编译效率**：改了 `.cpp` 只需重新编译该文件
 - **接口清晰**：看 `.hpp` 就知道类有哪些功能
 - **隐藏实现**：发布库时可以只给 `.hpp` 和编译后的 `.o`，不给 `.cpp`
 
-### 20.5 使用该类
+### 15.5 使用该类
 
 ```cpp
 // main.cpp
@@ -1521,47 +1533,11 @@ int main() {
 
 ---
 
-## 21. class vs struct
-
-> 结合课堂 PPT：class vs. struct
-
-### 21.1 唯一的区别
-
-```cpp
-struct Complex {
-private:             // struct 默认 public，所以要手动写 private
-    float re, im;
-public:
-    // ...
-};
-
-class Complex {
-    float re, im;    // class 默认 private，不用写
-public:
-    // ...
-};
-```
-
-**唯一的区别：默认访问级别**
-
-|   | `class` | `struct` |
-|---|---------|----------|
-| 默认访问级别 | `private` | `public` |
-
-除此之外，`class` 和 `struct` 完全一样。
-
-### 21.2 使用习惯
-
-- 只有数据、没有复杂行为的简单类型 → 用 `struct`
-- 有封装、有复杂行为的类型 → 用 `class`
-
----
-
-## 22. 数组（C Arrays）—— 课堂 PPT 补充
+## 16. 数组（C Arrays）—— 课堂 PPT 补充
 
 > 来自 Week 2 课堂 PPT
 
-### 22.1 数组作为函数参数
+### 16.1 数组作为函数参数
 
 ```cpp
 void fill(int a[], int N) {
@@ -1580,7 +1556,7 @@ void print(int a[], int N) {
 
 **重点**：数组传参时实际上传的是指针（首元素的地址），所以在函数内修改数组**会影响原数组**。这相当于**自动按引用传递**。
 
-### 22.2 数组初始化
+### 16.2 数组初始化
 
 ```cpp
 constexpr int len = 5;
@@ -1589,7 +1565,7 @@ int a[len] = {0};   // 所有元素初始化为 0
 
 `= {0}` 的意思是：第一个元素设为 0，其余元素也被**零初始化**。
 
-### 22.3 越界访问
+### 16.3 越界访问
 
 ```cpp
 int a[5] = {0};
@@ -1603,7 +1579,7 @@ C++ 不会像 Python 那样抛异常，越界访问可能：
 - 程序崩溃
 - "看起来没问题"但实际已经出错
 
-### 22.4 range-based for 与数组参数
+### 16.4 range-based for 与数组参数
 
 ```cpp
 int main() {
@@ -1622,7 +1598,7 @@ void f(string P[], int len) {
 
 **关键区别**：数组作为参数传入函数后，**退化（decay）为指针**，无法使用 range-based for。
 
-### 22.5 char 作为数组索引
+### 16.5 char 作为数组索引
 
 ```cpp
 int counts[26] = {0};   // 26 个字母的计数器
@@ -1640,11 +1616,11 @@ int index = letter - 'A';   // 'C' - 'A' = 2
 
 ---
 
-## 23. C 风格字符串（C-style Strings）
+## 17. C 风格字符串（C-style Strings）
 
 > 来自 Week 2 课堂 PPT
 
-### 23.1 什么是 C 风格字符串
+### 17.1 什么是 C 风格字符串
 
 C 风格字符串就是一个 `char` 数组，以 **空字符 `'\0'`** 结尾。
 
@@ -1666,7 +1642,7 @@ char* s5;                     // 未初始化的指针！危险！
 | `char *s4 = "Hello World"` | — | ✅ 有 | ⚠️ 不可修改 |
 | `char *s5` | — | ❌ 无 | ❌ 野指针 |
 
-### 23.2 物理长度 vs 逻辑长度
+### 17.2 物理长度 vs 逻辑长度
 
 ```
 物理长度：数组分配的总大小（比如 128）
@@ -1675,7 +1651,7 @@ char* s5;                     // 未初始化的指针！危险！
 
 和 HW1 的 Stack 类似：数组有一个物理容量，但实际使用的部分可能更少。
 
-### 23.3 遍历 C 风格字符串
+### 17.3 遍历 C 风格字符串
 
 ```cpp
 char s[128] = "Hello World";
@@ -1701,7 +1677,7 @@ for (char* p = s; *p != '\0'; ++p)
 
 方法 4 和方法 5 是最推荐的 C 风格字符串遍历方式。
 
-### 23.4 C 数组、指针、vector 三者对比
+### 17.4 C 数组、指针、vector 三者对比
 
 | 特性 | **C 数组** | **指针** | **vector** |
 |------|-----------|---------|-----------|
@@ -1713,11 +1689,11 @@ for (char* p = s; *p != '\0'; ++p)
 
 ---
 
-## 24. operator<< 重载与引用参数模式
+## 18. operator<< 重载与引用参数模式
 
 > 结合课堂 PPT：Defining Inserter: operator<<
 
-### 24.1 为什么要重载 operator<<
+### 18.1 为什么要重载 operator<<
 
 我们希望能这样输出自定义类型：
 
@@ -1728,7 +1704,7 @@ cout << "Sink at location: " << mySink << endl;
 
 要实现这个，需要定义 `operator<<`。
 
-### 24.2 operator<< 不能是成员函数
+### 18.2 operator<< 不能是成员函数
 
 ```cpp
 // 必须定义为非成员函数！
@@ -1757,7 +1733,7 @@ ostream& operator<<(ostream& out, const Complex& c) {
 
 `friend` 方式和 `print()` 委托方式在行为上是等价的 —— 挑对你的类读起来更顺的那个就行。
 
-### 24.3 为什么返回 ostream&
+### 18.3 为什么返回 ostream&
 
 返回引用是为了支持**链式调用**：
 
@@ -1769,7 +1745,7 @@ cout << "value: " << mySink << endl;
 
 如果不返回引用，链式调用就断了。
 
-### 24.4 参数中的 & 符号解析
+### 18.4 参数中的 & 符号解析
 
 ```cpp
 ostream& operator<<(ostream& out, const Complex& c)
@@ -1779,7 +1755,7 @@ ostream& operator<<(ostream& out, const Complex& c)
 - `const Complex& c`：const 引用传递，效率高且不修改 c
 - 返回 `ostream&`：返回引用以支持链式调用
 
-### 24.5 类似地，operator>> 重载
+### 18.5 类似地，operator>> 重载
 
 ```cpp
 istream& operator>>(istream& in, Complex& c) {
@@ -1790,11 +1766,11 @@ istream& operator>>(istream& in, Complex& c) {
 
 ---
 
-## 25. STL 容器初步：set 与 map
+## 19. STL 容器初步：set 与 map
 
 > 来自 Week 2 课堂 PPT（不在 Week 2 的 Assigned Reading 里，但课堂上讲过）。
 
-### 25.1 set（集合）
+### 19.1 set（集合）
 
 ```cpp
 #include <set>
@@ -1827,7 +1803,7 @@ if (S.contains('A'))
 
 类比 Python 的 `set`。类似 Python 的 `for x in S`，C++ 范围 for 也会遍历所有元素——但始终按排序顺序。
 
-### 25.2 map（映射/字典）
+### 19.2 map（映射/字典）
 
 ```cpp
 #include <map>
@@ -1880,13 +1856,13 @@ if (A.contains("Bill"))
 
 ---
 
-## 26. 文件 I/O 初步 → 已迁移至 Week 3 §12
+## 20. 文件 I/O 初步 → 已迁移至 Week 3 §12
 
 > 📖 文件 I/O 在 Week 2 课堂 PPT 里只是作为预告提了一下，完整内容在 **Week 3 §12「基础文件 I/O」** —— 包括 6 个文件模式的完整对照表（`app` / `ate` / `binary` / `in` / `out` / `trunc`）、用 `|` 组合多模式、RAII 自动关闭、`>>` vs `getline` 的选用、错误检查、缓冲机制，以及 `std::endl` 的性能陷阱。
 
 ---
 
-## 27. 综合速查表
+## 21. 综合速查表
 
 ### 引用速查
 
