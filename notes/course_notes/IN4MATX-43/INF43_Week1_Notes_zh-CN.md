@@ -67,11 +67,31 @@
 
 1. **构建软件的过程**（The process of constructing software）
 2. **编程之外的开发阶段**（Phases of development other than programming）
-   - 需求、设计、测试、部署、维护……编码只是其中一环
+   - 软件开发的主要阶段：
+     1. **需求（Requirements）**
+     2. **设计（Design）**
+     3. **实现（Implementation）**
+     4. **验证（Verification）**
+     5. **维护（Maintenance）**
+   - 编码（实现）只是其中一环
 3. **具有持久价值的原则和质量**（Principles and qualities of enduring value）
-   - 例如：**正确性（Correctness）**、**效率（Efficiency）**、**健壮性（Robustness）**
+   - **正确性（Correctness）**
+   - **可靠性（Reliability）**
+   - **适应性（Adaptability）**
+   - **可用性（Usability）**
+   - **模块化（Modularity）**
+   - **效率（Efficiency）**
 
 次要关注点：团队管理与调度、商业模式、软件对社会的影响、AI
+
+#### Agile（敏捷开发）
+
+Agile 是一种现代软件开发方法，从多个角度定义：
+
+- 一套能实现**快速交付解决方案**的实践
+- 鼓励**频繁检查和调整**的项目管理方式
+- 将开发与**客户需求和公司目标**对齐的商业方法
+- 鼓励**团队协作、自组织和问责**的领导方式
 
 ---
 
