@@ -7,9 +7,8 @@
 3. [Requirements Engineering](#3-requirements-engineering)
 4. [Requirements Specification Document](#4-requirements-specification-document)
 5. [Specification Methods and Verification](#5-specification-methods-and-verification)
-6. [Use Cases](#6-use-cases)
-7. [Ziv's Law](#7-zivs-law)
-8. [Wrap-Up and Memory Framework](#8-wrap-up-and-memory-framework)
+6. [Ziv's Law](#6-zivs-law)
+7. [Wrap-Up and Memory Framework](#7-wrap-up-and-memory-framework)
 
 ---
 
@@ -191,51 +190,7 @@ When verifying a requirements specification, ask:
 
 ---
 
-## 6. Use Cases
-
-### 6.1 What is a use case?
-
-A **use case** is a textual description of a set of actions and interactions that achieve a specific goal. It is included in the requirements specification and is written in **natural language** so that anyone — customers, managers, developers — can understand it without any knowledge of internal code.
-
-### 6.2 Actors
-
-**Actors** represent external entities that interact with the system. An actor can be:
-
-- A **human** (end user, administrator, etc.)
-- A **hardware device**
-- **Another software system** (e.g., a credit card processor like Mastercard)
-
-To identify actors, ask: Who uses the system? Who installs it? Who maintains it? What other systems does it interact with?
-
-### 6.3 Flows
-
-A use case describes the interaction between actors and the system — not the system's internal behavior. Each use case contains one or more **flows**:
-
-| Flow type | Description |
-|------|------|
-| **Basic flow** | The main success path — the normal, expected sequence of steps to achieve the goal |
-| **Alternative flow** | Variations or branches that handle exceptions, errors, or different user choices |
-
-The goal is to describe what the user does and what the system responds with at each step.
-
-### 6.4 Use cases as acceptance tests
-
-Use cases serve as natural **acceptance tests**. Because they describe the expected interaction in plain language, you can directly verify whether the delivered system behaves as described. The whole purpose is that they are audience-friendly and require no technical knowledge to read.
-
-### 6.5 Use case template
-
-A typical use case template includes:
-
-- **Use case name** — a short, descriptive title
-- **Actors** — who or what interacts with the system
-- **Preconditions** — what must be true before the use case begins
-- **Basic flow** — the step-by-step main scenario
-- **Alternative flows** — branches for exceptions or variations
-- **Postconditions** — what is true after the use case completes
-
----
-
-## 7. Ziv's Law
+## 6. Ziv's Law
 
 **Ziv's Law** states that software development is unpredictable and documented artifacts such as requirements will never be fully understood. Uncertainty is inherent and inevitable in software engineering processes and products.
 
@@ -243,7 +198,7 @@ A typical use case template includes:
 
 ---
 
-## 8. Wrap-Up and Memory Framework
+## 7. Wrap-Up and Memory Framework
 
 ```text
 Week 2 knowledge structure
@@ -279,13 +234,6 @@ Week 2 knowledge structure
 +-- Specification methods
 |   +-- natural language, diagrams, formal language, models
 |   +-- verification: complete, unambiguous, non-conflicting, verifiable, defined, unbiased
-|
-+-- Use cases
-|   +-- textual description of actions to achieve a goal (natural language)
-|   +-- actors: human, hardware, other software systems
-|   +-- flows: basic flow (happy path), alternative flow (exceptions)
-|   +-- serve as natural acceptance tests
-|   +-- template: name, actors, preconditions, basic/alt flows, postconditions
 |
 +-- Ziv's Law
     +-- uncertainty is inherent and inevitable in SE

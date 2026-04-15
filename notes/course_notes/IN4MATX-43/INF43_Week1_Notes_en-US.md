@@ -73,15 +73,35 @@ This course frames software engineering around three pillars:
 2. **Phases of development other than programming**
 3. **Principles and qualities of enduring value**
 
-The second point matters a lot: requirements, design, testing, deployment, and maintenance all count. Coding is only one part of the story.
+The second point matters a lot. The major phases of software development are:
+
+1. **Requirements**
+2. **Design**
+3. **Implementation**
+4. **Verification**
+5. **Maintenance**
+
+Coding (implementation) is only one part of the story.
 
 The third point includes qualities such as:
 
 - correctness
+- reliability
+- adaptability
+- usability
+- modularity
 - efficiency
-- robustness
 
 Secondary topics include project management, scheduling, business models, software's social impact, and AI.
+
+#### Agile
+
+Agile is a modern approach to software development that is defined by several perspectives:
+
+- A set of practices that enable **rapid solution delivery**
+- Project management that encourages **frequent inspection and adaptation**
+- A business approach that aligns development with **customer needs and company goals**
+- Leadership that encourages **teamwork, self-organization and accountability**
 
 ---
 
