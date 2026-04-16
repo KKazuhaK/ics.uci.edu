@@ -191,43 +191,52 @@
 			}
 
 			.notes-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-				gap: 1.1rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.7rem;
 			}
 
 			.note-card {
-				padding: 1.35rem 1.35rem 1.25rem;
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr) auto;
+				align-items: center;
+				gap: 1.1rem;
+				padding: 0.95rem 1.2rem;
+			}
+
+			.note-main {
+				min-width: 0;
 			}
 
 			.note-card h3 {
-				margin-bottom: 0.45rem;
+				margin: 0 0 0.15rem;
+				font-size: 1.02rem;
+				line-height: 1.35;
 			}
 
 			.note-card p {
-				margin-bottom: 0.8rem;
+				margin: 0;
 				color: #516074;
+				font-size: 0.9rem;
+				line-height: 1.45;
+				overflow: hidden;
+				display: -webkit-box;
+				-webkit-line-clamp: 1;
+				-webkit-box-orient: vertical;
 			}
 
 			.note-date {
-				font-size: 0.78rem;
+				font-size: 0.75rem;
 				color: #8899ab;
-				margin: 0 0 0.6rem;
-			}
-
-			.note-topline {
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				justify-content: space-between;
-				gap: 0.65rem;
-				margin-bottom: 0.7rem;
+				margin: 0.25rem 0 0;
 			}
 
 			.week-badge {
 				display: inline-flex;
 				align-items: center;
-				padding: 0.32rem 0.7rem;
+				justify-content: center;
+				min-width: 4.4rem;
+				padding: 0.38rem 0.8rem;
 				border-radius: 999px;
 				background: rgba(36, 80, 143, 0.08);
 				color: #24508f;
@@ -237,20 +246,28 @@
 				text-transform: uppercase;
 			}
 
+			.note-meta {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+				gap: 0.45rem;
+				flex-shrink: 0;
+			}
+
 			.note-state {
-				font-size: 0.82rem;
+				font-size: 0.78rem;
 				font-weight: 700;
 				color: #5b677c;
 			}
 
 			.note-actions {
 				display: flex;
-				flex-wrap: wrap;
-				gap: 0.65rem;
-				margin-top: 1rem;
+				gap: 0.5rem;
+				margin: 0;
 			}
 
 			.note-actions .button {
+				border-radius: 999px;
 				border-color: rgba(33, 82, 164, 0.24);
 				box-shadow: inset 0 0 0 2px rgba(33, 82, 164, 0.24);
 				color: #24508f !important;
@@ -296,6 +313,22 @@
 				.course-controls {
 					width: 100%;
 					justify-self: stretch;
+				}
+
+			}
+
+			@media screen and (max-width: 640px) {
+
+				.note-card {
+					grid-template-columns: 1fr;
+					gap: 0.7rem;
+				}
+
+				.note-meta {
+					flex-direction: row;
+					align-items: center;
+					justify-content: space-between;
+					width: 100%;
 				}
 
 			}
@@ -464,14 +497,17 @@
 				{
 					week: "Week 3",
 					title: {
-						"en-US": "Coming Soon",
-						"zh-CN": "即将补充"
+						"en-US": "Use Cases and Software Engineering Ethics",
+						"zh-CN": "用例与软件工程伦理"
 					},
 					summary: {
-						"en-US": "This slot is reserved for future lecture or reading notes.",
-						"zh-CN": "这里预留给后续讲义或阅读笔记。"
+						"en-US": "Use cases, actors, basic/alternative/exception flows, use case diagrams and models, plus the ACM/IEEE Software Engineering Code of Ethics.",
+						"zh-CN": "用例、参与者(actor)、基本/替代/异常流、用例图与用例模型,以及 ACM/IEEE 软件工程伦理准则。"
 					},
-					availability: {}
+					availability: {
+						"en-US": { note: "INF43_Week3_Notes_en-US.md" },
+						"zh-CN": { note: "INF43_Week3_Notes_zh-CN.md" }
+					}
 				}
 			];
 
@@ -537,15 +573,17 @@
 					var noteFile = primaryVersion ? primaryVersion.note : "";
 					return `
 						<article class="note-card">
-							<div class="note-topline">
-								<span class="week-badge">${entry.week}</span>
-								<span class="note-state">${stateText}</span>
+							<span class="week-badge">${entry.week}</span>
+							<div class="note-main">
+								<h3>${entry.title[activeLanguage]}</h3>
+								<p>${entry.summary[activeLanguage]}</p>
+								<p class="note-date" data-note="${noteFile}"></p>
 							</div>
-							<h3>${entry.title[activeLanguage]}</h3>
-							<p>${entry.summary[activeLanguage]}</p>
-							<p class="note-date" data-note="${noteFile}"></p>
-							<div class="note-actions">
-								<a href="${href}" class="${buttonClass}">${buttonText}</a>
+							<div class="note-meta">
+								<span class="note-state">${stateText}</span>
+								<div class="note-actions">
+									<a href="${href}" class="${buttonClass}">${buttonText}</a>
+								</div>
 							</div>
 						</article>
 					`;
