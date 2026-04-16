@@ -69,7 +69,7 @@
     "  width:16px !important;",
     "  height:16px !important;",
     "}",
-    "#cw-bubble:hover, #cw-bubble:active, #cw-bubble:focus {",
+    "#cw-bubble:hover, #cw-bubble:active, #cw-bubble:focus-visible {",
     "  background:#183b73;",
     "  box-shadow:0 4px 18px rgba(36,79,143,.35);",
     "  color:#fff;",
