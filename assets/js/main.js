@@ -502,3 +502,6 @@
 
 /* Chat Widget Loader */
 (function(){var s=document.createElement("script");s.src=(document.querySelector('script[src*="main.js"]').src.replace("main.js","chat-widget.js"));s.defer=true;document.body.appendChild(s);})();
+
+/* Cloudflare Web Analytics */
+(function(){var s=document.createElement("script");s.defer=true;s.src="https://static.cloudflareinsights.com/beacon.min.js";s.setAttribute("data-cf-beacon",'{"token": "cbcd40d8fdf349d98568e9c8e65e3beb"}');document.body.appendChild(s);})();
