@@ -263,11 +263,14 @@ def _scan_course(cdir, existing_descs):
         if not base or not langs:
             continue
         week = entry.get("week", "")
+        # Default language for the viewer URL: prefer zh-CN, then en-US, else first available
+        default_lang = "zh-CN" if "zh-CN" in langs else ("en-US" if "en-US" in langs else langs[0])
+        default_note = f"{base}_{default_lang}.md"
         notes.append({
             "file": base,
             "title": f"{week} Notes",
             "languages": langs,
-            "viewer_url": f"/tools/md-viewer/?kind=course_notes&course={course}&note={base}",
+            "viewer_url": f"/tools/md-viewer/?kind=course_notes&course={course}&lang={default_lang}&note={default_note}",
         })
 
     out = {"path": f"/notes/course_notes/{course}/", "title": title,
