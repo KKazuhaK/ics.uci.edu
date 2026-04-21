@@ -177,23 +177,34 @@ def _parse_about():
 
     grab = lambda pat: (re.search(pat, html).group(1).strip() if re.search(pat, html) else "")
 
-    name   = grab(r"<h2>([^<]+)</h2>")
-    degree = grab(r'fa-graduation-cap"></span>([^<]+)')
-    email  = grab(r'mailto:([^"]+)')
+    name  = grab(r'class="about-title"[^>]*>([^<]+)</h1>')
+    email = grab(r'mailto:([^"]+)')
 
-    # Full school name from banner, fallback to about-info short form
+    # Degree + school come from the same "X \u00b7 Y" line in .about-role
+    degree = ""
     school = "University of California, Irvine"
-    banner = re.search(r'class="content">\s*<p>([^<]+)</p>', html)
-    if banner:
-        parts = [s.strip() for s in banner.group(1).replace("&middot;", "\u00b7").split("\u00b7")]
-        if len(parts) >= 3:
+    role = grab(r'class="about-role"[^>]*>([^<]+)</p>')
+    if role:
+        parts = [s.strip() for s in role.replace("&middot;", "\u00b7").split("\u00b7")]
+        if parts and parts[0]:
+            degree = parts[0]
+        if len(parts) >= 2:
             school = parts[-1]
 
-    # Bio paragraphs (inside about-panel only)
+    # Bio paragraphs from the .about-bio card (balanced-div slice)
     bio = []
-    panel = re.search(r'about-panel">(.*?)</section>', html, re.DOTALL)
-    if panel:
-        for m in re.finditer(r"<p>(.+?)</p>", panel.group(1), re.DOTALL):
+    opener = re.search(r'<div\b[^>]*class="[^"]*\babout-bio\b[^"]*"[^>]*>', html)
+    if opener:
+        i, depth, n = opener.end(), 1, len(html)
+        while i < n and depth > 0:
+            m = re.search(r'</?div\b', html[i:])
+            if not m:
+                break
+            j = i + m.start()
+            depth += 1 if html[j + 1] != "/" else -1
+            i = j + m.end() - m.start()
+        panel_html = html[opener.end():j] if opener and depth == 0 else ""
+        for m in re.finditer(r"<p[^>]*>(.+?)</p>", panel_html, re.DOTALL):
             t = re.sub(r"<[^>]+>", "", m.group(1))
             t = t.replace("&mdash;", "\u2014").replace("&middot;", "\u00b7").strip()
             if len(t) > 50:
@@ -202,7 +213,7 @@ def _parse_about():
     links = {}
     gh = grab(r'github\.com/([^"]+)')
     if gh:
-        links["github"] = f"https://github.com/{gh}"
+        links["github"] = f"https://github.com/{gh.rstrip('/')}"
     ws = grab(r'(https://www\.kazuhahub\.com[^"]*)')
     if ws:
         links["website"] = ws

@@ -1,16 +1,28 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
-		<title>Markdown Viewer | Kazuha Mo - UC Irvine</title>
+		<title>Markdown Viewer | Kazuha Mo — UC Irvine</title>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
-		<link rel="stylesheet" href="../../assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+		</script>
 		<style>
 
 			:root {
+				/* Light theme (defaults) */
 				--notes-ink: #23324a;
 				--notes-muted: #516074;
 				--notes-border: rgba(42, 79, 133, 0.16);
@@ -22,6 +34,7 @@
 				--notes-blue-bg: rgba(36, 79, 143, 0.10);
 				--notes-blue-border: rgba(36, 79, 143, 0.22);
 				--notes-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--notes-blue-text-hover: #183b73;
 				--notes-teal: #0c8a5f;
 				--notes-teal-bg: rgba(12, 138, 95, 0.13);
 				--notes-teal-border: rgba(12, 138, 95, 0.28);
@@ -30,11 +43,89 @@
 				--notes-gold-bg: rgba(173, 113, 35, 0.11);
 				--notes-gold-border: rgba(139, 90, 24, 0.22);
 				--notes-gold-bg-strong: rgba(173, 113, 35, 0.17);
+
+				/* Card / shell surfaces (theme-aware) */
+				--notes-card-bg:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 255, 0.99) 58%, rgba(250, 252, 255, 0.98) 100%);
+				--notes-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--notes-viewer-bg: rgba(255, 255, 255, 0.98);
+				--notes-viewer-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--notes-file-chip-text: #ffffff;
+				--notes-h2-border: #2d5b95;
+				--notes-h3: #334155;
+				--notes-blockquote-bg: rgba(33, 82, 164, 0.05);
+				--notes-blockquote-border: rgba(33, 82, 164, 0.45);
+				--notes-blockquote-text: #42526b;
+				--notes-inline-code-bg: rgba(33, 82, 164, 0.08);
+				--notes-inline-code-text: #293e6a;
+				--notes-table-header-bg: rgba(36, 79, 143, 0.06);
+				--notes-table-stripe-bg: rgba(36, 79, 143, 0.03);
+				--notes-hr: rgba(144, 163, 191, 0.35);
+				--notes-status: #6b7280;
+				--notes-error-bg: #fff1f1;
+				--notes-error-border: #f3b5b5;
+				--notes-error-text: #8b1e1e;
+				--notes-crumb-sep: #97a7bb;
+			}
+
+			html[data-theme="dark"] {
+				--notes-ink: #dde4f0;
+				--notes-muted: #8c9cb5;
+				--notes-border: rgba(255, 255, 255, 0.1);
+				--notes-slate: #a4b3cc;
+				--notes-slate-bg: rgba(164, 179, 204, 0.14);
+				--notes-slate-border: rgba(164, 179, 204, 0.28);
+				--notes-slate-bg-strong: rgba(164, 179, 204, 0.22);
+				--notes-blue: #6aa3f5;
+				--notes-blue-bg: rgba(106, 163, 245, 0.15);
+				--notes-blue-border: rgba(106, 163, 245, 0.32);
+				--notes-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--notes-blue-text-hover: #a8c9ff;
+				--notes-teal: #4ec9a9;
+				--notes-teal-bg: rgba(78, 201, 169, 0.16);
+				--notes-teal-border: rgba(78, 201, 169, 0.32);
+				--notes-teal-bg-strong: rgba(78, 201, 169, 0.24);
+				--notes-gold: #ecb86a;
+				--notes-gold-bg: rgba(236, 184, 106, 0.14);
+				--notes-gold-border: rgba(236, 184, 106, 0.3);
+				--notes-gold-bg-strong: rgba(236, 184, 106, 0.22);
+
+				--notes-card-bg:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--notes-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--notes-viewer-bg: #14181f;
+				--notes-viewer-shadow: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--notes-file-chip-text: #0a0d12;
+				--notes-h2-border: #6aa3f5;
+				--notes-h3: #b4c0d4;
+				--notes-blockquote-bg: rgba(106, 163, 245, 0.08);
+				--notes-blockquote-border: rgba(106, 163, 245, 0.5);
+				--notes-blockquote-text: #b4c0d4;
+				--notes-inline-code-bg: rgba(106, 163, 245, 0.13);
+				--notes-inline-code-text: #b8d0ff;
+				--notes-table-header-bg: rgba(106, 163, 245, 0.09);
+				--notes-table-stripe-bg: rgba(255, 255, 255, 0.03);
+				--notes-hr: rgba(255, 255, 255, 0.12);
+				--notes-status: #8892a6;
+				--notes-error-bg: rgba(248, 113, 113, 0.12);
+				--notes-error-border: rgba(248, 113, 113, 0.35);
+				--notes-error-text: #fca5a5;
+				--notes-crumb-sep: #54627a;
 			}
 
 			.notes-shell {
-				display: grid;
-				gap: 1.5rem;
+				display: flex;
+				flex-direction: column;
+				max-width: 880px;
+				margin: 0 auto;
+				width: 100%;
+				background: var(--notes-viewer-bg);
+				border: 1px solid var(--notes-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--notes-viewer-shadow);
+				overflow: hidden;
 			}
 
 			.notes-shell,
@@ -51,14 +142,12 @@
 
 			.notes-intro {
 				padding: 1.1rem 1.75rem;
-				border: 1px solid var(--notes-border);
-				border-radius: 1.2rem;
-				background:
-					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
-					linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 255, 0.99) 58%, rgba(250, 252, 255, 0.98) 100%);
-				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				border-bottom: 1px solid var(--notes-border);
+				background: var(--notes-card-bg);
 				color: var(--notes-ink);
 			}
+
+			.notes-shell > :last-child { border-bottom: 0 !important; }
 
 			.notes-shell > header.major > #page-title {
 				margin-bottom: 0;
@@ -122,7 +211,7 @@
 			.file-chip {
 				background: var(--notes-blue);
 				box-shadow: none;
-				color: #ffffff;
+				color: var(--notes-file-chip-text);
 				cursor: default;
 			}
 
@@ -144,7 +233,7 @@
 				font-size: 1.18rem;
 				font-weight: 700;
 				line-height: 1;
-				color: #97a7bb;
+				color: var(--notes-crumb-sep);
 				user-select: none;
 			}
 
@@ -174,7 +263,7 @@
 			a.course-chip:focus {
 				background: var(--notes-blue-bg-strong);
 				box-shadow: inset 0 0 0 1.5px var(--notes-blue-border);
-				color: #183b73 !important;
+				color: var(--notes-blue-text-hover) !important;
 				transform: translateY(-1px);
 			}
 
@@ -187,22 +276,19 @@
 
 			.viewer-card {
 				padding: 2rem clamp(1.1rem, 3vw, 2.4rem);
-				border: 1px solid rgba(42, 79, 133, 0.14);
-				border-radius: 1.4rem;
-				background: rgba(255, 255, 255, 0.98);
-				box-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				background: transparent;
 				color: var(--notes-ink);
 			}
 
 			.status {
-				color: #6b7280;
+				color: var(--notes-status);
 			}
 
 			.error {
 				padding: 1rem 1.1rem;
-				border: 1px solid #f3b5b5;
-				background: #fff1f1;
-				color: #8b1e1e;
+				border: 1px solid var(--notes-error-border);
+				background: var(--notes-error-bg);
+				color: var(--notes-error-text);
 				border-radius: 0.9rem;
 			}
 
@@ -225,16 +311,16 @@
 
 			.markdown-body h1 {
 				padding-bottom: 0.7rem;
-				border-bottom: 3px solid rgba(42, 79, 133, 0.16);
+				border-bottom: 3px solid var(--notes-border);
 			}
 
 			.markdown-body h2 {
 				padding-left: 0.8rem;
-				border-left: 4px solid #2d5b95;
+				border-left: 4px solid var(--notes-h2-border);
 			}
 
 			.markdown-body h3 {
-				color: #334155;
+				color: var(--notes-h3);
 			}
 
 			.markdown-body h1,
@@ -245,7 +331,7 @@
 			.markdown-body li,
 			.markdown-body td,
 			.markdown-body th {
-				color: #23324a;
+				color: var(--notes-ink);
 			}
 
 			.markdown-body p,
@@ -263,28 +349,31 @@
 			}
 
 			.markdown-body li + li {
-				margin-top: 0.18rem;
+				margin-top: 0.4rem;
 			}
 
 			.markdown-body hr {
 				border: 0;
-				border-top: 1px solid rgba(144, 163, 191, 0.35);
+				border-top: 1px solid var(--notes-hr);
 				margin: 1.2rem 0;
 			}
 
 			.markdown-body blockquote {
 				padding: 0.9rem 1rem;
-				background: rgba(33, 82, 164, 0.05);
-				border-left: 4px solid rgba(33, 82, 164, 0.45);
+				background: var(--notes-blockquote-bg);
+				border-left: 4px solid var(--notes-blockquote-border);
 				border-radius: 0 0.9rem 0.9rem 0;
-				color: #42526b;
+				color: var(--notes-blockquote-text);
 			}
+
+			.markdown-body blockquote > :first-child { margin-top: 0; }
+			.markdown-body blockquote > :last-child { margin-bottom: 0; }
 
 			.markdown-body code {
 				padding: 0.12rem 0.4rem;
 				border-radius: 0.35rem;
-				background: rgba(33, 82, 164, 0.08);
-				color: #293e6a;
+				background: var(--notes-inline-code-bg);
+				color: var(--notes-inline-code-text);
 				font: 0.92em/1.4 "Fira Code", "Cascadia Code", "Menlo", monospace;
 			}
 
@@ -348,41 +437,42 @@
 			.markdown-body table {
 				width: 100%;
 				border-collapse: collapse;
-				border: 1px solid rgba(144, 163, 191, 0.35);
+				border: 1px solid var(--notes-hr);
 			}
 
 			.markdown-body th,
 			.markdown-body td {
 				padding: 0.75rem 0.85rem;
-				border: 1px solid rgba(144, 163, 191, 0.35);
+				border: 1px solid var(--notes-hr);
 				text-align: left;
 				vertical-align: top;
 			}
 
 			.markdown-body th {
-				background: rgba(33, 82, 164, 0.06);
+				background: var(--notes-table-header-bg);
 			}
 
 			.markdown-body tr:nth-child(even) td {
-				background: rgba(248, 250, 252, 0.85);
+				background: var(--notes-table-stripe-bg);
 			}
 
 			.markdown-body a {
 				color: var(--notes-blue);
-				text-decoration-color: rgba(36, 79, 143, 0.28);
+				text-decoration-color: var(--notes-blue-border);
 				text-decoration-thickness: 0.08em;
 				text-underline-offset: 0.16em;
 				transition: color 0.2s ease, text-decoration-color 0.2s ease;
 			}
 
 			.markdown-body a:visited {
-				color: #345b93;
+				color: var(--notes-blue);
+				opacity: 0.85;
 			}
 
 			.markdown-body a:hover,
 			.markdown-body a:focus {
-				color: #183b73;
-				text-decoration-color: rgba(24, 59, 115, 0.52);
+				color: var(--notes-blue-text-hover);
+				text-decoration-color: var(--notes-blue-border);
 			}
 
 			@media screen and (max-width: 736px) {
@@ -396,8 +486,10 @@
 				}
 
 				.notes-shell {
-					gap: 0.6rem;
 					max-width: 100vw;
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
 					overflow-x: hidden;
 				}
 
@@ -414,11 +506,7 @@
 
 				/* ── intro card ── */
 				.notes-intro {
-					border-radius: 0;
-					border-left: none;
-					border-right: none;
 					padding: 0.8rem 1rem;
-					box-shadow: none;
 					box-sizing: border-box;
 					overflow: hidden;
 				}
@@ -463,11 +551,7 @@
 
 				/* ── viewer card ── */
 				.viewer-card {
-					border-radius: 0;
-					border-left: none;
-					border-right: none;
 					padding: 1rem;
-					box-shadow: none;
 					box-sizing: border-box;
 					overflow-x: hidden;
 				}
@@ -531,7 +615,7 @@
 
 			}
 
-			/* ── back to top button ── */
+			/* ── back to top button (Bento card pill, matches ASK AI bubble) ── */
 			#back-to-top {
 				position: fixed;
 				bottom: 2rem;
@@ -539,21 +623,25 @@
 				display: inline-flex;
 				align-items: center;
 				gap: 0.32rem;
-				padding: 0.48rem 0.9rem 0.48rem 0.72rem;
+				padding: 10px 18px 10px 14px;
 				border-radius: 999px;
-				background: var(--notes-blue);
-				color: #fff;
-				border: none;
+				background: var(--card, #ffffff);
+				color: var(--uci-blue, #0064A4);
+				border: 1px solid var(--hairline, rgba(15, 23, 42, 0.08));
 				cursor: pointer;
 				font: 700 0.8rem/1 inherit;
 				letter-spacing: 0.04em;
-				box-shadow: 0 4px 18px rgba(36, 79, 143, 0.35);
+				box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
 				opacity: 0;
 				visibility: hidden;
 				transform: translateY(0.5rem);
-				transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease, background 0.18s ease;
+				transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease, filter 0.18s ease, box-shadow 0.18s ease;
 				z-index: 999;
 				text-transform: uppercase;
+			}
+			html[data-theme="dark"] #back-to-top {
+				color: #58a6ff;
+				box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
 			}
 
 			#back-to-top.visible {
@@ -562,14 +650,20 @@
 				transform: translateY(0);
 			}
 
-			#back-to-top:hover {
-				background: #183b73;
+			#back-to-top.visible:hover {
+				filter: brightness(0.96);
+				transform: translateY(-1px);
+				box-shadow: 0 6px 22px rgba(15, 23, 42, 0.12);
+			}
+			html[data-theme="dark"] #back-to-top.visible:hover {
+				filter: brightness(1.08);
+				box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
 			}
 
 			#back-to-top svg {
-				width: 0.9rem;
-				height: 0.9rem;
-				stroke: #fff;
+				width: 16px;
+				height: 16px;
+				stroke: currentColor;
 				fill: none;
 				stroke-width: 2.8;
 				stroke-linecap: round;
@@ -593,6 +687,42 @@
 				right: 0;
 				transform: translateY(-50%);
 				z-index: 200;
+				/* Light theme defaults (Bento white card + UCI blue accent) */
+				--toc-bg: rgba(255, 255, 255, 0.9);
+				--toc-border: rgba(15, 23, 42, 0.08);
+				--toc-shadow: -4px 0 24px rgba(23, 43, 77, 0.1);
+				--toc-icon: #64748b;
+				--toc-mark: rgba(15, 23, 42, 0.22);
+				--toc-mark-active: #0064a4;
+				--toc-scrollbar: rgba(15, 23, 42, 0.18);
+				--toc-text: #64748b;
+				--toc-text-hover: #0f172a;
+				--toc-bg-hover: rgba(15, 23, 42, 0.05);
+				--toc-active-bg: rgba(0, 100, 164, 0.09);
+				--toc-h1: #0064a4;
+				--toc-h2: #334155;
+				--toc-h3: #64748b;
+				--toc-h4: #94a3b8;
+				--toc-active-h1: #0064a4;
+			}
+
+			html[data-theme="dark"] #toc-sidebar {
+				--toc-bg: rgba(15, 20, 32, 0.85);
+				--toc-border: rgba(255, 255, 255, 0.07);
+				--toc-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+				--toc-icon: rgba(255, 255, 255, 0.55);
+				--toc-mark: rgba(255, 255, 255, 0.22);
+				--toc-mark-active: rgba(255, 255, 255, 0.85);
+				--toc-scrollbar: rgba(255, 255, 255, 0.14);
+				--toc-text: #8fa8cc;
+				--toc-text-hover: #e2eaf5;
+				--toc-bg-hover: rgba(255, 255, 255, 0.06);
+				--toc-active-bg: rgba(255, 255, 255, 0.07);
+				--toc-h1: #6aa3f5;
+				--toc-h2: #c8d8ec;
+				--toc-h3: #97adc2;
+				--toc-h4: #8299ae;
+				--toc-active-h1: #8bbcff;
 			}
 
 			@media screen and (max-width: 768px) {
@@ -603,13 +733,15 @@
 			.toc-marks {
 				max-height: 40vh;
 				cursor: pointer;
-				transition: opacity 0.22s ease, visibility 0.22s ease;
-				background: rgba(15, 20, 32, 0.75);
-				border: 1px solid rgba(255, 255, 255, 0.06);
+				transition: opacity 0.22s ease, visibility 0.22s ease, filter 0.18s ease;
+				background: var(--toc-bg);
+				border: 1px solid var(--toc-border);
 				border-right: none;
 				border-radius: 0.6rem 0 0 0.6rem;
 				display: flex;
 				flex-direction: column;
+				backdrop-filter: blur(10px);
+				-webkit-backdrop-filter: blur(10px);
 			}
 
 			.toc-marks-icon {
@@ -620,14 +752,13 @@
 				height: 28px;
 				flex-shrink: 0;
 				padding-top: 6px;
-				color: rgba(255, 255, 255, 0.55);
+				color: var(--toc-icon);
 				font-size: 1.05rem;
 				line-height: 1;
 			}
 
-			.toc-marks:hover {
-				background: rgba(15, 20, 32, 0.6);
-			}
+			.toc-marks:hover { filter: brightness(0.97); }
+			html[data-theme="dark"] .toc-marks:hover { filter: brightness(1.15); }
 
 			.toc-marks-track {
 				display: flex;
@@ -646,7 +777,7 @@
 			.toc-mark {
 				height: 2.5px;
 				border-radius: 999px;
-				background: rgba(255, 255, 255, 0.22);
+				background: var(--toc-mark);
 				flex-shrink: 0;
 				transition: background 0.2s ease;
 			}
@@ -656,7 +787,7 @@
 			.toc-mark.mark-h3 { width: 7px; }
 			.toc-mark.mark-h4 { width: 4px; }
 
-			.toc-mark.mark-active { background: rgba(255, 255, 255, 0.85); }
+			.toc-mark.mark-active { background: var(--toc-mark-active); }
 
 			#toc-sidebar:hover .toc-marks {
 				opacity: 0;
@@ -674,17 +805,17 @@
 				max-height: 72vh;
 				overflow-y: auto;
 				overflow-x: hidden;
-				background: rgba(13, 17, 28, 0.95);
+				background: var(--toc-bg);
 				backdrop-filter: blur(14px);
 				-webkit-backdrop-filter: blur(14px);
-				border: 1px solid rgba(255, 255, 255, 0.07);
+				border: 1px solid var(--toc-border);
 				border-right: none;
 				border-radius: 1rem 0 0 1rem;
-				box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+				box-shadow: var(--toc-shadow);
 				padding: 0.65rem 0.65rem 0.65rem 0.85rem;
 				box-sizing: border-box;
 				scrollbar-width: thin;
-				scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+				scrollbar-color: var(--toc-scrollbar) transparent;
 				opacity: 0;
 				visibility: hidden;
 				transition: opacity 0.22s ease, visibility 0.22s ease;
@@ -692,7 +823,7 @@
 
 			.toc-panel::-webkit-scrollbar { width: 3px; }
 			.toc-panel::-webkit-scrollbar-track { background: transparent; }
-			.toc-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+			.toc-panel::-webkit-scrollbar-thumb { background: var(--toc-scrollbar); border-radius: 2px; }
 
 			#toc-sidebar:hover .toc-panel {
 				opacity: 1;
@@ -703,7 +834,7 @@
 				display: block;
 				font-size: 0.82rem;
 				font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-				color: #8fa8cc;
+				color: var(--toc-text);
 				padding: 0.2rem 0.35rem;
 				text-decoration: none !important;
 				border-bottom: none !important;
@@ -715,27 +846,25 @@
 				line-height: 1.5;
 			}
 
-			.toc-item a:hover { color: #e2eaf5; background: rgba(255,255,255,0.06); }
+			.toc-item a:hover { color: var(--toc-text-hover); background: var(--toc-bg-hover); }
 
-			.toc-item.toc-h1 a { color: #6aa3f5; font-weight: 700; font-size: 0.84rem; }
-			.toc-item.toc-h2 a { padding-left: 0.7rem; color: #c8d8ec; font-weight: 600; }
-			.toc-item.toc-h3 a { padding-left: 1.3rem; font-size: 0.78rem; color: #97adc2; }
-			.toc-item.toc-h4 a { padding-left: 1.9rem; font-size: 0.74rem; color: #8299ae; }
+			.toc-item.toc-h1 a { color: var(--toc-h1); font-weight: 700; font-size: 0.84rem; }
+			.toc-item.toc-h2 a { padding-left: 0.7rem; color: var(--toc-h2); font-weight: 600; }
+			.toc-item.toc-h3 a { padding-left: 1.3rem; font-size: 0.78rem; color: var(--toc-h3); }
+			.toc-item.toc-h4 a { padding-left: 1.9rem; font-size: 0.74rem; color: var(--toc-h4); }
 
-			.toc-item.active a { color: #dde8f8 !important; background: rgba(255,255,255,0.07); }
-			.toc-item.toc-h1.active a { color: #8bbcff !important; }
+			.toc-item.active a { color: var(--toc-text-hover) !important; background: var(--toc-active-bg); }
+			.toc-item.toc-h1.active a { color: var(--toc-active-h1) !important; }
 
 			/* ── upload mode ── */
 			.upload-intro {
-				padding: 1.5rem 1.75rem;
-				border: 1px solid var(--notes-border);
-				border-radius: 1.2rem;
-				background:
-					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
-					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
-				box-shadow: 0 1.25rem 3rem rgba(23,43,77,0.08);
+				padding: 1.1rem 1.75rem;
+				border-bottom: 1px solid var(--notes-border);
+				background: var(--notes-card-bg);
 				color: var(--notes-ink);
 			}
+			.upload-intro .crumbs { margin-bottom: 0; }
+			.upload-intro #upload-prompt { margin-top: 1rem; }
 
 			.upload-intro h2 {
 				margin: 0 0 0.55rem;
@@ -831,7 +960,7 @@
 
 			.upload-reload-btn:hover {
 				background: var(--notes-blue-bg-strong);
-				color: #183b73;
+				color: var(--notes-blue-text-hover);
 			}
 
 			.upload-reload-btn[hidden] {
@@ -840,75 +969,63 @@
 
 			@media screen and (max-width: 736px) {
 				.upload-intro {
-					border-radius: 0;
-					border-left: none;
-					border-right: none;
 					padding: 0.8rem 1rem;
-					box-shadow: none;
 				}
 			}
 		</style>
 	</head>
-	<body class="is-preload">
-
-		<div id="wrapper">
-
-			<header id="header" class="alt">
-				<div class="logo"><a href="../../index.html" class="logo-mark"><strong><img src="../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
-				<nav>
-					<a href="#menu">Menu</a>
-				</nav>
-			</header>
-
-			<nav id="menu">
-				<ul class="links">
-					<li><a href="../../index.html">Home</a></li>
-					<li><a href="../../notes/">Notes</a></li>
-					<li><a href="../../tools/">Tools</a></li>
-				</ul>
-				<ul class="actions stacked">
-					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
-					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
-				</ul>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+					<a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12h5"/><path d="M9.5 16H14"/></svg>Notes</a>
+					<a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools</a>
+					<a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
 			</nav>
 
 			<div id="main" class="alt">
 				<section id="one">
 						<div class="inner notes-shell">
-							<header class="major">
+							<header class="major" style="display:none;">
 								<h1 id="page-title">Notes</h1>
 							</header>
 
 						<div class="notes-intro" id="notes-intro">
-							<h2 id="reader-heading">Weekly note reading page</h2>
-							<p id="reader-description">你正在阅读一份笔记。下面这条路径会带你返回 Notes 总入口、Course Notes、课程主页，或当前这份笔记所在的位置。</p>
-							<div class="notes-breadcrumb">
-								<a href="../../notes/index.html" class="status-chip" id="notes-home-link">Notes</a>
-								<span class="breadcrumb-sep">›</span>
-								<a href="../../notes/course_notes/index.html" class="kind-chip" id="notes-kind-link">Course Notes</a>
-								<span class="breadcrumb-sep">›</span>
-								<a href="../../notes/course_notes/ICS-45C/index.html" class="course-chip" id="course-link">ICS-45C</a>
-								<span class="breadcrumb-sep">›</span>
-								<span class="file-chip" id="raw-link">ICS45C_Week1_Notes_zh-CN.md</span>
+							<nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb">
+								<a href="../../notes/index.html" class="crumb" id="notes-home-link">Notes</a>
+								<span class="crumb-sep">›</span>
+								<a href="../../notes/course_notes/ICS-45C/index.html" class="crumb" id="course-link">ICS-45C</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current" id="raw-link">ICS45C_Week1_Notes_zh-CN.md</span>
 									<a id="edit-in-editor" style="cursor:pointer;margin-left:auto;display:none;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>Open in Editor</a>
-							</div>
+							</nav>
+							<h2 id="reader-heading">Weekly note reading page</h2>
+							<p id="reader-description">你正在阅读一份笔记。下面这条路径会带你返回 Notes 总入口、课程主页，或当前这份笔记所在的位置。</p>
 							<p class="notes-date" id="notes-date" hidden></p>
 						</div>
 
 						<div class="upload-intro" id="upload-intro" hidden>
-							<div class="upload-header-row">
-								<div class="notes-breadcrumb">
-									<a href="../../tools/" class="status-chip">Tools</a>
-									<span class="breadcrumb-sep">›</span>
-									<span class="file-chip" id="upload-crumb-viewer">Markdown Viewer</span>
-									<span class="breadcrumb-sep" id="upload-crumb-sep" style="display:none;">›</span>
-									<span class="file-chip" id="upload-crumb-end" style="display:none;"></span>
+							<nav class="crumbs" aria-label="Breadcrumb">
+								<a href="../index.html" class="crumb">Tools</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current">Markdown Viewer</span>
+								<div style="margin-left:auto;display:flex;gap:0.5rem;align-items:center;">
+									<a id="open-another" style="cursor:pointer;display:none;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(192,57,43,0.10);box-shadow:inset 0 0 0 1.5px rgba(192,57,43,0.35);color:#c0392b !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-sync-alt" style="margin-right:0.3em;"></i>Open another file</a>
+									<a id="edit-in-editor-upload" style="cursor:pointer;display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>Open Editor</a>
 								</div>
-								<div style="display:flex;gap:0.5rem;align-items:center;margin-left:auto;">
-										<a id="open-another" style="cursor:pointer;display:none;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(192,57,43,0.10);box-shadow:inset 0 0 0 1.5px rgba(192,57,43,0.35);color:#c0392b !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-sync-alt" style="margin-right:0.3em;"></i>Open another file</a>
-										<a id="edit-in-editor-upload" style="cursor:pointer;display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><i class="fa fa-pencil-alt" style="margin-right:0.3em;"></i>Open Editor</a>
-									</div>
-							</div>
+							</nav>
 							<div id="upload-prompt">
 								<p>Select or drag a <code>.md</code> file from your device to render it here.</p>
 								<label class="upload-zone" id="upload-zone">
@@ -928,14 +1045,14 @@
 				</section>
 			</div>
 
-			<footer id="footer" class="footer-compact">
-				<div class="inner">
-<ul class="copyright">
-						<li>&copy; Kazuha Hub</li><li><a href="../../about.html">About Me</a></li><li>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a></li>
-					</ul>
-				</div>
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>
+					Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>
+					·
+					<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a>
+				</span>
 			</footer>
-
 		</div>
 
 		<div id="toc-sidebar" hidden>
@@ -951,13 +1068,8 @@
 			Top
 		</button>
 
-		<script src="../../assets/js/jquery.min.js"></script>
-		<script src="../../assets/js/jquery.scrolly.min.js"></script>
-		<script src="../../assets/js/jquery.scrollex.min.js"></script>
-		<script src="../../assets/js/browser.min.js"></script>
-		<script src="../../assets/js/breakpoints.min.js"></script>
-		<script src="../../assets/js/util.js"></script>
-		<script src="../../assets/js/main.js"></script>
+		<script src="../../assets/js/bento.js" defer></script>
+		<script src="../../assets/js/chat-widget.js" defer></script>
 		<script>
 			function escapeHtml(text) {
 				return text
@@ -1378,13 +1490,6 @@
 				return kind;
 			}
 
-			function notesKindLabel(kind) {
-				const labels = {
-					course_notes: "Course Notes"
-				};
-				return labels[kind] || kind.replace(/_/g, " ");
-			}
-
 			function noteLabelFromFilename(note) {
 				return note
 					.replace(/\.md$/i, "")
@@ -1530,7 +1635,6 @@
 			function setupFileUpload() {
 				const uploadPrompt = document.getElementById("upload-prompt");
 				const openAnother = document.getElementById("open-another");
-				const crumbEnd = document.getElementById("upload-crumb-end");
 				const viewerCard = document.getElementById("viewer-card");
 				const content = document.getElementById("content");
 				const pageTitle = document.getElementById("page-title");
@@ -1555,12 +1659,6 @@
 					reader.onload = function(e) {
 						document.title = file.name + " | Kazuha Mo - UC Irvine";
 						pageTitle.textContent = file.name;
-						crumbEnd.textContent = file.name;
-						crumbEnd.style.display = "";
-						document.getElementById("upload-crumb-sep").style.display = "";
-						var viewerChip = document.getElementById("upload-crumb-viewer");
-						viewerChip.className = "status-chip";
-						viewerChip.style.cursor = "pointer";
 						openAnother.style.display = "inline-flex";
 						uploadPrompt.hidden = true;
 						window._rawMarkdown = e.target.result;
@@ -1573,8 +1671,6 @@
 						void applyMathRendering(content);
 					};
 					reader.onerror = function() {
-						crumbEnd.style.display = "none";
-						document.getElementById("upload-crumb-sep").style.display = "none";
 						openAnother.style.display = "none";
 						uploadPrompt.hidden = false;
 					};
@@ -1582,11 +1678,6 @@
 				}
 
 				function resetUpload() {
-					crumbEnd.style.display = "none";
-					document.getElementById("upload-crumb-sep").style.display = "none";
-					var viewerChip = document.getElementById("upload-crumb-viewer");
-					viewerChip.className = "file-chip";
-					viewerChip.style.cursor = "default";
 					openAnother.style.display = "none";
 					window._rawMarkdown = null;
 					updateEditButton();
@@ -1645,6 +1736,12 @@
 			async function init() {
 				const params = new URLSearchParams(window.location.search);
 
+				// When viewing a real course note, tell the top nav to highlight
+				// Notes instead of Tools. Upload / transferred files stay on Tools.
+				if (!isUploadMode(params)) {
+					document.body.dataset.navPath = "/~kazuhak/notes/";
+				}
+
 				if (isUploadMode(params)) {
 					const pageTitle = document.getElementById("page-title");
 					const viewerCard = document.getElementById("viewer-card");
@@ -1664,14 +1761,10 @@
 						localStorage.removeItem('mv-transfer');
 						var ct = document.getElementById("content");
 						var up = document.getElementById("upload-prompt");
-						var ce = document.getElementById("upload-crumb-end");
 						var oa = document.getElementById("open-another");
 						window._rawMarkdown = tr;
 						pageTitle.textContent = "Transferred Document";
-						ce.textContent = "Transferred Document";
-						ce.style.display = "";
-						document.getElementById("upload-crumb-sep").style.display = "";
-						oa.style.display = "inline-flex";
+						if (oa) oa.style.display = "inline-flex";
 						if (up) up.hidden = true;
 						ct.innerHTML = markdownToHtml(tr);
 						ct.hidden = false;
@@ -1689,7 +1782,6 @@
 				const content = document.getElementById("content");
 				const courseLink = document.getElementById("course-link");
 				const notesHomeLink = document.getElementById("notes-home-link");
-				const notesKindLink = document.getElementById("notes-kind-link");
 				const rawLink = document.getElementById("raw-link");
 				const pageTitle = document.getElementById("page-title");
 				const readerHeading = document.getElementById("reader-heading");
@@ -1698,7 +1790,6 @@
 				try {
 					const request = resolveRequest(params);
 					const markdownPath = "../../notes/" + request.kind + "/" + request.course + "/" + request.note;
-					const notesKindPath = "../../notes/" + request.kind + "/index.html";
 					const coursePath = "../../notes/" + request.kind + "/" + request.course + "/index.html";
 					const notesHomePath = "../../notes/index.html";
 					const readerCopy = buildReaderCopy(request.course, request.note, request.lang);
@@ -1708,8 +1799,6 @@
 					readerHeading.textContent = readerCopy.heading;
 					readerDescription.textContent = readerCopy.description;
 					notesHomeLink.href = notesHomePath;
-					notesKindLink.href = notesKindPath;
-					notesKindLink.textContent = notesKindLabel(request.kind);
 					courseLink.href = coursePath;
 					courseLink.textContent = request.course;
 					rawLink.textContent = request.note;

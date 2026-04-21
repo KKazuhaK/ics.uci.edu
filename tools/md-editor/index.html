@@ -1,13 +1,24 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
-		<title>Markdown Editor | Kazuha Mo - UC Irvine</title>
+		<title>Markdown Editor | Kazuha Mo — UC Irvine</title>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
-		<link rel="stylesheet" href="../../assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2/dist/easymde.min.css" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+		</script>
 		<style>
 			#main > * > .inner { max-width: none; width: calc(100% - 8em); }
 
@@ -15,15 +26,116 @@
 				--me-blue: #244f8f;
 				--me-blue-bg: rgba(36, 79, 143, 0.10);
 				--me-blue-border: rgba(36, 79, 143, 0.22);
+				--me-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--me-blue-hover: #183b73;
 				--me-border: rgba(42, 79, 133, 0.16);
+				--me-border-soft: rgba(42, 79, 133, 0.12);
 				--me-ink: #23324a;
 				--me-muted: #516074;
+				--me-card-bg: rgba(255, 255, 255, 0.98);
+				--me-card-bg-soft:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				--me-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--me-card-shadow-lg: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--me-editor-bg: #ffffff;
+				--me-toolbar-bg: #f8f9fb;
+				--me-preview-bg: #fafbfd;
+				--me-chip-current-text: #ffffff;
+				--me-crumb-sep: #97a7bb;
+				--me-gutter-text: #aab3c0;
+				--me-hr-muted: #aab3c0;
+				--me-code-dark-bg: #1e1e1e;
+
+				/* CodeMirror syntax tokens (light) */
+				--me-cm-header: #244f8f;
+				--me-cm-strong: #1a1a2e;
+				--me-cm-em: #8b5a18;
+				--me-cm-strike: #999;
+				--me-cm-link: #0c8a5f;
+				--me-cm-url: #2d5b95;
+				--me-cm-comment: #6a737d;
+				--me-cm-quote: #42526b;
+				--me-cm-tag: #808080;
+				--me-cm-string: #c7254e;
+				--me-cm-keyword: #244f8f;
+				--me-cm-variable: #2d5b95;
+				--me-cm-toolbar-btn: #555;
+
+				/* Preview (mirrors md-viewer styling) */
+				--me-h2-border: #2d5b95;
+				--me-h3: #334155;
+				--me-inline-code-bg: rgba(33, 82, 164, 0.08);
+				--me-inline-code-text: #293e6a;
+				--me-blockquote-bg: rgba(33, 82, 164, 0.05);
+				--me-blockquote-border: rgba(33, 82, 164, 0.45);
+				--me-blockquote-text: #42526b;
+				--me-hr: rgba(144, 163, 191, 0.35);
+				--me-table-header-bg: rgba(33, 82, 164, 0.06);
+				--me-a-underline: rgba(36, 79, 143, 0.28);
+				--me-a-underline-hover: rgba(24, 59, 115, 0.52);
+			}
+
+			html[data-theme="dark"] {
+				--me-blue: #6aa3f5;
+				--me-blue-bg: rgba(106, 163, 245, 0.15);
+				--me-blue-border: rgba(106, 163, 245, 0.32);
+				--me-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--me-blue-hover: #a8c9ff;
+				--me-border: rgba(255, 255, 255, 0.1);
+				--me-border-soft: rgba(255, 255, 255, 0.07);
+				--me-ink: #dde4f0;
+				--me-muted: #8c9cb5;
+				--me-card-bg: #14181f;
+				--me-card-bg-soft:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--me-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--me-card-shadow-lg: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--me-editor-bg: #0f1319;
+				--me-toolbar-bg: #181d26;
+				--me-preview-bg: #12161d;
+				--me-chip-current-text: #0a0d12;
+				--me-crumb-sep: #54627a;
+				--me-gutter-text: #54627a;
+				--me-hr-muted: #54627a;
+
+				--me-cm-header: #6aa3f5;
+				--me-cm-strong: #e2eaf5;
+				--me-cm-em: #ecb86a;
+				--me-cm-strike: #5c6579;
+				--me-cm-link: #4ec9a9;
+				--me-cm-url: #7ab5ff;
+				--me-cm-comment: #7a8696;
+				--me-cm-quote: #b4c0d4;
+				--me-cm-tag: #8892a6;
+				--me-cm-string: #e08ea7;
+				--me-cm-keyword: #6aa3f5;
+				--me-cm-variable: #a8c9ff;
+				--me-cm-toolbar-btn: #b4c0d4;
+
+				--me-h2-border: #6aa3f5;
+				--me-h3: #b4c0d4;
+				--me-inline-code-bg: rgba(106, 163, 245, 0.13);
+				--me-inline-code-text: #b8d0ff;
+				--me-blockquote-bg: rgba(106, 163, 245, 0.08);
+				--me-blockquote-border: rgba(106, 163, 245, 0.5);
+				--me-blockquote-text: #b4c0d4;
+				--me-hr: rgba(255, 255, 255, 0.12);
+				--me-table-header-bg: rgba(106, 163, 245, 0.09);
+				--me-a-underline: rgba(106, 163, 245, 0.35);
+				--me-a-underline-hover: rgba(168, 201, 255, 0.6);
 			}
 
 			/* Shell */
 			.me-shell {
-				display: grid;
-				gap: 1.5rem;
+				display: flex;
+				flex-direction: column;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--me-card-shadow-lg);
+				overflow: hidden;
 			}
 
 			.me-shell > header.major {
@@ -32,14 +144,13 @@
 
 			/* Intro / Breadcrumb */
 			.me-intro {
-				padding: 1.1rem 1.75rem;
-				border: 1px solid var(--me-border);
-				border-radius: 1.2rem;
-				background:
-					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
-					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
-				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				padding: 0.75rem 1.5rem;
+				border-bottom: 1px solid var(--me-border);
+				background: var(--me-card-bg-soft);
 			}
+			.me-intro .crumbs { margin-bottom: 0; }
+
+			.me-shell > :last-child { border-bottom: 0 !important; }
 
 			.me-breadcrumb {
 				display: flex;
@@ -64,38 +175,35 @@
 			}
 
 			.me-chip:hover {
-				background: rgba(36, 79, 143, 0.17);
+				background: var(--me-blue-bg-strong);
 				transform: translateY(-1px);
-				color: #183b73 !important;
+				color: var(--me-blue-hover) !important;
 			}
 
 			.me-chip-current {
 				background: var(--me-blue);
 				box-shadow: none;
-				color: #ffffff !important;
+				color: var(--me-chip-current-text) !important;
 				cursor: default;
 			}
 
 			.me-chip-current:hover {
 				background: var(--me-blue);
 				transform: none;
-				color: #ffffff !important;
+				color: var(--me-chip-current-text) !important;
 			}
 
 			.me-sep {
 				font-size: 1.18rem;
 				font-weight: 700;
-				color: #97a7bb;
+				color: var(--me-crumb-sep);
 				user-select: none;
 				line-height: 1;
 			}
 
 			/* ── Editor card ───────────────────────────── */
 			.me-editor-card {
-				border: 1px solid rgba(42, 79, 133, 0.14);
-				border-radius: 1.4rem;
-				background: rgba(255, 255, 255, 0.98);
-				box-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				background: var(--me-card-bg);
 				overflow: hidden;
 				padding: 0;
 			}
@@ -107,13 +215,12 @@
 				margin: 0;
 			}
 
-			/* Toolbar — reset Forty theme button styles */
 			.me-editor-card .editor-toolbar {
 				border-top: none;
 				border-left: none;
 				border-right: none;
-				border-bottom: 1px solid rgba(42, 79, 133, 0.12);
-				background: #f8f9fb;
+				border-bottom: 1px solid var(--me-border-soft);
+				background: var(--me-toolbar-bg);
 				padding: 6px 10px;
 				border-radius: 0;
 				opacity: 1;
@@ -148,7 +255,7 @@
 				border: 1px solid transparent !important;
 				border-radius: 4px !important;
 				background: transparent !important;
-				color: #555 !important;
+				color: var(--me-cm-toolbar-btn) !important;
 				text-align: center !important;
 				cursor: pointer !important;
 				box-shadow: none !important;
@@ -161,16 +268,16 @@
 			}
 
 			.me-editor-card .editor-toolbar button:hover {
-				background: rgba(36, 79, 143, 0.08) !important;
-				border-color: rgba(42, 79, 133, 0.18) !important;
+				background: var(--me-blue-bg) !important;
+				border-color: var(--me-blue-border) !important;
 				color: var(--me-blue) !important;
 				transform: none !important;
 			}
 
 			.me-editor-card .editor-toolbar button.active,
 			.me-editor-card .editor-toolbar button.active:hover {
-				background: rgba(36, 79, 143, 0.14) !important;
-				border-color: rgba(42, 79, 133, 0.22) !important;
+				background: var(--me-blue-bg-strong) !important;
+				border-color: var(--me-blue-border) !important;
 				color: var(--me-blue) !important;
 			}
 
@@ -187,7 +294,7 @@
 
 			.me-editor-card .editor-toolbar button.me-export-btn:hover {
 				background: var(--me-blue) !important;
-				color: #fff !important;
+				color: var(--me-chip-current-text) !important;
 			}
 
 			/* Normalize heading button sizes */
@@ -198,7 +305,7 @@
 			}
 
 			.me-editor-card .editor-toolbar i.separator {
-				border-left: 1px solid rgba(42, 79, 133, 0.14) !important;
+				border-left: 1px solid var(--me-border) !important;
 				border-right: none !important;
 				margin: 0 4px !important;
 				align-self: center !important;
@@ -210,14 +317,14 @@
 				border: none;
 				border-bottom-left-radius: 0;
 				border-bottom-right-radius: 0;
-				height: calc(100vh - 20rem);
-				min-height: 400px;
+				height: calc(100vh - 20rem) !important;
+				min-height: 400px !important;
 				font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 				font-size: 0.9rem;
 				line-height: 1.65;
 				padding: 12px 16px;
 				color: var(--me-ink);
-				background: #ffffff;
+				background: var(--me-editor-bg);
 			}
 
 			.me-editor-card .CodeMirror-cursor {
@@ -225,47 +332,48 @@
 			}
 
 			.me-editor-card .CodeMirror-selected {
-				background: rgba(36, 79, 143, 0.12) !important;
+				background: var(--me-blue-bg) !important;
 			}
 
 			.me-editor-card .CodeMirror-focused .CodeMirror-selected {
-				background: rgba(36, 79, 143, 0.18) !important;
+				background: var(--me-blue-bg-strong) !important;
 			}
 
 			/* Light syntax tokens */
-			.me-editor-card .cm-header      { color: #244f8f; font-weight: 700; }
+			.me-editor-card .cm-header      { color: var(--me-cm-header); font-weight: 700; }
 			.me-editor-card .cm-header-1     { font-size: 1.4em; }
 			.me-editor-card .cm-header-2     { font-size: 1.2em; }
 			.me-editor-card .cm-header-3     { font-size: 1.08em; }
-			.me-editor-card .cm-strong       { color: #1a1a2e; font-weight: 700; }
-			.me-editor-card .cm-em           { color: #8b5a18; font-style: italic; }
-			.me-editor-card .cm-strikethrough { color: #999; text-decoration: line-through; }
-			.me-editor-card .cm-link         { color: #0c8a5f; text-decoration: none; }
-			.me-editor-card .cm-url          { color: #2d5b95; text-decoration: underline; }
-			.me-editor-card .cm-comment      { color: #6a737d; }
-			.me-editor-card .cm-quote        { color: #42526b; font-style: italic; }
-			.me-editor-card .cm-tag          { color: #808080; }
-			.me-editor-card .cm-string       { color: #c7254e; }
-			.me-editor-card .cm-keyword      { color: #244f8f; }
-			.me-editor-card .cm-variable-2   { color: #2d5b95; }
-			.me-editor-card .cm-hr           { color: #aab3c0; }
-			.me-editor-card .cm-formatting   { color: #aab3c0; }
+			.me-editor-card .cm-strong       { color: var(--me-cm-strong); font-weight: 700; }
+			.me-editor-card .cm-em           { color: var(--me-cm-em); font-style: italic; }
+			.me-editor-card .cm-strikethrough { color: var(--me-cm-strike); text-decoration: line-through; }
+			.me-editor-card .cm-link         { color: var(--me-cm-link); text-decoration: none; }
+			.me-editor-card .cm-url          { color: var(--me-cm-url); text-decoration: underline; }
+			.me-editor-card .cm-comment      { color: var(--me-cm-comment); }
+			.me-editor-card .cm-quote        { color: var(--me-cm-quote); font-style: italic; }
+			.me-editor-card .cm-tag          { color: var(--me-cm-tag); }
+			.me-editor-card .cm-string       { color: var(--me-cm-string); }
+			.me-editor-card .cm-keyword      { color: var(--me-cm-keyword); }
+			.me-editor-card .cm-variable-2   { color: var(--me-cm-variable); }
+			.me-editor-card .cm-hr           { color: var(--me-gutter-text); }
+			.me-editor-card .cm-formatting   { color: var(--me-gutter-text); }
 
 			/* Gutters */
 			.me-editor-card .CodeMirror-gutters {
-				background: #f8f9fb;
-				border-right: 1px solid rgba(42, 79, 133, 0.10);
+				background: var(--me-toolbar-bg);
+				border-right: 1px solid var(--me-border-soft);
 			}
 
 			.me-editor-card .CodeMirror-linenumber {
-				color: #aab3c0;
+				color: var(--me-gutter-text);
 			}
 
 			/* ── Side-by-side / Preview pane ───────────── */
 			.me-editor-card .editor-preview-side,
 			.me-editor-card .editor-preview {
-				background: #fafbfd;
-				border-left: 1px solid rgba(42, 79, 133, 0.12);
+				background: var(--me-preview-bg);
+				border: none;
+				border-left: 1px solid var(--me-border-soft);
 				padding: 1.5rem 2rem;
 				color: var(--me-ink);
 				font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -290,7 +398,7 @@
 			.me-editor-card .editor-preview-side h1 {
 				font-size: 1.75em;
 				padding-bottom: 0.5rem;
-				border-bottom: 3px solid rgba(42, 79, 133, 0.16);
+				border-bottom: 3px solid var(--me-border);
 				font-weight: 700;
 				line-height: 1.28;
 				margin: 1.4rem 0 0.5rem;
@@ -304,7 +412,7 @@
 			.me-editor-card .editor-preview-side h2 {
 				font-size: 1.4em;
 				padding-left: 0.8rem;
-				border-left: 4px solid #2d5b95;
+				border-left: 4px solid var(--me-h2-border);
 				font-weight: 700;
 				line-height: 1.28;
 				margin: 1.4rem 0 0.5rem;
@@ -317,7 +425,7 @@
 				font-weight: 700;
 				line-height: 1.28;
 				margin: 1.4rem 0 0.5rem;
-				color: #334155;
+				color: var(--me-h3);
 			}
 
 			.me-editor-card .editor-preview h4,
@@ -341,7 +449,7 @@
 			.me-editor-card .editor-preview-side a {
 				color: var(--me-blue);
 				text-decoration: underline;
-				text-decoration-color: rgba(36, 79, 143, 0.28);
+				text-decoration-color: var(--me-a-underline);
 				text-decoration-thickness: 0.08em;
 				text-underline-offset: 0.16em;
 				border-bottom: none;
@@ -349,16 +457,16 @@
 
 			.me-editor-card .editor-preview a:hover,
 			.me-editor-card .editor-preview-side a:hover {
-				color: #183b73;
-				text-decoration-color: rgba(24, 59, 115, 0.52);
+				color: var(--me-blue-hover);
+				text-decoration-color: var(--me-a-underline-hover);
 			}
 
 			.me-editor-card .editor-preview code,
 			.me-editor-card .editor-preview-side code {
 				padding: 0.12rem 0.4rem;
 				border-radius: 0.35rem;
-				background: rgba(33, 82, 164, 0.08);
-				color: #293e6a;
+				background: var(--me-inline-code-bg);
+				color: var(--me-inline-code-text);
 				font: 0.92em/1.4 "Fira Code", "Cascadia Code", "Menlo", monospace;
 			}
 
@@ -388,10 +496,10 @@
 .me-editor-card .editor-preview blockquote,
 			.me-editor-card .editor-preview-side blockquote {
 				padding: 0.9rem 1rem;
-				background: rgba(33, 82, 164, 0.05);
-				border-left: 4px solid rgba(33, 82, 164, 0.45);
+				background: var(--me-blockquote-bg);
+				border-left: 4px solid var(--me-blockquote-border);
 				border-radius: 0 0.9rem 0.9rem 0;
-				color: #42526b;
+				color: var(--me-blockquote-text);
 				margin: 0 0 0.65rem;
 			}
 
@@ -412,7 +520,7 @@
 			.me-editor-card .editor-preview hr,
 			.me-editor-card .editor-preview-side hr {
 				border: 0;
-				border-top: 1px solid rgba(144, 163, 191, 0.35);
+				border-top: 1px solid var(--me-hr);
 				margin: 1.2rem 0;
 			}
 
@@ -420,7 +528,7 @@
 			.me-editor-card .editor-preview-side table {
 				width: 100%;
 				border-collapse: collapse;
-				border: 1px solid rgba(144, 163, 191, 0.35);
+				border: 1px solid var(--me-hr);
 				margin: 0 0 0.65rem;
 				font-size: 0.95em;
 			}
@@ -430,7 +538,7 @@
 			.me-editor-card .editor-preview-side th,
 			.me-editor-card .editor-preview-side td {
 				padding: 0.75rem 0.85rem !important;
-				border: 1px solid rgba(144, 163, 191, 0.35) !important;
+				border: 1px solid var(--me-hr) !important;
 				text-align: left !important;
 				vertical-align: top !important;
 				color: var(--me-ink) !important;
@@ -439,14 +547,14 @@
 
 			.me-editor-card .editor-preview th,
 			.me-editor-card .editor-preview-side th {
-				background: rgba(33, 82, 164, 0.06) !important;
+				background: var(--me-table-header-bg) !important;
 				font-weight: 700 !important;
 				color: var(--me-ink) !important;
 			}
 
 			.me-editor-card .editor-preview tr:nth-child(even) td,
 			.me-editor-card .editor-preview-side tr:nth-child(even) td {
-				background: rgba(248, 250, 252, 0.85) !important;
+				background: var(--me-blue-bg) !important;
 			}
 
 			.me-editor-card .editor-preview img,
@@ -470,11 +578,11 @@
 
 			/* Status bar */
 			.me-editor-card .editor-statusbar {
-				border-top: 1px solid rgba(42, 79, 133, 0.10);
+				border-top: 1px solid var(--me-border-soft);
 				padding: 6px 14px;
 				color: var(--me-muted);
 				font-size: 0.8rem;
-				background: #f8f9fb;
+				background: var(--me-toolbar-bg);
 				text-align: left !important;
 			}
 			.me-editor-card .editor-statusbar .autosave {
@@ -518,31 +626,22 @@
 					padding: 0.75rem 0 1rem 0 !important;
 				}
 
-				.me-shell { gap: 0.6rem; }
+				.me-shell {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+				}
 
 				.me-shell > header.major {
 					padding: 0 1rem;
 					margin-bottom: 0;
 				}
 
-				.me-intro {
-					border-radius: 0;
-					border-left: none;
-					border-right: none;
-					padding: 0.8rem 1rem;
-					box-shadow: none;
-				}
-
-				.me-editor-card {
-					border-radius: 0;
-					border-left: none;
-					border-right: none;
-					box-shadow: none;
-				}
+				.me-intro { padding: 0.5rem 1rem; }
 
 				.me-editor-card .CodeMirror {
-					height: 55vh;
-					min-height: 300px;
+					height: 55vh !important;
+					min-height: 300px !important;
 				}
 
 				.me-editor-card .editor-preview-side,
@@ -568,44 +667,41 @@
 			}
 		</style>
 	</head>
-	<body class="is-preload">
-
-		<div id="wrapper">
-
-			<header id="header" class="alt">
-				<div class="logo"><a href="../../index.html" class="logo-mark"><strong><img src="../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
-				<nav>
-					<a href="#menu">Menu</a>
-				</nav>
-			</header>
-
-			<nav id="menu">
-				<ul class="links">
-					<li><a href="../../index.html">Home</a></li>
-					<li><a href="../../notes/">Notes</a></li>
-					<li><a href="../../tools/">Tools</a></li>
-				</ul>
-				<ul class="actions stacked">
-					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
-					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
-				</ul>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+					<a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12h5"/><path d="M9.5 16H14"/></svg>Notes</a>
+					<a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools</a>
+					<a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
 			</nav>
 
 			<div id="main" class="alt">
 				<section id="one">
 					<div class="inner me-shell">
-						<header class="major">
+						<header class="major" style="display:none;">
 							<h1>Markdown Editor</h1>
 						</header>
 
+
 						<div class="me-intro">
-							<div class="me-breadcrumb">
-								<a href="../../tools/" class="me-chip">Tools</a>
-								<span class="me-sep">&#x203A;</span>
-								<span class="me-chip me-chip-current">Markdown Editor</span>
-								<span style="color:#97a7bb;font-size:0.9rem;user-select:none;">|</span>
-								<span style="display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:#e67e22;">Beta</span>
-							</div>
+							<nav class="crumbs" aria-label="Breadcrumb">
+								<a href="/~kazuhak/tools/" class="crumb">Tools</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current">Markdown Editor</span>
+							</nav>
 						</div>
 
 						<input type="file" id="me-file-input" accept=".md,.markdown,.txt" style="display:none" />
@@ -654,23 +750,18 @@ $$
 				</section>
 			</div>
 
-			<footer id="footer" class="footer-compact">
-				<div class="inner">
-<ul class="copyright">
-						<li>&copy; Kazuha Hub</li><li><a href="../../about.html">About Me</a></li><li>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a></li>
-					</ul>
-				</div>
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>
+					Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>
+					·
+					<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a>
+				</span>
 			</footer>
-
 		</div>
 
-		<script src="../../assets/js/jquery.min.js"></script>
-		<script src="../../assets/js/jquery.scrolly.min.js"></script>
-		<script src="../../assets/js/jquery.scrollex.min.js"></script>
-		<script src="../../assets/js/browser.min.js"></script>
-		<script src="../../assets/js/breakpoints.min.js"></script>
-		<script src="../../assets/js/util.js"></script>
-		<script src="../../assets/js/main.js"></script>
+		<script src="../../assets/js/bento.js" defer></script>
+		<script src="../../assets/js/chat-widget.js" defer></script>
 		<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/easymde@2/dist/easymde.min.js"></script>
 
@@ -971,26 +1062,6 @@ $$
 			if (/\$/.test(easyMDE.value())) loadKatex();
 
 		})();
-		</script>
-
-		<!-- Header scroll detection (Type B — no banner) -->
-		<script>
-			(function() {
-				var header = document.getElementById("header");
-				var isRevealed = false;
-				window.addEventListener("scroll", function() {
-					var y = window.scrollY;
-					if (!isRevealed && y > 80) {
-						isRevealed = true;
-						header.classList.remove("alt");
-						header.classList.add("reveal");
-					} else if (isRevealed && y <= 0) {
-						isRevealed = false;
-						header.classList.remove("reveal");
-						header.classList.add("alt");
-					}
-				}, { passive: true });
-			})();
 		</script>
 
 	</body>
