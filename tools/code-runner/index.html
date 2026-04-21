@@ -1,26 +1,77 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
-		<title>Code Runner | Kazuha Mo - UC Irvine</title>
+		<title>Code Runner | Kazuha Mo — UC Irvine</title>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
-		<link rel="stylesheet" href="../../assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="../../assets/css/noscript.css" /></noscript>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+		</script>
 		<style>
 			:root {
 				--cr-blue: #244f8f;
 				--cr-blue-bg: rgba(36, 79, 143, 0.10);
 				--cr-blue-border: rgba(36, 79, 143, 0.22);
+				--cr-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--cr-blue-hover: #183b73;
 				--cr-border: rgba(42, 79, 133, 0.16);
+				--cr-border-soft: rgba(42, 79, 133, 0.12);
 				--cr-ink: #23324a;
 				--cr-muted: #516074;
 				--cr-green: #27ae60;
+				--cr-green-hover: #219a52;
 				--cr-red: #e74c3c;
 				--cr-dark: #1e1e1e;
+				--cr-card-bg: #ffffff;
+				--cr-card-bg-soft:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				--cr-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--cr-card-shadow-lg: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--cr-toolbar-bg: #f5f7fa;
+				--cr-lang-select-bg: #ffffff;
+				--cr-lang-arrow: #244f8f;
+				--cr-crumb-sep: #97a7bb;
+				--cr-chip-current-text: #ffffff;
 			}
 
-			/* Override Forty's .inner max-width for Code Runner */
+			html[data-theme="dark"] {
+				--cr-blue: #6aa3f5;
+				--cr-blue-bg: rgba(106, 163, 245, 0.15);
+				--cr-blue-border: rgba(106, 163, 245, 0.32);
+				--cr-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--cr-blue-hover: #a8c9ff;
+				--cr-border: rgba(255, 255, 255, 0.1);
+				--cr-border-soft: rgba(255, 255, 255, 0.07);
+				--cr-ink: #dde4f0;
+				--cr-muted: #8c9cb5;
+				--cr-green: #4ec9a9;
+				--cr-green-hover: #3eb897;
+				--cr-red: #f28b8b;
+				--cr-card-bg: #14181f;
+				--cr-card-bg-soft:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--cr-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--cr-card-shadow-lg: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--cr-toolbar-bg: #181d26;
+				--cr-lang-select-bg: #1a1f28;
+				--cr-lang-arrow: #6aa3f5;
+				--cr-crumb-sep: #54627a;
+				--cr-chip-current-text: #0a0d12;
+			}
+
 			#main > * > .inner.cr-shell {
 				max-width: none;
 				width: calc(100% - 8em);
@@ -29,11 +80,17 @@
 
 			/* Shell */
 			.cr-shell {
-				display: flex; flex-direction: column; gap: 1.5rem;
+				display: flex; flex-direction: column;
 				min-height: calc(100vh - 4rem);
 				position: relative;
+				background: var(--cr-card-bg);
+				border: 1px solid var(--cr-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--cr-card-shadow-lg);
+				overflow: hidden;
 			}
 			.cr-shell > header.major { display: none; }
+			.cr-shell > :last-child { border-bottom: 0 !important; }
 
 			/* Width drag handles */
 			.cr-edge {
@@ -56,14 +113,11 @@
 
 			/* Breadcrumb */
 			.cr-intro {
-				padding: 1.1rem 1.75rem;
-				border: 1px solid var(--cr-border);
-				border-radius: 1.2rem;
-				background:
-					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
-					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
-				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				padding: 0.75rem 1.5rem;
+				border-bottom: 1px solid var(--cr-border);
+				background: var(--cr-card-bg-soft);
 			}
+			.cr-intro .crumbs { margin-bottom: 0; }
 
 			.cr-breadcrumb {
 				display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;
@@ -79,17 +133,14 @@
 				color: var(--cr-blue) !important;
 				transition: background 0.2s ease, transform 0.2s ease;
 			}
-			.cr-chip:hover { background: rgba(36, 79, 143, 0.17); transform: translateY(-1px); color: #183b73 !important; }
-			.cr-chip-current { background: var(--cr-blue); box-shadow: none; color: #fff !important; cursor: default; }
-			.cr-chip-current:hover { background: var(--cr-blue); transform: none; color: #fff !important; }
-			.cr-sep { font-size: 1.18rem; font-weight: 700; color: #97a7bb; user-select: none; line-height: 1; }
+			.cr-chip:hover { background: var(--cr-blue-bg-strong); transform: translateY(-1px); color: var(--cr-blue-hover) !important; }
+			.cr-chip-current { background: var(--cr-blue); box-shadow: none; color: var(--cr-chip-current-text) !important; cursor: default; }
+			.cr-chip-current:hover { background: var(--cr-blue); transform: none; color: var(--cr-chip-current-text) !important; }
+			.cr-sep { font-size: 1.18rem; font-weight: 700; color: var(--cr-crumb-sep); user-select: none; line-height: 1; }
 
 			/* Card */
 			.cr-card {
-				border: 1px solid rgba(42, 79, 133, 0.14);
-				border-radius: 1.4rem;
-				background: #fff;
-				box-shadow: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				background: var(--cr-card-bg);
 				overflow: hidden;
 				flex: 1;
 				display: flex;
@@ -100,8 +151,8 @@
 			.cr-toolbar {
 				display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
 				padding: 0.7rem 1rem;
-				background: #f5f7fa;
-				border-bottom: 1px solid rgba(42, 79, 133, 0.10);
+				background: var(--cr-toolbar-bg);
+				border-bottom: 1px solid var(--cr-border-soft);
 			}
 			.cr-toolbar-left { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
 			.cr-toolbar-right { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
@@ -112,15 +163,20 @@
 				height: 2rem; padding: 0 2rem 0 0.8rem;
 				border: 1.5px solid var(--cr-blue-border);
 				border-radius: 0.6rem;
-				background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23244f8f' d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+				background-color: var(--cr-lang-select-bg);
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23244f8f' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-position: right 0.6rem center;
 				background-size: 0.7rem;
 				font-size: 0.8rem; font-weight: 600; color: var(--cr-blue);
 				cursor: pointer; outline: none;
 				font-family: inherit;
 			}
+			html[data-theme="dark"] .cr-lang-select {
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236aa3f5' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+			}
 			.cr-lang-select:focus { border-color: var(--cr-blue); box-shadow: 0 0 0 2px rgba(36, 79, 143, 0.15); }
 
-			/* Buttons — nuclear reset of Forty theme */
 			.cr-card .cr-btn,
 			.cr-card .cr-btn:hover,
 			.cr-card .cr-btn:active,
@@ -138,31 +194,31 @@
 				pointer-events: auto !important;
 				transition: background 0.15s, opacity 0.15s !important;
 			}
-			.cr-card .cr-btn-run { background: var(--cr-green) !important; color: #fff !important; }
-			.cr-card .cr-btn-run:hover { background: #219a52 !important; }
+			.cr-card .cr-btn-run { background: var(--cr-green) !important; color: var(--cr-chip-current-text) !important; }
+			.cr-card .cr-btn-run:hover { background: var(--cr-green-hover) !important; }
 			.cr-card .cr-btn-run:disabled {
-				background: var(--cr-green) !important; color: #fff !important;
+				background: var(--cr-green) !important; color: var(--cr-chip-current-text) !important;
 				opacity: 0.55 !important; cursor: not-allowed !important;
 			}
 
 			.cr-card .cr-btn-secondary,
 			.cr-card .cr-btn-secondary:focus {
-				background: rgba(36, 79, 143, 0.08) !important;
+				background: var(--cr-blue-bg) !important;
 				color: var(--cr-blue) !important;
 				border: 1.5px solid var(--cr-blue-border) !important;
 				cursor: pointer !important;
 			}
 			.cr-card .cr-btn-secondary:hover {
-				background: rgba(36, 79, 143, 0.16) !important;
+				background: var(--cr-blue-bg-strong) !important;
 				color: var(--cr-blue) !important;
 				border: 1.5px solid var(--cr-blue-border) !important;
 				cursor: pointer !important;
 			}
 			.cr-card .cr-btn-secondary.active {
-				background: var(--cr-blue) !important; color: #fff !important;
+				background: var(--cr-blue) !important; color: var(--cr-chip-current-text) !important;
 				border-color: var(--cr-blue) !important;
 			}
-			.cr-card .cr-btn-secondary.active:hover { background: #1b3d6f !important; }
+			.cr-card .cr-btn-secondary.active:hover { background: var(--cr-blue-hover) !important; }
 
 			/* Fullscreen mode */
 			.cr-card.cr-fullscreen {
@@ -453,15 +509,10 @@
 					box-sizing: border-box !important;
 					padding: 0.75rem 0 1rem 0 !important;
 				}
-				.cr-shell { gap: 0.6rem; }
-				.cr-intro {
+				.cr-shell {
 					border-radius: 0; border-left: none; border-right: none;
-					padding: 0.8rem 1rem; box-shadow: none;
 				}
-				.cr-card {
-					border-radius: 0; border-left: none; border-right: none;
-					box-shadow: none;
-				}
+				.cr-intro { padding: 0.5rem 1rem; }
 				.cr-toolbar { padding: 0.5rem 0.75rem; gap: 0.4rem; }
 				.cr-toolbar-left { flex-basis: 100%; }
 				.cr-lang-select { width: 100%; }
@@ -477,25 +528,25 @@
 			}
 		</style>
 	</head>
-	<body class="is-preload">
-
-		<div id="wrapper">
-
-			<header id="header" class="alt">
-				<div class="logo"><a href="../../index.html" class="logo-mark"><strong><img src="../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
-				<nav><a href="#menu">Menu</a></nav>
-			</header>
-
-			<nav id="menu">
-				<ul class="links">
-					<li><a href="../../index.html">Home</a></li>
-					<li><a href="../../notes/">Notes</a></li>
-					<li><a href="../../tools/">Tools</a></li>
-				</ul>
-				<ul class="actions stacked">
-					<li><a href="../../about.html" class="button primary fit">About Me</a></li>
-					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
-				</ul>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+					<a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12h5"/><path d="M9.5 16H14"/></svg>Notes</a>
+					<a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools</a>
+					<a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
 			</nav>
 
 			<div id="main" class="alt">
@@ -503,16 +554,14 @@
 					<div class="inner cr-shell" id="cr-shell">
 						<div class="cr-edge cr-edge-l" id="cr-edge-l"></div>
 						<div class="cr-edge cr-edge-r" id="cr-edge-r"></div>
-						<header class="major"><h1>Code Runner</h1></header>
+						<header class="major" style="display:none;"><h1>Code Runner</h1></header>
 
 						<div class="cr-intro">
-							<div class="cr-breadcrumb">
-								<a href="../../tools/" class="cr-chip">Tools</a>
-								<span class="cr-sep">&#x203A;</span>
-								<span class="cr-chip cr-chip-current">Code Runner</span>
-								<span style="color:#97a7bb;font-size:0.9rem;user-select:none;">|</span>
-								<span style="display:inline-flex;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;letter-spacing:.5px;color:#fff;background:#e67e22;">Beta</span>
-							</div>
+							<nav class="crumbs" aria-label="Breadcrumb">
+								<a href="/~kazuhak/tools/" class="crumb">Tools</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current">Code Runner</span>
+							</nav>
 						</div>
 
 						<div class="cr-card">
@@ -581,24 +630,19 @@
 				</section>
 			</div>
 
-			<footer id="footer" class="footer-compact">
-				<div class="inner">
-					<ul class="copyright">
-						<li>&copy; Kazuha Hub</li><li><a href="../../about.html">About Me</a></li><li>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a></li>
-					</ul>
-				</div>
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>
+					Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>
+					·
+					<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a>
+				</span>
 			</footer>
-
 		</div>
 
 		<!-- Scripts -->
-		<script src="../../assets/js/jquery.min.js"></script>
-		<script src="../../assets/js/jquery.scrolly.min.js"></script>
-		<script src="../../assets/js/jquery.scrollex.min.js"></script>
-		<script src="../../assets/js/browser.min.js"></script>
-		<script src="../../assets/js/breakpoints.min.js"></script>
-		<script src="../../assets/js/util.js"></script>
-		<script src="../../assets/js/main.js"></script>
+		<script src="../../assets/js/bento.js" defer></script>
+		<script src="../../assets/js/chat-widget.js" defer></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js" crossorigin="anonymous"></script>
 
 		<script>

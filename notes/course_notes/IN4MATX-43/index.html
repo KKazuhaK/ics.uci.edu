@@ -1,648 +1,195 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<title>IN4MATX 43 Notes | Kazuha Mo - UC Irvine</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="icon" href="../../../favicon.ico" type="image/x-icon" />
-		<link rel="stylesheet" href="../../../assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="../../../assets/css/noscript.css" /></noscript>
-		<style>
-			.course-shell {
-				display: grid;
-				gap: 1.5rem;
-			}
-
-			.course-shell,
-			.course-shell p,
-			.course-shell li,
-			.course-shell ul,
-			.course-shell ol,
-			.course-shell h2,
-			.course-shell h3 {
-				color: #23324a;
-			}
-
-			.course-hero,
-			.note-card {
-				border: 1px solid rgba(33, 82, 164, 0.14);
-				border-radius: 1.3rem;
-				background: rgba(255, 255, 255, 0.98);
-				box-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
-			}
-
-			.course-hero {
-				padding: 1.6rem 1.8rem;
-				background:
-					radial-gradient(circle at top right, rgba(36, 80, 143, 0.08), transparent 18rem),
-					linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 255, 0.99) 100%);
-			}
-
-			.course-hero-grid {
-				display: grid;
-				grid-template-columns: minmax(0, 1.6fr) minmax(240px, 320px);
-				gap: 1.25rem;
-				align-items: start;
-			}
-
-			.course-copy p:last-child {
-				margin-bottom: 0;
-			}
-
-			.course-meta {
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				gap: 0.75rem;
-				margin-bottom: 1rem;
-			}
-
-			:root {
-				--crumb-blue: #24508f;
-				--crumb-blue-bg: rgba(36, 80, 143, 0.10);
-				--crumb-blue-border: rgba(36, 80, 143, 0.22);
-				--crumb-blue-bg-strong: rgba(36, 80, 143, 0.17);
-			}
-
-			.course-chip,
-			.kind-chip,
-			.status-chip {
-				display: inline-flex;
-				align-items: center;
-				padding: 0.38rem 0.8rem;
-				box-shadow: inset 0 0 0 1.5px transparent;
-				border-radius: 999px;
-				font-size: 0.86rem;
-				font-weight: 700;
-			}
-
-			/* navigable chips — unified blue outline */
-			.status-chip,
-			.kind-chip {
-				background: var(--crumb-blue-bg);
-				box-shadow: inset 0 0 0 1.5px var(--crumb-blue-border);
-				color: var(--crumb-blue);
-			}
-
-			/* current page chip — solid filled */
-			.course-chip {
-				background: var(--crumb-blue);
-				box-shadow: none;
-				color: #ffffff;
-				cursor: default;
-			}
-
-			.course-meta-sep {
-				display: inline-flex;
-				align-items: center;
-				justify-content: center;
-				align-self: center;
-				min-width: 0.9rem;
-				padding: 0 0.14rem;
-				font-size: 1.18rem;
-				font-weight: 700;
-				line-height: 1;
-				color: #97a7bb;
-				user-select: none;
-			}
-
-			a.status-chip,
-			a.kind-chip {
-				text-decoration: none;
-				border-bottom: 0 !important;
-				color: inherit !important;
-				transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-			}
-
-			a.status-chip:visited,
-			a.kind-chip:visited {
-				color: inherit !important;
-			}
-
-			a.status-chip:hover,
-			a.status-chip:active,
-			a.status-chip:focus,
-			a.kind-chip:hover,
-			a.kind-chip:active,
-			a.kind-chip:focus {
-				background: var(--crumb-blue-bg-strong);
-				box-shadow: inset 0 0 0 1.5px var(--crumb-blue-border);
-				color: #183b73 !important;
-				transform: translateY(-1px);
-			}
-
-			.course-meta a,
-			.course-meta a:hover,
-			.course-meta a:active,
-			.course-meta a:focus {
-				border-bottom: 0 !important;
-			}
-
-			.course-controls {
-				width: min(100%, 270px);
-				justify-self: end;
-				padding: 0.8rem 0.8rem 0.85rem;
-				border-radius: 1rem;
-				background: rgba(36, 80, 143, 0.06);
-				border: 1px solid rgba(36, 80, 143, 0.10);
-			}
-
-			.language-header {
-				margin-bottom: 0.45rem;
-			}
-
-			.language-header p,
-			.language-header strong {
-				margin: 0;
-				color: #23324a;
-			}
-
-			.language-switcher {
-				display: flex;
-				width: 100%;
-				padding: 0.14rem;
-				border-radius: 999px;
-				background: rgba(33, 82, 164, 0.07);
-				gap: 0.08rem;
-			}
-
-			.language-switcher button {
-				flex: 1 1 0;
-				border: 0;
-				box-shadow: none;
-				outline: none;
-				border-radius: 999px;
-				padding: 0.48rem 0.75rem;
-				background: transparent;
-				color: #42526b;
-				cursor: pointer;
-				font: inherit;
-				font-size: 0.85rem;
-				font-weight: 800;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-			}
-
-			.language-switcher button.active {
-				background: #24508f;
-				border: 0;
-				color: #ffffff;
-				box-shadow: 0 0.35rem 0.85rem rgba(36, 80, 143, 0.16);
-			}
-
-			.notes-grid {
-				display: flex;
-				flex-direction: column;
-				gap: 0.7rem;
-			}
-
-			.note-card {
-				display: grid;
-				grid-template-columns: auto minmax(0, 1fr) auto;
-				align-items: center;
-				gap: 1.1rem;
-				padding: 0.95rem 1.2rem;
-			}
-
-			.note-main {
-				min-width: 0;
-			}
-
-			.note-card h3 {
-				margin: 0 0 0.15rem;
-				font-size: 1.02rem;
-				line-height: 1.35;
-			}
-
-			.note-card p {
-				margin: 0;
-				color: #516074;
-				font-size: 0.9rem;
-				line-height: 1.45;
-				overflow: hidden;
-				display: -webkit-box;
-				-webkit-line-clamp: 1;
-				-webkit-box-orient: vertical;
-			}
-
-			.note-date {
-				font-size: 0.75rem;
-				color: #8899ab;
-				margin: 0.25rem 0 0;
-			}
-
-			.week-badge {
-				display: inline-flex;
-				align-items: center;
-				justify-content: center;
-				min-width: 4.4rem;
-				padding: 0.38rem 0.8rem;
-				border-radius: 999px;
-				background: rgba(36, 80, 143, 0.08);
-				color: #24508f;
-				font-size: 0.82rem;
-				font-weight: 800;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-			}
-
-			.note-meta {
-				display: flex;
-				flex-direction: column;
-				align-items: flex-end;
-				gap: 0.45rem;
-				flex-shrink: 0;
-			}
-
-			.note-state {
-				font-size: 0.78rem;
-				font-weight: 700;
-				color: #5b677c;
-			}
-
-			.note-actions {
-				display: flex;
-				gap: 0.5rem;
-				margin: 0;
-			}
-
-			.note-actions .button {
-				border-radius: 999px;
-				border-color: rgba(33, 82, 164, 0.24);
-				box-shadow: inset 0 0 0 2px rgba(33, 82, 164, 0.24);
-				color: #24508f !important;
-			}
-
-			.note-actions .button:hover,
-			.note-actions .button:active {
-				background-color: rgba(33, 82, 164, 0.08);
-				box-shadow: inset 0 0 0 2px rgba(33, 82, 164, 0.24);
-				color: #183b73 !important;
-			}
-
-			.note-actions .button.disabled,
-			.note-actions .button.disabled:hover,
-			.note-actions .button.disabled:active {
-				opacity: 0.45;
-				box-shadow: inset 0 0 0 2px rgba(33, 82, 164, 0.16);
-				background: transparent;
-				color: #7b8698 !important;
-				pointer-events: none;
-			}
-
-			.note-actions .button.primary-link {
-				background: #24508f;
-				box-shadow: none;
-				border-color: #24508f;
-				color: #ffffff !important;
-			}
-
-			.note-actions .button.primary-link:hover,
-			.note-actions .button.primary-link:active {
-				background: #183b73;
-				border-color: #183b73;
-				color: #ffffff !important;
-			}
-
-			@media screen and (max-width: 980px) {
-
-				.course-hero-grid {
-					grid-template-columns: 1fr;
-				}
-
-				.course-controls {
-					width: 100%;
-					justify-self: stretch;
-				}
-
-			}
-
-			@media screen and (max-width: 640px) {
-
-				.note-card {
-					grid-template-columns: 1fr;
-					gap: 0.7rem;
-				}
-
-				.note-meta {
-					flex-direction: row;
-					align-items: center;
-					justify-content: space-between;
-					width: 100%;
-				}
-
-			}
-
-			/* ── back to top button ── */
-			#back-to-top {
-				position: fixed;
-				bottom: 2rem;
-				right: 2rem;
-				display: inline-flex;
-				align-items: center;
-				gap: 0.32rem;
-				padding: 0.48rem 0.9rem 0.48rem 0.72rem;
-				border-radius: 999px;
-				background: #24508f;
-				color: #fff;
-				border: none;
-				cursor: pointer;
-				font: 700 0.8rem/1 inherit;
-				letter-spacing: 0.04em;
-				box-shadow: 0 4px 18px rgba(36, 79, 143, 0.35);
-				opacity: 0;
-				visibility: hidden;
-				transform: translateY(0.5rem);
-				transition: opacity 0.22s ease, visibility 0.22s ease, transform 0.22s ease, background 0.18s ease;
-				z-index: 999;
-				text-transform: uppercase;
-			}
-			#back-to-top.visible {
-				opacity: 1;
-				visibility: visible;
-				transform: translateY(0);
-			}
-			#back-to-top:hover { background: #183b73; }
-			#back-to-top svg {
-				width: 0.9rem; height: 0.9rem;
-				stroke: #fff; fill: none;
-				stroke-width: 2.8;
-				stroke-linecap: round; stroke-linejoin: round;
-				flex-shrink: 0;
-			}
-		</style>
-	</head>
-	<body class="is-preload">
-
-		<div id="wrapper">
-
-			<header id="header" class="alt">
-				<div class="logo"><a href="../../../index.html" class="logo-mark"><strong><img src="../../../images/uc_irvine_logo.svg" alt="UC Irvine" class="uci-wordmark" /></strong></a> <span>Kazuha</span></div>
-				<nav>
-					<a href="#menu">Menu</a>
-				</nav>
-			</header>
-
-			<nav id="menu">
-				<ul class="links">
-					<li><a href="../../../index.html">Home</a></li>
-					<li><a href="../../../notes/">Notes</a></li>
-					<li><a href="../../../tools/">Tools</a></li>
-				</ul>
-				<ul class="actions stacked">
-					<li><a href="../../../about.html" class="button primary fit">About Me</a></li>
-					<li><a href="https://www.kazuhahub.com" class="button fit menu-website-button" target="_blank" rel="noopener noreferrer">GOTO Kazuha Hub</a></li>
-				</ul>
-			</nav>
-
-			<div id="main" class="alt">
-				<section id="one">
-					<div class="inner course-shell">
-						<header class="major">
-							<h1>IN4MATX 43 Notes</h1>
-						</header>
-
-						<div class="course-hero">
-							<div class="course-hero-grid">
-								<div class="course-copy">
-									<div class="course-meta">
-										<a href="../../index.html" class="status-chip">Notes</a>
-										<span class="course-meta-sep">›</span>
-										<a href="../index.html" class="kind-chip">Course Notes</a>
-										<span class="course-meta-sep">›</span>
-										<span class="course-chip">IN4MATX-43</span>
-									</div>
-									<p id="hero-copy-primary">IN4MATX 43 introduces software engineering through the people, processes, and tools behind real-world software systems.</p>
-									<p id="hero-copy-secondary">These notes are organized week by week so classmates can review core ideas such as requirements, architecture, testing, collaboration, and software quality.</p>
-								</div>
-								<div class="course-controls">
-									<div class="language-header">
-										<p><strong id="language-title">Reading Language</strong></p>
-									</div>
-									<div class="language-switcher" role="tablist" aria-label="Language switcher">
-										<button type="button" class="active" data-language="en-US">English</button>
-										<button type="button" data-language="zh-CN">中文</button>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="notes-grid" id="notes-grid"></div>
-					</div>
-				</section>
-			</div>
-
-			<footer id="footer" class="footer-compact">
-				<div class="inner">
-<ul class="copyright">
-						<li>&copy; Kazuha Hub</li><li><a href="../../../about.html">About Me</a></li><li>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a></li>
-					</ul>
-				</div>
-			</footer>
-
-		</div>
-
-		<script src="../../../assets/js/jquery.min.js"></script>
-		<script src="../../../assets/js/jquery.scrolly.min.js"></script>
-		<script src="../../../assets/js/jquery.scrollex.min.js"></script>
-		<script src="../../../assets/js/browser.min.js"></script>
-		<script src="../../../assets/js/breakpoints.min.js"></script>
-		<script src="../../../assets/js/util.js"></script>
-		<script src="../../../assets/js/main.js"></script>
-		<script>
-			const pageCopy = {
-				"en-US": {
-					heroPrimary: "IN4MATX 43 introduces software engineering through the people, processes, and tools behind real-world software systems.",
-					heroSecondary: "These notes are organized week by week so classmates can review core ideas such as requirements, architecture, testing, collaboration, and software quality.",
-					languageTitle: "Reading Language"
-				},
-				"zh-CN": {
-					heroPrimary: "IN4MATX 43 主要介绍软件工程，关注真实软件系统背后的人、流程与工具如何协同工作。",
-					heroSecondary: "这些笔记按周整理，方便同学回顾需求、架构、测试、协作方式和软件质量等核心主题。",
-					languageTitle: "阅读语言"
-				}
-			};
-
-			const notesCatalog = [
-				{
-					week: "Week 1",
-					title: {
-						"en-US": "Foundations of Software Engineering",
-						"zh-CN": "软件工程基础"
-					},
-					summary: {
-						"en-US": "An overview of what software engineering is, why software matters, and the core principles that shape the rest of the course.",
-						"zh-CN": "概览软件工程是什么、软件为什么重要，以及贯穿整门课的核心原则。"
-					},
-					availability: {
-						"en-US": { note: "INF43_Week1_Notes_en-US.md" },
-						"zh-CN": { note: "INF43_Week1_Notes_zh-CN.md" }
-					}
-				},
-				{
-					week: "Week 2",
-					title: {
-						"en-US": "Requirements Engineering",
-						"zh-CN": "需求工程"
-					},
-					summary: {
-						"en-US": "Software failures, why requirements matter, requirements analysis and specification, the requirements document, specification methods, and Ziv's Law.",
-						"zh-CN": "软件失败案例、需求为何至关重要、需求分析与规格说明、需求文档、规格说明方法，以及 Ziv 定律。"
-					},
-					availability: {
-						"en-US": { note: "INF43_Week2_Notes_en-US.md" },
-						"zh-CN": { note: "INF43_Week2_Notes_zh-CN.md" }
-					}
-				},
-				{
-					week: "Week 3",
-					title: {
-						"en-US": "Use Cases and Software Engineering Ethics",
-						"zh-CN": "用例与软件工程伦理"
-					},
-					summary: {
-						"en-US": "Use cases, actors, basic/alternative/exception flows, use case diagrams and models, plus the ACM/IEEE Software Engineering Code of Ethics.",
-						"zh-CN": "用例、参与者(actor)、基本/替代/异常流、用例图与用例模型,以及 ACM/IEEE 软件工程伦理准则。"
-					},
-					availability: {
-						"en-US": { note: "INF43_Week3_Notes_en-US.md" },
-						"zh-CN": { note: "INF43_Week3_Notes_zh-CN.md" }
-					}
-				}
-			];
-
-			let activeLanguage = "en-US";
-
-			function formatDate(dateStr, lang) {
-				var d = new Date(dateStr);
-				if (isNaN(d)) return "";
-				if (lang === "zh-CN") {
-					return "最后编辑于 " + d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日";
-				}
-				return "Last edited " + d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-			}
-
-			function createNoteUrl(noteFile, language) {
-				return "../../../tools/md-viewer/?kind=course_notes&course=IN4MATX-43&lang=" + encodeURIComponent(language) + "&note=" + encodeURIComponent(noteFile);
-			}
-
-			function getFallbackLanguage(entry) {
-				if (activeLanguage === "en-US" && entry.availability["zh-CN"]) return "zh-CN";
-				if (activeLanguage === "zh-CN" && entry.availability["en-US"]) return "en-US";
-				return null;
-			}
-
-			function updateHero() {
-				const copy = pageCopy[activeLanguage];
-				document.getElementById("hero-copy-primary").textContent = copy.heroPrimary;
-				document.getElementById("hero-copy-secondary").textContent = copy.heroSecondary;
-				document.getElementById("language-title").textContent = copy.languageTitle;
-			}
-
-			function renderNotes() {
-				const grid = document.getElementById("notes-grid");
-				const buttons = document.querySelectorAll("[data-language]");
-
-				buttons.forEach((button) => {
-					button.classList.toggle("active", button.dataset.language === activeLanguage);
-				});
-
-				updateHero();
-
-				grid.innerHTML = notesCatalog.map((entry) => {
-					const currentVersion = entry.availability[activeLanguage];
-					const fallbackLanguage = getFallbackLanguage(entry);
-					const fallbackVersion = fallbackLanguage ? entry.availability[fallbackLanguage] : null;
-					const primaryVersion = currentVersion || fallbackVersion;
-					const noteLanguage = currentVersion ? activeLanguage : fallbackLanguage;
-					const hasVersion = Boolean(primaryVersion);
-					const stateText = currentVersion
-						? (activeLanguage === "zh-CN" ? "已就绪" : "Available")
-						: fallbackVersion
-							? (activeLanguage === "zh-CN" ? "仅另一语言可用" : "Chinese Only for Now")
-							: (activeLanguage === "zh-CN" ? "稍后补充" : "Coming Soon");
-					const buttonClass = hasVersion
-						? "button small primary-link"
-						: "button small disabled";
-					const href = hasVersion ? createNoteUrl(primaryVersion.note, noteLanguage) : "#";
-					const buttonText = currentVersion
-						? (activeLanguage === "zh-CN" ? "进入阅读页" : "Open Viewer")
-						: fallbackVersion
-							? (activeLanguage === "zh-CN" ? "打开现有版本" : "Open Chinese Version")
-							: (activeLanguage === "zh-CN" ? "等待更新" : "Not Ready Yet");
-					var noteFile = primaryVersion ? primaryVersion.note : "";
-					return `
-						<article class="note-card">
-							<span class="week-badge">${entry.week}</span>
-							<div class="note-main">
-								<h3>${entry.title[activeLanguage]}</h3>
-								<p>${entry.summary[activeLanguage]}</p>
-								<p class="note-date" data-note="${noteFile}"></p>
-							</div>
-							<div class="note-meta">
-								<span class="note-state">${stateText}</span>
-								<div class="note-actions">
-									<a href="${href}" class="${buttonClass}">${buttonText}</a>
-								</div>
-							</div>
-						</article>
-					`;
-				}).join("");
-
-				document.querySelectorAll(".note-date[data-note]").forEach(function(el) {
-					var note = el.dataset.note;
-					if (!note) return;
-					var url = "./" + note + "?v=" + Date.now();
-					fetch(url, { method: "HEAD", cache: "no-store" }).then(function(res) {
-						var lm = res.headers.get("Last-Modified");
-						if (lm) {
-							el.textContent = formatDate(lm, activeLanguage);
-						}
-					}).catch(function() {});
-				});
-			}
-
-			document.querySelectorAll("[data-language]").forEach((button) => {
-				button.addEventListener("click", () => {
-					activeLanguage = button.dataset.language;
-					renderNotes();
-				});
-			});
-
-			renderNotes();
-
-			// Header alt/reveal on scroll
-			(function() {
-				const header = document.getElementById("header");
-				if (!header) return;
-				let isRevealed = false;
-				window.addEventListener("scroll", function() {
-					const y = window.scrollY;
-					if (!isRevealed && y > 80) {
-						isRevealed = true;
-						header.classList.remove("alt");
-						header.classList.add("reveal");
-					} else if (isRevealed && y <= 0) {
-						isRevealed = false;
-						header.classList.remove("reveal");
-						header.classList.add("alt");
-					}
-				}, { passive: true });
-			})();
-
-			// Back to top
-			const backToTopBtn = document.getElementById("back-to-top");
-			window.addEventListener("scroll", function() {
-				backToTopBtn.classList.toggle("visible", window.scrollY > 320);
-			}, { passive: true });
-			backToTopBtn.addEventListener("click", function() {
-				window.scrollTo({ top: 0, behavior: "smooth" });
-			});
-		</script>
-
-		<button id="back-to-top" aria-label="Back to top">
-			<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
-			TOP
-		</button>
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IN4MATX 43 Notes | Kazuha Mo — UC Irvine</title>
+  <meta name="description" content="Week-by-week reading notes for UC Irvine IN4MATX 43 (Intro to Software Engineering). Bilingual EN / 中文." />
+  <link rel="icon" href="../../../favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/css/bento.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("kzh-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <nav class="nav" aria-label="Primary">
+      <div class="nav-brand">
+        <a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a>
+        <span class="nav-name">Kazuha Mo</span>
+      </div>
+      <div class="nav-links">
+        <a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+        <a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9.5 8h5"/><path d="M9.5 12h5"/><path d="M9.5 16H14"/></svg>Notes</a>
+        <a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools</a>
+        <a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About</a>
+      </div>
+      <div class="nav-actions">
+        <button class="theme-btn" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <main class="page course-hub-page">
+      <div class="page-head card course-hero-head">
+        <div>
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/~kazuhak/notes/" class="crumb">Notes</a>
+            <span class="crumb-sep">›</span>
+            <span class="crumb crumb-current">IN4MATX 43</span>
+          </nav>
+          <h1 class="page-title">IN4MATX 43</h1>
+          <p class="page-sub" id="hero-copy-primary"></p>
+          <p class="page-sub" id="hero-copy-secondary" style="margin-top:10px;"></p>
+        </div>
+        <div class="lang-switch" role="tablist" aria-label="Language switcher">
+          <button type="button" class="active" data-language="en-US">English</button>
+          <button type="button" data-language="zh-CN">中文</button>
+        </div>
+      </div>
+
+      <div class="week-grid" id="notes-grid"></div>
+    </main>
+
+    <footer class="foot">
+      <span>© 2026 Kazuha Hub · Kazuha Mo</span>
+      <span>
+        Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>
+        ·
+        <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a>
+      </span>
+    </footer>
+  </div>
+
+  <script>
+    const pageCopy = {
+      "en-US": {
+        heroPrimary: "IN4MATX 43 introduces software engineering through the people, processes, and tools behind real-world software systems.",
+        heroSecondary: "These notes are organized week by week so classmates can review core ideas such as requirements, architecture, testing, collaboration, and software quality."
+      },
+      "zh-CN": {
+        heroPrimary: "IN4MATX 43 主要介绍软件工程,关注真实软件系统背后的人、流程与工具如何协同工作。",
+        heroSecondary: "这些笔记按周整理,方便同学回顾需求、架构、测试、协作方式和软件质量等核心主题。"
+      }
+    };
+
+    const notesCatalog = [
+      { week: "Week 1",
+        title:   { "en-US": "Foundations of Software Engineering", "zh-CN": "软件工程基础" },
+        summary: { "en-US": "An overview of what software engineering is, why software matters, and the core principles that shape the rest of the course.",
+                   "zh-CN": "概览软件工程是什么、软件为什么重要,以及贯穿整门课的核心原则。" },
+        availability: { "en-US": { note: "INF43_Week1_Notes_en-US.md" },
+                        "zh-CN": { note: "INF43_Week1_Notes_zh-CN.md" } } },
+      { week: "Week 2",
+        title:   { "en-US": "Requirements Engineering", "zh-CN": "需求工程" },
+        summary: { "en-US": "Software failures, why requirements matter, requirements analysis and specification, the requirements document, specification methods, and Ziv's Law.",
+                   "zh-CN": "软件失败案例、需求为何至关重要、需求分析与规格说明、需求文档、规格说明方法,以及 Ziv 定律。" },
+        availability: { "en-US": { note: "INF43_Week2_Notes_en-US.md" },
+                        "zh-CN": { note: "INF43_Week2_Notes_zh-CN.md" } } },
+      { week: "Week 3",
+        title:   { "en-US": "Use Cases and Software Engineering Ethics", "zh-CN": "用例与软件工程伦理" },
+        summary: { "en-US": "Use cases, actors, basic/alternative/exception flows, use case diagrams and models, plus the ACM/IEEE Software Engineering Code of Ethics.",
+                   "zh-CN": "用例、参与者(actor)、基本/替代/异常流、用例图与用例模型,以及 ACM/IEEE 软件工程伦理准则。" },
+        availability: { "en-US": { note: "INF43_Week3_Notes_en-US.md" },
+                        "zh-CN": { note: "INF43_Week3_Notes_zh-CN.md" } } }
+    ];
+
+    let activeLanguage = "en-US";
+
+    function formatDate(dateStr, lang) {
+      var d = new Date(dateStr);
+      if (isNaN(d)) return "";
+      if (lang === "zh-CN") return "最后编辑于 " + d.getFullYear() + " 年 " + (d.getMonth()+1) + " 月 " + d.getDate() + " 日";
+      return "Last edited " + d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function createNoteUrl(noteFile, language) {
+      return "../../../tools/md-viewer/?kind=course_notes&course=IN4MATX-43&lang=" + encodeURIComponent(language) + "&note=" + encodeURIComponent(noteFile);
+    }
+
+    function getFallbackLanguage(entry) {
+      if (activeLanguage === "en-US" && entry.availability["zh-CN"]) return "zh-CN";
+      if (activeLanguage === "zh-CN" && entry.availability["en-US"]) return "en-US";
+      return null;
+    }
+
+    function updateHero() {
+      const copy = pageCopy[activeLanguage];
+      document.getElementById("hero-copy-primary").textContent = copy.heroPrimary;
+      document.getElementById("hero-copy-secondary").textContent = copy.heroSecondary;
+    }
+
+    function renderNotes() {
+      const grid = document.getElementById("notes-grid");
+      document.querySelectorAll("[data-language]").forEach(function (btn) {
+        btn.classList.toggle("active", btn.dataset.language === activeLanguage);
+      });
+      updateHero();
+
+      grid.innerHTML = notesCatalog.map(function (entry) {
+        const currentVersion = entry.availability[activeLanguage];
+        const fallbackLanguage = getFallbackLanguage(entry);
+        const fallbackVersion = fallbackLanguage ? entry.availability[fallbackLanguage] : null;
+        const primaryVersion = currentVersion || fallbackVersion;
+        const noteLanguage = currentVersion ? activeLanguage : fallbackLanguage;
+        const hasVersion = Boolean(primaryVersion);
+        const stateText = currentVersion
+          ? (activeLanguage === "zh-CN" ? "已就绪" : "Available")
+          : fallbackVersion
+            ? (activeLanguage === "zh-CN" ? "仅另一语言可用" : "Other language only")
+            : (activeLanguage === "zh-CN" ? "稍后补充" : "Coming soon");
+        const stateClass = currentVersion ? "note-state ready" : "note-state";
+        const btnClass = hasVersion ? "btn-open" : "btn-open disabled";
+        const href = hasVersion ? createNoteUrl(primaryVersion.note, noteLanguage) : "#";
+        const btnText = currentVersion
+          ? (activeLanguage === "zh-CN" ? "打开 →" : "Open →")
+          : fallbackVersion
+            ? (activeLanguage === "zh-CN" ? "打开现有版本 →" : "Open other lang →")
+            : (activeLanguage === "zh-CN" ? "未就绪" : "Not ready");
+        const noteFile = primaryVersion ? primaryVersion.note : "";
+        return '<article class="card week-card gold">' +
+          '<span class="week-badge">' + entry.week + '</span>' +
+          '<h3>' + entry.title[activeLanguage] + '</h3>' +
+          '<p class="week-summary">' + entry.summary[activeLanguage] + '</p>' +
+          '<p class="week-date" data-note="' + noteFile + '"></p>' +
+          '<div class="week-meta-row">' +
+            '<span class="' + stateClass + '">' + stateText + '</span>' +
+            '<a href="' + href + '" class="' + btnClass + '">' + btnText + '</a>' +
+          '</div>' +
+        '</article>';
+      }).join("");
+
+      document.querySelectorAll(".week-date[data-note]").forEach(function (el) {
+        var note = el.dataset.note;
+        if (!note) return;
+        fetch("./" + note + "?v=" + Date.now(), { method: "HEAD", cache: "no-store" }).then(function (res) {
+          var lm = res.headers.get("Last-Modified");
+          if (lm) el.textContent = formatDate(lm, activeLanguage);
+        }).catch(function () {});
+      });
+    }
+
+    document.querySelectorAll("[data-language]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        activeLanguage = btn.dataset.language;
+        renderNotes();
+      });
+    });
+
+    renderNotes();
+  </script>
+  <script src="../../../assets/js/bento.js" defer></script>
+  <script src="../../../assets/js/chat-widget.js" defer></script>
+</body>
 </html>
