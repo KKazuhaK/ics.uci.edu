@@ -465,7 +465,7 @@
     '<div id="cw-header">' +
       '<span>Ask about this page<span class="cw-badge">Beta</span></span>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
-        '<button id="cw-new" title="New chat"><i class="fa fa-edit" style="margin-right:0.3em;"></i>New Chat</button>' +
+        '<button id="cw-new" title="New chat"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.3em;"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>New Chat</button>' +
         '<button id="cw-close" title="Close">&times;</button>' +
       '</div>' +
     '</div>' +
