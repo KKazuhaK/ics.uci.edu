@@ -83,4 +83,13 @@
   } else {
     mountHeatmap();
   }
+
+  // ── Cloudflare Web Analytics beacon ────────────
+  (function () {
+    var s = document.createElement("script");
+    s.defer = true;
+    s.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    s.setAttribute("data-cf-beacon", '{"token": "cbcd40d8fdf349d98568e9c8e65e3beb"}');
+    document.body.appendChild(s);
+  })();
 })();
