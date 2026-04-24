@@ -270,6 +270,8 @@ The MVC structure separates the system into three parts:
 
 > **MVC is particularly aimed at UI concerns.** In practice, when people talk about "the controller" in MVC, they almost always mean *UI-driven* control (handling button clicks, form submissions, etc.). The reason the pattern exists is that mixing data, rendering, and UI logic in one place produces code that is very hard to change — changing a color, a metric, or a business rule becomes a cross-cutting edit. MVC separates those concerns precisely so each can change independently.
 
+![MVC mapped onto an ATM: the ATM display (view), a rules component (controller), and the bank account (model) connected by arrows showing who talks to whom.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/mvc-atm.png)
+
 ---
 
 ### 9.2 Client-Server
@@ -300,6 +302,8 @@ Structure: **one game server** with **many game clients** (game client 1, game c
 Benefits of cloud: **scalability**, **more computing power**, potentially **cost-effective**.
 Drawbacks: **security/privacy** concerns, and it **may not be cost-effective** at all scales.
 
+![Client-server for an online multiplayer game: three game clients each send requests to a single centralized game server.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/client-server-game.png)
+
 ---
 
 ### 9.3 Layered
@@ -322,6 +326,8 @@ Structure: the system is divided into **layers**, each layer communicating only 
 
 > A restaurant works because the waiter doesn't cook, the cook doesn't take orders from customers, and the customer doesn't go into the kitchen. Each layer has a defined interface with the layers it contacts.
 
+![Android as a layered architecture: Applications on top, then Application Framework, then Libraries and Android Runtime, with the Linux Kernel at the bottom.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/layered-android.jpg)
+
 ---
 
 ### 9.4 Peer-to-Peer (P2P)
@@ -340,6 +346,8 @@ Structure: peers (skype 1, skype 2, skype 3) talk **directly to each other** —
 **Other real-world examples:** **BitTorrent**, **Bitcoin**, and in a broad sense **the internet itself** — all share the P2P property that no single node is essential.
 
 > **In practice, "pure" P2P is rare.** Most deployed P2P systems still have a small client-server component for things the peers can't do well on their own — e.g., Skype needs a central directory to look up which IP address corresponds to which username, and BitTorrent traditionally used trackers for the same reason. The *bulk traffic* (video, audio, files) goes peer-to-peer, but a thin coordination layer is usually centralized.
+
+![Peer-to-peer topology for Skype: three peers (skype 1, skype 2, skype 3) communicating directly with each other — no central server mediates the calls.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/p2p-skype.png)
 
 ---
 
@@ -371,6 +379,8 @@ Each command is a filter; each `|` is a pipe. Output of one filter becomes input
 
 **Key benefits:** **Modularity**, **Reuse**, **Anticipation of Change** (you can insert, remove, or rearrange filters without touching the others).
 
+![Pipe-and-filter for the Unix `ls -l | grep "Aug" | sort` pipeline: three filter components (print records, filter "Aug" records, sort) separated by stream connectors (pipes).](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pipe-filter-unix.png)
+
 ---
 
 ### 9.6 Publish-Subscribe ("Pub-Sub")
@@ -384,6 +394,8 @@ Goals:
 Structure: a **subscription manager** sits between the data source (the stock market) and the **subscribers** (trader 1, trader 2, trader 3). Subscribers register their interests; the manager routes only relevant events to each.
 
 **Key benefits:** **Efficiency** (subscribers aren't flooded with data they don't want), **Scalability** (adding subscribers doesn't require changing publishers).
+
+![Publish-subscribe for a stock-market ticker: the stock market publishes to a subscription manager (connector), which routes only relevant events to trader 1, trader 2, and trader 3.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pub-sub-stock.png)
 
 ---
 
@@ -409,9 +421,13 @@ The World Wide Web is probably the clearest case of an architecture that enabled
 
 > None of these later uses were anticipated in the original design. But because the *bones* chosen in the REST reference architecture — URLs, HTTP, stateless requests, resource representations — were solid and general, the Web has been able to **layer new capabilities on top** of the same foundation for more than three decades without a redesign. This is architecture-enabled evolution working at its best.
 
+![Screenshot of the first World Wide Web page (info.cern.ch, 1991) — plain text with blue hyperlinks. The same architectural bones now support video streaming, e-commerce, and real-time apps.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/web-cern-1991.png)
+
 ### 11.3 Trend: from monolithic to microservices
 
 One concrete evolutionary trend in industry today: monolithic applications (everything in one large deployable unit) are increasingly being broken apart into **microservices** (many small, independently deployable services). Real systems that have made this transition include **Netflix**.
+
+![Monolithic vs. microservices: a single deployable unit with all features bundled together, versus many small independently deployable services communicating with each other.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/monolithic-vs-microservices.png)
 
 ---
 

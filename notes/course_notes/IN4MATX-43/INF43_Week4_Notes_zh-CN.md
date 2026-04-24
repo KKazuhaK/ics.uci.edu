@@ -270,6 +270,8 @@ MVC 把系统分成三部分:
 
 > **MVC 特别针对 UI 层的关注点。** 实际中,人们说的 MVC "controller" 几乎总是指*由 UI 驱动*的控制逻辑(处理按钮点击、表单提交等)。这种模式之所以存在,是因为把数据、渲染、UI 逻辑混在一起写出的代码**极难修改** —— 改一个颜色、一个指标、一条业务规则都会变成横跨多处的大改动。MVC 正是把这三件事分开,让它们各自独立变化。
 
+![MVC 映射到 ATM:ATM 显示屏(view)、规则组件(controller)、银行账户(model)通过箭头表示彼此之间的调用关系。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/mvc-atm.png)
+
 ---
 
 ### 9.2 Client-Server(客户端-服务器)
@@ -300,6 +302,8 @@ MVC 把系统分成三部分:
 云的优点:**可扩展性**、**更大的算力**、可能**更划算**。
 云的缺点:**安全/隐私**问题,并且在某些规模下**可能并不划算**。
 
+![在线多人游戏的 client-server 结构:三个 game client 同时向一台中心化的 game server 发起请求。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/client-server-game.png)
+
 ---
 
 ### 9.3 Layered(分层)
@@ -322,6 +326,8 @@ MVC 把系统分成三部分:
 
 > 餐厅之所以能运转,是因为服务员不做菜、厨师不直接面对顾客点单、顾客不进厨房。每一层都通过定义好的接口与它接触的层对接。
 
+![Android 的分层架构:最上层是 Applications,其下为 Application Framework、Libraries 与 Android Runtime,最底层是 Linux Kernel。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/layered-android.jpg)
+
 ---
 
 ### 9.4 Peer-to-Peer(P2P,对等)
@@ -340,6 +346,8 @@ MVC 把系统分成三部分:
 **其他真实例子:** **BitTorrent**、**Bitcoin**,广义上还包括**互联网本身** —— 这些系统都具备 P2P 性质:没有任何一个节点是不可或缺的。
 
 > **实际上,"纯粹"的 P2P 很少见。** 大多数部署在真实世界的 P2P 系统仍然带有一小块 client-server 组件,用于 peer 自己做不好的事情 —— 例如 Skype 需要一个中央目录来查找"某个用户名对应哪个 IP 地址";BitTorrent 传统上也需要 tracker 来做类似的事。**批量流量**(视频、音频、文件)走 peer-to-peer,但薄薄一层"协调"往往仍是集中式的。
+
+![Skype 的 P2P 拓扑:skype 1、skype 2、skype 3 三个 peer 之间直接通信,没有中央服务器中介每一次通话。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/p2p-skype.png)
 
 ---
 
@@ -371,6 +379,8 @@ ls -l | grep "Aug" | sort
 
 **关键收益:** **Modularity**、**Reuse**、**Anticipation of Change**(你可以在不动其他 filter 的情况下插入、删除或重排某个 filter)。
 
+![Unix `ls -l | grep "Aug" | sort` 的 pipe-and-filter 图示:三个 filter 组件(print records、filter "Aug" records、sort)之间以 stream(pipe 连接器)相连。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pipe-filter-unix.png)
+
 ---
 
 ### 9.6 Publish-Subscribe("Pub-Sub",发布-订阅)
@@ -384,6 +394,8 @@ ls -l | grep "Aug" | sort
 结构:一个 **subscription manager**(订阅管理器)位于数据源(股票市场)和**订阅者**(trader 1、trader 2、trader 3)之间。订阅者登记自己的兴趣;管理器只把相关事件路由给每个人。
 
 **关键收益:** **Efficiency**(订阅者不会被不想要的数据淹没)、**Scalability**(增加订阅者不需要修改发布者)。
+
+![股票行情机的 pub-sub 结构:stock market 把事件推给 subscription manager(连接器),后者只把相关事件路由给 trader 1、trader 2、trader 3。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pub-sub-stock.png)
 
 ---
 
@@ -409,9 +421,13 @@ ls -l | grep "Aug" | sort
 
 > 这些后来的用途在最初的设计里一个都没有被预想到。但因为 REST 参考架构里选择的**骨架** —— URL、HTTP、无状态请求、资源表示 —— 足够扎实、足够通用,Web 才能在同一副骨架上**不断叠加新能力**,三十多年不需要重新设计。这就是架构驱动演化的最佳范例。
 
+![1991 年 CERN 第一个万维网页面(info.cern.ch)截图 —— 纯文本加蓝色超链接。三十多年过去,同一套架构骨架现在支撑着视频流、电子商务与实时应用。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/web-cern-1991.png)
+
 ### 11.3 趋势:从单体(monolithic)到微服务(microservices)
 
 业界当前一个具体的演化趋势:单体应用(整个系统作为一个大的可部署单元)越来越多地被拆成**微服务(microservices)**(许多小的、可独立部署的服务)。完成这个迁移的真实系统包括 **Netflix**。
+
+![单体架构 vs. 微服务架构对比:左侧是一个把所有功能打包在一起的可部署单元,右侧是多个可独立部署的小服务,通过彼此通信协作。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/monolithic-vs-microservices.png)
 
 ---
 
