@@ -291,13 +291,19 @@ ATM 例子展示了:
 - **三个用例(在边界内):** `Withdraw money`、`Deposit money`、`Transfer money`
 - **连线**把两个 actor 都连接到所有三个用例 —— 用户和后台系统都参与每一笔交易
 
+![ATM 用例图:两个 actor(ATM User 与 Bank Back-end System)位于系统边界外,通过关联线连接到边界内的三个用例(Withdraw money、Deposit money、Transfer money),并标注了四种视觉元素。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-atm.png)
+
 ### 9.4 示例:航空旅行用例图
 
 Passenger Service 系统展示了多个 actor(Check-In Representative、Passenger、Customs of Destination Airport、Baggage Transportation)与多个用例(Check-In、Automated Check-In、Express Check-In、Boarding、Requesting Passenger List)之间的交互。Passenger 参与大多数用例;而像 Customs 和 Baggage Transportation 这样的专门 actor 只连接到与其角色相关的用例。
 
+![航空旅行用例图:Passenger Service 系统外围的四个 actor 与内部五个 check-in / boarding 用例的交互关系。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-air-travel.png)
+
 ### 9.5 示例:事件管理用例图
 
 一个更简单的例子,包含两个 actor(`FieldOfficer` 和 `Dispatcher`)和三个用例(`OpenIncident`、`ReportEmergency`、`AllocateResources`)。该图直观地展现了哪个 actor 参与哪些场景 —— 例如,FieldOfficer 报告紧急情况,而 Dispatcher 打开事件并分配资源。
+
+![事件管理用例图:FieldOfficer 与 Dispatcher 两个 actor 连接到 OpenIncident、ReportEmergency、AllocateResources 三个用例。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-incident-mgmt.png)
 
 ### 9.6 示例:图书馆软件用例图
 
@@ -305,6 +311,8 @@ Passenger Service 系统展示了多个 actor(Check-In Representative、Passenge
 
 - 不同 actor 拥有不同权限(Browser 只能搜索;Patron 可以借/还/预约;Staff 拥有管理类用例)
 - 某些用例(如 `WhichBooksOnTopic?`)被多种 actor 类型共享
+
+![图书馆软件用例图:Patron、Browser、Staff 三种 actor 连接到十个用例,覆盖借还、预约和目录管理。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-library.png)
 
 ---
 
@@ -316,6 +324,8 @@ Passenger Service 系统展示了多个 actor(Check-In Representative、Passenge
 2. **用例的文本描述** —— 详细的逐步内容
 
 二者合在一起,构成了从用户视角观察系统行为的完整图景。
+
+![用例模型 = 用例图 + 每个用例对应的文本描述。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/use-case-model.png)
 
 ### 10.1 多种类型的读者
 
