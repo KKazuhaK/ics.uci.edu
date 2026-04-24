@@ -291,13 +291,19 @@ The ATM example shows:
 - **Three use cases inside the boundary:** `Withdraw money`, `Deposit money`, `Transfer money`
 - **Lines** connecting both actors to all three use cases — both the user and the back-end system participate in each transaction
 
+![ATM use case diagram: two actors (ATM User, Bank Back-end System) associated with three use cases (Withdraw money, Deposit money, Transfer money) inside an ATM system boundary, annotated with the four visual elements.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-atm.png)
+
 ### 9.4 Example: Air Travel use case diagram
 
 The Passenger Service system shows multiple actors (Check-In Representative, Passenger, Customs of Destination Airport, Baggage Transportation) interacting with use cases like Check-In, Automated Check-In, Express Check-In, Boarding, and Requesting Passenger List. The Passenger participates in most use cases; specialized actors like Customs and Baggage Transportation only connect to use cases relevant to their role.
 
+![Air Travel use case diagram: Passenger Service system with four actors around it and five check-in / boarding use cases inside.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-air-travel.png)
+
 ### 9.5 Example: Incident Management use case diagram
 
 A simpler example with two actors (`FieldOfficer` and `Dispatcher`) and three use cases (`OpenIncident`, `ReportEmergency`, `AllocateResources`). The diagram makes it visually clear which actor is involved in which scenarios — for instance, the FieldOfficer reports emergencies while the Dispatcher opens incidents and allocates resources.
+
+![Incident Management use case diagram: FieldOfficer and Dispatcher actors connected to OpenIncident, ReportEmergency, and AllocateResources use cases.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-incident-mgmt.png)
 
 ### 9.6 Example: Library Software use case diagram
 
@@ -305,6 +311,8 @@ A richer example with three actors (`Patron`, `Browser`, `Staff`) and many use c
 
 - Different actors have different privileges (Browser can only search; Patron can borrow/return/reserve; Staff has administrative use cases)
 - Some use cases (`WhichBooksOnTopic?`) are shared across multiple actor types
+
+![Library Software use case diagram: Patron, Browser, and Staff actors connected to ten use cases covering lending, reservations, and catalog administration.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/uc-diagram-library.png)
 
 ---
 
@@ -316,6 +324,8 @@ There is generally **one use case model per system**, consisting of:
 2. **Textual descriptions** of use cases — the detailed step-by-step content
 
 Together these form a complete picture of system behavior from the user's perspective.
+
+![The use case model = use case diagram + textual descriptions of each use case.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-3/use-case-model.png)
 
 ### 10.1 A variety of readers
 

@@ -32,6 +32,8 @@ TSB, a UK bank, attempted to migrate from one infrastructure to another. On the 
 
 Shopa was a British startup that shut down largely because the company never figured out what product to build. Internal teams had no shared understanding of the product direction, leading to conflict between engineering and sales. This is a textbook example of what happens when requirements are absent or unclear.
 
+![Shopa closure announcement screenshot with the diagnosis quote: "The company … is still trying to figure out what product to build … no one knows inside the company what they are building."](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/shopa-failure.jpg)
+
 ### 1.5 Industry statistics
 
 | Statistic | Source |
@@ -69,6 +71,8 @@ An important distinction: requirements address what a customer **needs**, not wh
 
 Poor requirements are the single most common reason projects stumble or fail. According to CHAOS reports, requirements defects account for more than **70%** of rework costs, and rework itself consumes about **30–50%** of the total project budget. Lack of user input and involvement is consistently listed as the most frequent problem.
 
+![Kassab et al. (IEEE SW 2017) bar chart of reported defect causes across 98 projects — "Requirements problems (omissions, changes, or errors)" is the single most reported cause, above design, testing, and coding problems.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/kassab-defect-causes.jpg)
+
 ### 2.3 Software life cycle costs
 
 The vast majority of software cost comes after the initial build:
@@ -83,9 +87,13 @@ The vast majority of software cost comes after the initial build:
 | Integration | 8% |
 | **Maintenance** | **67%** |
 
+![Software life cycle costs pie chart: Maintenance dominates at 67% of total cost; Analysis through Integration together account for only 33%.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/lifecycle-costs.png)
+
 ### 2.4 Cost of change grows over time
 
 Changes are cheapest during analysis and specification. The cost increases dramatically as you move into design, implementation, integration, and especially maintenance. This is why investing time in requirements up front saves enormous cost later.
+
+![Cost-of-change bar chart: relative cost stays near zero through Analysis, Specification, and Design, rises modestly at Implementation and Integration, and spikes to roughly 200× by Maintenance.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/cost-of-change.png)
 
 ### 2.5 Which category employs the most programmers in the US?
 
@@ -105,6 +113,8 @@ In the waterfall model, the requirements phase is the very first stage. It is sp
 | **Requirements specification** | The activity of describing and documenting customer needs; also refers to the resulting document |
 
 The expanded waterfall shows: Requirements Analysis → Requirements Specification → Design → Implementation → Verification → Maintenance.
+
+![Waterfall model diagram with Requirements analysis and Requirements specification split into the first two stages, flowing into Design, Implementation, Verification, and Maintenance.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/waterfall.png)
 
 ### 3.2 Techniques for requirements analysis
 
