@@ -456,6 +456,39 @@ cppds 给的代码有一个隐含假设：**要删除的元素一定在链表中
 > while (!found && current != nullptr) { ... }
 > ```
 
+#### 关键点 4：cppds 漏写了 `delete current`(内存泄漏!)
+
+仔细看 cppds 给的 remove 代码——它只是把节点从链表里**摘下来**(让 previous->next 跨过 current,或者把 head 指向 current->next),但是**从来没有 `delete current`**。被摘下的节点变成了**孤儿堆内存**——没有任何指针引用它,也没有被释放,**永久泄漏**。
+
+教材没写这一步,但实际工程中**必须补上**:
+
+```cpp
+void remove(int item) {
+    Node *current = head;
+    Node *previous = nullptr;
+    bool found = false;
+    while (!found && current != nullptr) {
+        if (current->getData() == item) found = true;
+        else {
+            previous = current;
+            current = current->getNext();
+        }
+    }
+    if (!found) return;                      // 元素不存在,直接返回
+
+    if (previous == nullptr) {
+        head = current->getNext();
+    } else {
+        previous->setNext(current->getNext());
+    }
+    delete current;                          // ✅ 释放被摘下的节点
+}
+```
+
+> 💡 **对比 §6.3 的 pop()**:Klefstad PPT 的 `pop()` 正确地写了 `delete tmp;`。同样是"从链表里拿掉一个节点",pop 释放了内存,cppds 的 remove 却没有——这是 cppds 教材的一个遗漏(可能是为了"教学简化"而省略,但严重违背 RAII)。
+
+> ⚠️ **delete 的位置很关键**:必须在 `previous->setNext(current->getNext())` 之后,而不是之前——因为 `current->getNext()` 必须在 current 还有效时被读出来。先 delete 再 getNext = dangling reference。
+
 #### Klefstad PPT 中的 pop（移除头节点）
 
 PPT slide 13 给了一个简化版本——只移除 head：

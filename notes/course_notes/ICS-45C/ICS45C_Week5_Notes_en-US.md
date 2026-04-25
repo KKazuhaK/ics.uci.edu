@@ -454,6 +454,39 @@ This is a bug cppds 5.4.4 explicitly leaves as a "self-check exercise":
 > while (!found && current != nullptr) { ... }
 > ```
 
+#### Key Point 4: cppds Forgets `delete current` (Memory Leak!)
+
+Look closely at the cppds `remove` code — it **unlinks** the node from the list (by routing previous->next around current, or pointing head at current->next), but it **never calls `delete current`**. The unlinked node becomes **orphaned heap memory** — nothing references it, nothing frees it, and it **leaks permanently**.
+
+The textbook omits this step, but in real engineering you **must** add it:
+
+```cpp
+void remove(int item) {
+    Node *current = head;
+    Node *previous = nullptr;
+    bool found = false;
+    while (!found && current != nullptr) {
+        if (current->getData() == item) found = true;
+        else {
+            previous = current;
+            current = current->getNext();
+        }
+    }
+    if (!found) return;                      // not found — bail out
+
+    if (previous == nullptr) {
+        head = current->getNext();
+    } else {
+        previous->setNext(current->getNext());
+    }
+    delete current;                          // ✅ release the unlinked node
+}
+```
+
+> 💡 **Compare with `pop()` in §6.3**: Klefstad PPT's `pop()` correctly writes `delete tmp;`. Both are "take a node out of the list," but `pop` releases the memory while cppds's `remove` doesn't — this is an omission in the cppds textbook (likely simplified for pedagogy, but it badly violates RAII).
+
+> ⚠️ **The position of delete matters**: it must come **after** `previous->setNext(current->getNext())`, not before — because `current->getNext()` has to be read while `current` is still valid. Delete-then-getNext = dangling reference.
+
 #### Klefstad PPT pop (Remove Head Node)
 
 PPT slide 13 gives a simplified version — only removes head:
