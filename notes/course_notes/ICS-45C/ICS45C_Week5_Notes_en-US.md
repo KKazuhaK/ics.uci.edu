@@ -421,6 +421,7 @@ void remove(int item) {
         // General case: previous skips over current
         previous->setNext(current->getNext());
     }
+    delete current;                  // ✅ release the unlinked node (cppds omits this — see Key Point 4)
 }
 ```
 
@@ -574,6 +575,7 @@ public:
         }
         if (previous == nullptr) head = current->getNext();
         else previous->setNext(current->getNext());
+        delete current;     // ✅ release the unlinked node (cppds omits this)
     }
 
     friend ostream& operator<<(ostream& os, const UnorderedList& ol);

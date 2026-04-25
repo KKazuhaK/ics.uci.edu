@@ -423,6 +423,7 @@ void remove(int item) {
         // 一般情况：previous 跨过 current
         previous->setNext(current->getNext());
     }
+    delete current;                  // ✅ 释放被摘下的节点(cppds 教材漏写,详见关键点 4)
 }
 ```
 
@@ -576,6 +577,7 @@ public:
         }
         if (previous == nullptr) head = current->getNext();
         else previous->setNext(current->getNext());
+        delete current;     // ✅ 释放被摘下的节点(cppds 教材漏写)
     }
 
     friend ostream& operator<<(ostream& os, const UnorderedList& ol);
