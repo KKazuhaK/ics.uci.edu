@@ -1436,7 +1436,35 @@
 							quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
 							i += 1;
 						}
-						html.push("<blockquote><p>" + quoteLines.map(parseInline).join("<br>") + "</p></blockquote>");
+						const blockParts = [];
+						let proseBuffer = [];
+						const flushProse = () => {
+							if (proseBuffer.length) {
+								blockParts.push("<p>" + proseBuffer.map(parseInline).join("<br>") + "</p>");
+								proseBuffer = [];
+							}
+						};
+						let qi = 0;
+						while (qi < quoteLines.length) {
+							const qTrim = quoteLines[qi].trim();
+							if (qTrim.startsWith("```")) {
+								flushProse();
+								const fenceLanguage = qTrim.slice(3).trim().split(/\s+/)[0] || "";
+								const codeLines = [];
+								qi += 1;
+								while (qi < quoteLines.length && !quoteLines[qi].trim().startsWith("```")) {
+									codeLines.push(quoteLines[qi]);
+									qi += 1;
+								}
+								blockParts.push(buildCodeBlockHtml(codeLines.join("\n"), fenceLanguage));
+								qi += 1;
+								continue;
+							}
+							proseBuffer.push(quoteLines[qi]);
+							qi += 1;
+						}
+						flushProse();
+						html.push("<blockquote>" + blockParts.join("") + "</blockquote>");
 						continue;
 					}
 
