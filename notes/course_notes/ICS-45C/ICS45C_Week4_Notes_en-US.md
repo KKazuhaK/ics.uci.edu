@@ -11,13 +11,13 @@
 - [7. Pointers, References, and Dynamic Memory Fundamentals](#7-pointers-references-and-dynamic-memory-fundamentals)
 - [8. Dynamic Memory Allocation with new and delete](#8-dynamic-memory-allocation-with-new-and-delete)
 - [9. Dynamically Allocating Arrays](#9-dynamically-allocating-arrays)
-- [10. The Copy Constructor](#10-the-copy-constructor)
-- [11. Class Initialization Forms](#11-class-initialization-forms)
-- [12. Copy Elision (briefly)](#12-copy-elision-briefly)
-- [13. Shallow vs. Deep Copying](#13-shallow-vs-deep-copying)
-- [14. Overloading the Copy Assignment Operator](#14-overloading-the-copy-assignment-operator)
-- [15. The Rule of Three (and Five)](#15-the-rule-of-three-and-five)
-- [16. Move Constructors and Move Assignment](#16-move-constructors-and-move-assignment)
+- [10. Shallow vs. Deep Copying](#10-shallow-vs-deep-copying)
+- [11. The Copy Constructor](#11-the-copy-constructor)
+- [12. Overloading the Copy Assignment Operator](#12-overloading-the-copy-assignment-operator)
+- [13. The Rule of Three (and Five)](#13-the-rule-of-three-and-five)
+- [14. Move Constructors and Move Assignment](#14-move-constructors-and-move-assignment)
+- [15. Class Initialization Forms](#15-class-initialization-forms)
+- [16. Copy Elision (briefly)](#16-copy-elision-briefly)
 - [17. Extended Example: IntList (Putting It All Together)](#17-extended-example-intlist-putting-it-all-together)
 - [18. Week 4 Quick Reference & Top Takeaways](#18-week-4-quick-reference--top-takeaways)
 
@@ -1235,311 +1235,11 @@ The PPT walks through a full `IntList` class that wraps a dynamic array. See §1
 
 ---
 
-## 10. The Copy Constructor
-
-> Corresponds to LearnCpp 14.14 — Introduction to the Copy Constructor
-> + PPT class-and-struct.pptx (Complex class example)
-
-### 10.1 What Is a Copy Constructor?
-
-> 💡 **Definition**: A **copy constructor** is a constructor used to initialize an object with an existing object of the same type. After execution, the new object is a copy of the original.
-
-```cpp
-Fraction f { 5, 3 };    // calls Fraction(int, int) — normal constructor
-Fraction fCopy { f };   // calls Fraction(const Fraction&) — copy constructor
-```
-
-### 10.2 Implicit Copy Constructor
-
-If you don't write a copy constructor, **C++ generates a public implicit copy constructor** automatically. It does **memberwise initialization** — each member of the new object is initialized from the corresponding member of the original.
-
-```cpp
-class Fraction {
-    int m_numerator{ 0 };
-    int m_denominator{ 1 };
-public:
-    Fraction(int numerator = 0, int denominator = 1)
-        : m_numerator{ numerator }, m_denominator{ denominator } {}
-    void print() const { /* ... */ }
-    // No copy constructor written — C++ generates one implicitly
-};
-
-Fraction f { 5, 3 };
-Fraction fCopy { f };   // works! Prints Fraction(5, 3) Fraction(5, 3)
-```
-
-### 10.3 Writing Your Own Copy Constructor
-
-```cpp
-class Fraction {
-public:
-    // Copy constructor
-    Fraction(const Fraction& fraction)
-        : m_numerator{ fraction.m_numerator }
-        , m_denominator{ fraction.m_denominator }
-    {
-        std::cout << "Copy constructor called\n";  // just to prove it works
-    }
-    // ...
-};
-```
-
-> 💡 **Access Control Reminder**: Access controls are **per-class**, not per-object. A class's member functions can access **any object's** private members of the same type. That's why `fraction.m_numerator` compiles — even though `m_numerator` is private.
-
-### 10.4 Critical Rule: Parameter Must Be a Reference
-
-> ⚠️ **Requirement**: The parameter of a copy constructor **MUST** be an lvalue reference (preferably `const`).
-
-```cpp
-Fraction(const Fraction& f) { ... }  // ✅ correct
-Fraction(Fraction f) { ... }          // ❌ COMPILE ERROR
-```
-
-**Why?** If the parameter were pass-by-value, copying it in would require calling the copy constructor → which would itself need pass-by-value → infinite recursion. This is caught at compile time.
-
-> 💡 **Best Practice**: If you write your own copy constructor, the parameter should be a **const lvalue reference**.
-
-### 10.5 Best Practice Trio
-
-> 💡 **Best Practice 1**: **Copy constructors should have no side effects beyond copying.**
->
-> Because the compiler may elide (optimize away) copy constructor calls. If your copy constructor has side effects (like printing, logging, counting), they may or may not execute — observable behavior becomes unpredictable.
-
-> 💡 **Best Practice 2**: **Prefer the implicit copy constructor**, unless you have a specific reason to create your own.
->
-> Unlike the implicit default constructor (which does nothing useful), the implicit copy constructor **does** useful work (memberwise copy) that's usually exactly what you want.
-
-### 10.6 When Copy Constructor Is Triggered
-
-**Trigger 1: Pass-by-value**:
-```cpp
-void printFraction(Fraction f) { f.print(); }  // f is a copy
-
-Fraction f{ 5, 3 };
-printFraction(f);   // copy constructor called to copy f into parameter
-```
-
-**Trigger 2: Return-by-value**:
-```cpp
-Fraction generateFraction(int n, int d) {
-    Fraction f{ n, d };
-    return f;  // copy constructor called to copy f into the temporary return value
-}
-```
-
-### 10.7 Multiple Copies Can Occur!
-
-```cpp
-Fraction generateFraction(int n, int d) {
-    Fraction f{ n, d };
-    return f;                                          // copy #1
-}
-
-int main() {
-    Fraction f2 { generateFraction(1, 2) };   // copy #2 from temporary to f2
-    printFraction(f2);                         // copy #3 — pass to function
-}
-```
-
-Output (without optimization):
-```
-Copy constructor called
-Copy constructor called
-Copy constructor called
-Fraction(1, 2)
-```
-
-With **copy elision** (modern compilers), some or all of these copies may be eliminated. See §12.
-
-### 10.8 Using `= default` and `= delete`
-
-**`= default`**: Explicitly request the compiler-generated copy constructor:
-```cpp
-Fraction(const Fraction& fraction) = default;   // equivalent to implicit
-```
-
-**`= delete`**: Prevent copies entirely:
-```cpp
-Fraction(const Fraction& fraction) = delete;
-
-// Now:
-Fraction f { 5, 3 };
-Fraction fCopy { f };   // ❌ COMPILE ERROR: copy constructor deleted
-```
-
-Useful for classes where copying doesn't make sense (unique resources, file handles, etc.).
-
-### 10.9 Rule of Three (Preview)
-
-> 💡 **Rule of Three**: If a class requires a user-defined copy constructor, destructor, OR copy assignment operator, it **probably requires all three**.
->
-> **Rule of Five** (C++11 extension): Add move constructor and move assignment.
-
-This is exactly the situation when your class manages dynamic memory. See §15 for full discussion.
-
-### 10.10 Quiz: Why Can't the Parameter Be Pass-by-Value?
-
-> Q: Why does the copy constructor parameter have to be a reference?
->
-> A: If it were pass-by-value, then calling the copy constructor to copy an argument would itself require calling the copy constructor to copy the argument into the parameter of the copy constructor... infinite recursion. Compiler catches this and errors out.
-
----
-
-## 11. Class Initialization Forms
-
-> Corresponds to LearnCpp 14.15 — Class Initialization and Copy Elision
-
-### 11.1 Six Initialization Forms (Review)
-
-C++ provides six basic initialization forms for fundamental types — **all work for class types too**:
-
-```cpp
-int a;         // default initialization (NO initializer)
-int b = 5;     // copy initialization (= after name)
-int c( 6 );    // direct initialization (parentheses)
-
-// List initialization (C++11):
-int d { 7 };   // direct list initialization (preferred!)
-int e = { 8 }; // copy list initialization (= + braces)
-int f {};      // value initialization (empty braces)
-```
-
-### 11.2 The Same Six Forms for Classes
-
-```cpp
-class Foo {
-public:
-    Foo()                 { std::cout << "Foo()\n"; }
-    Foo(int x)            { std::cout << "Foo(int) " << x << '\n'; }
-    Foo(const Foo&)       { std::cout << "Foo(const Foo&)\n"; }
-};
-
-int main()
-{
-    // Default constructor (Foo())
-    Foo f1;           // default initialization
-    Foo f2{};         // value initialization (PREFERRED)
-
-    // Normal constructor (Foo(int))
-    Foo f3 = 3;       // copy initialization (non-explicit constructors only)
-    Foo f4(4);        // direct initialization
-    Foo f5{ 5 };      // direct list initialization (PREFERRED)
-    Foo f6 = { 6 };   // copy list initialization (non-explicit only)
-
-    // Copy constructor (Foo(const Foo&))
-    Foo f7 = f3;      // copy initialization
-    Foo f8(f3);       // direct initialization
-    Foo f9{ f3 };     // direct list initialization (PREFERRED)
-    Foo f10 = { f3 }; // copy list initialization
-}
-```
-
-### 11.3 How C++ Chooses a Constructor
-
-For **class types**:
-- All matching constructors are examined
-- Overload resolution picks the best match (possibly with implicit conversion)
-
-For **non-class types** (e.g., `int`):
-- Implicit conversion rules determine if the conversion exists
-
-### 11.4 Three Key Differences Between Forms
-
-> 💡 **Key Insight**: There are three important differences between initialization forms:
->
-> 1. **List initialization disallows narrowing conversions** (e.g., `int x{3.5};` is an ERROR)
-> 2. **Copy initialization only considers non-explicit constructors/conversions** (see future lesson on `explicit`)
-> 3. **List initialization prioritizes matching list constructors** (e.g., `std::vector<int>{5}` creates a vector with one element `5`, not a vector of size 5)
-
-### 11.5 Restrictions on Initialization
-
-In some contexts, only certain initialization forms are allowed:
-- **Constructor member initializer lists**: only direct forms (not copy init)
-- Some contexts require a specific form
-
-### 11.6 Best Practice
-
-> 💡 **Best Practice**: Use **direct list initialization** (braces) whenever possible.
-
-```cpp
-Foo f{ args };      // direct list init
-Foo f2{};           // value init (empty braces)
-```
-
-This:
-- Disallows narrowing (safer)
-- Works uniformly for fundamental and class types
-- Handles empty-init cleanly
-
----
-
-## 12. Copy Elision (briefly)
-
-> Corresponds to the "Copy Elision" section of LearnCpp 14.15
-> *(Note: your course reading assignment suggests this section is optional — included here briefly for context.)*
-
-### 12.1 Unnecessary Copies
-
-Consider:
-```cpp
-Something s { Something { 5 } };   // focus on this line
-```
-
-Without optimization, this makes **two** constructor calls:
-1. `Something{5}` — creates a temporary via `Something(int)`
-2. Temporary is copied into `s` via `Something(const Something&)`
-
-Yet the end result is the same as:
-```cpp
-Something s { 5 };   // only ONE call — directly to Something(int)
-```
-
-### 12.2 What Is Copy Elision?
-
-> 💡 **Definition**: **Copy elision** is a compiler optimization that removes unnecessary copying of objects. When the compiler optimizes away a copy constructor call, we say the constructor has been **elided**.
-
-Crucially, **copy elision is exempt from the as-if rule** — it's allowed **even if the copy constructor has side effects** (like printing). This is precisely why copy constructors shouldn't have side effects!
-
-### 12.3 Copy Elision in Pass-by-Value and Return-by-Value
-
-```cpp
-Something rvo() {
-    return Something{};   // calls Something() — the copy constructor MAY be elided
-}
-
-Something nrvo() {
-    Something s{};        // calls Something()
-    return s;             // copy constructor MAY be elided
-}
-
-int main() {
-    Something s1 { rvo() };   // copy MAY be elided
-    Something s2 { nrvo() };  // copy MAY be elided
-}
-```
-
-In the worst case (no optimization), 4 copies. With elision, often 0. Compilers vary:
-- **Visual Studio 2022** elides 3 of 4
-- **GCC** elides all 4
-
-### 12.4 Mandatory Copy Elision in C++17
-
-Prior to C++17, copy elision was **optional**. In C++17, it's **mandatory** in certain cases (e.g., temporary-to-named-object init like `Something s { Something{5} }`).
-
-In mandatory elision cases, the copy constructor **doesn't even need to be accessible** (can be deleted!).
-In optional elision cases, the copy constructor must still be declared (though it may be elided).
-
-### 12.5 Takeaway
-
-> 💡 **Memo**: Your copy constructor may or may not be called when you expect. If your copy constructor has side effects and you don't see them, copy elision is probably why. Don't rely on side effects in copy constructors.
-
----
-
-## 13. Shallow vs. Deep Copying
+## 10. Shallow vs. Deep Copying
 
 > Corresponds to LearnCpp 21.13
 
-### 13.1 Shallow Copy (the Default)
+### 10.1 Shallow Copy (the Default)
 
 The compiler-generated (implicit) copy constructor and assignment operator perform a **memberwise copy**, also called a **shallow copy**.
 
@@ -1553,7 +1253,7 @@ class Fraction {
 };
 ```
 
-### 13.2 Shallow Copy Is DEADLY for Classes with Pointers
+### 10.2 Shallow Copy Is DEADLY for Classes with Pointers
 
 The problem: **shallow-copying a pointer copies the ADDRESS, not what it points to.** Both the original and the copy now point to the **same memory**.
 
@@ -1587,7 +1287,7 @@ int main() {
 }
 ```
 
-### 13.3 Walkthrough of the Disaster
+### 10.3 Walkthrough of the Disaster
 
 1. `MyString hello{ "Hello, world!" };` — constructor allocates memory, sets `hello.m_data` to it
 2. `MyString copy{ hello };` — **shallow** copy: `copy.m_data = hello.m_data` (same address!)
@@ -1595,7 +1295,7 @@ int main() {
 4. `hello.m_data` now **dangles** (points to freed memory)
 5. `hello.getString()` dereferences dangling pointer — UB
 
-### 13.4 Deep Copy (The Solution)
+### 10.4 Deep Copy (The Solution)
 
 A **deep copy** allocates **new** memory for the copy and copies the **contents** over. Source and copy live in distinct memory.
 
@@ -1614,9 +1314,9 @@ MyString::MyString(const MyString& source)
 }
 ```
 
-> 💡 The **copy assignment operator** implementation lives in §14 — it must release old resources first, perform a self-assignment check, and return `*this`, none of which the copy constructor needs.
+> 💡 The **copy assignment operator** implementation lives in §12 — it must release old resources first, perform a self-assignment check, and return `*this`, none of which the copy constructor needs.
 
-### 13.5 A Better Solution: Use Standard Library Classes
+### 10.5 A Better Solution: Use Standard Library Classes
 
 Instead of writing your own memory management:
 - `std::string` handles strings
@@ -1625,7 +1325,7 @@ Instead of writing your own memory management:
 
 Less code, fewer bugs, less headache.
 
-### 13.6 Summary
+### 10.6 Summary
 
 - Default copy constructor and assignment = **shallow copy** → fine for simple classes
 - Classes with dynamically allocated memory need **deep copy** via user-defined copy constructor and copy assignment operator
@@ -1633,11 +1333,161 @@ Less code, fewer bugs, less headache.
 
 ---
 
-## 14. Overloading the Copy Assignment Operator
+## 11. The Copy Constructor
+
+> Corresponds to LearnCpp 14.14 — Introduction to the Copy Constructor
+> + PPT class-and-struct.pptx (Complex class example)
+
+### 11.1 What Is a Copy Constructor?
+
+> 💡 **Definition**: A **copy constructor** is a constructor used to initialize an object with an existing object of the same type. After execution, the new object is a copy of the original.
+
+```cpp
+Fraction f { 5, 3 };    // calls Fraction(int, int) — normal constructor
+Fraction fCopy { f };   // calls Fraction(const Fraction&) — copy constructor
+```
+
+### 11.2 Implicit Copy Constructor
+
+If you don't write a copy constructor, **C++ generates a public implicit copy constructor** automatically. It does **memberwise initialization** — each member of the new object is initialized from the corresponding member of the original.
+
+```cpp
+class Fraction {
+    int m_numerator{ 0 };
+    int m_denominator{ 1 };
+public:
+    Fraction(int numerator = 0, int denominator = 1)
+        : m_numerator{ numerator }, m_denominator{ denominator } {}
+    void print() const { /* ... */ }
+    // No copy constructor written — C++ generates one implicitly
+};
+
+Fraction f { 5, 3 };
+Fraction fCopy { f };   // works! Prints Fraction(5, 3) Fraction(5, 3)
+```
+
+### 11.3 Writing Your Own Copy Constructor
+
+```cpp
+class Fraction {
+public:
+    // Copy constructor
+    Fraction(const Fraction& fraction)
+        : m_numerator{ fraction.m_numerator }
+        , m_denominator{ fraction.m_denominator }
+    {
+        std::cout << "Copy constructor called\n";  // just to prove it works
+    }
+    // ...
+};
+```
+
+> 💡 **Access Control Reminder**: Access controls are **per-class**, not per-object. A class's member functions can access **any object's** private members of the same type. That's why `fraction.m_numerator` compiles — even though `m_numerator` is private.
+
+### 11.4 Critical Rule: Parameter Must Be a Reference
+
+> ⚠️ **Requirement**: The parameter of a copy constructor **MUST** be an lvalue reference (preferably `const`).
+
+```cpp
+Fraction(const Fraction& f) { ... }  // ✅ correct
+Fraction(Fraction f) { ... }          // ❌ COMPILE ERROR
+```
+
+**Why?** If the parameter were pass-by-value, copying it in would require calling the copy constructor → which would itself need pass-by-value → infinite recursion. This is caught at compile time.
+
+> 💡 **Best Practice**: If you write your own copy constructor, the parameter should be a **const lvalue reference**.
+
+### 11.5 Best Practice Trio
+
+> 💡 **Best Practice 1**: **Copy constructors should have no side effects beyond copying.**
+>
+> Because the compiler may elide (optimize away) copy constructor calls. If your copy constructor has side effects (like printing, logging, counting), they may or may not execute — observable behavior becomes unpredictable.
+
+> 💡 **Best Practice 2**: **Prefer the implicit copy constructor**, unless you have a specific reason to create your own.
+>
+> Unlike the implicit default constructor (which does nothing useful), the implicit copy constructor **does** useful work (memberwise copy) that's usually exactly what you want.
+
+### 11.6 When Copy Constructor Is Triggered
+
+**Trigger 1: Pass-by-value**:
+```cpp
+void printFraction(Fraction f) { f.print(); }  // f is a copy
+
+Fraction f{ 5, 3 };
+printFraction(f);   // copy constructor called to copy f into parameter
+```
+
+**Trigger 2: Return-by-value**:
+```cpp
+Fraction generateFraction(int n, int d) {
+    Fraction f{ n, d };
+    return f;  // copy constructor called to copy f into the temporary return value
+}
+```
+
+### 11.7 Multiple Copies Can Occur!
+
+```cpp
+Fraction generateFraction(int n, int d) {
+    Fraction f{ n, d };
+    return f;                                          // copy #1
+}
+
+int main() {
+    Fraction f2 { generateFraction(1, 2) };   // copy #2 from temporary to f2
+    printFraction(f2);                         // copy #3 — pass to function
+}
+```
+
+Output (without optimization):
+```
+Copy constructor called
+Copy constructor called
+Copy constructor called
+Fraction(1, 2)
+```
+
+With **copy elision** (modern compilers), some or all of these copies may be eliminated. See §16.
+
+### 11.8 Using `= default` and `= delete`
+
+**`= default`**: Explicitly request the compiler-generated copy constructor:
+```cpp
+Fraction(const Fraction& fraction) = default;   // equivalent to implicit
+```
+
+**`= delete`**: Prevent copies entirely:
+```cpp
+Fraction(const Fraction& fraction) = delete;
+
+// Now:
+Fraction f { 5, 3 };
+Fraction fCopy { f };   // ❌ COMPILE ERROR: copy constructor deleted
+```
+
+Useful for classes where copying doesn't make sense (unique resources, file handles, etc.).
+
+### 11.9 Rule of Three (Preview)
+
+> 💡 **Rule of Three**: If a class requires a user-defined copy constructor, destructor, OR copy assignment operator, it **probably requires all three**.
+>
+> **Rule of Five** (C++11 extension): Add move constructor and move assignment.
+
+This is exactly the situation when your class manages dynamic memory. See §13 for full discussion.
+
+### 11.10 Quiz: Why Can't the Parameter Be Pass-by-Value?
+
+> Q: Why does the copy constructor parameter have to be a reference?
+>
+> A: If it were pass-by-value, then calling the copy constructor to copy an argument would itself require calling the copy constructor to copy the argument into the parameter of the copy constructor... infinite recursion. Compiler catches this and errors out.
+
+---
+
+## 12. Overloading the Copy Assignment Operator
 
 > Corresponds to LearnCpp 21.12
 
-### 14.1 Copy Assignment vs. Copy Constructor
+### 12.1 Copy Assignment vs. Copy Constructor
 
 > 💡 **When each is used**:
 
@@ -1654,7 +1504,7 @@ Fraction f3;              // default constructor
 f3 = f1;                  // copy assignment (f3 already exists)
 ```
 
-### 14.2 Basic Syntax
+### 12.2 Basic Syntax
 
 **Must be a member function** (not a non-member):
 
@@ -1670,7 +1520,7 @@ public:
 };
 ```
 
-### 14.3 Why Return `*this`?
+### 12.3 Why Return `*this`?
 
 To support **chained assignment**:
 ```cpp
@@ -1681,7 +1531,7 @@ f1 = f2 = f3;           // = is right-associative: f1 = (f2 = f3)
 
 Returning `*this` gives a reference to the assigned-to object, allowing the chain.
 
-### 14.4 The Self-Assignment Problem
+### 12.4 The Self-Assignment Problem
 
 C++ allows self-assignment:
 ```cpp
@@ -1711,7 +1561,7 @@ MyString& MyString::operator=(const MyString& str) {
 4. Allocate new memory for `m_data`
 5. Copy from `str.m_data` (dangling) — **garbage!**
 
-### 14.5 The Self-Assignment Guard
+### 12.5 The Self-Assignment Guard
 
 ```cpp
 MyString& MyString::operator=(const MyString& str) {
@@ -1732,14 +1582,14 @@ MyString& MyString::operator=(const MyString& str) {
 > - Pointer comparison is **fast**
 > - Doesn't require `operator==` to be defined
 
-### 14.6 When You Can Skip Self-Assignment Check
+### 12.6 When You Can Skip Self-Assignment Check
 
 - **Copy constructor**: Skip it. A newly-created object can't equal itself (except `someClass c { c };`, which is caught as uninitialized).
 - **Classes that naturally handle self-assignment**: Like `Fraction` above — assigning `m_numerator = fraction.m_numerator` to yourself is harmless.
 
 However, some gurus recommend **always** adding the guard defensively. That's a reasonable conservative approach.
 
-### 14.7 The Copy and Swap Idiom
+### 12.7 The Copy and Swap Idiom
 
 A cleaner pattern that gracefully handles self-assignment (mentioned in Reading, full details in future lessons):
 
@@ -1754,27 +1604,27 @@ class T {
 
 This relies on making a copy via the parameter (which the compiler may elide), then swapping.
 
-### 14.8 Implicit Copy Assignment
+### 12.8 Implicit Copy Assignment
 
 Just like copy constructor, the compiler generates an implicit copy assignment operator if you don't. It does memberwise assignment (shallow copy).
 
-### 14.9 Preventing Assignment
+### 12.9 Preventing Assignment
 
 ```cpp
 Fraction& operator= (const Fraction& fraction) = delete;   // no assignment allowed
 ```
 
-### 14.10 const Members Disable Implicit Assignment
+### 12.10 const Members Disable Implicit Assignment
 
 If your class has const members, the compiler **implicitly deletes** the assignment operator (can't assign to const members). To make a class with const members assignable for the non-const ones, you must explicitly write your own `operator=`.
 
 ---
 
-## 15. The Rule of Three (and Five)
+## 13. The Rule of Three (and Five)
 
 > Corresponds to LearnCpp 14.14 + 21.13 + 22.3 + PPT Dyn_Array.pptx page 10
 
-### 15.1 Rule of Three (C++98)
+### 13.1 Rule of Three (C++98)
 
 > 💡 **Rule of Three**: If a class requires a user-defined **copy constructor**, **destructor**, or **copy assignment operator**, it probably requires **all three**.
 
@@ -1783,7 +1633,7 @@ If your class has const members, the compiler **implicitly deletes** the assignm
 - **Copy constructor** to deep-copy on initialization (prevent shared state)
 - **Copy assignment** to deep-copy on assignment (prevent shared state + leaks)
 
-### 15.2 Full Rule of Three Example: `Vector`
+### 13.2 Full Rule of Three Example: `Vector`
 
 From the PPT (simplified):
 
@@ -1824,7 +1674,7 @@ public:
 };
 ```
 
-### 15.3 What Happens If You Use Default Versions?
+### 13.3 What Happens If You Use Default Versions?
 
 The PPT asks: **"What if I do this?"**
 
@@ -1844,7 +1694,7 @@ String& String::operator=(const String& s) { return *this; } // doesn't copy any
 
 **Moral**: Don't use defaults. Don't leave them empty. Do the Rule of Three correctly.
 
-### 15.4 Rule of Five (C++11)
+### 13.4 Rule of Five (C++11)
 
 > 💡 **Rule of Five**: If you define or delete any of the five special member functions, you should define or delete all five:
 >
@@ -1854,11 +1704,11 @@ String& String::operator=(const String& s) { return *this; } // doesn't copy any
 > 4. **Move constructor** (new in C++11)
 > 5. **Move assignment operator** (new in C++11)
 
-Move constructors/assignments are covered in §16.
+Move constructors/assignments are covered in §14.
 
 > 💡 **Rule of Zero**: If your class doesn't manage resources directly (uses `std::string`, `std::vector`, etc.), define **none** of the five. Let the compiler generate them all.
 
-### 15.5 Interaction Rules for Special Member Functions
+### 13.5 Interaction Rules for Special Member Functions
 
 > ⚠️ **Tricky!** Here's how defining one can affect others:
 
@@ -1870,11 +1720,11 @@ The safest policy: if you customize one, **be explicit about all five** (either 
 
 ---
 
-## 16. Move Constructors and Move Assignment
+## 14. Move Constructors and Move Assignment
 
 > Corresponds to LearnCpp 22.3
 
-### 16.1 The Problem with Copy Semantics
+### 14.1 The Problem with Copy Semantics
 
 Consider this "smart pointer" class using **deep copy**:
 
@@ -1926,13 +1776,13 @@ Resource destroyed     ← 6. mainres destroyed at end of main
 
 **3 allocations + 3 deallocations** for what's essentially "make a resource and give it to `mainres`". **Wasteful!**
 
-### 16.2 Insight: When the Source Is About to Die, Just Steal Its Resources
+### 14.2 Insight: When the Source Is About to Die, Just Steal Its Resources
 
 If we know the source object is a **temporary** that's about to be destroyed anyway, why deep-copy? **Just take its pointer and leave it with nullptr.**
 
 This is the **move semantics** idea.
 
-### 16.3 Move Constructor and Move Assignment
+### 14.3 Move Constructor and Move Assignment
 
 C++11 introduces:
 - **Move constructor**: transfers resources from an rvalue to a new object
@@ -1965,7 +1815,7 @@ public:
 };
 ```
 
-### 16.4 Output with Move Semantics
+### 14.4 Output with Move Semantics
 
 Same test code, now output:
 ```
@@ -1975,7 +1825,7 @@ Resource destroyed
 
 **Only 1 allocation + 1 deallocation** — the resource was moved (not copied) through the whole chain!
 
-### 16.5 Why Set `a.m_ptr = nullptr`?
+### 14.5 Why Set `a.m_ptr = nullptr`?
 
 > ⚠️ **Critical rule**: When moving, you MUST leave the source in a valid state (typically: nullified).
 
@@ -1986,7 +1836,7 @@ Remember: the moved-from object **will still be destroyed**. Its destructor will
 
 **The rule in one sentence**: *The moved-from object must be destructible without affecting the new object.*
 
-### 16.6 The Key Insight of Move Semantics
+### 14.6 The Key Insight of Move Semantics
 
 > 💡 **Key Insight** (from Reading):
 >
@@ -1994,17 +1844,17 @@ Remember: the moved-from object **will still be destroyed**. Its destructor will
 > - **If the argument is an rvalue** (temporary), it's about to die → we can safely **transfer its resources** (cheap) instead of copying (expensive)
 > - Move semantics is **an optimization opportunity**
 
-### 16.7 `noexcept`
+### 14.7 `noexcept`
 
 Move functions should be marked **`noexcept`** (promise not to throw exceptions). This signals to the compiler and standard library containers (like `std::vector`) that moves are safe — only `noexcept` moves will be used in certain situations (e.g., when `std::vector` reallocates).
 
-### 16.8 When Are Move Constructor / Move Assignment Called?
+### 14.8 When Are Move Constructor / Move Assignment Called?
 
 - **Move functions defined, AND argument is an rvalue** → move
   - Typically: literals, temporaries, `std::move(x)` (future lesson)
 - **Otherwise** (lvalue, or move functions not defined) → copy
 
-### 16.9 Implicit Move Constructor/Assignment
+### 14.9 Implicit Move Constructor/Assignment
 
 Compiler generates implicit move operations **only if** ALL of these are true:
 - No user-declared copy constructor
@@ -2018,7 +1868,7 @@ Implicit moves do **memberwise move**:
 
 > ⚠️ **Warning**: Implicit move copies pointers (doesn't null them)! If you want to actually transfer pointer ownership, **you must write the move functions yourself**.
 
-### 16.10 Return by Value Moves lvalues (Special Rule)
+### 14.10 Return by Value Moves lvalues (Special Rule)
 
 In `generateResource()`, the local `res` is an lvalue — but the return statement **moves** it, not copies it:
 
@@ -2033,7 +1883,7 @@ Auto_ptr4<Resource> generateResource() {
 
 In some cases, the compiler may do even better via copy elision — no move or copy at all.
 
-### 16.11 Disabling Copying, Keeping Moves
+### 14.11 Disabling Copying, Keeping Moves
 
 ```cpp
 template<typename T>
@@ -2049,7 +1899,7 @@ class Auto_ptr5 {
 
 This is exactly how `std::unique_ptr` works: **move-only**, can't be copied.
 
-### 16.12 Performance Example (From Reading)
+### 14.12 Performance Example (From Reading)
 
 The Reading runs a `DynamicArray<int>` of 1,000,000 elements through a function that allocates, populates, doubles, and reassigns:
 
@@ -2060,7 +1910,7 @@ The Reading runs a `DynamicArray<int>` of 1,000,000 elements through a function 
 
 Move semantics = real performance win.
 
-### 16.13 Move Construction vs. Move Assignment (PPT Question)
+### 14.13 Move Construction vs. Move Assignment (PPT Question)
 
 > **PPT**: "What is the difference between construction and assignment?"
 
@@ -2070,7 +1920,7 @@ Move semantics = real performance win.
 | Just steal from source | **First release own resources**, then steal |
 | No self-check needed | **Self-check** (else you might delete your own data before stealing it) |
 
-### 16.14 Deleting Move Constructor/Assignment
+### 14.14 Deleting Move Constructor/Assignment
 
 ```cpp
 Name(Name&& n) = delete;
@@ -2086,7 +1936,7 @@ Name getJoe() {
 }
 ```
 
-### 16.15 `std::swap` Inside Move Functions — Don't Do It!
+### 14.15 `std::swap` Inside Move Functions — Don't Do It!
 
 A common bad pattern:
 ```cpp
@@ -2108,7 +1958,7 @@ Name(Name&& n) noexcept {
 }
 ```
 
-### 16.16 Rule of Five Reference Template (`String` — aligned with HW4 / Reading Quiz)
+### 14.16 Rule of Five Reference Template (`String` — aligned with HW4 / Reading Quiz)
 
 All four special members + destructor (the **rule of five**) compressed into a minimal class — **structurally identical to HW4's `String` and the Reading Quiz code**: `char* buf`, `new[]/delete[]`, and a static helper `strdup(const char*)` for deep copy.
 
@@ -2187,6 +2037,156 @@ Expanded into four rules:
 - **Self-assignment check** is omitted in the quiz's "minimal correct answer"; memorize it in pure HW4 style
 
 > ⚠️ **In real code**: prefer `std::string` or `std::unique_ptr<char[]>` — then all five members get correct defaults for free, following the **rule of zero**. This `String` is only a HW4 / exam-style "raw pointer" reference.
+
+---
+
+## 15. Class Initialization Forms
+
+> Corresponds to LearnCpp 14.15 — Class Initialization and Copy Elision
+
+### 15.1 Six Initialization Forms (Review)
+
+C++ provides six basic initialization forms for fundamental types — **all work for class types too**:
+
+```cpp
+int a;         // default initialization (NO initializer)
+int b = 5;     // copy initialization (= after name)
+int c( 6 );    // direct initialization (parentheses)
+
+// List initialization (C++11):
+int d { 7 };   // direct list initialization (preferred!)
+int e = { 8 }; // copy list initialization (= + braces)
+int f {};      // value initialization (empty braces)
+```
+
+### 15.2 The Same Six Forms for Classes
+
+```cpp
+class Foo {
+public:
+    Foo()                 { std::cout << "Foo()\n"; }
+    Foo(int x)            { std::cout << "Foo(int) " << x << '\n'; }
+    Foo(const Foo&)       { std::cout << "Foo(const Foo&)\n"; }
+};
+
+int main()
+{
+    // Default constructor (Foo())
+    Foo f1;           // default initialization
+    Foo f2{};         // value initialization (PREFERRED)
+
+    // Normal constructor (Foo(int))
+    Foo f3 = 3;       // copy initialization (non-explicit constructors only)
+    Foo f4(4);        // direct initialization
+    Foo f5{ 5 };      // direct list initialization (PREFERRED)
+    Foo f6 = { 6 };   // copy list initialization (non-explicit only)
+
+    // Copy constructor (Foo(const Foo&))
+    Foo f7 = f3;      // copy initialization
+    Foo f8(f3);       // direct initialization
+    Foo f9{ f3 };     // direct list initialization (PREFERRED)
+    Foo f10 = { f3 }; // copy list initialization
+}
+```
+
+### 15.3 How C++ Chooses a Constructor
+
+For **class types**:
+- All matching constructors are examined
+- Overload resolution picks the best match (possibly with implicit conversion)
+
+For **non-class types** (e.g., `int`):
+- Implicit conversion rules determine if the conversion exists
+
+### 15.4 Three Key Differences Between Forms
+
+> 💡 **Key Insight**: There are three important differences between initialization forms:
+>
+> 1. **List initialization disallows narrowing conversions** (e.g., `int x{3.5};` is an ERROR)
+> 2. **Copy initialization only considers non-explicit constructors/conversions** (see future lesson on `explicit`)
+> 3. **List initialization prioritizes matching list constructors** (e.g., `std::vector<int>{5}` creates a vector with one element `5`, not a vector of size 5)
+
+### 15.5 Restrictions on Initialization
+
+In some contexts, only certain initialization forms are allowed:
+- **Constructor member initializer lists**: only direct forms (not copy init)
+- Some contexts require a specific form
+
+### 15.6 Best Practice
+
+> 💡 **Best Practice**: Use **direct list initialization** (braces) whenever possible.
+
+```cpp
+Foo f{ args };      // direct list init
+Foo f2{};           // value init (empty braces)
+```
+
+This:
+- Disallows narrowing (safer)
+- Works uniformly for fundamental and class types
+- Handles empty-init cleanly
+
+---
+
+## 16. Copy Elision (briefly)
+
+> Corresponds to the "Copy Elision" section of LearnCpp 14.15
+> *(Note: your course reading assignment suggests this section is optional — included here briefly for context.)*
+
+### 16.1 Unnecessary Copies
+
+Consider:
+```cpp
+Something s { Something { 5 } };   // focus on this line
+```
+
+Without optimization, this makes **two** constructor calls:
+1. `Something{5}` — creates a temporary via `Something(int)`
+2. Temporary is copied into `s` via `Something(const Something&)`
+
+Yet the end result is the same as:
+```cpp
+Something s { 5 };   // only ONE call — directly to Something(int)
+```
+
+### 16.2 What Is Copy Elision?
+
+> 💡 **Definition**: **Copy elision** is a compiler optimization that removes unnecessary copying of objects. When the compiler optimizes away a copy constructor call, we say the constructor has been **elided**.
+
+Crucially, **copy elision is exempt from the as-if rule** — it's allowed **even if the copy constructor has side effects** (like printing). This is precisely why copy constructors shouldn't have side effects!
+
+### 16.3 Copy Elision in Pass-by-Value and Return-by-Value
+
+```cpp
+Something rvo() {
+    return Something{};   // calls Something() — the copy constructor MAY be elided
+}
+
+Something nrvo() {
+    Something s{};        // calls Something()
+    return s;             // copy constructor MAY be elided
+}
+
+int main() {
+    Something s1 { rvo() };   // copy MAY be elided
+    Something s2 { nrvo() };  // copy MAY be elided
+}
+```
+
+In the worst case (no optimization), 4 copies. With elision, often 0. Compilers vary:
+- **Visual Studio 2022** elides 3 of 4
+- **GCC** elides all 4
+
+### 16.4 Mandatory Copy Elision in C++17
+
+Prior to C++17, copy elision was **optional**. In C++17, it's **mandatory** in certain cases (e.g., temporary-to-named-object init like `Something s { Something{5} }`).
+
+In mandatory elision cases, the copy constructor **doesn't even need to be accessible** (can be deleted!).
+In optional elision cases, the copy constructor must still be declared (though it may be elided).
+
+### 16.5 Takeaway
+
+> 💡 **Memo**: Your copy constructor may or may not be called when you expect. If your copy constructor has side effects and you don't see them, copy elision is probably why. Don't rely on side effects in copy constructors.
 
 ---
 
