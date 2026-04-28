@@ -20,14 +20,13 @@
 - [16. Stack Frames: How Recursion Is Implemented](#16-stack-frames-how-recursion-is-implemented)
 - [17. Visualizing Recursion: Turtle Graphics](#17-visualizing-recursion-turtle-graphics)
 - [18. The Sierpinski Triangle](#18-the-sierpinski-triangle)
-- [19. Complex Recursive Problems (Introduction)](#19-complex-recursive-problems-introduction)
-- [20. Tower of Hanoi](#20-tower-of-hanoi)
-- [21. Exploring a Maze](#21-exploring-a-maze)
-- [22. Linked Lists and Recursion: A Natural Fit](#22-linked-lists-and-recursion-a-natural-fit)
-- [23. Linked Structures Beyond SLL (Look-Ahead)](#23-linked-structures-beyond-sll-look-ahead)
-- [24. typedef Brief Intro](#24-typedef-brief-intro)
-- [25. Week 5 Comprehensive Cheat Sheet](#25-week-5-comprehensive-cheat-sheet)
-- [26. Top Five Takeaways for Week 5](#26-top-five-takeaways-for-week-5)
+- [19. Tower of Hanoi](#19-tower-of-hanoi)
+- [20. Exploring a Maze](#20-exploring-a-maze)
+- [21. Linked Lists and Recursion: A Natural Fit](#21-linked-lists-and-recursion-a-natural-fit)
+- [22. Linked Structures Beyond SLL (Look-Ahead)](#22-linked-structures-beyond-sll-look-ahead)
+- [23. typedef Brief Intro](#23-typedef-brief-intro)
+- [24. Week 5 Comprehensive Cheat Sheet](#24-week-5-comprehensive-cheat-sheet)
+- [25. Top Five Takeaways for Week 5](#25-top-five-takeaways-for-week-5)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > These notes integrate Week 5 assigned reading cppds 4.1–4.5 (Linked Lists) and cppds 5.1–5.11 (Recursion, with focus on 5.1–5.4), together with Professor Klefstad's PPT lecture *Linked List & Recursion*. Content is organized by concept, with each section fusing the original reading + PPT code examples + Klefstad's aphorisms + common-pitfall callouts.
@@ -457,36 +456,19 @@ This is a bug cppds 5.4.4 explicitly leaves as a "self-check exercise":
 
 #### Key Point 4: cppds Forgets `delete current` (Memory Leak!)
 
-Look closely at the cppds `remove` code — it **unlinks** the node from the list (by routing previous->next around current, or pointing head at current->next), but it **never calls `delete current`**. The unlinked node becomes **orphaned heap memory** — nothing references it, nothing frees it, and it **leaks permanently**.
+Look closely at the **original** cppds `remove` code — it **unlinks** the node from the list (by routing previous->next around current, or pointing head at current->next), but it **never calls `delete current`**. The unlinked node becomes **orphaned heap memory** — nothing references it, nothing frees it, and it **leaks permanently**.
 
-The textbook omits this step, but in real engineering you **must** add it:
-
-```cpp
-void remove(int item) {
-    Node *current = head;
-    Node *previous = nullptr;
-    bool found = false;
-    while (!found && current != nullptr) {
-        if (current->getData() == item) found = true;
-        else {
-            previous = current;
-            current = current->getNext();
-        }
-    }
-    if (!found) return;                      // not found — bail out
-
-    if (previous == nullptr) {
-        head = current->getNext();
-    } else {
-        previous->setNext(current->getNext());
-    }
-    delete current;                          // ✅ release the unlinked node
-}
-```
+That `delete current;` line at the end of "Full Code" above is exactly this fix — the textbook's original omits it, real engineering must add it.
 
 > 💡 **Compare with `pop()` in §6.3**: Klefstad PPT's `pop()` correctly writes `delete tmp;`. Both are "take a node out of the list," but `pop` releases the memory while cppds's `remove` doesn't — this is an omission in the cppds textbook (likely simplified for pedagogy, but it badly violates RAII).
 
 > ⚠️ **The position of delete matters**: it must come **after** `previous->setNext(current->getNext())`, not before — because `current->getNext()` has to be read while `current` is still valid. Delete-then-getNext = dangling reference.
+
+> 🛡️ **Bonus: make it safe when not found**: combine Key Point 3's `current != nullptr` check with this `delete current`, and you get the truly robust version — just two tweaks on top of the "Full Code" above:
+> ```cpp
+> while (!found && current != nullptr) { ... }   // ← change 1: guard against off-the-end
+> if (!found) return;                            // ← change 2: skip the delete
+> ```
 
 #### Klefstad PPT pop (Remove Head Node)
 
@@ -625,15 +607,7 @@ A: keep an extra `tail` pointer in the UnorderedList class; each append simply a
 
 ### 5.9 Complexity Summary
 
-| Method | Complexity | Note |
-|---|---|---|
-| `isEmpty` | O(1) | Just checks head |
-| `add` (head insert) | O(1) | Two pointer changes |
-| `size` | O(n) | Must traverse |
-| `search` | O(n) | Worst case to end |
-| `remove` | O(n) | Search + delete |
-| `append` (naive) | O(n) | Must traverse to end |
-| `append` (with tail) | O(1) | But must maintain tail |
+For the 7-method complexity reference, see [§24.2](#242-sll-operation-complexity-cppds-unorderedlist) (`isEmpty` and `add` are O(1) head-insert; the rest are O(n)).
 
 ---
 
@@ -1291,8 +1265,10 @@ int sumN(int n) {        // with conditional operator (Week 4)
 
 ### 12.4 PPT Example 2: Factorial
 
+> ```text
 > N! = 1 * 2 * 3 * … * (N-1) * N
 > 0! = 1
+> ```
 
 ```cpp
 int factorial(int n) {
@@ -1888,30 +1864,15 @@ The call graph is a **ternary tree**:
 
 ---
 
-## 19. Complex Recursive Problems (Introduction)
-
-> Corresponds to cppds 5.9
-
-cppds 5.9 is the prelude to 5.10 and 5.11:
-
-> In the previous sections we looked at some problems that are relatively easy to solve and some graphically interesting problems that can help us gain a mental model of what is happening in a recursive algorithm.
-
-> In this section we will look at some problems that are really difficult to solve using an iterative programming style but are very elegant and easy to solve using recursion.
-
-> We will finish up by looking at a deceptive problem that at first looks like it has an elegant recursive solution but in fact does not.
-
-So next up:
-- **Tower of Hanoi** (5.10) — classic recursion
-- **Maze exploration** (5.11) — recursive backtracking
-- 5.12 is dynamic programming (not in Week 5 reading)
-
----
-
-## 20. Tower of Hanoi
+## 19. Tower of Hanoi
 
 > Corresponds to cppds 5.10
 
-### 20.1 Problem
+Tower of Hanoi (§19) and Maze exploration (§20) are the two classic examples from cppds 5.10–5.11 — both **awkward iteratively but elegant recursively**. We start with Hanoi.
+
+> cppds 5.12 (dynamic programming) is out of scope for Week 5.
+
+### 19.1 Problem
 
 A puzzle invented by French mathematician Édouard Lucas in 1883. Legend: an Indian temple gives this puzzle to young monks:
 
@@ -1923,7 +1884,7 @@ The monks work at "one move per second." When they finish, the world ends.
 
 > Don't worry — moving 64 disks requires $2^{64} - 1 = 18{,}446{,}744{,}073{,}709{,}551{,}615$ moves. At one per second, that's **584.9 billion years**!
 
-### 20.2 Recursive Idea (Key)
+### 19.2 Recursive Idea (Key)
 
 If you already know how to move a 4-disk tower from A to B, then a 5-disk tower is easy:
 1. Move the top 4 disks to B (using C as intermediate)
@@ -1934,14 +1895,14 @@ But how do you know how to move 4 disks? Same logic: first move 3 disks…
 
 Eventually it reduces to: **moving a 1-disk tower** — that's the **base case**.
 
-### 20.3 High-Level Algorithm
+### 19.3 High-Level Algorithm
 
 > Move a height-N tower from source to destination (using intermediate as transit):
 > 1. Move the height-(N−1) tower from source to intermediate (using destination as transit)
 > 2. Move the remaining disk from source to destination
 > 3. Move the height-(N−1) tower from intermediate to destination (using source as transit)
 
-### 20.4 Code
+### 19.4 Code
 
 ```cpp
 #include <iostream>
@@ -1964,14 +1925,14 @@ int main() {
 }
 ```
 
-### 20.5 Key Points
+### 19.5 Key Points
 
 - **Base case**: when `height < 1` the function returns immediately, doing nothing
 - Note that the **roles of withPole and toPole swap** between the two recursive calls (this is key):
   - First recursion: we need to move height−1 onto withPole, so withPole is the destination
   - Second recursion: we move from withPole, so fromPole is withPole
 
-### 20.6 Why No Explicit Stack?
+### 19.6 Why No Explicit Stack?
 
 > Now that you have seen the code for both moveTower and moveDisk, you may be wondering why we do not have a data structure that explicitly keeps track of what disks are on what poles. ... The answer is that **C++ provides the stacks that we need implicitly through the call stack**.
 
@@ -1979,7 +1940,7 @@ In other words:
 - Conceptually we'd need 3 stacks (one per pole) to record which disks are on each
 - But the code has **no explicit stack** at all — the recursive call stack does this implicitly
 
-### 20.7 Complexity Analysis
+### 19.7 Complexity Analysis
 
 The number of `moveTower(n, ...)` calls $T(n)$ satisfies:
 
@@ -1989,7 +1950,7 @@ Solution: $T(n) = 2^n - 1$
 
 That's why 64 disks need $2^{64} - 1$ moves.
 
-### 20.8 Output (n = 3 Run)
+### 19.8 Output (n = 3 Run)
 
 ```
 moving disk from A to B
@@ -2005,15 +1966,15 @@ moving disk from A to B
 
 ---
 
-## 21. Exploring a Maze
+## 20. Exploring a Maze
 
 > Corresponds to cppds 5.11
 
-### 21.1 Problem
+### 20.1 Problem
 
 Have a turtle find the exit of a maze. The maze consists of cells; each is open or a wall. The turtle can only walk on open cells.
 
-### 21.2 Algorithm: Recursive Backtracking
+### 20.2 Algorithm: Recursive Backtracking
 
 From the current position, try the 4 directions in order:
 
@@ -2023,13 +1984,13 @@ From the current position, try the 4 directions in order:
 > - If west fails, try **east**
 > - All fail → dead end
 
-### 21.3 Key: Avoid Infinite Loops
+### 20.3 Key: Avoid Infinite Loops
 
 > The trouble: if north fails and we try south, south leads back to where we started — recurse again and we'd bounce back and forth forever.
 
 **Solution**: **breadcrumbs**. Mark every cell after walking through it; if we ever return, retreat immediately.
 
-### 21.4 Four Base Cases
+### 20.4 Four Base Cases
 
 ```
 1. Turtle hits a wall (OBSTACLE)         → return False
@@ -2038,7 +1999,7 @@ From the current position, try the 4 directions in order:
 4. All four directions tried, all failed → dead end, return False
 ```
 
-### 21.5 Code (Python — implement in C++ yourself)
+### 20.5 Code (Python — implement in C++ yourself)
 
 ```python
 def searchFrom(maze, startRow, startColumn):
@@ -2073,7 +2034,7 @@ def searchFrom(maze, startRow, startColumn):
     return found
 ```
 
-### 21.6 Key Point: Short-Circuit Evaluation
+### 20.6 Key Point: Short-Circuit Evaluation
 
 ```python
 found = searchFrom(...) or searchFrom(...) or searchFrom(...) or searchFrom(...)
@@ -2084,7 +2045,7 @@ The `or` operator is **short-circuiting**: as soon as one returns True, the rest
 - If north fails, try south, and so on
 - All four False → dead end
 
-### 21.7 Self Check (C++ Implementation)
+### 20.7 Self Check (C++ Implementation)
 
 cppds leaves the entire maze program's C++ implementation as an exercise. You'll need:
 - File I/O (read maze file)
@@ -2105,11 +2066,11 @@ Format example:
 
 ---
 
-## 22. Linked Lists and Recursion: A Natural Fit
+## 21. Linked Lists and Recursion: A Natural Fit
 
 > Corresponds to PPT slide 28 — the bridge between Reading and PPT
 
-### 22.1 Linked Lists Are Themselves Recursively Defined
+### 21.1 Linked Lists Are Themselves Recursively Defined
 
 A linked list is **defined recursively**:
 
@@ -2119,7 +2080,7 @@ A linked list is **defined recursively**:
 
 That's a **recursive data structure**. The most natural way to process it is **recursively**.
 
-### 22.2 length, Recursively
+### 21.2 length, Recursively
 
 ```cpp
 int length(Node *L) {
@@ -2132,7 +2093,7 @@ int length(Node *L) {
 - Base case: empty list, length 0
 - Recursive case: 1 + length of the rest
 
-### 22.3 print, Recursively
+### 21.3 print, Recursively
 
 ```cpp
 void print(Node *L, ostream &out) {
@@ -2156,7 +2117,7 @@ void printReverse(Node *L, ostream &out) {
 
 > 💡 Same source as §15.5's toStr — **recurse first, then act** gives you reverse output.
 
-### 22.4 copy, Recursively
+### 21.4 copy, Recursively
 
 ```cpp
 Node * copy(Node *L) {
@@ -2167,7 +2128,7 @@ Node * copy(Node *L) {
 
 Very concise — but careful: long lists blow the stack.
 
-### 22.5 List Recursion vs. List Iteration: When to Use Which?
+### 21.5 List Recursion vs. List Iteration: When to Use Which?
 
 | Use Recursion | Use Iteration |
 |---|---|
@@ -2179,7 +2140,7 @@ Very concise — but careful: long lists blow the stack.
 
 ---
 
-## 23. Linked Structures Beyond SLL (Look-Ahead)
+## 22. Linked Structures Beyond SLL (Look-Ahead)
 
 > Corresponds to PPT slides 38-41 — ⚠️ **may belong to Week 6**, but the PPT mentions it here as an extension of "SLL is the foundation"
 
@@ -2188,7 +2149,7 @@ The reading list does **not** include this, but Klefstad's PPT slide 38 explicit
 > SLL is the foundation for data structures. Master SLL BEFORE class in data structures.
 > Here are some linked structures you will see…
 
-### 23.1 Doubly Linked Lists (DLL)
+### 22.1 Doubly Linked Lists (DLL)
 
 ```
 null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ... ──► null
@@ -2200,7 +2161,7 @@ null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ...
 - Pros: bidirectional traversal; insert/delete at any known position is O(1)
 - Cons: each node carries an extra pointer; operations must maintain pointers in both directions
 
-### 23.2 Binary Search Tree (BST)
+### 22.2 Binary Search Tree (BST)
 
 ```
            [A]
@@ -2214,7 +2175,7 @@ null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ...
 
 Each node has left and right children. BST property: left < root < right. Core content of ICS 46.
 
-### 23.3 Graph
+### 22.3 Graph
 
 A set of nodes + edges (possibly weighted, directed) between them.
 PPT slide 41's example is a city flight graph (Dallas, Austin, Atlanta...). Content of ICS 46 / 162.
@@ -2223,7 +2184,7 @@ PPT slide 41's example is a city flight graph (Dallas, Austin, Atlanta...). Cont
 
 ---
 
-## 24. typedef Brief Intro
+## 23. typedef Brief Intro
 
 > Corresponds to PPT slide 50 — ⚠️ **may be cross-week content**
 
@@ -2248,9 +2209,9 @@ typedef Node * List;           // List is an alias for Node*
 
 ---
 
-## 25. Week 5 Comprehensive Cheat Sheet
+## 24. Week 5 Comprehensive Cheat Sheet
 
-### 25.1 Linked List vs. Array vs. Vector
+### 24.1 Linked List vs. Array vs. Vector
 
 | | C array | std::vector | Linked List (SLL) |
 |---|---|---|---|
@@ -2263,19 +2224,19 @@ typedef Node * List;           // List is an alias for Node*
 | Delete | Not possible | O(n) | O(1) (known position) |
 | Memory overhead | 0 | 0 ~ growth factor | One pointer per node |
 
-### 25.2 SLL Operation Complexity (cppds UnorderedList)
+### 24.2 SLL Operation Complexity (cppds UnorderedList)
 
 | Method | Complexity | Note |
 |---|---|---|
-| `isEmpty` | O(1) | |
-| `add` | O(1) | head insert |
-| `size` | O(n) | must traverse |
-| `search` | O(n) | |
-| `remove` | O(n) | |
-| `append` (naive) | O(n) | |
-| `append` (with tail) | O(1) | |
+| `isEmpty` | O(1) | Just checks head |
+| `add` (head insert) | O(1) | Two pointer changes |
+| `size` | O(n) | Must traverse |
+| `search` | O(n) | Worst case to end |
+| `remove` | O(n) | Search + delete |
+| `append` (naive) | O(n) | Must traverse to end |
+| `append` (with tail) | O(1) | But must maintain tail |
 
-### 25.3 Klefstad Naming vs cppds Naming
+### 24.3 Klefstad Naming vs cppds Naming
 
 | Klefstad | cppds |
 |---|---|
@@ -2287,7 +2248,7 @@ typedef Node * List;           // List is an alias for Node*
 | `copy(L)` | (deep copy must be self-implemented) |
 | `free(L)` | destructor |
 
-### 25.4 Three Laws of Recursion (Mnemonic)
+### 24.4 Three Laws of Recursion (Mnemonic)
 
 ```
 ┌──────────────────────────────────────┐
@@ -2297,7 +2258,7 @@ typedef Node * List;           // List is an alias for Node*
 └──────────────────────────────────────┘
 ```
 
-### 25.5 Common Recursion Patterns
+### 24.5 Common Recursion Patterns
 
 | Pattern | Example | Key |
 |---|---|---|
@@ -2307,7 +2268,7 @@ typedef Node * List;           // List is an alias for Node*
 | Backtracking | maze | 4 base cases + multi-direction tries + mark visited |
 | Conversion | toStr | recurse first, then concat → automatic reversal |
 
-### 25.6 Python ↔ C++ Comparison (Week 5 Highlights)
+### 24.6 Python ↔ C++ Comparison (Week 5 Highlights)
 
 | Python | C++ | Note |
 |---|---|---|
@@ -2319,7 +2280,7 @@ typedef Node * List;           // List is an alias for Node*
 | Default recursion depth 1000 | System stack ~MB-scale, depth limited | Big recursion → watch out for overflow |
 | `sys.setrecursionlimit(...)` | No simple knob | Need to switch to iteration |
 
-### 25.7 Klefstad Aphorisms (PPT Excerpts)
+### 24.7 Klefstad Aphorisms (PPT Excerpts)
 
 | Aphorism | Meaning |
 |---|---|
@@ -2332,7 +2293,7 @@ typedef Node * List;           // List is an alias for Node*
 | "head->next = head->next->next" | ❌ anti-pattern: chained next |
 | "head->next->next->next->next->next = head" | ❌ anti-pattern: creating a cycle |
 
-### 25.8 Common Pitfalls Checklist
+### 24.8 Common Pitfalls Checklist
 
 | # | Mistake | Consequence | Prevention |
 |---|---|---|---|
@@ -2353,7 +2314,7 @@ typedef Node * List;           // List is an alias for Node*
 
 ---
 
-## 26. Top Five Takeaways for Week 5
+## 25. Top Five Takeaways for Week 5
 
 1. **The two-step insertion order in linked lists must never be reversed**: `temp->setNext(head); head = temp;`. Connect next first, then change head. Reversed = whole list lost (or self-loop). This is the core of `add`, and the foundational order principle of all linked-list operations.
 
@@ -2373,6 +2334,6 @@ typedef Node * List;           // List is an alias for Node*
 > - cppds 5.5 (Convert Integer to String) + 5.6 (Stack Frames) + 5.7 (Visualizing Recursion) + 5.8 (Sierpinski) + 5.9 (Complex Recursive Problems) + 5.10 (Tower of Hanoi) + 5.11 (Maze) — standard coverage
 > - PPT *Linked List & Recursion* (Klefstad) — almost fully integrated (CharList, namespace list design, Insert/Delete operations, RAII, memory ownership, Shallow vs Deep Clone, List Recursion)
 >
-> **PPT content possibly belonging to Week 6** is flagged in §23 and §24 (DLL, BST, Graph, typedef).
+> **PPT content possibly belonging to Week 6** is flagged in §22 and §23 (DLL, BST, Graph, typedef).
 >
 > **Not covered**: CppCon 2021 video *Back to Basics: Pointers* — reading list marks it as "if needed"; not deeply covered here.

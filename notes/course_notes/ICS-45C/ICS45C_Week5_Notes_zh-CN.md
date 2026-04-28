@@ -20,14 +20,13 @@
 - [16. Stack Frames：递归在底层的实现](#16-stack-frames递归在底层的实现)
 - [17. 可视化递归：Turtle 图形](#17-可视化递归turtle-图形)
 - [18. Sierpinski 三角形](#18-sierpinski-三角形)
-- [19. 复杂递归问题（导言）](#19-复杂递归问题导言)
-- [20. 汉诺塔（Tower of Hanoi）](#20-汉诺塔tower-of-hanoi)
-- [21. 走出迷宫（Exploring a Maze）](#21-走出迷宫exploring-a-maze)
-- [22. 链表与递归的天然结合](#22-链表与递归的天然结合)
-- [23. SLL 之外的链式数据结构（前瞻）](#23-sll-之外的链式数据结构前瞻)
-- [24. typedef 简介](#24-typedef-简介)
-- [25. Week 5 综合速查表](#25-week-5-综合速查表)
-- [26. Week 5 最重要的五条记忆](#26-week-5-最重要的五条记忆)
+- [19. 汉诺塔（Tower of Hanoi）](#19-汉诺塔tower-of-hanoi)
+- [20. 走出迷宫（Exploring a Maze）](#20-走出迷宫exploring-a-maze)
+- [21. 链表与递归的天然结合](#21-链表与递归的天然结合)
+- [22. SLL 之外的链式数据结构（前瞻）](#22-sll-之外的链式数据结构前瞻)
+- [23. typedef 简介](#23-typedef-简介)
+- [24. Week 5 综合速查表](#24-week-5-综合速查表)
+- [25. Week 5 最重要的五条记忆](#25-week-5-最重要的五条记忆)
 
 > UCI ICS 45C: Programming in C++（35770）
 > 本笔记整合了 Week 5 的指定阅读 cppds 4.1–4.5（Linked Lists）和 cppds 5.1–5.11（Recursion，重点 5.1–5.4），以及 Klefstad 教授的 PPT 讲义 *Linked List & Recursion*。所有内容按概念主题组织，每节融合 Reading 原文 + PPT 代码例子 + Klefstad 警句 + 易错点提示。
@@ -459,36 +458,19 @@ cppds 给的代码有一个隐含假设：**要删除的元素一定在链表中
 
 #### 关键点 4：cppds 漏写了 `delete current`(内存泄漏!)
 
-仔细看 cppds 给的 remove 代码——它只是把节点从链表里**摘下来**(让 previous->next 跨过 current,或者把 head 指向 current->next),但是**从来没有 `delete current`**。被摘下的节点变成了**孤儿堆内存**——没有任何指针引用它,也没有被释放,**永久泄漏**。
+仔细看 cppds 教材原版的 remove 代码——它只是把节点从链表里**摘下来**(让 previous->next 跨过 current,或者把 head 指向 current->next),但是**从来没有 `delete current`**。被摘下的节点变成了**孤儿堆内存**——没有任何指针引用它,也没有被释放,**永久泄漏**。
 
-教材没写这一步,但实际工程中**必须补上**:
-
-```cpp
-void remove(int item) {
-    Node *current = head;
-    Node *previous = nullptr;
-    bool found = false;
-    while (!found && current != nullptr) {
-        if (current->getData() == item) found = true;
-        else {
-            previous = current;
-            current = current->getNext();
-        }
-    }
-    if (!found) return;                      // 元素不存在,直接返回
-
-    if (previous == nullptr) {
-        head = current->getNext();
-    } else {
-        previous->setNext(current->getNext());
-    }
-    delete current;                          // ✅ 释放被摘下的节点
-}
-```
+上面"完整代码"末尾那行 `delete current;` 就是这个补丁——教材原版没有,工程里必须补上。
 
 > 💡 **对比 §6.3 的 pop()**:Klefstad PPT 的 `pop()` 正确地写了 `delete tmp;`。同样是"从链表里拿掉一个节点",pop 释放了内存,cppds 的 remove 却没有——这是 cppds 教材的一个遗漏(可能是为了"教学简化"而省略,但严重违背 RAII)。
 
 > ⚠️ **delete 的位置很关键**:必须在 `previous->setNext(current->getNext())` 之后,而不是之前——因为 `current->getNext()` 必须在 current 还有效时被读出来。先 delete 再 getNext = dangling reference。
+
+> 🛡️ **顺便加上"找不到也安全"**:把关键点 3 的 `current != nullptr` 检查和这里的 `delete current` 一起加上,就是真正鲁棒的版本——只需在上面"完整代码"基础上改两处:
+> ```cpp
+> while (!found && current != nullptr) { ... }   // ← 改 1:防越界
+> if (!found) return;                            // ← 改 2:跳过 delete
+> ```
 
 #### Klefstad PPT 中的 pop（移除头节点）
 
@@ -627,15 +609,7 @@ cppds 留了几个练习题：
 
 ### 5.9 复杂度小结
 
-| 方法 | 复杂度 | 备注 |
-|---|---|---|
-| `isEmpty` | O(1) | 只查 head |
-| `add`（头插） | O(1) | 改两个指针 |
-| `size` | O(n) | 必须遍历 |
-| `search` | O(n) | 最坏遍历到末尾 |
-| `remove` | O(n) | 必须先 search 再删 |
-| `append`（朴素实现） | O(n) | 必须遍历到末尾 |
-| `append`（带 tail） | O(1) | 但需维护 tail |
+7 个方法的复杂度速查表见 [§24.2](#242-sll-操作复杂度cppds-unorderedlist)（`isEmpty` / `add` 头插是 O(1)，其他都是 O(n)）。
 
 ---
 
@@ -1295,8 +1269,10 @@ int sumN(int n) {        // with conditional operator (Week 4 学过)
 
 ### 12.4 PPT 例子 2：Factorial（阶乘）
 
+> ```text
 > N! = 1 * 2 * 3 * … * (N-1) * N
 > 0! = 1
+> ```
 
 ```cpp
 int factorial(int n) {
@@ -1892,30 +1868,15 @@ def sierpinski(points, degree, myTurtle):
 
 ---
 
-## 19. 复杂递归问题（导言）
-
-> 对应 cppds 5.9
-
-cppds 5.9 是 5.10、5.11 的前言：
-
-> In the previous sections we looked at some problems that are relatively easy to solve and some graphically interesting problems that can help us gain a mental model of what is happening in a recursive algorithm.
-
-> In this section we will look at some problems that are really difficult to solve using an iterative programming style but are very elegant and easy to solve using recursion.
-
-> We will finish up by looking at a deceptive problem that at first looks like it has an elegant recursive solution but in fact does not.
-
-也就是接下来要看的：
-- **汉诺塔**（5.10）— 经典递归题
-- **走迷宫**（5.11）— 递归回溯
-- 后续 5.12 是 dynamic programming（不在 Week 5 阅读范围）
-
----
-
-## 20. 汉诺塔（Tower of Hanoi）
+## 19. 汉诺塔（Tower of Hanoi）
 
 > 对应 cppds 5.10
 
-### 20.1 问题
+汉诺塔（§19）和走迷宫（§20）是 cppds 5.10–5.11 给的两个经典例子——它们用迭代非常难写，用递归却**优雅而易懂**。本节先看汉诺塔。
+
+> 后续 cppds 5.12 是 dynamic programming，不在 Week 5 阅读范围。
+
+### 19.1 问题
 
 法国数学家 Édouard Lucas 1883 年发明的谜题。传说印度寺庙里给年轻僧侣这道题：
 
@@ -1927,7 +1888,7 @@ cppds 5.9 是 5.10、5.11 的前言：
 
 > 别担心，移动 64 个盘需要 $2^{64} - 1 = 18,446,744,073,709,551,615$ 次。每秒一次也要 **5849 亿年**！
 
-### 20.2 递归思路（关键）
+### 19.2 递归思路（关键）
 
 如果你已经知道怎么把 4 个盘的塔从 A 移到 B，那 5 个盘的就简单了：
 1. 把上面 4 个盘移到 B（用 C 作中转）
@@ -1938,14 +1899,14 @@ cppds 5.9 是 5.10、5.11 的前言：
 
 最终归到：**移 1 个盘的塔**——这是 **base case**。
 
-### 20.3 高层算法
+### 19.3 高层算法
 
 > 把高度 N 的塔从 source 移到 destination（用 intermediate 作中转）：
 > 1. 把高度 N-1 的塔从 source 移到 intermediate（用 destination 作中转）
 > 2. 把剩下的那个盘从 source 移到 destination
 > 3. 把高度 N-1 的塔从 intermediate 移到 destination（用 source 作中转）
 
-### 20.4 代码
+### 19.4 代码
 
 ```cpp
 #include <iostream>
@@ -1968,14 +1929,14 @@ int main() {
 }
 ```
 
-### 20.5 关键点
+### 19.5 关键点
 
 - **base case**：`height < 1` 时函数直接返回，什么都不做
 - 注意 **withPole 和 toPole 的角色**在两次递归中**互换**（这是关键）：
   - 第一次递归：要把 height-1 移到 withPole，所以 withPole 是目的地
   - 第二次递归：要从 withPole 移走，所以 fromPole 是 withPole
 
-### 20.6 为什么不用显式 Stack？
+### 19.6 为什么不用显式 Stack？
 
 > Now that you have seen the code for both moveTower and moveDisk, you may be wondering why we do not have a data structure that explicitly keeps track of what disks are on what poles. ... The answer is that **C++ provides the stacks that we need implicitly through the call stack**.
 
@@ -1983,7 +1944,7 @@ int main() {
 - 我们在概念上需要 3 个栈（每根柱子一个），分别记录哪些盘在上面
 - 但代码里**完全没有显式 stack**——递归调用栈隐式地完成了这件事
 
-### 20.7 复杂度分析
+### 19.7 复杂度分析
 
 `moveTower(n, ...)` 的次数 $T(n)$ 满足：
 
@@ -1993,7 +1954,7 @@ $$T(n) = 2 T(n-1) + 1$$
 
 这就是为什么 64 个盘需要 $2^{64} - 1$ 步。
 
-### 20.8 输出（n=3 的运行结果）
+### 19.8 输出（n=3 的运行结果）
 
 ```
 moving disk from A to B
@@ -2009,15 +1970,15 @@ moving disk from A to B
 
 ---
 
-## 21. 走出迷宫（Exploring a Maze）
+## 20. 走出迷宫（Exploring a Maze）
 
 > 对应 cppds 5.11
 
-### 21.1 问题
+### 20.1 问题
 
 让一只 turtle 找到迷宫的出口。迷宫由格子组成，每格要么开放要么是墙。Turtle 只能走开放的格子。
 
-### 21.2 算法：递归回溯
+### 20.2 算法：递归回溯
 
 从当前位置开始，按顺序尝试 4 个方向：
 
@@ -2027,13 +1988,13 @@ moving disk from A to B
 > - 西方失败，试**东方**
 > - 都失败 → 此路不通
 
-### 21.3 关键：避免无限循环
+### 20.3 关键：避免无限循环
 
 > 麻烦在于：如果北方走不通试南方，南方就回到了原位置——再递归就会无限来回走。
 
 **解决**：**面包屑**（breadcrumb）。每走过一格就标记，下次再来到这格就直接回退。
 
-### 21.4 四个 base case
+### 20.4 四个 base case
 
 ```
 1. Turtle 撞墙 (OBSTACLE)         → return False
@@ -2042,7 +2003,7 @@ moving disk from A to B
 4. Turtle 四个方向都试过都失败   → 死胡同，return False
 ```
 
-### 21.5 代码（Python，C++ 自己实现）
+### 20.5 代码（Python，C++ 自己实现）
 
 ```python
 def searchFrom(maze, startRow, startColumn):
@@ -2077,7 +2038,7 @@ def searchFrom(maze, startRow, startColumn):
     return found
 ```
 
-### 21.6 关键点：短路求值（short-circuit evaluation）
+### 20.6 关键点：短路求值（short-circuit evaluation）
 
 ```python
 found = searchFrom(...) or searchFrom(...) or searchFrom(...) or searchFrom(...)
@@ -2088,7 +2049,7 @@ found = searchFrom(...) or searchFrom(...) or searchFrom(...) or searchFrom(...)
 - 如果北方失败，再试南方，依此类推
 - 4 个递归调用全部 False → 死胡同
 
-### 21.7 self check（C++ 实现）
+### 20.7 self check（C++ 实现）
 
 cppds 把整个迷宫程序的 C++ 实现作为练习留给学生。需要：
 - 文件 IO（读迷宫文件）
@@ -2109,11 +2070,11 @@ cppds 把整个迷宫程序的 C++ 实现作为练习留给学生。需要：
 
 ---
 
-## 22. 链表与递归的天然结合
+## 21. 链表与递归的天然结合
 
 > 对应 PPT slide 28，是 Reading 和 PPT 之间的桥梁
 
-### 22.1 链表本身就是递归定义的
+### 21.1 链表本身就是递归定义的
 
 链表的定义是**递归的**：
 
@@ -2123,7 +2084,7 @@ cppds 把整个迷宫程序的 C++ 实现作为练习留给学生。需要：
 
 这就是一个**递归数据结构**。处理它最自然的方式就是**递归**。
 
-### 22.2 length 的递归实现
+### 21.2 length 的递归实现
 
 ```cpp
 int length(Node *L) {
@@ -2136,7 +2097,7 @@ int length(Node *L) {
 - Base case：空链表长度 0
 - Recursive case：1 + 剩下的长度
 
-### 22.3 print 的递归实现
+### 21.3 print 的递归实现
 
 ```cpp
 void print(Node *L, ostream &out) {
@@ -2160,7 +2121,7 @@ void printReverse(Node *L, ostream &out) {
 
 > 💡 这里和 §15.5 的 toStr 同源——**先递归再操作**就得到逆序输出。
 
-### 22.4 copy 的递归实现
+### 21.4 copy 的递归实现
 
 ```cpp
 Node * copy(Node *L) {
@@ -2171,7 +2132,7 @@ Node * copy(Node *L) {
 
 非常简洁——但要小心：长链表会爆栈。
 
-### 22.5 列表递归 vs 列表迭代：什么时候用哪个？
+### 21.5 列表递归 vs 列表迭代：什么时候用哪个？
 
 | 用递归 | 用迭代 |
 |---|---|
@@ -2183,7 +2144,7 @@ Node * copy(Node *L) {
 
 ---
 
-## 23. SLL 之外的链式数据结构（前瞻）
+## 22. SLL 之外的链式数据结构（前瞻）
 
 > 对应 PPT slide 38-41 — ⚠️ **可能属于 Week 6 内容**，但 PPT 在这里提了，作为 "SLL 是基础" 的扩展
 
@@ -2192,7 +2153,7 @@ Node * copy(Node *L) {
 > SLL is the foundation for data structures. Master SLL BEFORE class in data structures.
 > Here are some linked structures you will see…
 
-### 23.1 双向链表（Doubly Linked Lists, DLL）
+### 22.1 双向链表（Doubly Linked Lists, DLL）
 
 ```
 null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ... ──► null
@@ -2204,7 +2165,7 @@ null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ...
 - 优点：可以前后双向遍历；任意位置的插入/删除都是 O(1)
 - 缺点：每个节点多一个指针字段；操作时要同时维护两个方向的指针
 
-### 23.2 二叉搜索树（Binary Search Tree, BST）
+### 22.2 二叉搜索树（Binary Search Tree, BST）
 
 ```
            [A]
@@ -2218,7 +2179,7 @@ null ◄── [prev | H | next] ◄──► [prev | E | next] ◄──► ...
 
 每个节点有 left 和 right 两个 child。BST 的性质：左 < 根 < 右。是 ICS 46 的核心内容。
 
-### 23.3 图（Graph）
+### 22.3 图（Graph）
 
 一组节点 + 它们之间的边（可能有权重、有方向）。
 PPT slide 41 给的例子是城市之间的航线图（Dallas、Austin、Atlanta...）。是 ICS 46 / 162 的内容。
@@ -2227,7 +2188,7 @@ PPT slide 41 给的例子是城市之间的航线图（Dallas、Austin、Atlanta
 
 ---
 
-## 24. typedef 简介
+## 23. typedef 简介
 
 > 对应 PPT slide 50 — ⚠️ **可能跨周内容**
 
@@ -2252,9 +2213,9 @@ typedef Node * List;           // List 是 Node* 的别名
 
 ---
 
-## 25. Week 5 综合速查表
+## 24. Week 5 综合速查表
 
-### 25.1 链表 vs 数组 vs Vector
+### 24.1 链表 vs 数组 vs Vector
 
 | | C 数组 | std::vector | 链表（SLL） |
 |---|---|---|---|
@@ -2267,19 +2228,19 @@ typedef Node * List;           // List 是 Node* 的别名
 | 删除 | 不可 | O(n) | O(1)（已知位置） |
 | 内存开销 | 0 | 0~增长因子 | 每节点多一指针 |
 
-### 25.2 SLL 操作复杂度（cppds UnorderedList）
+### 24.2 SLL 操作复杂度（cppds UnorderedList）
 
 | 方法 | 复杂度 | 备注 |
 |---|---|---|
-| `isEmpty` | O(1) | |
-| `add` | O(1) | 头插 |
+| `isEmpty` | O(1) | 只查 head |
+| `add`（头插） | O(1) | 改两个指针 |
 | `size` | O(n) | 必须遍历 |
-| `search` | O(n) | |
-| `remove` | O(n) | |
-| `append`（朴素） | O(n) | |
-| `append`（带 tail） | O(1) | |
+| `search` | O(n) | 最坏遍历到末尾 |
+| `remove` | O(n) | 必须先 search 再删 |
+| `append`（朴素） | O(n) | 必须遍历到末尾 |
+| `append`（带 tail） | O(1) | 但需维护 tail |
 
-### 25.3 Klefstad 命名 vs cppds 命名对照
+### 24.3 Klefstad 命名 vs cppds 命名对照
 
 | Klefstad | cppds |
 |---|---|
@@ -2291,7 +2252,7 @@ typedef Node * List;           // List 是 Node* 的别名
 | `copy(L)` | (deep copy 需自实现) |
 | `free(L)` | 析构函数 |
 
-### 25.4 递归三大法则速记
+### 24.4 递归三大法则速记
 
 ```
 ┌──────────────────────────────────────┐
@@ -2301,7 +2262,7 @@ typedef Node * List;           // List 是 Node* 的别名
 └──────────────────────────────────────┘
 ```
 
-### 25.5 递归常见模式
+### 24.5 递归常见模式
 
 | 模式 | 例子 | 关键 |
 |---|---|---|
@@ -2311,7 +2272,7 @@ typedef Node * List;           // List 是 Node* 的别名
 | 回溯型 | maze | 4 个 base case + 多方向尝试 + 标记已访问 |
 | 转换型 | toStr | 先递归再拼接 → 自动反转 |
 
-### 25.6 Python ↔ C++ 对比（Week 5 重点）
+### 24.6 Python ↔ C++ 对比（Week 5 重点）
 
 | Python | C++ | 说明 |
 |---|---|---|
@@ -2323,7 +2284,7 @@ typedef Node * List;           // List 是 Node* 的别名
 | 递归深度默认 1000 | 系统栈 ~MB 级，深度有限 | 大递归小心爆栈 |
 | `sys.setrecursionlimit(...)` | 没有简单方法调整 | 需要切换迭代 |
 
-### 25.7 Klefstad 警句（PPT 摘录）
+### 24.7 Klefstad 警句（PPT 摘录）
 
 | 警句 | 含义 |
 |---|---|
@@ -2336,7 +2297,7 @@ typedef Node * List;           // List 是 Node* 的别名
 | "head->next = head->next->next" | ❌ 反模式：链式 next |
 | "head->next->next->next->next->next = head" | ❌ 反模式：制造环 |
 
-### 25.8 易错点清单
+### 24.8 易错点清单
 
 | # | 错误 | 后果 | 防范 |
 |---|---|---|---|
@@ -2357,7 +2318,7 @@ typedef Node * List;           // List 是 Node* 的别名
 
 ---
 
-## 26. Week 5 最重要的五条记忆
+## 25. Week 5 最重要的五条记忆
 
 1. **链表的两步插入顺序绝不能反**：`temp->setNext(head); head = temp;`。先连 next，再改 head。反了就丢失整个链表（或自循环）。这是 add 的核心，也是所有链表操作的基础顺序原则。
 
@@ -2377,6 +2338,6 @@ typedef Node * List;           // List 是 Node* 的别名
 > - cppds 5.5（Convert Integer to String）+ 5.6（Stack Frames）+ 5.7（Visualizing Recursion）+ 5.8（Sierpinski）+ 5.9（Complex Recursive Problems）+ 5.10（Tower of Hanoi）+ 5.11（Maze） — 标准覆盖
 > - PPT *Linked List & Recursion*（Klefstad）— 几乎全部融合（CharList、namespace list 设计、Insert/Delete 操作、RAII、内存所有权、Shallow vs Deep Clone、List Recursion）
 >
-> **PPT 中可能属于 Week 6 的内容**已在第 23 节和第 24 节标注（DLL、BST、Graph、typedef）。
+> **PPT 中可能属于 Week 6 的内容**已在第 22 节和第 23 节标注（DLL、BST、Graph、typedef）。
 >
 > **未覆盖**：CppCon 2021 视频 *Back to Basics: Pointers* — 阅读清单标为"if needed"，本笔记未深入。
