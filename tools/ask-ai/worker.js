@@ -25,6 +25,13 @@ const ALLOWED_ORIGINS = [
   "http://localhost",
 ];
 
+// --- Access-code rate limiting ---
+// After RL_MAX failed attempts within RL_WINDOW seconds, lock the IP for RL_LOCKOUT seconds.
+// Storage uses the Workers Cache API (per-data-center; good enough for personal-site abuse deterrence).
+const RL_MAX     = 5;
+const RL_WINDOW  = 15 * 60;   // failure counter expires after this many seconds of no attempts
+const RL_LOCKOUT = 15 * 60;   // length of the lockout once tripped
+
 // --- Sitemap cache ---
 let sitemapCache = null;
 let sitemapFetchedAt = 0;
@@ -134,6 +141,104 @@ async function exchangeCode(code, env, workerURL) {
   return res.json();
 }
 
+// --- Rate-limit helpers (Cache API per-IP) ---
+function rlKey(ip) {
+  return new Request(`https://r-l.invalid/login-fail/${encodeURIComponent(ip)}`);
+}
+
+async function rlGet(ip) {
+  const c = await caches.default.match(rlKey(ip));
+  if (!c) return null;
+  try { return await c.json(); } catch { return null; }
+}
+
+async function rlSet(ip, data, ttl) {
+  const res = new Response(JSON.stringify(data), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": `max-age=${ttl}`,
+    },
+  });
+  await caches.default.put(rlKey(ip), res);
+}
+
+async function rlClear(ip) {
+  await caches.default.delete(rlKey(ip));
+}
+
+// Inspect rate-limit state without modifying it.
+// Returns { blocked, retryAfter } if locked, otherwise { blocked:false, count }.
+async function rlCheck(ip) {
+  const r = await rlGet(ip);
+  if (!r) return { blocked: false, count: 0 };
+  const now = Math.floor(Date.now() / 1000);
+  if (r.lockedUntil && r.lockedUntil > now) {
+    return { blocked: true, retryAfter: r.lockedUntil - now };
+  }
+  return { blocked: false, count: r.count || 0 };
+}
+
+// Record a failed attempt. Trips a lockout once count >= RL_MAX.
+async function rlFail(ip) {
+  const r = (await rlGet(ip)) || { count: 0 };
+  const now = Math.floor(Date.now() / 1000);
+  r.count = (r.count || 0) + 1;
+  let ttl = RL_WINDOW;
+  if (r.count >= RL_MAX) {
+    r.lockedUntil = now + RL_LOCKOUT;
+    ttl = RL_LOCKOUT;
+  }
+  await rlSet(ip, r, ttl);
+  return r;
+}
+
+function rateLimitedResponse(retryAfter, origin) {
+  return new Response(JSON.stringify({
+    error: "Too many failed attempts. Try again later.",
+    retryAfter,
+  }), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retryAfter),
+      ...corsHeaders(origin),
+    },
+  });
+}
+
+function passwordIsValid(env, password) {
+  const list = (env.CHAT_PASSWORD || "").split(",").map(p => p.trim()).filter(Boolean);
+  return password && list.includes(password);
+}
+
+// Verify a password while honoring the per-IP rate limit. Returns { ok, response }.
+// - { ok: true } means the password matched and the failure counter has been cleared.
+// - { ok: false, response } means caller should return that response (401 or 429).
+async function authenticatePassword(env, password, ip, origin) {
+  const lim = await rlCheck(ip);
+  if (lim.blocked) return { ok: false, response: rateLimitedResponse(lim.retryAfter, origin) };
+
+  if (passwordIsValid(env, password)) {
+    await rlClear(ip);
+    return { ok: true };
+  }
+
+  const fail = await rlFail(ip);
+  if (fail.lockedUntil) {
+    const retryAfter = fail.lockedUntil - Math.floor(Date.now() / 1000);
+    return { ok: false, response: rateLimitedResponse(retryAfter, origin) };
+  }
+  const attemptsLeft = Math.max(0, RL_MAX - fail.count);
+  const response = new Response(JSON.stringify({
+    error: "Invalid access code",
+    attemptsLeft,
+  }), {
+    status: 401,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
+  return { ok: false, response };
+}
+
 function parseIdToken(idToken) {
   // Decode the payload (middle part) of the ID token — we trust it because it came directly from Entra
   try {
@@ -192,6 +297,21 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
+    // POST /auth/verify → cheap password-only check (avoids burning Mistral quota on each attempt)
+    if (url.pathname === "/auth/verify" && request.method === "POST") {
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      let body;
+      try { body = await request.json(); } catch { return errorResponse("Invalid JSON", 400, origin); }
+      const password = body && body.password;
+      if (!password) return errorResponse("Password required", 400, origin);
+      const auth = await authenticatePassword(env, password, ip, origin);
+      if (!auth.ok) return auth.response;
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+      });
+    }
+
     // --- Chat API (POST) ---
     if (request.method !== "POST") {
       return errorResponse("Method not allowed", 405, origin);
@@ -216,15 +336,24 @@ export default {
     if (mode === "chat") {
       // Authenticate via JWT (Entra ID) or password
       let authenticated = false;
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
 
       if (token) {
         const payload = await verifyJWT(token, env.JWT_SECRET);
         if (payload) { authenticated = true; userName = payload.name || payload.email; }
       }
 
+      // Password path goes through the same rate limiter as /auth/verify
+      // so brute-force against the chat endpoint is throttled too.
       if (!authenticated && password) {
-        const validPasswords = (env.CHAT_PASSWORD || "").split(",").map(p => p.trim()).filter(Boolean);
-        if (validPasswords.includes(password)) authenticated = true;
+        const auth = await authenticatePassword(env, password, ip, origin);
+        if (!auth.ok) return auth.response;
+        authenticated = true;
+      } else if (!authenticated && !token) {
+        // No credentials supplied at all — still consult the rate limiter so a
+        // locked-out IP can't probe whether the endpoint is alive.
+        const lim = await rlCheck(ip);
+        if (lim.blocked) return rateLimitedResponse(lim.retryAfter, origin);
       }
 
       if (!authenticated) {

@@ -1021,18 +1021,58 @@
 				if (storedPw) { authPassword = storedPw; unlock(); }
 			})();
 
+			// Hits a dedicated /auth/verify endpoint that just checks the password
+			// (no Mistral round-trip) and returns one of:
+			//   { ok: true }                                       → success
+			//   401 + { error, attemptsLeft }                      → wrong code, attempts remaining
+			//   429 + { error, retryAfter } (+ Retry-After header) → locked out, seconds until unlock
 			async function verifyPassword(pw) {
 				try {
-					var res = await fetch(WORKER_URL, {
+					var res = await fetch(WORKER_URL + "/auth/verify", {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ mode: "chat", password: pw, messages: [{ role: "user", content: "hi" }] })
+						body: JSON.stringify({ password: pw })
 					});
-					if (res.status === 401) return false;
-					var reader = res.body.getReader();
-					while (true) { var r = await reader.read(); if (r.done) break; }
-					return res.ok;
-				} catch(e) { return false; }
+					var data = null;
+					try { data = await res.json(); } catch(e) {}
+					if (res.ok) return { ok: true };
+					if (res.status === 429) {
+						var retryAfter = (data && data.retryAfter) || parseInt(res.headers.get("Retry-After") || "0", 10) || 60;
+						return { ok: false, lockedFor: retryAfter };
+					}
+					return { ok: false, attemptsLeft: data && data.attemptsLeft };
+				} catch(e) { return { ok: false }; }
+			}
+
+			// Lockout countdown state
+			var pwCooldownTimer = null;
+			function fmtCooldown(sec) {
+				var m = Math.floor(sec / 60);
+				var s = sec % 60;
+				return m + ":" + (s < 10 ? "0" : "") + s;
+			}
+			function startPwCooldown(seconds) {
+				if (pwCooldownTimer) clearInterval(pwCooldownTimer);
+				var remaining = seconds;
+				pwInput.disabled = true;
+				pwBtn.disabled = true;
+				pwBtn.textContent = "Locked";
+				function tick() {
+					if (remaining <= 0) {
+						clearInterval(pwCooldownTimer);
+						pwCooldownTimer = null;
+						pwInput.disabled = false;
+						pwBtn.disabled = false;
+						pwBtn.textContent = "Enter";
+						pwError.textContent = "";
+						pwInput.focus();
+						return;
+					}
+					pwError.textContent = "Too many failed attempts. Try again in " + fmtCooldown(remaining) + ".";
+					remaining--;
+				}
+				tick();
+				pwCooldownTimer = setInterval(tick, 1000);
 			}
 
 			// SSO login
@@ -1060,14 +1100,30 @@
 
 			// Password login
 			pwBtn.addEventListener("click", async function() {
+				if (pwCooldownTimer) return; // ignore clicks during lockout
 				var pw = pwInput.value.trim();
 				if (!pw) return;
 				pwBtn.disabled = true;
 				pwBtn.textContent = "Verifying...";
 				pwError.textContent = "";
-				var ok = await verifyPassword(pw);
-				if (ok) { authPassword = pw; localStorage.setItem(PW_STORAGE_KEY, pw); unlock(); }
-				else { pwError.textContent = "Invalid access code. Try again."; }
+				var result = await verifyPassword(pw);
+				if (result.ok) {
+					authPassword = pw;
+					localStorage.setItem(PW_STORAGE_KEY, pw);
+					unlock();
+					return;
+				}
+				if (result.lockedFor) {
+					startPwCooldown(result.lockedFor);
+					return;
+				}
+				if (typeof result.attemptsLeft === "number") {
+					pwError.textContent = result.attemptsLeft > 0
+						? "Invalid access code. " + result.attemptsLeft + " attempt" + (result.attemptsLeft === 1 ? "" : "s") + " left before lockout."
+						: "Invalid access code.";
+				} else {
+					pwError.textContent = "Invalid access code. Try again.";
+				}
 				pwBtn.disabled = false;
 				pwBtn.textContent = "Enter";
 			});
