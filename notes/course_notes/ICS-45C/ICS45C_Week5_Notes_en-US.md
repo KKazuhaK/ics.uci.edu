@@ -2142,7 +2142,7 @@ Very concise — but careful: long lists blow the stack.
 
 ## 22. Linked Structures Beyond SLL (Look-Ahead)
 
-> Corresponds to PPT slides 38-41 — ⚠️ **may belong to Week 6**, but the PPT mentions it here as an extension of "SLL is the foundation"
+> Corresponds to PPT slides 38-41 — ⚠️ **outside this course's main path**: DLL / BST / Graph belong to ICS 46 (Data Structures) (cross-checked against Week 6 — Week 6 covers inheritance and polymorphism, none of these). The PPT mentions them here as an extension of "SLL is the foundation"
 
 The reading list does **not** include this, but Klefstad's PPT slide 38 explicitly says:
 
@@ -2186,7 +2186,7 @@ PPT slide 41's example is a city flight graph (Dallas, Austin, Atlanta...). Cont
 
 ## 23. typedef Brief Intro
 
-> Corresponds to PPT slide 50 — ⚠️ **may be cross-week content**
+> Corresponds to PPT slide 50 — ⚠️ **basic C++ feature, not in the Week 5/6 reading list** (Week 6 covers inheritance and polymorphism, no typedef). Kept here as the extension concept the PPT brings up
 
 `typedef` is a C++ feature that gives a type a new name:
 
@@ -2334,6 +2334,6 @@ typedef Node * List;           // List is an alias for Node*
 > - cppds 5.5 (Convert Integer to String) + 5.6 (Stack Frames) + 5.7 (Visualizing Recursion) + 5.8 (Sierpinski) + 5.9 (Complex Recursive Problems) + 5.10 (Tower of Hanoi) + 5.11 (Maze) — standard coverage
 > - PPT *Linked List & Recursion* (Klefstad) — almost fully integrated (CharList, namespace list design, Insert/Delete operations, RAII, memory ownership, Shallow vs Deep Clone, List Recursion)
 >
-> **PPT content possibly belonging to Week 6** is flagged in §22 and §23 (DLL, BST, Graph, typedef).
+> **PPT content beyond this week's reading list** (DLL, BST, Graph, typedef) is flagged in §22 and §23. Cross-checked against Week 6 (inheritance and polymorphism): none of these topics appear in Week 6 — DLL / BST / Graph belong to ICS 46 (Data Structures), and typedef is a general C++ feature. Both sections are kept as PPT-driven extension reading.
 >
 > **Not covered**: CppCon 2021 video *Back to Basics: Pointers* — reading list marks it as "if needed"; not deeply covered here.

@@ -2146,7 +2146,7 @@ Node * copy(Node *L) {
 
 ## 22. SLL 之外的链式数据结构（前瞻）
 
-> 对应 PPT slide 38-41 — ⚠️ **可能属于 Week 6 内容**，但 PPT 在这里提了，作为 "SLL 是基础" 的扩展
+> 对应 PPT slide 38-41 — ⚠️ **超出本课程主线**：DLL / BST / Graph 属于 ICS 46（Data Structures）范围（已与 Week 6 核对，Week 6 是继承与多态，不覆盖这些）。PPT 在这里提了，作为 "SLL 是基础" 的扩展
 
 阅读清单**没有**这部分，但 Klefstad 的 PPT slide 38 明确说：
 
@@ -2190,7 +2190,7 @@ PPT slide 41 给的例子是城市之间的航线图（Dallas、Austin、Atlanta
 
 ## 23. typedef 简介
 
-> 对应 PPT slide 50 — ⚠️ **可能跨周内容**
+> 对应 PPT slide 50 — ⚠️ **基础 C++ 特性，不在 Week 5/6 阅读清单**（Week 6 是继承与多态，未涉及 typedef）。这里作为 PPT 提到的延伸概念保留
 
 `typedef` 是 C++ 的特性，给类型起一个新名字：
 
@@ -2338,6 +2338,6 @@ typedef Node * List;           // List 是 Node* 的别名
 > - cppds 5.5（Convert Integer to String）+ 5.6（Stack Frames）+ 5.7（Visualizing Recursion）+ 5.8（Sierpinski）+ 5.9（Complex Recursive Problems）+ 5.10（Tower of Hanoi）+ 5.11（Maze） — 标准覆盖
 > - PPT *Linked List & Recursion*（Klefstad）— 几乎全部融合（CharList、namespace list 设计、Insert/Delete 操作、RAII、内存所有权、Shallow vs Deep Clone、List Recursion）
 >
-> **PPT 中可能属于 Week 6 的内容**已在第 22 节和第 23 节标注（DLL、BST、Graph、typedef）。
+> **PPT 中超出本周阅读清单的内容**（DLL、BST、Graph、typedef）已在第 22 节和第 23 节标注。经与 Week 6（继承与多态）核对，这些主题均不在 Week 6 范围内：DLL / BST / Graph 属于 ICS 46（Data Structures），typedef 是通用 C++ 特性。两节内容保留作为 PPT 延伸阅读。
 >
 > **未覆盖**：CppCon 2021 视频 *Back to Basics: Pointers* — 阅读清单标为"if needed"，本笔记未深入。
