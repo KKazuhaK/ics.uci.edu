@@ -307,6 +307,8 @@ UML 类图用于**把系统分解成称为 "类（classes）" 的模块**。典�
 +-----------------------------------------+
 ```
 
+![UML 类图的标准三段式方框结构：上方写类名，中间列属性（带类型），下方列操作（带参数和返回类型）。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/uml-class-box-template.png)
+
 ### 10.4 翻译为代码 — `Airplane` 示例
 
 UML 类：
@@ -350,6 +352,8 @@ a.setSpeed(10);
 System.out.println("" + a.getSpeed());
 ```
 
+![Airplane 类图与 Java 代码的对应关系：UML 中的属性 -speed:int 翻译为 private int speed，操作 +getSpeed():int / +setSpeed(int):void 直接对应 public 方法。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/airplane-class-to-code.png)
+
 > 注意这种直接对应：`−` 变成 `private`，`+` 变成 `public`，属性变成字段，操作变成方法，参数与返回类型一一对照。这正是 UML 类图在面向对象设计中如此常用的原因 —— 它几乎可以机械地翻译成代码。
 
 ### 10.5 规范性 vs. 描述性 UML — 与第四周的呼应
@@ -385,6 +389,8 @@ System.out.println("" + a.getSpeed());
         Hippo
 ```
 
+![UML 继承关系：Hippo 通过空心三角箭头指向 Animal，表示 Hippo 是一种 Animal，继承父类的属性与方法，并可以覆盖（如 makeNoise/eat）或新增（如 submerged/submerge()）。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/inheritance-hippo-animal.png)
+
 ### 11.2 关联（Association）
 
 两个类之间的一条普通连线表示这两个类**以某种方式连接在一起**。关联可以通过三种方式被丰富：
@@ -413,6 +419,8 @@ System.out.println("" + a.getSpeed());
 
 > 这些默认值在小测中很重要：两个类之间一条无装饰的连线*不是*"未提供信息"，它**明确表示双向 1 对 1**。加上箭头或多重性正是用来从这个默认值*收紧*关系的方式。
 
+![Student / Instructor 关联示例：从最朴素的"takes class from"标签连线，到带 1...* 与 1 多重性的"一个 Instructor 对应多个 Student"，再到带方向标签 listens to / teaches 的双向描述，最后是 Router → DomainNameServer 的"只能单向导航"箭头。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/association-student-instructor.png)
+
 ### 11.3 多重性（Multiplicity）
 
 多重性标注在关联线的**端点**：
@@ -438,6 +446,8 @@ System.out.println("" + a.getSpeed());
 
 > 最后一行里箭头承担了额外的工作：这个关系**只能在一个方向上导航（navigable）**。A 持有指向若干 B 的引用，但 B 不持有指回 A 的引用。
 
+![多重性记号六例：1↔1（双向单数）、1↔1（带数字版）、1—*（一对多）、*—*（多对多）、1—2..5（一对二到五）、—→*（单向多对一无所知）。每一行都用一对 A、B 类方框 + 端点数字 + 连线/箭头 表达。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/multiplicity-examples.png)
+
 ### 11.4 整体-部分：聚合（Aggregation）
 
 **聚合** = "一个对象**包含**（或由）一组其他对象**组成**"。在*整体*那一端画**空心菱形**。
@@ -446,6 +456,8 @@ System.out.println("" + a.getSpeed());
 - 聚合关系是**非对称的**（如果 A 聚合 B，那么 B 不聚合 A）
 
 例子：一个 `Crate`（板条箱）包含若干 `Bottle`（瓶子）。瓶子可以独立于板条箱存在；板条箱只是*装着*它们。
+
+![聚合（Aggregation）：在整体一端画空心菱形。Crate 聚合 Bottle —— 板条箱"装着"瓶子，但瓶子可以独立于板条箱存在。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/aggregation-crate-bottle.png)
 
 ### 11.5 整体-部分：组合（Composition）
 
@@ -462,6 +474,8 @@ System.out.println("" + a.getSpeed());
 | 符号 | 空心菱形 | 实心菱形 |
 
 > "板条箱/瓶子"对比"房屋/房间"是记忆这两者差别的标准方式：瓶子能离开板条箱，房间不能离开房屋。
+
+![组合（Composition）：在整体一端画实心菱形。House 组合 Room —— 房间不能独立于房屋而存在；房屋被拆除时房间也随之消亡。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/composition-house-room.png)
 
 ---
 
@@ -482,17 +496,23 @@ Insert Card → Enter PIN → ◇ decision
 
 捕捉**控制流（control flow）**：哪个活动接哪个，决策在哪里分支。
 
+![ATM 取款的 UML 活动图：从 Insert Card 流向 Enter PIN，再到决策菱形 —— 无效 PIN 流向 Confiscate Card，有效 PIN 流向 Display Menu，最终走到结束节点（实心圆）。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/activity-diagram-atm.png)
+
 ### 12.2 顺序图（Sequence diagram）
 
 由若干**生命线（lifeline）**（垂直的虚线，每条对应一个参与者或系统）构成的网格，**横向箭头**表示它们之间按*时间顺序*（自上而下）交换的消息。
 
 捕捉**随时间发生的交互**：谁调用谁，按什么顺序。
 
+![UML 顺序图示例：每个参与者一条垂直生命线（虚线），横向箭头表示按时间顺序（自上而下）发出的消息，捕捉"谁调用谁，按什么顺序"。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/sequence-diagram-example.png)
+
 ### 12.3 用例图（Use case diagram）
 
 外部画**简笔人形（stick figure）**作为参与者（actor），系统边界内画**带标签的椭圆**（use case）。线条表示哪个 actor 参与哪个 use case。
 
 捕捉**用户能用系统做什么**：例如对一家航空公司，*Passenger* 参与 *Check-In, Automated Check-In, Express Check-In, Boarding*；*Check-In Representative* 参与 *Check-In*；等等。
+
+![航空公司用例图：Passenger 简笔人形位于系统边界之外，参与 Check-In、Automated Check-In、Express Check-In、Boarding 这些椭圆 use case；Check-In Representative 参与 Check-In。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/use-case-airline.png)
 
 ---
 
@@ -549,6 +569,8 @@ $$\boxed{\textbf{Aim for HIGH cohesion } (\text{group related things together})\
 |------|------|
 | **低内聚** —— 相关节点散落在多个模块 | **高内聚** —— 相关节点被聚到同一个模块 |
 | **高耦合** —— 跨越模块边界的连线很多 | **低耦合** —— 跨越模块边界的连线很少 |
+
+![内聚与耦合的对照视觉：左图低内聚 / 高耦合 —— 编号 1–10 散落在模块 A、B、C，跨模块连线密集；右图高内聚 / 低耦合 —— 相关节点聚到同一模块，跨模块连线稀疏。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/cohesion-coupling.png)
 
 ### 15.2 信息隐藏（Information Hiding）
 
