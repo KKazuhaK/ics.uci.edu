@@ -306,6 +306,8 @@ Generic template:
 +-----------------------------------------+
 ```
 
+![Canonical three-section UML class box: name on top, attributes (with types) in the middle, operations (with parameters and return types) at the bottom.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/uml-class-box-template.png)
+
 ### 10.4 Translation to code — `Airplane` example
 
 UML class:
@@ -349,6 +351,8 @@ a.setSpeed(10);
 System.out.println("" + a.getSpeed());
 ```
 
+![Airplane class diagram alongside its Java code: the attribute -speed:int translates to private int speed, and operations +getSpeed():int / +setSpeed(int):void map directly to public methods.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/airplane-class-to-code.png)
+
 > Notice the direct mapping: the `−` becomes `private`, the `+` becomes `public`, attributes become fields, operations become methods, and parameter / return types map straight across. This is why UML class diagrams are so commonly used in OO design — they translate to code almost mechanically.
 
 ### 10.5 Prescriptive vs. Descriptive UML — connection back to Week 4
@@ -384,6 +388,8 @@ Example: `Hippo` inherits from `Animal`. `Animal` has `food type`, `location`, `
         Hippo
 ```
 
+![UML inheritance: Hippo points to Animal via a hollow-triangle arrow, indicating Hippo is-a Animal — inheriting the parent's attributes and methods, overriding some (makeNoise / eat) and adding its own (submerged / submerge()).](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/inheritance-hippo-animal.png)
+
 ### 11.2 Association
 
 A plain line between two classes means the two classes are **connected** in some way. Associations can be enriched in three ways:
@@ -412,6 +418,8 @@ The lecture's running example uses **Student** and **Instructor**:
 
 > The defaults matter on quizzes: a plain undecorated line between two classes is *not* "no information given" — it specifically means **bidirectional 1-to-1**. Adding arrows or multiplicities is how you *narrow* the relationship from this default.
 
+![Student / Instructor association variants: a plain "takes class from" labeled line, then a 1...* / 1 multiplicity ("one Instructor with many Students"), then directional `listens to` / `teaches` labels, and finally a Router → DomainNameServer arrow ("navigable in one direction only").](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/association-student-instructor.png)
+
 ### 11.3 Multiplicity
 
 Multiplicity annotates the **endpoints** of an association line:
@@ -437,6 +445,8 @@ The lecture's six-row table:
 
 > The arrowhead is doing extra work in the last row: the relationship is **navigable in only one direction**. A holds references to its Bs, but B has no reference back to A.
 
+![Six multiplicity examples: 1↔1 (bidirectional one-to-one), 1↔1 (numbered version), 1—* (one-to-many), *—* (many-to-many), 1—2..5 (one with two-to-five), —→* (directional, where the right side knows nothing about the left). Each row pairs A and B class boxes with endpoint numbers and connecting lines or arrows.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/multiplicity-examples.png)
+
 ### 11.4 Whole-Part: Aggregation
 
 **Aggregation** = "one object **contains** (or is composed of) a set of other objects." Drawn with a **hollow diamond** on the *whole* end.
@@ -445,6 +455,8 @@ The lecture's six-row table:
 - Aggregation relationships are **asymmetric** (if A aggregates B, then B does not aggregate A)
 
 Example: a `Crate` contains `Bottle`s. The bottles can exist outside the crate; the crate just *holds* them.
+
+![Aggregation: hollow diamond on the whole's end. Crate aggregates Bottle — the crate "holds" the bottles, but bottles can exist independently of the crate.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/aggregation-crate-bottle.png)
 
 ### 11.5 Whole-Part: Composition
 
@@ -461,6 +473,8 @@ Example: a `House` is composed of `Room`s. If the House is demolished, its Rooms
 | Symbol | Hollow diamond | Filled diamond |
 
 > The crate/bottle vs. house/room distinction is the standard way to remember this: bottles can leave the crate, rooms cannot leave the house.
+
+![Composition: filled diamond on the whole's end. House composes Room — rooms cannot exist independently of the house; when the house is demolished, the rooms cease to exist.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/composition-house-room.png)
 
 ---
 
@@ -481,17 +495,23 @@ Insert Card → Enter PIN → ◇ decision
 
 Captures **control flow**: which activity follows which, where decisions branch.
 
+![UML activity diagram for an ATM: flow goes Insert Card → Enter PIN → decision diamond. Invalid PIN leads to Confiscate Card; Valid PIN leads to Display Menu and onward to the end node (filled circle).](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/activity-diagram-atm.png)
+
 ### 12.2 Sequence diagram
 
 A grid of **lifelines** (vertical dashed lines, one per actor or system), with **horizontal arrows** showing messages exchanged between them in *time order* (top to bottom).
 
 Captures **interactions over time**: who calls whom, in what order.
 
+![UML sequence diagram example: each participant has a vertical (dashed) lifeline; horizontal arrows represent messages exchanged in time order (top to bottom), capturing "who calls whom, in what sequence."](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/sequence-diagram-example.png)
+
 ### 12.3 Use case diagram
 
 **Stick-figure actors** on the outside, **labeled ovals** (use cases) inside a system boundary. Lines show which actor participates in which use case.
 
 Captures **what users can do with the system**: e.g. for an airline, *Passenger* participates in *Check-In, Automated Check-In, Express Check-In, Boarding*; *Check-In Representative* participates in *Check-In*; etc.
+
+![Airline use case diagram: a Passenger stick figure outside the system boundary participates in the Check-In, Automated Check-In, Express Check-In, and Boarding ovals; a Check-In Representative participates in Check-In.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/use-case-airline.png)
 
 ---
 
@@ -548,6 +568,8 @@ The lecture's classic visualization: ten nodes labeled 1–10, partitioned into 
 |------|------|
 | **Low cohesion** — related nodes are spread across several modules | **High cohesion** — related nodes are grouped in the same module |
 | **High coupling** — many lines cross module boundaries | **Low coupling** — few lines cross module boundaries |
+
+![Cohesion vs. coupling visual contrast: left side shows low cohesion / high coupling — nodes 1–10 scattered across modules A, B, C with many cross-module lines; right side shows high cohesion / low coupling — related nodes grouped within the same module with few cross-module lines.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/cohesion-coupling.png)
 
 ### 15.2 Information Hiding
 
