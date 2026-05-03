@@ -296,9 +296,9 @@ Supervisor **同时**继承了 Employee 和 Person 的所有成员，并加上�
 
 ```
 +----------------------+
-|   Base 部分          |   ← Person 的 m_name, m_age
+|   Base part          |   ← Person 的 m_name, m_age
 +----------------------+
-|   Derived 部分       |   ← BaseballPlayer 的 m_battingAverage, m_homeRuns
+|   Derived part       |   ← BaseballPlayer 的 m_battingAverage, m_homeRuns
 +----------------------+
 ```
 
@@ -1258,11 +1258,11 @@ LearnCpp 24.7 讲的是**普通函数**的重定义。Klefstad 的 PPT 几乎跳
 ### 10.1 派生对象的"两部分"内存模型（再回顾）
 
 ```
-Derived 对象：
+Derived object:
 +---------------+
-|  Base 部分    |  ← Base 构造函数初始化
+|  Base part    |  ← Base 构造函数初始化
 +---------------+
-|  Derived 部分 |  ← Derived 构造函数初始化
+|  Derived part |  ← Derived 构造函数初始化
 +---------------+
 ```
 
