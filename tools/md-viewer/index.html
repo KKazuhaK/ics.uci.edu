@@ -377,6 +377,10 @@
 				border-radius: 6px;
 			}
 
+			.markdown-body em {
+				padding-right: 0.12em;
+			}
+
 			.markdown-body code {
 				padding: 0.12rem 0.4rem;
 				border-radius: 0.35rem;
@@ -1124,11 +1128,18 @@
 
 			function parseInline(text) {
 				let value = escapeHtml(text);
-				value = value.replace(/`([^`]+)`/g, "<code>$1</code>");
+				const codeTokens = [];
+				value = value.replace(/`([^`]+)`/g, function (_, code) {
+					codeTokens.push(code);
+					return " CODE" + (codeTokens.length - 1) + " ";
+				});
 				value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 				value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
 				value = value.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy">');
 				value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+				value = value.replace(/ CODE(\d+) /g, function (_, idx) {
+					return "<code>" + codeTokens[+idx] + "</code>";
+				});
 				return value;
 			}
 
