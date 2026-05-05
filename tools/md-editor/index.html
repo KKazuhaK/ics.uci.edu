@@ -129,6 +129,7 @@
 
 			/* Shell */
 			.me-shell {
+				position: relative;
 				display: flex;
 				flex-direction: column;
 				background: var(--me-card-bg);
@@ -203,6 +204,8 @@
 
 			/* ── Editor card ───────────────────────────── */
 			.me-editor-card {
+				position: relative;
+				display: flex;
 				background: var(--me-card-bg);
 				overflow: hidden;
 				padding: 0;
@@ -213,6 +216,9 @@
 			/* Container */
 			.me-editor-card .EasyMDEContainer {
 				margin: 0;
+				position: relative;
+				flex: 1 1 auto;
+				min-width: 0;
 			}
 
 			.me-editor-card .editor-toolbar {
@@ -368,13 +374,129 @@
 				color: var(--me-gutter-text);
 			}
 
+			/* ── Find & Replace bar (custom, uses cm.getSearchCursor) ── */
+			.me-search-bar {
+				position: absolute;
+				top: 8px;
+				right: 8px;
+				z-index: 12;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.55rem;
+				box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+				padding: 0.4rem 0.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.35rem;
+				min-width: 320px;
+				font: 500 0.86rem/1.4 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+
+			.me-search-bar[hidden] { display: none !important; }
+
+			.me-search-row {
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+			}
+
+			.me-search-row[hidden] { display: none !important; }
+
+			.me-search-input,
+			.me-replace-input {
+				flex: 1 1 auto;
+				min-width: 0;
+				background: var(--me-card-bg-soft);
+				border: 1px solid var(--me-border);
+				border-radius: 0.35rem;
+				color: var(--me-ink);
+				padding: 0.32rem 0.5rem;
+				font: 500 0.84rem/1 "Menlo", "Consolas", monospace;
+				outline: none;
+				transition: border-color 0.15s ease;
+			}
+
+			.me-search-input:focus,
+			.me-replace-input:focus { border-color: var(--me-blue); }
+
+			.me-search-count {
+				font-size: 0.76rem;
+				color: var(--me-muted);
+				min-width: 64px;
+				text-align: right;
+				white-space: nowrap;
+			}
+
+			.me-search-bar button {
+				background: transparent;
+				border: 1px solid transparent;
+				border-radius: 0.3rem;
+				color: var(--me-muted);
+				width: 26px;
+				height: 26px;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				font: 600 0.76rem/1 inherit;
+				flex-shrink: 0;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+
+			.me-search-bar button:hover {
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+			}
+
+			.me-search-bar button.me-search-action {
+				width: auto;
+				padding: 0 0.55rem;
+				color: var(--me-blue);
+				background: var(--me-blue-bg);
+				border-color: var(--me-blue-border);
+			}
+
+			.me-search-bar button.me-search-action:hover {
+				background: var(--me-blue-bg-strong);
+			}
+
+			.me-search-bar button svg {
+				width: 14px;
+				height: 14px;
+				stroke: currentColor;
+				fill: none;
+				stroke-width: 2;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.me-search-mark {
+				background: rgba(245, 200, 60, 0.32);
+				border-radius: 2px;
+			}
+
+			.me-search-mark-current {
+				background: rgba(245, 160, 30, 0.55);
+				outline: 1px solid rgba(245, 160, 30, 0.85);
+				border-radius: 2px;
+			}
+
+			html[data-theme="dark"] .me-search-mark { background: rgba(245, 200, 60, 0.24); }
+			html[data-theme="dark"] .me-search-mark-current {
+				background: rgba(255, 180, 50, 0.40);
+				outline-color: rgba(255, 180, 50, 0.85);
+			}
+
 			/* ── Side-by-side / Preview pane ───────────── */
 			.me-editor-card .editor-preview-side,
 			.me-editor-card .editor-preview {
 				background: var(--me-preview-bg);
 				border: none;
 				border-left: 1px solid var(--me-border-soft);
-				padding: 1.5rem 2rem;
+				/* Top padding matches CodeMirror's 12px so the first heading
+				 * lines up with the editor's first source line. */
+				padding: 12px 2rem 1.5rem;
 				color: var(--me-ink);
 				font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
 				font-size: 1rem;
@@ -387,9 +509,35 @@
 
 			/* Constrain preview height to match editor, enable independent scroll */
 			.me-editor-card .editor-preview-side {
+				/* Anchor preview to EasyMDEContainer (not viewport) so the
+				 * outline panel can claim its own column without overlap. */
+				position: absolute !important;
+				top: var(--me-toolbar-h, 50px) !important;
+				right: 0 !important;
+				bottom: 0 !important;
+				width: 50% !important;
 				height: calc(100vh - 20rem) !important;
 				min-height: 400px !important;
 				overflow-y: auto !important;
+			}
+
+			/* When EasyMDE is in fullscreen, restore native viewport positioning
+			 * so editor + preview overlay the screen correctly. */
+			.me-editor-card .CodeMirror.CodeMirror-fullscreen {
+				height: auto !important;
+				min-height: 0 !important;
+				transition: right 0.22s ease;
+			}
+			body:has(.CodeMirror-fullscreen) .me-editor-card .editor-preview-side {
+				position: fixed !important;
+				top: 50px !important;
+				right: 0 !important;
+				bottom: 0 !important;
+				width: 50% !important;
+				height: auto !important;
+				min-height: 0 !important;
+				z-index: 9;
+				transition: right 0.22s ease, width 0.22s ease;
 			}
 
 			/* ── Preview content (match md-viewer) ─────── */
@@ -665,6 +813,342 @@
 					font-size: 0.85rem !important;
 				}
 			}
+
+			/* ── Outline panel (right-side, toggleable column) ── */
+			.me-outline-panel {
+				flex: 0 0 240px;
+				background: var(--me-toolbar-bg);
+				border-left: 1px solid var(--me-border);
+				overflow-y: auto;
+				max-height: calc(100vh - 20rem);
+				min-height: 400px;
+				padding: 0.7rem 0.45rem 0.7rem 0.5rem;
+				box-sizing: border-box;
+				transition: flex-basis 0.22s ease, padding 0.22s ease, opacity 0.18s ease;
+			}
+			.me-outline-panel.collapsed {
+				flex-basis: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				border-left: 0;
+				overflow: hidden;
+			}
+			.me-outline-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0.4rem 0.55rem 0.6rem;
+			}
+			.me-outline-title {
+				font: 700 0.7rem/1 "Inter", sans-serif;
+				color: var(--me-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+			.me-outline-goto {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.3rem;
+				padding: 0.22rem 0.55rem;
+				border: 1px solid var(--me-blue-border);
+				border-radius: 0.4rem;
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+				cursor: pointer;
+				font: 600 0.72rem/1 "Inter", sans-serif;
+				letter-spacing: 0.02em;
+				transition: background 0.15s ease, border-color 0.15s ease;
+			}
+			.me-outline-goto:hover {
+				background: var(--me-blue-bg-strong);
+				border-color: var(--me-blue);
+			}
+			.me-outline-goto svg {
+				width: 12px;
+				height: 12px;
+				flex-shrink: 0;
+			}
+			.me-outline-list { display: flex; flex-direction: column; gap: 1px; }
+			.me-outline-item {
+				cursor: pointer;
+				padding: 0.32rem 0.55rem;
+				border-radius: 0.3rem;
+				font: 500 0.82rem/1.4 "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+				color: var(--me-muted);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				transition: background 0.12s ease, color 0.12s ease;
+				border-left: 2px solid transparent;
+			}
+			.me-outline-item:hover { background: var(--me-blue-bg); color: var(--me-ink); }
+			.me-outline-item.active {
+				background: var(--me-blue-bg-strong);
+				color: var(--me-blue);
+				border-left-color: var(--me-blue);
+				font-weight: 700;
+			}
+			.me-outline-item.h2 { padding-left: 1.1rem; font-size: 0.8rem; }
+			.me-outline-item.h3 { padding-left: 1.7rem; font-size: 0.76rem; opacity: 0.86; }
+			.me-outline-item.h4 { padding-left: 2.3rem; font-size: 0.74rem; opacity: 0.78; }
+			.me-outline-empty {
+				color: var(--me-muted);
+				font-size: 0.78rem;
+				padding: 0.4rem 0.55rem;
+				font-style: italic;
+			}
+
+			@media screen and (max-width: 768px) {
+				.me-outline-panel { display: none !important; }
+			}
+
+			/* In fullscreen, anchor outline panel to viewport right edge so it
+			 * stays visible alongside the editor + preview overlay. Use
+			 * transform/opacity for the open/close transition since flex-basis
+			 * doesn't apply once we switch to position: fixed. */
+			body:has(.CodeMirror-fullscreen) .me-outline-panel {
+				position: fixed !important;
+				top: 50px !important;
+				right: 0 !important;
+				bottom: 0 !important;
+				width: 240px !important;
+				height: auto !important;
+				max-height: none !important;
+				z-index: 10 !important;
+				flex-basis: auto !important;
+				padding: 0.7rem 0.45rem 0.7rem 0.5rem !important;
+				border-left: 1px solid var(--me-border) !important;
+				opacity: 1 !important;
+				transform: translateX(0);
+				overflow-y: auto;
+				transition: transform 0.22s ease, opacity 0.18s ease !important;
+			}
+			body:has(.CodeMirror-fullscreen) .me-outline-panel.collapsed {
+				display: block !important;  /* override default block hiding */
+				transform: translateX(100%);
+				opacity: 0 !important;
+				pointer-events: none;
+			}
+
+			/* When outline is open in fullscreen, shrink the editor + preview
+			 * so they don't sit underneath the outline panel. */
+			body:has(.CodeMirror-fullscreen):has(.me-outline-panel:not(.collapsed)) .CodeMirror.CodeMirror-fullscreen {
+				right: 240px !important;
+			}
+			body:has(.CodeMirror-fullscreen):has(.me-outline-panel:not(.collapsed)) .me-editor-card .editor-preview-side {
+				right: 240px !important;
+				width: calc((100vw - 240px) / 2) !important;
+			}
+
+			/* ── Goto-symbol command palette (Cmd/Ctrl+Shift+O) ── */
+			.me-palette-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 12vh;
+				z-index: 100;
+			}
+			.me-palette-overlay[hidden] { display: none !important; }
+			.me-palette {
+				width: min(560px, 90vw);
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				overflow: hidden;
+				color: var(--me-ink);
+			}
+			.me-palette-input {
+				width: 100%;
+				border: 0;
+				border-bottom: 1px solid var(--me-border);
+				background: transparent;
+				padding: 0.85rem 1rem;
+				font: 500 0.95rem/1.3 "Inter", sans-serif;
+				color: var(--me-ink);
+				outline: none;
+				box-sizing: border-box;
+			}
+			.me-palette-list {
+				max-height: 50vh;
+				overflow-y: auto;
+				padding: 0.35rem;
+			}
+			.me-palette-item {
+				padding: 0.5rem 0.7rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				color: var(--me-ink);
+				font: 500 0.86rem/1.4 "Inter", "PingFang SC", sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				white-space: nowrap;
+				overflow: hidden;
+			}
+			.me-palette-item .me-palette-badge {
+				font: 600 0.66rem/1 "Menlo", "Consolas", monospace;
+				color: var(--me-muted);
+				background: var(--me-blue-bg);
+				padding: 0.18rem 0.4rem;
+				border-radius: 0.25rem;
+				flex-shrink: 0;
+			}
+			.me-palette-item .me-palette-text {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				flex: 1 1 auto;
+			}
+			.me-palette-item.h2 { padding-left: 1.2rem; }
+			.me-palette-item.h3 { padding-left: 1.9rem; opacity: 0.88; }
+			.me-palette-item.h4 { padding-left: 2.4rem; opacity: 0.78; }
+			.me-palette-item.active { background: var(--me-blue-bg-strong); color: var(--me-blue); }
+			.me-palette-empty {
+				color: var(--me-muted);
+				padding: 0.6rem 0.7rem;
+				font-size: 0.84rem;
+				font-style: italic;
+			}
+
+			/* ── Help breadcrumb pill (theme-aware blue) ── */
+			.me-help-pill {
+				cursor: pointer;
+				display: inline-flex;
+				gap: 0.35em;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				background: var(--me-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--me-blue-border);
+				color: var(--me-blue) !important;
+				text-decoration: none;
+				border-bottom: 0 !important;
+				transition: background 0.2s ease;
+			}
+			.me-help-pill:hover {
+				background: var(--me-blue-bg-strong);
+			}
+
+			/* ── Help modal ────────────────────────────── */
+			.me-help-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 8vh;
+				z-index: 110;
+			}
+			.me-help-overlay[hidden] { display: none !important; }
+			.me-help-card {
+				width: min(640px, 92vw);
+				max-height: 80vh;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				display: flex;
+				flex-direction: column;
+				color: var(--me-ink);
+				overflow: hidden;
+			}
+			.me-help-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0.85rem 1.1rem;
+				border-bottom: 1px solid var(--me-border);
+			}
+			.me-help-header h3 {
+				margin: 0;
+				font: 700 0.98rem/1 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+			.me-help-close {
+				width: 28px; height: 28px;
+				border: 0;
+				border-radius: 0.35rem;
+				background: transparent;
+				color: var(--me-muted);
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+			.me-help-close:hover { background: var(--me-blue-bg); color: var(--me-blue); }
+			.me-help-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+			.me-help-body {
+				padding: 0.85rem 1.1rem 1.2rem;
+				overflow-y: auto;
+				font: 400 0.88rem/1.55 "Inter", "PingFang SC", sans-serif;
+			}
+			.me-help-section {
+				margin-top: 1.1rem;
+			}
+			.me-help-section:first-child { margin-top: 0; }
+			.me-help-section h4 {
+				margin: 0 0 0.5rem;
+				font: 700 0.72rem/1 "Inter", sans-serif;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--me-blue);
+			}
+			.me-help-table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+			.me-help-table td {
+				padding: 0.32rem 0.4rem 0.32rem 0;
+				vertical-align: middle;
+			}
+			.me-help-table td:first-child {
+				width: 44%;
+				white-space: nowrap;
+				color: var(--me-muted);
+			}
+			.me-help-table td:last-child {
+				color: var(--me-ink);
+			}
+			.me-help-tip {
+				color: var(--me-muted);
+				font-size: 0.84rem;
+				margin: 0.18rem 0;
+				padding-left: 0.9rem;
+				position: relative;
+			}
+			.me-help-tip::before {
+				content: "•";
+				position: absolute;
+				left: 0;
+				color: var(--me-blue);
+			}
+			.me-help-tip code {
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+				padding: 0.05rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.84em/1 "Menlo", monospace;
+			}
+			kbd.me-kbd {
+				display: inline-block;
+				padding: 0.12rem 0.45rem;
+				margin: 0 0.1rem;
+				border: 1px solid var(--me-border);
+				border-bottom-width: 2px;
+				border-radius: 0.3rem;
+				background: var(--me-card-bg-soft);
+				font: 600 0.78rem/1.2 "Menlo", "Consolas", monospace;
+				color: var(--me-ink);
+				white-space: nowrap;
+			}
 		</style>
 	</head>
 	<body>
@@ -702,6 +1186,7 @@
 								<span class="crumb-sep">›</span>
 								<span class="crumb crumb-current">Markdown Editor</span>
 								<div style="margin-left:auto;display:flex;gap:0.5rem;align-items:center;">
+									<a id="help-btn" class="me-help-pill"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Help</a>
 									<a id="open-in-viewer-btn" style="cursor:pointer;display:inline-flex;gap:0.35em;align-items:center;padding:0.38rem 0.8rem;border-radius:999px;font-size:0.86rem;font-weight:700;background:rgba(39,174,96,0.10);box-shadow:inset 0 0 0 1.5px rgba(39,174,96,0.35);color:#27ae60 !important;text-decoration:none;border-bottom:0 !important;transition:background 0.2s;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>Open in Viewer</a>
 								</div>
 							</nav>
@@ -960,6 +1445,16 @@ $$
 				spellChecker: false,
 				autoDownloadFontAwesome: false,
 				sideBySideFullscreen: false,
+				// Custom keymap. Free Cmd/Ctrl+H for Find/Replace; bind H1/H2/H3
+				// to Cmd/Ctrl+Alt+1/2/3 (Notion style — browsers reserve plain
+				// Cmd/Ctrl+1..9 for tab switching, so Alt is required).
+				shortcuts: {
+					toggleHeadingSmaller: null,
+					toggleHeadingBigger: null,
+					toggleHeading1: 'Cmd-Alt-1',
+					toggleHeading2: 'Cmd-Alt-2',
+					toggleHeading3: 'Cmd-Alt-3'
+				},
 				autosave: {
 					enabled: true,
 					uniqueId: 'md-editor-draft',
@@ -994,7 +1489,13 @@ $$
 						className: 'fa fa-sitemap',
 						title: 'Insert Table of Contents'
 					}, '|',
-					'side-by-side', 'fullscreen', '|',
+					'side-by-side', 'fullscreen',
+					{
+						name: 'outline',
+						action: function() { window._meToggleOutline && window._meToggleOutline(); },
+						className: 'fa fa-panel-right me-outline-btn',
+						title: 'Toggle Outline panel'
+					}, '|',
 					{
 						name: 'upload-md',
 						action: actionUpload,
@@ -1039,6 +1540,7 @@ $$
 				'fa-table': '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>',
 				'fa-sitemap': '<path d="M21 12h-8"/><path d="M21 6H8"/><path d="M21 18h-8"/><path d="M3 6v4c0 1.1.9 2 2 2h3"/><path d="M3 10v6c0 1.1.9 2 2 2h3"/>',
 				'fa-columns': '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/>',
+				'fa-panel-right': '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/>',
 				'fa-arrows-alt': '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
 				'fa-eye': '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
 				'fa-upload': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
@@ -1086,6 +1588,23 @@ $$
 				btn.appendChild(document.createTextNode(item.label));
 			});
 
+			// Sync the actual toolbar height into a CSS var so the preview-side
+			// (absolute-positioned in non-fullscreen) anchors to the bottom of
+			// the toolbar exactly, keeping editor + preview tops aligned.
+			(function syncToolbarHeight() {
+				var tb = document.querySelector('.me-editor-card .editor-toolbar');
+				if (!tb) return;
+				function update() {
+					var h = tb.offsetHeight;
+					if (h > 0) document.documentElement.style.setProperty('--me-toolbar-h', h + 'px');
+				}
+				update();
+				window.addEventListener('resize', update);
+				if (window.ResizeObserver) {
+					new ResizeObserver(update).observe(tb);
+				}
+			})();
+
 			// Wire breadcrumb "Open in Viewer" pill
 			var openViewerBtn = document.getElementById('open-in-viewer-btn');
 			if (openViewerBtn) {
@@ -1093,6 +1612,306 @@ $$
 				openViewerBtn.addEventListener('mouseenter', function() { openViewerBtn.style.background = 'rgba(39,174,96,0.18)'; });
 				openViewerBtn.addEventListener('mouseleave', function() { openViewerBtn.style.background = 'rgba(39,174,96,0.10)'; });
 			}
+
+			// Wire breadcrumb "Help" pill (opens shortcuts/tips modal).
+			// Hover styles are CSS-driven via .me-help-pill:hover so dark mode works.
+			var helpBtn = document.getElementById('help-btn');
+			if (helpBtn) {
+				helpBtn.addEventListener('click', function() { openHelpModal(); });
+			}
+
+			function openHelpModal() {
+				var existing = document.getElementById('me-help-overlay');
+				if (existing) { existing.hidden = false; return; }
+				var isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+				var mod = isMac ? '⌘' : 'Ctrl';
+				var alt = isMac ? '⌥' : 'Alt';
+				var shift = '⇧';
+				function k(s) { return '<kbd class="me-kbd">' + s + '</kbd>'; }
+				function row(keys, desc) { return '<tr><td>' + keys + '</td><td>' + desc + '</td></tr>'; }
+
+				var overlay = document.createElement('div');
+				overlay.className = 'me-help-overlay';
+				overlay.id = 'me-help-overlay';
+				overlay.innerHTML = '<div class="me-help-card" role="dialog" aria-label="Help">'
+					+ '<div class="me-help-header">'
+						+ '<h3>Keyboard Shortcuts &amp; Tips</h3>'
+						+ '<button class="me-help-close" aria-label="Close">'
+							+ '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+						+ '</button>'
+					+ '</div>'
+					+ '<div class="me-help-body">'
+						+ '<div class="me-help-section"><h4>Navigation</h4><table class="me-help-table">'
+							+ row(k(mod) + '+' + k(shift) + '+' + k('O'), 'Open <em>Go to heading</em> command palette')
+							+ row('Toolbar <svg style="vertical-align:-3px;display:inline-block" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>', 'Toggle Outline panel (right side)')
+							+ row(k('Esc'), 'Close any open dialog')
+						+ '</table></div>'
+						+ '<div class="me-help-section"><h4>Find &amp; Replace</h4><table class="me-help-table">'
+							+ row(k(mod) + '+' + k('F'), 'Find')
+							+ row(isMac ? k(mod) + '+' + k(alt) + '+' + k('F') : k(mod) + '+' + k('H'), 'Replace')
+							+ row(isMac ? k(mod) + '+' + k('G') : k('F3'), 'Find next')
+							+ row(isMac ? k(mod) + '+' + k(shift) + '+' + k('G') : k(shift) + '+' + k('F3'), 'Find previous')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('Enter'), 'Replace all (when in Replace box)')
+							+ row(k('Enter') + ' / ' + k(shift) + '+' + k('Enter'), 'Next / Prev (when in Find box)')
+						+ '</table></div>'
+						+ '<div class="me-help-section"><h4>Formatting</h4><table class="me-help-table">'
+							+ row(k(mod) + '+' + k('B'), 'Bold')
+							+ row(k(mod) + '+' + k('I'), 'Italic')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('1'), 'Heading 1')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('2'), 'Heading 2')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('3'), 'Heading 3')
+							+ row(k(mod) + '+' + k('K'), 'Insert link')
+							+ row(k(mod) + '+' + k('\''), 'Blockquote')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('C'), 'Code block')
+							+ row(k(mod) + '+' + k('L'), 'Unordered list')
+							+ row(k(mod) + '+' + k(alt) + '+' + k('L'), 'Ordered list')
+						+ '</table></div>'
+						+ '<div class="me-help-section"><h4>View</h4><table class="me-help-table">'
+							+ row('Toolbar buttons', 'Side-by-side preview, Fullscreen, Outline')
+							+ row(k('F11') + ' or ⛶ button', 'Toggle fullscreen mode')
+						+ '</table></div>'
+						+ '<div class="me-help-section"><h4>Tips</h4>'
+							+ '<p class="me-help-tip">Drafts auto-save to browser localStorage every second. Refreshing won\'t lose work.</p>'
+							+ '<p class="me-help-tip">Math: <code>$...$</code> for inline, <code>$$...$$</code> for block (KaTeX).</p>'
+							+ '<p class="me-help-tip">Code blocks: <code>```language</code> enables Shiki syntax highlighting (Dark+ theme).</p>'
+							+ '<p class="me-help-tip">Click <strong>Open in Viewer</strong> to render the current draft as a polished note in a new tab.</p>'
+							+ '<p class="me-help-tip">The Outline panel parses headings live — start typing <code>#</code> headings and they\'ll appear instantly.</p>'
+						+ '</div>'
+					+ '</div>'
+					+ '</div>';
+				document.body.appendChild(overlay);
+
+				function close() { overlay.hidden = true; }
+				overlay.querySelector('.me-help-close').addEventListener('click', close);
+				overlay.addEventListener('click', function(e) {
+					if (e.target === overlay) close();
+				});
+				document.addEventListener('keydown', function escHandler(e) {
+					if (e.key === 'Escape' && !overlay.hidden) {
+						close();
+						document.removeEventListener('keydown', escHandler);
+					}
+				});
+			}
+
+			// Custom Find & Replace bar (uses cm.getSearchCursor — already
+			// bundled inside EasyMDE's CodeMirror; no external addons needed)
+			(function setupSearch() {
+				var cm = easyMDE.codemirror;
+				if (typeof cm.getSearchCursor !== 'function') {
+					console.warn('cm.getSearchCursor missing; search disabled');
+					return;
+				}
+				var card = document.querySelector('.me-editor-card .EasyMDEContainer') || document.querySelector('.me-editor-card');
+				var bar = document.createElement('div');
+				bar.className = 'me-search-bar';
+				bar.hidden = true;
+				bar.innerHTML =
+					'<div class="me-search-row">'
+					+ '<input type="text" class="me-search-input" placeholder="Find" autocomplete="off" spellcheck="false" />'
+					+ '<span class="me-search-count">0 / 0</span>'
+					+ '<button type="button" class="me-search-prev" title="Previous (Shift+Enter)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>'
+					+ '<button type="button" class="me-search-next" title="Next (Enter)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>'
+					+ '<button type="button" class="me-search-toggle-replace" title="Toggle replace (Ctrl/Cmd+H)"><svg viewBox="0 0 24 24"><path d="M3 7h13"/><polyline points="13 3 17 7 13 11"/><path d="M21 17H8"/><polyline points="11 21 7 17 11 13"/></svg></button>'
+					+ '<button type="button" class="me-search-close" title="Close (Esc)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+					+ '</div>'
+					+ '<div class="me-search-row me-replace-row" hidden>'
+					+ '<input type="text" class="me-replace-input" placeholder="Replace with" autocomplete="off" spellcheck="false" />'
+					+ '<button type="button" class="me-search-action me-replace-one">Replace</button>'
+					+ '<button type="button" class="me-search-action me-replace-all">All</button>'
+					+ '</div>';
+				card.appendChild(bar);
+
+				var input = bar.querySelector('.me-search-input');
+				var replaceInput = bar.querySelector('.me-replace-input');
+				var replaceRow = bar.querySelector('.me-replace-row');
+				var counterEl = bar.querySelector('.me-search-count');
+				var matches = []; // [{from, to}]
+				var marks = [];   // CodeMirror text marks
+				var current = -1;
+
+				function clearMarks() {
+					marks.forEach(function(m) { m.clear(); });
+					marks = [];
+				}
+
+				function highlight() {
+					clearMarks();
+					matches.forEach(function(m, i) {
+						marks.push(cm.markText(m.from, m.to, {
+							className: i === current ? 'me-search-mark-current' : 'me-search-mark'
+						}));
+					});
+				}
+
+				function updateCounter() {
+					counterEl.textContent = matches.length === 0
+						? (input.value ? 'No results' : '0 / 0')
+						: (current + 1) + ' / ' + matches.length;
+				}
+
+				function findAll() {
+					matches = [];
+					var q = input.value;
+					if (!q) { current = -1; clearMarks(); updateCounter(); return; }
+					try {
+						var cursor = cm.getSearchCursor(q, { line: 0, ch: 0 }, { caseFold: true });
+						while (cursor.findNext()) {
+							matches.push({ from: cursor.from(), to: cursor.to() });
+						}
+					} catch (err) { matches = []; }
+					if (matches.length === 0) {
+						current = -1;
+					} else {
+						// Pick first match at or after current cursor
+						var cursorPos = cm.getCursor();
+						current = 0;
+						for (var i = 0; i < matches.length; i++) {
+							var m = matches[i];
+							if (m.from.line > cursorPos.line ||
+								(m.from.line === cursorPos.line && m.from.ch >= cursorPos.ch)) {
+								current = i; break;
+							}
+						}
+					}
+					highlight();
+					if (current >= 0) cm.scrollIntoView({ from: matches[current].from, to: matches[current].to }, 60);
+					updateCounter();
+				}
+
+				function jumpTo(idx) {
+					if (matches.length === 0) return;
+					current = ((idx % matches.length) + matches.length) % matches.length;
+					highlight();
+					cm.scrollIntoView({ from: matches[current].from, to: matches[current].to }, 60);
+					updateCounter();
+				}
+
+				function next() { jumpTo(current + 1); }
+				function prev() { jumpTo(current - 1); }
+
+				function open(replaceMode) {
+					replaceRow.hidden = !replaceMode;
+					bar.hidden = false;
+					var sel = cm.getSelection();
+					if (sel) input.value = sel;
+					findAll();
+					setTimeout(function() { input.focus(); input.select(); }, 0);
+				}
+
+				function close() {
+					bar.hidden = true;
+					replaceRow.hidden = true;
+					clearMarks();
+					matches = []; current = -1;
+					cm.focus();
+				}
+
+				function replaceOne() {
+					if (current < 0 || !matches[current]) return;
+					var m = matches[current];
+					cm.replaceRange(replaceInput.value, m.from, m.to);
+					setTimeout(findAll, 0);
+				}
+
+				function replaceAll() {
+					if (matches.length === 0) return;
+					cm.operation(function() {
+						// Replace from end backwards so ranges remain valid
+						for (var i = matches.length - 1; i >= 0; i--) {
+							var m = matches[i];
+							cm.replaceRange(replaceInput.value, m.from, m.to);
+						}
+					});
+					setTimeout(findAll, 0);
+				}
+
+				function showReplaceRow() {
+					replaceRow.hidden = false;
+					setTimeout(function() { replaceInput.focus(); }, 0);
+				}
+
+				// VS Code-style shortcuts shared across all listeners.
+				// Returns true if handled.
+				function handleVSCodeShortcuts(e) {
+					var lkey = (e.key || '').toLowerCase();
+					// F3 / Shift+F3 — Find Next / Prev (Win/Linux)
+					if (e.key === 'F3') {
+						e.preventDefault(); e.stopImmediatePropagation();
+						if (matches.length === 0) open(false);
+						else if (e.shiftKey) prev(); else next();
+						return true;
+					}
+					// Cmd+G / Cmd+Shift+G — Find Next / Prev (Mac)
+					if (e.metaKey && !e.ctrlKey && !e.altKey && lkey === 'g') {
+						e.preventDefault(); e.stopImmediatePropagation();
+						if (matches.length === 0) open(false);
+						else if (e.shiftKey) prev(); else next();
+						return true;
+					}
+					// Ctrl+H — Replace (Win/Linux)
+					if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && lkey === 'h') {
+						e.preventDefault(); e.stopImmediatePropagation();
+						if (bar.hidden) open(true);
+						else showReplaceRow();
+						return true;
+					}
+					// Cmd+Alt+F — Replace (Mac)
+					if (e.metaKey && e.altKey && !e.shiftKey && !e.ctrlKey && lkey === 'f') {
+						e.preventDefault(); e.stopImmediatePropagation();
+						if (bar.hidden) open(true);
+						else showReplaceRow();
+						return true;
+					}
+					return false;
+				}
+
+				input.addEventListener('input', findAll);
+				input.addEventListener('keydown', function(e) {
+					if (handleVSCodeShortcuts(e)) return;
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						if (e.shiftKey) prev(); else next();
+					} else if (e.key === 'Escape') {
+						e.preventDefault(); close();
+					}
+				});
+				replaceInput.addEventListener('keydown', function(e) {
+					if (handleVSCodeShortcuts(e)) return;
+					// Ctrl+Alt+Enter / Cmd+Alt+Enter — Replace All
+					if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'Enter') {
+						e.preventDefault(); replaceAll(); return;
+					}
+					if (e.key === 'Enter') { e.preventDefault(); replaceOne(); }
+					else if (e.key === 'Escape') { e.preventDefault(); close(); }
+				});
+				bar.querySelector('.me-search-next').addEventListener('click', next);
+				bar.querySelector('.me-search-prev').addEventListener('click', prev);
+				bar.querySelector('.me-search-close').addEventListener('click', close);
+				bar.querySelector('.me-search-toggle-replace').addEventListener('click', function() {
+					replaceRow.hidden = !replaceRow.hidden;
+					if (!replaceRow.hidden) replaceInput.focus();
+				});
+				bar.querySelector('.me-replace-one').addEventListener('click', replaceOne);
+				bar.querySelector('.me-replace-all').addEventListener('click', replaceAll);
+
+				var wrapper = cm.getWrapperElement();
+				wrapper.addEventListener('keydown', function(e) {
+					// Ctrl+F / Cmd+F — open Find (handled here, not in helper, since
+					// it should only intercept when the editor has focus)
+					if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+						var lkey = (e.key || '').toLowerCase();
+						if (lkey === 'f' && !(e.metaKey && e.altKey)) {
+							e.preventDefault(); e.stopImmediatePropagation(); open(false); return;
+						}
+					}
+					if (handleVSCodeShortcuts(e)) return;
+				}, true);
+				// Also catch Esc when bar is focused (doesn't fire on wrapper)
+				bar.addEventListener('keydown', function(e) {
+					if (e.key === 'Escape') { e.preventDefault(); close(); }
+				});
+			})();
 
 			// Scroll sync: editor → preview (proportional)
 			easyMDE.codemirror.on('scroll', function() {
@@ -1120,6 +1939,239 @@ $$
 
 			// Pre-load KaTeX if initial content has $
 			if (/\$/.test(easyMDE.value())) loadKatex();
+
+			// ── Outline panel + Goto-symbol palette ─────
+			(function setupOutline() {
+				var cm = easyMDE.codemirror;
+				var card = document.querySelector('.me-editor-card');
+				var headings = [];
+				var rebuildTimer = null;
+				var clickJumping = false;
+				var clickJumpTimer = null;
+
+				// Build DOM: outline panel (right column) + palette overlay (body level)
+				var panel = document.createElement('aside');
+				panel.className = 'me-outline-panel';
+				panel.id = 'me-outline-panel';
+				panel.innerHTML = '<div class="me-outline-header">'
+					+ '<span class="me-outline-title">Outline</span>'
+					+ '<button type="button" class="me-outline-goto" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading">'
+					+ '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+					+ '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'
+					+ '</svg>'
+					+ '<span>Find</span>'
+					+ '</button>'
+					+ '</div>'
+					+ '<div class="me-outline-list" id="me-outline-list"></div>';
+				card.appendChild(panel);
+				var listEl = panel.querySelector('.me-outline-list');
+
+				var overlay = document.createElement('div');
+				overlay.className = 'me-palette-overlay';
+				overlay.hidden = true;
+				overlay.innerHTML = '<div class="me-palette" role="dialog" aria-label="Goto symbol">'
+					+ '<input type="text" class="me-palette-input" placeholder="@ Type to filter headings…" autocomplete="off" />'
+					+ '<div class="me-palette-list"></div>'
+					+ '</div>';
+				document.body.appendChild(overlay);
+				var paletteInput = overlay.querySelector('.me-palette-input');
+				var paletteList = overlay.querySelector('.me-palette-list');
+
+				// Restore collapse state from localStorage (default: open)
+				var STORAGE_KEY = 'me-outline-collapsed';
+				var collapsed = false;
+				try { collapsed = localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) {}
+				if (collapsed) panel.classList.add('collapsed');
+
+				function escHtml(s) {
+					return s.replace(/[&<>"']/g, function(c) {
+						return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+					});
+				}
+
+				function parseHeadings(text) {
+					var lines = text.split('\n');
+					var heads = [];
+					var inFence = false;
+					for (var i = 0; i < lines.length; i++) {
+						var line = lines[i];
+						if (/^\s{0,3}(```|~~~)/.test(line)) { inFence = !inFence; continue; }
+						if (inFence) continue;
+						var m = /^(#{1,4})\s+(.+?)\s*#*\s*$/.exec(line);
+						if (!m) continue;
+						heads.push({
+							level: m[1].length,
+							text: m[2].replace(/[*_`]/g, '').trim(),
+							line: i
+						});
+					}
+					return heads;
+				}
+
+				function buildOutline() {
+					headings = parseHeadings(cm.getValue());
+					if (headings.length === 0) {
+						listEl.innerHTML = '<div class="me-outline-empty">No headings yet</div>';
+						return;
+					}
+					listEl.innerHTML = headings.map(function(h, i) {
+						return '<div class="me-outline-item h' + h.level + '" data-idx="' + i + '">'
+							+ escHtml(h.text) + '</div>';
+					}).join('');
+				}
+
+				function activeIdx() {
+					var info = cm.getScrollInfo();
+					var topLine = cm.lineAtHeight(info.top + 30, 'local');
+					var idx = 0;
+					for (var i = 0; i < headings.length; i++) {
+						if (headings[i].line <= topLine) idx = i;
+						else break;
+					}
+					return idx;
+				}
+
+				function updateActive() {
+					if (!headings.length) return;
+					var idx = activeIdx();
+					var items = listEl.querySelectorAll('.me-outline-item');
+					items.forEach(function(el, i) { el.classList.toggle('active', i === idx); });
+					if (clickJumping) return;
+					var activeItem = items[idx];
+					if (activeItem) {
+						var elTop = activeItem.offsetTop;
+						var elH = activeItem.offsetHeight;
+						var pH = panel.clientHeight;
+						var pScroll = panel.scrollTop;
+						if (elTop < pScroll || elTop + elH > pScroll + pH) {
+							panel.scrollTop = elTop - pH / 2 + elH / 2;
+						}
+					}
+				}
+
+				function jumpToLine(line) {
+					clickJumping = true;
+					if (clickJumpTimer) clearTimeout(clickJumpTimer);
+					clickJumpTimer = setTimeout(function() { clickJumping = false; }, 800);
+					cm.setCursor({ line: line, ch: 0 });
+					var coords = cm.charCoords({ line: line, ch: 0 }, 'local');
+					cm.scrollTo(null, coords.top - 30);
+					cm.focus();
+				}
+
+				listEl.addEventListener('click', function(e) {
+					var item = e.target.closest('.me-outline-item');
+					if (!item) return;
+					var idx = parseInt(item.dataset.idx, 10);
+					if (headings[idx]) jumpToLine(headings[idx].line);
+				});
+
+				panel.querySelector('.me-outline-goto').addEventListener('click', function() {
+					openPalette();
+				});
+
+				cm.on('scroll', updateActive);
+				cm.on('change', function() {
+					if (rebuildTimer) clearTimeout(rebuildTimer);
+					rebuildTimer = setTimeout(function() {
+						buildOutline();
+						updateActive();
+					}, 300);
+				});
+
+				// Toggle from toolbar button (exposed via window._meToggleOutline)
+				window._meToggleOutline = function() {
+					panel.classList.toggle('collapsed');
+					var nowCollapsed = panel.classList.contains('collapsed');
+					try { localStorage.setItem(STORAGE_KEY, nowCollapsed ? '1' : '0'); } catch (e) {}
+					var btn = document.querySelector('.editor-toolbar .me-outline-btn');
+					if (btn) btn.classList.toggle('active', !nowCollapsed);
+				};
+
+				// Mark the toolbar button as active reflecting initial state
+				setTimeout(function() {
+					var btn = document.querySelector('.editor-toolbar .me-outline-btn');
+					if (btn) btn.classList.toggle('active', !panel.classList.contains('collapsed'));
+				}, 0);
+
+				// ── Command palette ──
+				var paletteIdx = 0;
+				var filtered = [];
+
+				function renderPalette() {
+					var q = paletteInput.value.toLowerCase().trim();
+					filtered = headings.map(function(h, i) { return { h: h, i: i }; }).filter(function(item) {
+						if (!q) return true;
+						return item.h.text.toLowerCase().indexOf(q) >= 0;
+					});
+					if (filtered.length === 0) {
+						paletteList.innerHTML = '<div class="me-palette-empty">No matching headings</div>';
+						return;
+					}
+					paletteIdx = 0;
+					paletteList.innerHTML = filtered.map(function(item, i) {
+						return '<div class="me-palette-item h' + item.h.level + (i === 0 ? ' active' : '') + '" data-idx="' + item.i + '">'
+							+ '<span class="me-palette-badge">H' + item.h.level + '</span>'
+							+ '<span class="me-palette-text">' + escHtml(item.h.text) + '</span>'
+							+ '</div>';
+					}).join('');
+				}
+
+				function openPalette() {
+					// Always rebuild before opening so list reflects latest content
+					buildOutline();
+					paletteInput.value = '';
+					renderPalette();
+					overlay.hidden = false;
+					setTimeout(function() { paletteInput.focus(); }, 0);
+				}
+				window._meOpenPalette = openPalette;
+
+				function closePalette() { overlay.hidden = true; }
+
+				function jumpFromPalette(idx) {
+					if (headings[idx]) jumpToLine(headings[idx].line);
+					closePalette();
+				}
+
+				paletteInput.addEventListener('input', renderPalette);
+				paletteInput.addEventListener('keydown', function(e) {
+					if (e.key === 'Escape') { e.preventDefault(); closePalette(); return; }
+					if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+						e.preventDefault();
+						var items = paletteList.querySelectorAll('.me-palette-item');
+						if (items.length === 0) return;
+						items[paletteIdx] && items[paletteIdx].classList.remove('active');
+						paletteIdx = (paletteIdx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+						items[paletteIdx].classList.add('active');
+						items[paletteIdx].scrollIntoView({ block: 'nearest' });
+						return;
+					}
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						if (filtered[paletteIdx]) jumpFromPalette(filtered[paletteIdx].i);
+					}
+				});
+				paletteList.addEventListener('click', function(e) {
+					var item = e.target.closest('.me-palette-item');
+					if (item) jumpFromPalette(parseInt(item.dataset.idx, 10));
+				});
+				overlay.addEventListener('click', function(e) {
+					if (e.target === overlay) closePalette();
+				});
+
+				// Global Ctrl/Cmd+Shift+O — open palette
+				document.addEventListener('keydown', function(e) {
+					if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'o' || e.key === 'O')) {
+						e.preventDefault();
+						e.stopPropagation();
+						openPalette();
+					}
+				}, true);
+
+				buildOutline();
+				updateActive();
+			})();
 
 		})();
 		</script>
