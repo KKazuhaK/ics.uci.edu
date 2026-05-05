@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Paste Designs Demo · Markdown Viewer | Kazuha Mo — UC Irvine</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+			document.documentElement.dataset && (document.body && (document.body.dataset.navPath = "/~kazuhak/tools/"));
+		</script>
+		<style>
+			:root {
+				--notes-ink: #23324a;
+				--notes-muted: #516074;
+				--notes-border: rgba(42, 79, 133, 0.16);
+				--notes-blue: #244f8f;
+				--notes-blue-bg: rgba(36, 79, 143, 0.10);
+				--notes-blue-border: rgba(36, 79, 143, 0.22);
+				--notes-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--notes-blue-text-hover: #183b73;
+				--notes-teal: #0c8a5f;
+				--notes-teal-bg: rgba(12, 138, 95, 0.13);
+				--notes-teal-border: rgba(12, 138, 95, 0.28);
+				--notes-card-bg:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 255, 0.99) 58%, rgba(250, 252, 255, 0.98) 100%);
+				--notes-card-border: rgba(42, 79, 133, 0.16);
+				--notes-card-shadow: 0 22px 44px -32px rgba(36, 79, 143, 0.45);
+				--notes-card-bg-strong: rgba(255, 255, 255, 0.96);
+			}
+			html[data-theme="dark"] {
+				--notes-ink: #e6edf7;
+				--notes-muted: #98a4b6;
+				--notes-border: rgba(170, 195, 230, 0.18);
+				--notes-blue: #7aa9e6;
+				--notes-blue-bg: rgba(122, 169, 230, 0.13);
+				--notes-blue-border: rgba(122, 169, 230, 0.30);
+				--notes-blue-bg-strong: rgba(122, 169, 230, 0.20);
+				--notes-blue-text-hover: #b6cef0;
+				--notes-teal: #5fd6a1;
+				--notes-teal-bg: rgba(95, 214, 161, 0.13);
+				--notes-teal-border: rgba(95, 214, 161, 0.32);
+				--notes-card-bg:
+					radial-gradient(circle at top right, rgba(122, 169, 230, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(20, 28, 42, 0.97) 0%, rgba(24, 33, 48, 0.97) 58%, rgba(20, 27, 40, 0.97) 100%);
+				--notes-card-border: rgba(170, 195, 230, 0.18);
+				--notes-card-shadow: 0 22px 44px -32px rgba(0, 0, 0, 0.65);
+				--notes-card-bg-strong: rgba(28, 38, 54, 0.96);
+			}
+
+			.demo-shell {
+				max-width: 880px;
+				margin: 0 auto;
+				padding: 1.5rem 1.25rem 4rem;
+				color: var(--notes-ink);
+			}
+			.demo-shell h1 {
+				font-size: 1.5rem;
+				margin: 0 0 0.4rem;
+			}
+			.demo-shell .lede {
+				color: var(--notes-muted);
+				margin: 0 0 1.5rem;
+				font-size: 0.95rem;
+			}
+			.demo-card {
+				background: var(--notes-card-bg);
+				border: 1px solid var(--notes-card-border);
+				border-radius: 1.1rem;
+				padding: 1.5rem 1.4rem;
+				box-shadow: var(--notes-card-shadow);
+				margin-bottom: 1.2rem;
+			}
+			.demo-tabs {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+				margin-bottom: 1rem;
+			}
+			.demo-tab {
+				padding: 0.5rem 0.95rem;
+				border-radius: 999px;
+				border: 1.5px solid var(--notes-border);
+				background: transparent;
+				color: var(--notes-muted);
+				font: 600 0.85rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				transition: all 0.18s ease;
+			}
+			.demo-tab:hover {
+				color: var(--notes-blue);
+				border-color: var(--notes-blue-border);
+			}
+			.demo-tab.active {
+				background: var(--notes-blue);
+				border-color: var(--notes-blue);
+				color: #fff;
+			}
+			html[data-theme="dark"] .demo-tab.active {
+				color: #0e1626;
+			}
+			.demo-meta {
+				font-size: 0.86rem;
+				color: var(--notes-muted);
+				margin: 0 0 1rem;
+				line-height: 1.55;
+			}
+			.demo-meta strong {
+				color: var(--notes-ink);
+			}
+			.pros-cons {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.6rem;
+				margin-top: 0.6rem;
+				font-size: 0.82rem;
+			}
+			.pros-cons div {
+				padding: 0.45rem 0.7rem;
+				border-radius: 0.55rem;
+				border: 1px solid var(--notes-border);
+			}
+			.pros-cons .pros {
+				background: var(--notes-teal-bg);
+				border-color: var(--notes-teal-border);
+				color: var(--notes-teal);
+			}
+			.pros-cons .cons {
+				background: rgba(192, 57, 43, 0.10);
+				border-color: rgba(192, 57, 43, 0.28);
+				color: #c0392b;
+			}
+			html[data-theme="dark"] .pros-cons .cons {
+				color: #f08a7c;
+			}
+
+			/* ---------- Shared upload-zone basics ---------- */
+			.upload-zone {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.45rem;
+				padding: 2rem 1.5rem;
+				border: 2px dashed var(--notes-blue-border);
+				border-radius: 1rem;
+				background: var(--notes-blue-bg);
+				cursor: pointer;
+				transition: border-color 0.2s ease, background 0.2s ease;
+				text-align: center;
+			}
+			.upload-zone:hover,
+			.upload-zone.drag-over {
+				border-color: var(--notes-blue);
+				background: var(--notes-blue-bg-strong);
+			}
+			.upload-zone input[type="file"] {
+				display: none;
+			}
+			.upload-zone-icon { font-size: 1.8rem; line-height: 1; user-select: none; }
+			.upload-zone-label { color: var(--notes-blue); font-weight: 700; font-size: 0.95rem; }
+			.upload-zone-hint { color: var(--notes-muted); font-size: 0.8rem; }
+
+			.demo-result {
+				margin-top: 1rem;
+				padding: 0.7rem 0.9rem;
+				border-radius: 0.6rem;
+				background: var(--notes-teal-bg);
+				border: 1px solid var(--notes-teal-border);
+				color: var(--notes-teal);
+				font: 600 0.85rem/1.5 "Inter", sans-serif;
+				display: none;
+			}
+			.demo-result.show { display: block; }
+			.demo-result code { font-size: 0.78rem; opacity: 0.75; }
+
+			.btn-primary {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				padding: 0.5rem 1rem;
+				border: 0;
+				border-radius: 999px;
+				background: var(--notes-blue);
+				color: #fff;
+				font: 700 0.86rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				transition: background 0.18s ease;
+			}
+			.btn-primary:hover { background: var(--notes-blue-text-hover); }
+			.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+			html[data-theme="dark"] .btn-primary { color: #0e1626; }
+
+			.btn-ghost {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				padding: 0.5rem 1rem;
+				border: 1.5px solid var(--notes-border);
+				border-radius: 999px;
+				background: transparent;
+				color: var(--notes-muted);
+				font: 600 0.84rem/1 "Inter", sans-serif;
+				cursor: pointer;
+			}
+			.btn-ghost:hover { color: var(--notes-blue); border-color: var(--notes-blue-border); }
+
+			textarea.paste-area {
+				width: 100%;
+				min-height: 160px;
+				padding: 0.85rem 1rem;
+				border-radius: 0.8rem;
+				border: 1.5px solid var(--notes-border);
+				background: var(--notes-card-bg-strong);
+				color: var(--notes-ink);
+				font: 400 0.92rem/1.5 "Menlo", "Consolas", monospace;
+				resize: vertical;
+				outline: none;
+				transition: border-color 0.18s ease;
+				box-sizing: border-box;
+			}
+			textarea.paste-area:focus { border-color: var(--notes-blue); }
+
+			/* ---------- Design A: Segmented tabs ---------- */
+			.seg {
+				display: inline-flex;
+				padding: 0.25rem;
+				border-radius: 999px;
+				background: var(--notes-blue-bg);
+				border: 1px solid var(--notes-blue-border);
+				margin-bottom: 1rem;
+			}
+			.seg button {
+				border: 0;
+				background: transparent;
+				color: var(--notes-muted);
+				padding: 0.45rem 1rem;
+				border-radius: 999px;
+				font: 600 0.85rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				transition: all 0.18s ease;
+			}
+			.seg button.active {
+				background: var(--notes-blue);
+				color: #fff;
+			}
+			html[data-theme="dark"] .seg button.active { color: #0e1626; }
+
+			/* ---------- Design B: Unified zone with editable mode ---------- */
+			.zone-unified.editing {
+				cursor: text;
+				align-items: stretch;
+				text-align: left;
+				padding: 0;
+				background: var(--notes-card-bg-strong);
+			}
+			.zone-unified.editing .upload-zone-icon,
+			.zone-unified.editing .upload-zone-label,
+			.zone-unified.editing .upload-zone-hint { display: none; }
+			.zone-unified.editing .zone-edit-area {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+				padding: 0.85rem;
+			}
+			.zone-edit-area { display: none; }
+			.zone-edit-area textarea {
+				border: 0;
+				background: transparent;
+				padding: 0.5rem;
+				min-height: 140px;
+				font: 400 0.92rem/1.5 "Menlo", "Consolas", monospace;
+				color: var(--notes-ink);
+				resize: vertical;
+				outline: none;
+			}
+			.zone-edit-actions {
+				display: flex;
+				gap: 0.4rem;
+				justify-content: flex-end;
+				border-top: 1px solid var(--notes-border);
+				padding-top: 0.6rem;
+			}
+
+			/* ---------- Design C: Stacked split ---------- */
+			.split-or {
+				display: flex;
+				align-items: center;
+				gap: 0.7rem;
+				margin: 0.9rem 0;
+				color: var(--notes-muted);
+				font-size: 0.78rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+			.split-or::before, .split-or::after {
+				content: "";
+				flex: 1;
+				height: 1px;
+				background: var(--notes-border);
+			}
+			.split-paste {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+			}
+			.split-actions { display: flex; justify-content: flex-end; }
+
+			/* ---------- Design D: Global paste hint ---------- */
+			.global-hint {
+				margin-top: 0.7rem;
+				padding: 0.65rem 0.9rem;
+				border-radius: 0.6rem;
+				background: var(--notes-blue-bg);
+				border: 1px dashed var(--notes-blue-border);
+				color: var(--notes-blue);
+				font-size: 0.82rem;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			kbd {
+				font: 600 0.78rem/1 "Menlo", "Consolas", monospace;
+				padding: 0.15rem 0.45rem;
+				border-radius: 0.3rem;
+				background: var(--notes-card-bg-strong);
+				border: 1px solid var(--notes-border);
+				color: var(--notes-ink);
+			}
+
+			/* ---------- Design E: Inline expand ---------- */
+			.expand-trigger {
+				margin-top: 0.85rem;
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				background: transparent;
+				border: 0;
+				color: var(--notes-blue);
+				font: 600 0.86rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				padding: 0.3rem 0;
+			}
+			.expand-trigger:hover { color: var(--notes-blue-text-hover); }
+			.expand-trigger svg { transition: transform 0.2s ease; }
+			.expand-trigger.open svg { transform: rotate(90deg); }
+			.expand-body {
+				max-height: 0;
+				overflow: hidden;
+				transition: max-height 0.28s ease;
+			}
+			.expand-body.open { max-height: 320px; margin-top: 0.7rem; }
+			.expand-body-inner {
+				display: flex;
+				flex-direction: column;
+				gap: 0.55rem;
+			}
+			.expand-actions { display: flex; justify-content: flex-end; }
+
+			.panel { display: none; }
+			.panel.active { display: block; }
+
+			@media (max-width: 600px) {
+				.pros-cons { grid-template-columns: 1fr; }
+			}
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="/~kazuhak/" class="nav-link">Home</a>
+					<a href="/~kazuhak/notes/" class="nav-link">Notes</a>
+					<a href="/~kazuhak/tools/" class="nav-link">Tools</a>
+					<a href="/~kazuhak/about.html" class="nav-link">About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
+			</nav>
+
+			<main class="page">
+				<div class="demo-shell">
+					<h1>Paste Designs · Demo</h1>
+					<p class="lede">下面是为 md-viewer 上传区设计的 5 种「粘贴 Markdown」交互方案。点 tab 切换，每个方案都能真实交互（拖文件 / 选文件 / 粘贴文本都会触发）。</p>
+
+					<div class="demo-tabs" id="tabs">
+						<button class="demo-tab active" data-target="X">★ Combined (F + D + E)</button>
+						<button class="demo-tab" data-target="A">A · Tabbed switch</button>
+						<button class="demo-tab" data-target="B">B · Unified zone</button>
+						<button class="demo-tab" data-target="C">C · Stacked split</button>
+						<button class="demo-tab" data-target="D">D · Global paste</button>
+						<button class="demo-tab" data-target="E">E · Inline expand</button>
+						<button class="demo-tab" data-target="F">F · Clipboard button</button>
+					</div>
+
+					<!-- ============== X: Combined (F + D) — proposed final ============== -->
+					<section class="demo-card panel active" data-panel="X">
+						<p class="demo-meta"><strong>★ Combined · 落地预览</strong> — 简化版：只保留 F 按钮（一键）+ D 全页 ⌘V（兜底）。砍掉 textarea — 想编辑去 md-editor 即可。</p>
+
+						<div style="margin-bottom: 0.6rem;">
+							<p style="margin:0 0 0.6rem;color:var(--notes-muted);font-size:0.92rem;">Select, drag, or <strong>paste</strong> a Markdown document to render it here.</p>
+							<label class="upload-zone" data-zone="X-file">
+								<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+								<span class="upload-zone-icon">📄</span>
+								<span class="upload-zone-label">Drop file here or click to browse</span>
+								<span class="upload-zone-hint">.md / .markdown / .txt</span>
+							</label>
+						</div>
+
+						<div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.75rem;">
+							<button class="btn-primary" id="clipBtnX">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6"/><path d="M9 18h4"/></svg>
+								Paste from clipboard
+							</button>
+							<span style="font-size:0.8rem;color:var(--notes-muted);">or hit <kbd>⌘V</kbd> / <kbd>Ctrl+V</kbd> anywhere on the page</span>
+						</div>
+
+						<div class="demo-result" data-result="X"></div>
+
+						<details style="margin-top:1.2rem;">
+							<summary style="cursor:pointer;color:var(--notes-muted);font-size:0.84rem;">交互说明</summary>
+							<div style="margin-top:0.5rem;font-size:0.84rem;color:var(--notes-muted);line-height:1.6;">
+								<ul style="padding-left:1.2rem;margin:0;">
+									<li><strong>📄 拖文件 / 点击选文件</strong> — 原有路径，不变</li>
+									<li><strong>📋 Paste from clipboard 按钮</strong> — 一键调 <code>navigator.clipboard.readText()</code>，首次弹权限框</li>
+									<li><strong>⌘V / Ctrl+V</strong> — 页面任意位置粘贴，自动渲染（无权限框）</li>
+									<li>读不到剪贴板（不支持 / 拒绝权限）时，按钮自动提示用 ⌘V</li>
+								</ul>
+							</div>
+						</details>
+					</section>
+
+					<!-- ============== A: Segmented tabs ============== -->
+					<section class="demo-card panel" data-panel="A">
+						<p class="demo-meta"><strong>A · Tabbed switch</strong> — 两段切换：上传文件 / 粘贴文本。最显式，UI 信号最强。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 模式分离，状态清晰；新用户一眼看懂</div>
+							<div class="cons">− 多一次点击；占垂直空间；切换会丢未提交内容（除非保留）</div>
+						</div>
+
+						<div class="seg" role="tablist" id="segA">
+							<button type="button" class="active" data-mode="file">📄 Upload File</button>
+							<button type="button" data-mode="paste">✏️ Paste Text</button>
+						</div>
+
+						<div data-segpanel="file">
+							<label class="upload-zone" data-zone="A-file">
+								<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+								<span class="upload-zone-icon">📄</span>
+								<span class="upload-zone-label">Drop file here or click to browse</span>
+								<span class="upload-zone-hint">.md / .markdown / .txt</span>
+							</label>
+						</div>
+						<div data-segpanel="paste" hidden>
+							<textarea class="paste-area" data-paste="A" placeholder="Paste your Markdown here…"></textarea>
+							<div style="display:flex;justify-content:flex-end;margin-top:0.6rem;">
+								<button class="btn-primary" data-render="A">Render</button>
+							</div>
+						</div>
+
+						<div class="demo-result" data-result="A"></div>
+					</section>
+
+					<!-- ============== B: Unified zone ============== -->
+					<section class="demo-card panel" data-panel="B">
+						<p class="demo-meta"><strong>B · Unified zone</strong> — 单一框，支持拖入 / 点击选 / 点击编辑直接粘贴。空间最省，affordance 最少。</p>
+						<div class="pros-cons">
+							<div class="pros">+ UI 紧凑；一个区域承担所有输入；状态自然过渡</div>
+							<div class="cons">− 点击行为有歧义（选文件 vs 进入编辑）；要明确分隔交互区</div>
+						</div>
+
+						<label class="upload-zone zone-unified" id="zoneB">
+							<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+							<span class="upload-zone-icon">📄</span>
+							<span class="upload-zone-label">Drop, click, or paste Markdown here</span>
+							<span class="upload-zone-hint">.md / .markdown / .txt &nbsp;·&nbsp; or hit the pencil to type</span>
+							<div class="zone-edit-area">
+								<textarea data-paste="B" placeholder="Paste or type Markdown here…"></textarea>
+								<div class="zone-edit-actions">
+									<button type="button" class="btn-ghost" data-cancel="B">Cancel</button>
+									<button type="button" class="btn-primary" data-render="B">Render</button>
+								</div>
+							</div>
+						</label>
+						<div style="margin-top:0.5rem;display:flex;gap:0.4rem;justify-content:flex-end;">
+							<button type="button" class="btn-ghost" id="enterEditB">✏️ Type / paste text</button>
+						</div>
+
+						<div class="demo-result" data-result="B"></div>
+					</section>
+
+					<!-- ============== C: Stacked split ============== -->
+					<section class="demo-card panel" data-panel="C">
+						<p class="demo-meta"><strong>C · Stacked split</strong> — 拖拽区在上，分隔线 OR，下方常驻 textarea。两条路径同时可见。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 零额外操作；两种入口同时暴露；学习成本最低</div>
+							<div class="cons">− 占垂直空间最大；视觉上稍重</div>
+						</div>
+
+						<label class="upload-zone" data-zone="C-file">
+							<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+							<span class="upload-zone-icon">📄</span>
+							<span class="upload-zone-label">Drop file here or click to browse</span>
+							<span class="upload-zone-hint">.md / .markdown / .txt</span>
+						</label>
+
+						<div class="split-or"><span>OR PASTE TEXT</span></div>
+
+						<div class="split-paste">
+							<textarea class="paste-area" data-paste="C" placeholder="Paste your Markdown here…"></textarea>
+							<div class="split-actions">
+								<button class="btn-primary" data-render="C">Render</button>
+							</div>
+						</div>
+
+						<div class="demo-result" data-result="C"></div>
+					</section>
+
+					<!-- ============== D: Global paste hint ============== -->
+					<section class="demo-card panel" data-panel="D">
+						<p class="demo-meta"><strong>D · Global paste</strong> — 拖拽框不动，整页监听 <kbd>⌘V</kbd> / <kbd>Ctrl+V</kbd>，粘贴纯文本就直接渲染。最少改动 UI。</p>
+						<div class="pros-cons">
+							<div class="pros">+ UI 完全不改；最快路径；"power user" 最爽</div>
+							<div class="cons">− 不可见的功能（discoverability 差），需要 hint 文案</div>
+						</div>
+
+						<label class="upload-zone" data-zone="D-file">
+							<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+							<span class="upload-zone-icon">📄</span>
+							<span class="upload-zone-label">Drop file here or click to browse</span>
+							<span class="upload-zone-hint">.md / .markdown / .txt</span>
+						</label>
+
+						<div class="global-hint">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+							<span>提示：在本卡片任意位置按 <kbd>⌘V</kbd> / <kbd>Ctrl+V</kbd> 直接粘贴 Markdown。</span>
+						</div>
+
+						<div class="demo-result" data-result="D"></div>
+					</section>
+
+					<!-- ============== E: Inline expand ============== -->
+					<section class="demo-card panel" data-panel="E">
+						<p class="demo-meta"><strong>E · Inline expand</strong> — 拖拽框默认展示，下方一个折叠链接「Or paste markdown text」展开 textarea。轻、收敛、可发现。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 默认 UI 干净；功能可见但不抢眼；进阶用户可选</div>
+							<div class="cons">− 多一次点击；展开动效要顺滑才不显廉价</div>
+						</div>
+
+						<label class="upload-zone" data-zone="E-file">
+							<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+							<span class="upload-zone-icon">📄</span>
+							<span class="upload-zone-label">Drop file here or click to browse</span>
+							<span class="upload-zone-hint">.md / .markdown / .txt</span>
+						</label>
+
+						<button class="expand-trigger" id="expandE" aria-expanded="false">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+							Or paste Markdown text
+						</button>
+						<div class="expand-body" id="expandBodyE">
+							<div class="expand-body-inner">
+								<textarea class="paste-area" data-paste="E" placeholder="Paste your Markdown here…"></textarea>
+								<div class="expand-actions">
+									<button class="btn-primary" data-render="E">Render</button>
+								</div>
+							</div>
+						</div>
+
+						<div class="demo-result" data-result="E"></div>
+					</section>
+
+					<!-- ============== F: Clipboard button ============== -->
+					<section class="demo-card panel" data-panel="F">
+						<p class="demo-meta"><strong>F · Clipboard button</strong> — 拖拽框旁加一个「Paste from clipboard」按钮，点一下用 <code>navigator.clipboard.readText()</code> 直接读剪贴板并渲染。一键到位，最少操作。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 一次点击完成；UI 增加最小；语义最直白</div>
+							<div class="cons">− 首次会触发浏览器权限弹窗；iOS Safari 历史上对 readText 限制多；无预览</div>
+						</div>
+
+						<label class="upload-zone" data-zone="F-file">
+							<input type="file" accept=".md,.markdown,text/markdown,text/plain" />
+							<span class="upload-zone-icon">📄</span>
+							<span class="upload-zone-label">Drop file here or click to browse</span>
+							<span class="upload-zone-hint">.md / .markdown / .txt</span>
+						</label>
+
+						<div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+							<button class="btn-primary" id="clipBtnF">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6"/><path d="M9 18h4"/></svg>
+								Paste from clipboard
+							</button>
+							<span style="font-size:0.78rem;color:var(--notes-muted);">需要剪贴板权限，首次点击会弹窗确认</span>
+						</div>
+
+						<div class="demo-result" data-result="F"></div>
+					</section>
+
+					<p class="demo-meta" style="margin-top:1.5rem;font-size:0.85rem;">
+						💡 我的推荐组合（更新版）：<strong>F + D + E</strong> — F 按钮放在拖拽区下面（一键路径），D 全页 ⌘V 兜底（power user），E 折叠 textarea 留作可控编辑（粘贴后想改）。三者互补不冲突。如果只能选一个：<strong>F</strong> 最干脆。
+					</p>
+				</div>
+			</main>
+
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span>
+			</footer>
+		</div>
+
+		<script src="../../assets/js/bento.js" defer></script>
+		<script>
+			(function () {
+				// --- Tab switch (top picker) ---
+				const tabs = document.querySelectorAll(".demo-tab");
+				const panels = document.querySelectorAll(".panel");
+				tabs.forEach((tab) => {
+					tab.addEventListener("click", () => {
+						tabs.forEach((t) => t.classList.remove("active"));
+						panels.forEach((p) => p.classList.remove("active"));
+						tab.classList.add("active");
+						document.querySelector(`[data-panel="${tab.dataset.target}"]`).classList.add("active");
+					});
+				});
+
+				// --- Result helper ---
+				function showResult(key, kind, payload) {
+					const el = document.querySelector(`[data-result="${key}"]`);
+					if (!el) return;
+					const preview = (payload || "").slice(0, 140).replace(/\s+/g, " ");
+					el.innerHTML = `✅ <strong>${kind}</strong> received → <code>${preview ? escapeHtml(preview) : "(empty)"}…</code>`;
+					el.classList.add("show");
+					setTimeout(() => el.classList.remove("show"), 5000);
+				}
+				function escapeHtml(s) {
+					return s.replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+				}
+
+				// --- Generic file-input wiring (all zones except B unified, handled separately) ---
+				document.querySelectorAll("[data-zone]").forEach((zone) => {
+					const key = zone.dataset.zone.split("-")[0];
+					const input = zone.querySelector('input[type="file"]');
+					input.addEventListener("change", (e) => {
+						const f = e.target.files[0];
+						if (f) showResult(key, `file: ${f.name}`, `${f.size} bytes`);
+					});
+					zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("drag-over"); });
+					zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+					zone.addEventListener("drop", (e) => {
+						e.preventDefault();
+						zone.classList.remove("drag-over");
+						const f = e.dataTransfer.files[0];
+						if (f) showResult(key, `file (dropped): ${f.name}`, `${f.size} bytes`);
+					});
+				});
+
+				// --- Render buttons (textarea-based panels) ---
+				document.querySelectorAll("[data-render]").forEach((btn) => {
+					btn.addEventListener("click", () => {
+						const key = btn.dataset.render;
+						const ta = document.querySelector(`[data-paste="${key}"]`);
+						if (ta && ta.value.trim()) showResult(key, "pasted text", ta.value);
+					});
+				});
+
+				// --- A: Segmented switch ---
+				const segA = document.getElementById("segA");
+				segA.querySelectorAll("button").forEach((b) => {
+					b.addEventListener("click", () => {
+						segA.querySelectorAll("button").forEach((x) => x.classList.remove("active"));
+						b.classList.add("active");
+						const mode = b.dataset.mode;
+						document.querySelector('[data-segpanel="file"]').hidden = mode !== "file";
+						document.querySelector('[data-segpanel="paste"]').hidden = mode !== "paste";
+					});
+				});
+
+				// --- B: Unified zone — toggle into edit mode ---
+				const zoneB = document.getElementById("zoneB");
+				const inputB = zoneB.querySelector('input[type="file"]');
+				const enterEditB = document.getElementById("enterEditB");
+				inputB.addEventListener("change", (e) => {
+					const f = e.target.files[0];
+					if (f) showResult("B", `file: ${f.name}`, `${f.size} bytes`);
+				});
+				zoneB.addEventListener("dragover", (e) => { e.preventDefault(); zoneB.classList.add("drag-over"); });
+				zoneB.addEventListener("dragleave", () => zoneB.classList.remove("drag-over"));
+				zoneB.addEventListener("drop", (e) => {
+					e.preventDefault();
+					zoneB.classList.remove("drag-over");
+					const f = e.dataTransfer.files[0];
+					if (f) showResult("B", `file (dropped): ${f.name}`, `${f.size} bytes`);
+				});
+				enterEditB.addEventListener("click", (e) => {
+					e.stopPropagation();
+					zoneB.classList.add("editing");
+					setTimeout(() => zoneB.querySelector("textarea").focus(), 30);
+				});
+				document.querySelector('[data-cancel="B"]').addEventListener("click", (e) => {
+					e.stopPropagation();
+					zoneB.classList.remove("editing");
+				});
+				zoneB.querySelector("textarea").addEventListener("click", (e) => e.stopPropagation());
+				zoneB.querySelector("textarea").addEventListener("keydown", (e) => e.stopPropagation());
+
+				// --- D: Global paste (scoped to D's panel) ---
+				const panelD = document.querySelector('[data-panel="D"]');
+				panelD.addEventListener("paste", (e) => {
+					if (!panelD.classList.contains("active")) return;
+					const text = (e.clipboardData || window.clipboardData).getData("text");
+					if (text && text.trim()) {
+						e.preventDefault();
+						showResult("D", "pasted via ⌘V", text);
+					}
+				});
+
+				// --- E: Inline expand ---
+				const expandE = document.getElementById("expandE");
+				const expandBodyE = document.getElementById("expandBodyE");
+				expandE.addEventListener("click", () => {
+					const open = expandE.classList.toggle("open");
+					expandBodyE.classList.toggle("open", open);
+					expandE.setAttribute("aria-expanded", String(open));
+					if (open) setTimeout(() => expandBodyE.querySelector("textarea").focus(), 200);
+				});
+
+				// --- F: Clipboard button ---
+				const clipBtnF = document.getElementById("clipBtnF");
+				clipBtnF.addEventListener("click", async () => {
+					if (!navigator.clipboard || !navigator.clipboard.readText) {
+						showResult("F", "unsupported", "navigator.clipboard.readText not available — fall back to paste flow");
+						return;
+					}
+					try {
+						const text = await navigator.clipboard.readText();
+						if (text && text.trim()) {
+							showResult("F", "clipboard read", text);
+						} else {
+							showResult("F", "clipboard empty", "(nothing to render)");
+						}
+					} catch (err) {
+						showResult("F", "permission denied", String(err && err.message || err));
+					}
+				});
+
+				// --- X: Combined (F + D) ---
+				const clipBtnX = document.getElementById("clipBtnX");
+				clipBtnX.addEventListener("click", async () => {
+					if (!navigator.clipboard || !navigator.clipboard.readText) {
+						showResult("X", "unsupported · use ⌘V instead", "navigator.clipboard.readText not available in this browser");
+						return;
+					}
+					try {
+						const text = await navigator.clipboard.readText();
+						if (text && text.trim()) showResult("X", "clipboard read (F path)", text);
+						else showResult("X", "clipboard empty", "(nothing to render)");
+					} catch (err) {
+						showResult("X", "permission denied · use ⌘V instead", String(err && err.message || err));
+					}
+				});
+				const panelX = document.querySelector('[data-panel="X"]');
+				panelX.addEventListener("paste", (e) => {
+					if (!panelX.classList.contains("active")) return;
+					const tag = (e.target && e.target.tagName) || "";
+					if (tag === "TEXTAREA" || tag === "INPUT") return;
+					const text = (e.clipboardData || window.clipboardData).getData("text");
+					if (text && text.trim()) {
+						e.preventDefault();
+						showResult("X", "pasted via ⌘V (D path)", text);
+					}
+				});
+			})();
+		</script>
+	</body>
+</html>
