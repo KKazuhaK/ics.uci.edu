@@ -817,11 +817,10 @@
 			/* ── Outline panel (right-side, toggleable column) ── */
 			.me-outline-panel {
 				flex: 0 0 240px;
+				align-self: stretch;
 				background: var(--me-toolbar-bg);
 				border-left: 1px solid var(--me-border);
 				overflow-y: auto;
-				max-height: calc(100vh - 20rem);
-				min-height: 400px;
 				padding: 0.7rem 0.45rem 0.7rem 0.5rem;
 				box-sizing: border-box;
 				transition: flex-basis 0.22s ease, padding 0.22s ease, opacity 0.18s ease;
@@ -838,10 +837,11 @@
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				padding: 0.4rem 0.55rem 0.6rem;
+				padding: 0 0.6rem;
+				margin-bottom: 0.45rem;
 			}
 			.me-outline-title {
-				font: 700 0.7rem/1 "Inter", sans-serif;
+				font: 700 0.8rem/1 "Inter", sans-serif;
 				color: var(--me-muted);
 				text-transform: uppercase;
 				letter-spacing: 0.08em;
@@ -849,14 +849,14 @@
 			.me-outline-goto {
 				display: inline-flex;
 				align-items: center;
-				gap: 0.3rem;
-				padding: 0.22rem 0.55rem;
+				gap: 0.35rem;
+				padding: 0.32rem 0.7rem;
 				border: 1px solid var(--me-blue-border);
-				border-radius: 0.4rem;
+				border-radius: 0.45rem;
 				background: var(--me-blue-bg);
 				color: var(--me-blue);
 				cursor: pointer;
-				font: 600 0.72rem/1 "Inter", sans-serif;
+				font: 600 0.8rem/1 "Inter", sans-serif;
 				letter-spacing: 0.02em;
 				transition: background 0.15s ease, border-color 0.15s ease;
 			}
@@ -865,8 +865,8 @@
 				border-color: var(--me-blue);
 			}
 			.me-outline-goto svg {
-				width: 12px;
-				height: 12px;
+				width: 14px;
+				height: 14px;
 				flex-shrink: 0;
 			}
 			.me-outline-list { display: flex; flex-direction: column; gap: 1px; }
@@ -943,14 +943,14 @@
 
 			/* ── Goto-symbol command palette (Cmd/Ctrl+Shift+O) ── */
 			.me-palette-overlay {
-				position: fixed;
-				inset: 0;
+				position: fixed !important;
+				inset: 0 !important;
 				background: rgba(0, 0, 0, 0.42);
-				display: flex;
+				display: flex !important;
 				align-items: flex-start;
 				justify-content: center;
 				padding-top: 12vh;
-				z-index: 100;
+				z-index: 99999 !important;
 			}
 			.me-palette-overlay[hidden] { display: none !important; }
 			.me-palette {
@@ -1014,6 +1014,147 @@
 				font-style: italic;
 			}
 
+			/* ── Export dropdown menu (positioned via JS, attached to body) ── */
+			.me-export-menu {
+				position: fixed !important;
+				min-width: 290px;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-blue-border);
+				border-radius: 0.6rem;
+				box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
+				padding: 0.35rem;
+				/* Above all editor chrome (CM-fullscreen z:9, search bar z:12,
+				 * outline panel z:10) */
+				z-index: 99999 !important;
+				display: flex !important;
+				flex-direction: column;
+				gap: 1px;
+				color: var(--me-ink);
+				font: 500 0.84rem/1.4 "Inter", sans-serif;
+			}
+			.me-export-menu[hidden] { display: none !important; }
+
+			.me-export-item {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.65rem;
+				padding: 0.55rem 0.65rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				transition: background 0.12s ease;
+			}
+			.me-export-item:hover { background: var(--me-blue-bg); }
+			.me-export-item .me-export-icon {
+				flex-shrink: 0;
+				width: 30px; height: 30px;
+				border-radius: 0.4rem;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+			}
+			.me-export-item .me-export-icon svg {
+				width: 15px; height: 15px;
+				stroke: currentColor; fill: none;
+				stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+			}
+			.me-export-item .me-export-body {
+				display: flex;
+				flex-direction: column;
+				gap: 0.15rem;
+				min-width: 0;
+			}
+			.me-export-item .me-export-label {
+				font: 600 0.86rem/1.2 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+			.me-export-item .me-export-desc {
+				font-size: 0.74rem;
+				line-height: 1.35;
+				color: var(--me-muted);
+			}
+			.me-export-divider {
+				height: 1px;
+				background: var(--me-border);
+				margin: 0.25rem 0.4rem;
+			}
+
+			/* Off-screen render container for PDF generation (forced light) */
+			.me-pdf-render {
+				position: fixed !important;
+				left: -9999px !important;
+				top: 0 !important;
+				width: 800px;
+				background: #ffffff !important;
+				color: #1d2939 !important;
+				font: 400 14pt/1.7 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif !important;
+				padding: 30px 40px !important;
+				box-sizing: border-box;
+			}
+			.me-pdf-render h1, .me-pdf-render h2, .me-pdf-render h3, .me-pdf-render h4 {
+				color: #244f8f; font-weight: 700;
+			}
+			.me-pdf-render h1 { font-size: 1.75em; padding-bottom: 0.4rem; border-bottom: 3px solid rgba(42,79,133,0.16); margin: 1.4rem 0 0.6rem; }
+			.me-pdf-render h1:first-child { margin-top: 0; }
+			.me-pdf-render h2 { font-size: 1.4em; padding-left: 0.7rem; border-left: 4px solid #244f8f; line-height: 1.4; margin: 1.3rem 0 0.5rem; }
+			.me-pdf-render h3 { font-size: 1.18em; margin: 1.1rem 0 0.45rem; }
+			.me-pdf-render p { margin: 0 0 0.8rem; }
+			.me-pdf-render code:not(pre code) {
+				background: rgba(36,79,143,0.10);
+				color: #244f8f;
+				padding: 0.1rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.86em/1 "Menlo","Consolas",monospace;
+			}
+			.me-pdf-render pre {
+				background: #1e1e1e !important;
+				color: #d4d4d4 !important;
+				padding: 1rem;
+				border-radius: 0.5rem;
+				overflow: hidden;
+				font: 400 0.86em/1.55 "Menlo","Consolas",monospace;
+			}
+			.me-pdf-render pre code { background: transparent !important; color: inherit !important; padding: 0; }
+			.me-pdf-render blockquote {
+				border-left: 4px solid #244f8f;
+				background: rgba(36,79,143,0.08);
+				padding: 0.6rem 1rem;
+				margin: 0.9rem 0;
+				border-radius: 0 0.4rem 0.4rem 0;
+				color: #516074;
+			}
+			.me-pdf-render table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; }
+			.me-pdf-render th, .me-pdf-render td { border: 1px solid rgba(42,79,133,0.16); padding: 0.45rem 0.7rem; text-align: left; }
+			.me-pdf-render th { background: rgba(36,79,143,0.07); font-weight: 700; color: #1d2939; }
+			.me-pdf-render ul, .me-pdf-render ol { padding-left: 1.5rem; margin: 0.45rem 0 0.85rem; }
+			.me-pdf-render li { margin: 0.15rem 0; }
+			.me-pdf-render a { color: #244f8f; text-decoration: underline; }
+
+			/* Print: hide the editor UI, show only the rendered preview */
+			@media print {
+				body * { visibility: hidden; }
+				.me-print-target, .me-print-target * { visibility: visible; }
+				.me-print-target {
+					position: absolute !important;
+					inset: 0 !important;
+					width: 100% !important;
+					height: auto !important;
+					padding: 1.2cm 1.5cm !important;
+					margin: 0 !important;
+					background: #fff !important;
+					color: #000 !important;
+					overflow: visible !important;
+					font: 400 11pt/1.65 'Source Sans Pro',-apple-system,sans-serif !important;
+				}
+				.me-print-target h1, .me-print-target h2, .me-print-target h3 { color: #244f8f !important; page-break-after: avoid; }
+				.me-print-target pre { background: #f4f6f9 !important; color: #1d2939 !important; page-break-inside: avoid; }
+				.me-print-target pre code { background: transparent !important; color: inherit !important; }
+				.me-print-target code:not(pre code) { background: #eef3fb !important; color: #244f8f !important; }
+				.me-print-target table { page-break-inside: avoid; }
+				@page { size: Letter; margin: 0; }
+			}
+
 			/* ── Help breadcrumb pill (theme-aware blue) ── */
 			.me-help-pill {
 				cursor: pointer;
@@ -1037,16 +1178,19 @@
 
 			/* ── Help modal ────────────────────────────── */
 			.me-help-overlay {
-				position: fixed;
-				inset: 0;
+				position: fixed !important;
+				inset: 0 !important;
 				background: rgba(0, 0, 0, 0.42);
-				display: flex;
+				display: flex !important;
 				align-items: flex-start;
 				justify-content: center;
 				padding-top: 8vh;
-				z-index: 110;
+				z-index: 99999 !important;
+				opacity: 0;
+				transition: opacity 0.18s ease;
 			}
 			.me-help-overlay[hidden] { display: none !important; }
+			.me-help-overlay.open { opacity: 1; }
 			.me-help-card {
 				width: min(640px, 92vw);
 				max-height: 80vh;
@@ -1058,6 +1202,13 @@
 				flex-direction: column;
 				color: var(--me-ink);
 				overflow: hidden;
+				transform: translateY(12px) scale(0.96);
+				opacity: 0;
+				transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+			}
+			.me-help-overlay.open .me-help-card {
+				transform: none;
+				opacity: 1;
 			}
 			.me-help-header {
 				display: flex;
@@ -1509,10 +1660,10 @@ $$
 						title: 'Download .md'
 					},
 					{
-						name: 'copy-html',
-						action: actionCopyHtml,
-						className: 'fa fa-clipboard me-export-btn',
-						title: 'Copy HTML'
+						name: 'export',
+						action: function() { window._meToggleExportMenu && window._meToggleExportMenu(); },
+						className: 'fa fa-file-export me-export-btn me-export-toolbar-btn',
+						title: 'Export…'
 					}
 				],
 				previewRender: renderPreview
@@ -1546,6 +1697,7 @@ $$
 				'fa-upload': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
 				'fa-download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
 				'fa-clipboard': '<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+				'fa-file-export': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/>',
 				'fa-eraser': '<path d="M21 21H7"/><path d="m5 11 9 9"/><path d="M19.4 14 14 19.4a2 2 0 0 1-2.8 0L5.1 13.3a2 2 0 0 1 0-2.8L14.4 1.2a2 2 0 0 1 2.8 0l5.6 5.6a2 2 0 0 1 0 2.8Z"/>',
 				'fa-undo': '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
 				'fa-question-circle': '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
@@ -1579,7 +1731,7 @@ $$
 			[
 				{ title: 'Open .md file', label: 'Open' },
 				{ title: 'Download .md',  label: 'Save' },
-				{ title: 'Copy HTML',     label: 'HTML' }
+				{ title: 'Export…',       label: 'Export ▾' }
 			].forEach(function(item) {
 				var btn = document.querySelector('.editor-toolbar button[title="' + item.title + '"]');
 				if (!btn) return;
@@ -1587,6 +1739,254 @@ $$
 				if (iconWrap) iconWrap.style.marginRight = '0.3em';
 				btn.appendChild(document.createTextNode(item.label));
 			});
+
+			// ── Export dropdown menu (Copy/Download HTML, Download/Print PDF) ──
+			(function setupExportMenu() {
+				var btn = document.querySelector('.editor-toolbar .me-export-toolbar-btn')
+					|| document.querySelector('.editor-toolbar button[title="Export…"]')
+					|| document.querySelector('.editor-toolbar button.export');
+				if (!btn) return;
+
+				// Menu attaches to body + position:fixed so .me-editor-card's
+				// overflow:hidden doesn't clip the dropdown in non-fullscreen mode.
+				var menu = document.createElement('div');
+				menu.className = 'me-export-menu';
+				menu.hidden = true;
+				menu.innerHTML =
+					'<div class="me-export-item" data-action="copy-html">'
+						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>'
+						+ '<div class="me-export-body"><span class="me-export-label">Copy HTML</span><span class="me-export-desc">Copy rendered HTML to clipboard</span></div>'
+					+ '</div>'
+					+ '<div class="me-export-item" data-action="download-html">'
+						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>'
+						+ '<div class="me-export-body"><span class="me-export-label">Download HTML</span><span class="me-export-desc">Standalone .html with embedded styles</span></div>'
+					+ '</div>'
+					+ '<div class="me-export-divider"></div>'
+					+ '<div class="me-export-item" data-action="download-pdf">'
+						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13v5"/><path d="M9 13h2a1.5 1.5 0 1 1 0 3H9"/></svg></span>'
+						+ '<div class="me-export-body"><span class="me-export-label">Download PDF</span><span class="me-export-desc">One-click .pdf · always rendered in light theme</span></div>'
+					+ '</div>'
+					+ '<div class="me-export-item" data-action="print-pdf">'
+						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>'
+						+ '<div class="me-export-body"><span class="me-export-label">Print → Save as PDF</span><span class="me-export-desc">Browser print dialog · vector text, smaller file</span></div>'
+					+ '</div>';
+				document.body.appendChild(menu);
+
+				function position() {
+					var btnRect = btn.getBoundingClientRect();
+					// Anchor under the *toolbar's* bottom edge, not the button's,
+					// so the menu doesn't stick into the toolbar area when buttons
+					// are smaller than the toolbar height.
+					var toolbar = btn.closest('.editor-toolbar');
+					var topAnchor = toolbar ? toolbar.getBoundingClientRect().bottom + 6 : btnRect.bottom + 6;
+					menu.style.top = topAnchor + 'px';
+					menu.style.right = Math.max(8, window.innerWidth - btnRect.right) + 'px';
+					menu.style.left = 'auto';
+					menu.style.bottom = 'auto';
+				}
+				function open() {
+					position();
+					menu.hidden = false;
+					btn.classList.add('active');
+				}
+				function close() { menu.hidden = true; btn.classList.remove('active'); }
+				function toggle() { if (menu.hidden) open(); else close(); }
+
+				// Take over the click on the toolbar button. Capture-phase + stopImmediate
+				// guarantees we run before EasyMDE's bubble-phase action handler and
+				// before the click bubbles up to our doc-level "close on outside click"
+				// listener (preventing accidental immediate close).
+				btn.addEventListener('click', function(e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					toggle();
+				}, true);
+
+				// Close on outside click. Since the button click was stopped above,
+				// this listener only sees clicks elsewhere.
+				document.addEventListener('click', function(e) {
+					if (menu.hidden) return;
+					if (menu.contains(e.target)) return;
+					close();
+				});
+				document.addEventListener('keydown', function(e) {
+					if (e.key === 'Escape' && !menu.hidden) close();
+				});
+				window.addEventListener('resize', function() { if (!menu.hidden) position(); });
+				window.addEventListener('scroll', function() { if (!menu.hidden) position(); }, true);
+				menu.addEventListener('click', function(e) {
+					var item = e.target.closest('.me-export-item');
+					if (!item) return;
+					close();
+					var act = item.dataset.action;
+					if (exportActions[act]) exportActions[act]();
+				});
+
+				window._meToggleExportMenu = toggle;
+			})();
+
+			// Toast helper (small bottom-right notice)
+			function showToast(msg) {
+				var el = document.getElementById('me-toast');
+				if (!el) {
+					el = document.createElement('div');
+					el.id = 'me-toast';
+					el.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:0.65rem 0.95rem;border-radius:0.45rem;font:500 0.86rem/1.4 "Inter",sans-serif;box-shadow:0 12px 28px rgba(0,0,0,0.3);z-index:200;opacity:0;transform:translateY(20px);transition:opacity 0.2s ease, transform 0.2s ease;pointer-events:none;max-width:340px';
+					document.body.appendChild(el);
+				}
+				el.textContent = msg;
+				requestAnimationFrame(function() {
+					el.style.opacity = '1';
+					el.style.transform = 'translateY(0)';
+				});
+				clearTimeout(el._t);
+				el._t = setTimeout(function() {
+					el.style.opacity = '0';
+					el.style.transform = 'translateY(20px)';
+				}, 3500);
+			}
+
+			// Standalone HTML document string (used by Download HTML + iframe Print)
+			function getStandaloneHtml(rawMd, title) {
+				var body = marked.parse(rawMd || '');
+				var katexCss = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">';
+				var styles = '<style>'
+					+ 'body{font:400 14pt/1.7 "Source Sans Pro",-apple-system,sans-serif;color:#1d2939;background:#fff;max-width:820px;margin:2rem auto;padding:0 1.5rem}'
+					+ 'h1,h2,h3,h4{color:#244f8f;font-weight:700}'
+					+ 'h1{font-size:1.75em;padding-bottom:0.4rem;border-bottom:3px solid rgba(42,79,133,0.16);margin:1.4rem 0 0.6rem}'
+					+ 'h1:first-child{margin-top:0}'
+					+ 'h2{font-size:1.4em;padding-left:0.7rem;border-left:4px solid #244f8f;line-height:1.4;margin:1.3rem 0 0.5rem}'
+					+ 'h3{font-size:1.18em;margin:1.1rem 0 0.45rem}'
+					+ 'p{margin:0 0 0.8rem}'
+					+ 'code{background:rgba(36,79,143,0.10);color:#244f8f;padding:0.1rem 0.35rem;border-radius:0.25rem;font:500 0.86em/1 "Menlo","Consolas",monospace}'
+					+ 'pre{background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:0.5rem;overflow-x:auto;font:400 0.86em/1.55 "Menlo",monospace}'
+					+ 'pre code{background:transparent;color:inherit;padding:0}'
+					+ 'blockquote{border-left:4px solid #244f8f;background:rgba(36,79,143,0.08);padding:0.6rem 1rem;margin:0.9rem 0;border-radius:0 0.4rem 0.4rem 0;color:#516074}'
+					+ 'table{width:100%;border-collapse:collapse;margin:0.8rem 0}'
+					+ 'th,td{border:1px solid rgba(42,79,133,0.16);padding:0.45rem 0.7rem;text-align:left}'
+					+ 'th{background:rgba(36,79,143,0.07);font-weight:700}'
+					+ 'a{color:#244f8f}'
+					+ '</style>';
+				var safeTitle = (title || 'Document').replace(/[<>"]/g, '');
+				return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title>' + katexCss + styles + '</head><body>' + body + '</body></html>';
+			}
+
+			// html2pdf.js lazy loader
+			var html2pdfReady = null;
+			function loadHtml2Pdf() {
+				if (html2pdfReady) return html2pdfReady;
+				html2pdfReady = new Promise(function(resolve, reject) {
+					if (window.html2pdf) return resolve();
+					var s = document.createElement('script');
+					s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js';
+					s.onload = resolve;
+					s.onerror = function() { html2pdfReady = null; reject(); };
+					document.head.appendChild(s);
+				});
+				return html2pdfReady;
+			}
+
+			// KaTeX auto-render for offscreen / iframe DOM
+			function renderKatexIn(el) {
+				if (!window.renderMathInElement) return Promise.resolve();
+				try {
+					window.renderMathInElement(el, {
+						delimiters: [
+							{ left: '$$', right: '$$', display: true },
+							{ left: '$', right: '$', display: false }
+						],
+						throwOnError: false
+					});
+				} catch (e) {}
+				return Promise.resolve();
+			}
+
+			var exportActions = {
+				'copy-html': function() { actionCopyHtml(easyMDE); },
+
+				'download-html': function() {
+					var src = easyMDE.value();
+					var first = (src.match(/^#\s+(.+)$/m) || [])[1];
+					var html = getStandaloneHtml(src, first);
+					var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+					var url = URL.createObjectURL(blob);
+					var a = document.createElement('a');
+					a.href = url;
+					a.download = (first ? first.trim().slice(0, 60).replace(/[^\w一-鿿 -]/g, '') : 'document') + '.html';
+					document.body.appendChild(a); a.click(); document.body.removeChild(a);
+					URL.revokeObjectURL(url);
+					showToast('✓ HTML downloaded');
+				},
+
+				'download-pdf': function() {
+					showToast('Loading PDF generator…');
+					loadKatex().then(function() {
+						return loadHtml2Pdf();
+					}).then(function() {
+						// Render markdown into an off-screen container with FORCED
+						// light theme styling, regardless of the page's data-theme.
+						var rendered = marked.parse(easyMDE.value());
+						var container = document.createElement('div');
+						container.className = 'me-pdf-render';
+						container.setAttribute('data-theme', 'light');
+						container.innerHTML = rendered;
+						document.body.appendChild(container);
+
+						renderKatexIn(container).then(function() {
+							showToast('Generating PDF…');
+							var first = (easyMDE.value().match(/^#\s+(.+)$/m) || [])[1];
+							var fname = (first ? first.trim().slice(0, 60).replace(/[^\w一-鿿 -]/g, '') : 'document') + '.pdf';
+							var opts = {
+								margin: [10, 12, 12, 12],
+								filename: fname,
+								image: { type: 'jpeg', quality: 0.96 },
+								html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+								jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+								pagebreak: { mode: ['css', 'legacy'] }
+							};
+							window.html2pdf().from(container).set(opts).save().then(function() {
+								container.remove();
+								showToast('✓ ' + fname + ' downloaded');
+							}).catch(function(err) {
+								container.remove();
+								showToast('✗ PDF generation failed');
+								console.warn(err);
+							});
+						});
+					}).catch(function(err) {
+						showToast('✗ Failed to load PDF generator');
+						console.warn(err);
+					});
+				},
+
+				'print-pdf': function() {
+					// Render markdown into a hidden iframe with full standalone HTML
+					// (light theme), then call print() inside it. Avoids polluting
+					// the current page's print stylesheet.
+					var src = easyMDE.value();
+					var first = (src.match(/^#\s+(.+)$/m) || [])[1];
+					var html = getStandaloneHtml(src, first);
+					var iframe = document.getElementById('me-print-iframe');
+					if (iframe) iframe.remove();
+					iframe = document.createElement('iframe');
+					iframe.id = 'me-print-iframe';
+					iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:0;height:0;border:0';
+					document.body.appendChild(iframe);
+					iframe.contentDocument.open();
+					iframe.contentDocument.write(html);
+					iframe.contentDocument.close();
+					showToast('Opening print dialog…');
+					setTimeout(function() {
+						try {
+							iframe.contentWindow.focus();
+							iframe.contentWindow.print();
+						} catch (err) {
+							showToast('✗ Print failed');
+						}
+						setTimeout(function() { if (iframe) iframe.remove(); }, 2000);
+					}, 600);
+				}
+			};
 
 			// Sync the actual toolbar height into a CSS var so the preview-side
 			// (absolute-positioned in non-fullscreen) anchors to the bottom of
@@ -1622,7 +2022,11 @@ $$
 
 			function openHelpModal() {
 				var existing = document.getElementById('me-help-overlay');
-				if (existing) { existing.hidden = false; return; }
+				if (existing) {
+					existing.hidden = false;
+					requestAnimationFrame(function() { existing.classList.add('open'); });
+					return;
+				}
 				var isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 				var mod = isMac ? '⌘' : 'Ctrl';
 				var alt = isMac ? '⌥' : 'Alt';
@@ -1680,8 +2084,13 @@ $$
 					+ '</div>'
 					+ '</div>';
 				document.body.appendChild(overlay);
+				// Trigger transition on next frame so the initial styles register first
+				requestAnimationFrame(function() { overlay.classList.add('open'); });
 
-				function close() { overlay.hidden = true; }
+				function close() {
+					overlay.classList.remove('open');
+					setTimeout(function() { overlay.hidden = true; }, 240);
+				}
 				overlay.querySelector('.me-help-close').addEventListener('click', close);
 				overlay.addEventListener('click', function(e) {
 					if (e.target === overlay) close();
