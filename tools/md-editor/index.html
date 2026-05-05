@@ -245,8 +245,11 @@
 				display: flex;
 				flex-direction: column;
 				flex: 1 1 auto;
+				flex-basis: 100%;
+				max-width: 100%;
 				min-width: 0;
 				min-height: 0;
+				transition: flex-basis 0.22s ease, max-width 0.22s ease;
 			}
 
 			/* When CM is in EasyMDE's "fullscreen" state, take over the WHOLE
@@ -1751,7 +1754,11 @@ $$
 					toggleHeadingBigger: null,
 					toggleHeading1: 'Cmd-Alt-1',
 					toggleHeading2: 'Cmd-Alt-2',
-					toggleHeading3: 'Cmd-Alt-3'
+					toggleHeading3: 'Cmd-Alt-3',
+					// F11 is unreliable on macOS (system-reserved). Use
+					// Cmd/Ctrl+Shift+Enter — CodeMirror maps "Cmd" → ⌘ on Mac,
+					// → Ctrl on Win/Linux, so a single binding covers both.
+					toggleFullScreen: 'Cmd-Shift-Enter'
 				},
 				autosave: {
 					enabled: true,
@@ -1787,7 +1794,7 @@ $$
 						className: 'fa fa-sitemap',
 						title: 'Insert Table of Contents'
 					}, '|',
-					'side-by-side', 'fullscreen',
+					'side-by-side',
 					{
 						name: 'outline',
 						action: function() { window._meToggleOutline && window._meToggleOutline(); },
@@ -1799,7 +1806,8 @@ $$
 						action: function() { window._meOpenPalette && window._meOpenPalette(); },
 						className: 'fa fa-search-list me-goto-btn',
 						title: 'Go to heading… (Ctrl/Cmd+Shift+O)'
-					}, '|',
+					},
+					'fullscreen', '|',
 					{
 						name: 'upload-md',
 						action: actionUpload,
@@ -1810,7 +1818,7 @@ $$
 						name: 'export',
 						action: function() { window._meToggleExportMenu && window._meToggleExportMenu(); },
 						className: 'fa fa-file-export me-export-btn me-export-toolbar-btn',
-						title: 'Export…'
+                        title: 'Export…'
 					}
 				],
 				previewRender: renderPreview
@@ -2366,7 +2374,7 @@ $$
 						+ '</table></div>'
 						+ '<div class="me-help-section"><h4>View</h4><table class="me-help-table">'
 							+ row('Toolbar buttons', 'Side-by-side preview, Fullscreen, Outline')
-							+ row(k('F11') + ' or ⛶ button', 'Toggle fullscreen mode')
+							+ row(k(mod) + '+' + k(shift) + '+' + k('Enter') + ' or ⛶ button', 'Toggle fullscreen mode')
 						+ '</table></div>'
 						+ '<div class="me-help-section"><h4>Tips</h4>'
 							+ '<p class="me-help-tip">Drafts auto-save to browser localStorage every second. Refreshing won\'t lose work.</p>'
@@ -3016,6 +3024,17 @@ $$
 						e.preventDefault();
 						e.stopPropagation();
 						openPalette();
+					}
+				}, true);
+
+				// Global Ctrl/Cmd+Shift+Enter — toggle fullscreen. EasyMDE's
+				// CM-bound shortcut only fires when the editor has focus, so
+				// we add a document-level listener as a fallback.
+				document.addEventListener('keydown', function(e) {
+					if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Enter') {
+						e.preventDefault();
+						e.stopPropagation();
+						easyMDE.toggleFullScreen();
 					}
 				}, true);
 
