@@ -213,12 +213,44 @@
 
 			/* ── EasyMDE theme overrides ───────────────── */
 
-			/* Container */
+			/* Container — flex column so toolbar/CM/statusbar stack and CM
+			 * can flex-fill remaining height (works the same in fullscreen). */
 			.me-editor-card .EasyMDEContainer {
 				margin: 0;
 				position: relative;
+				display: flex;
+				flex-direction: column;
 				flex: 1 1 auto;
 				min-width: 0;
+				min-height: 0;
+			}
+
+			/* When CM is in EasyMDE's "fullscreen" state, take over the WHOLE
+			 * editor card (overlay viewport) — but reset CM/toolbar/preview
+			 * to normal flow so the existing flex layout keeps working. */
+			body:has(.CodeMirror-fullscreen) {
+				overflow: hidden;
+			}
+			body:has(.CodeMirror-fullscreen) .me-editor-card {
+				position: fixed !important;
+				inset: 0 !important;
+				z-index: 9999 !important;
+				max-width: none !important;
+				width: 100% !important;
+				margin: 0 !important;
+				border-radius: 0 !important;
+				border: 0 !important;
+			}
+			.me-editor-card .CodeMirror.CodeMirror-fullscreen,
+			.me-editor-card .editor-toolbar.fullscreen {
+				position: relative !important;
+				top: auto !important;
+				left: auto !important;
+				right: auto !important;
+				bottom: auto !important;
+				width: auto !important;
+				height: auto !important;
+				z-index: auto !important;
 			}
 
 			.me-editor-card .editor-toolbar {
@@ -323,6 +355,8 @@
 				border: none;
 				border-bottom-left-radius: 0;
 				border-bottom-right-radius: 0;
+				/* Normal mode: fixed height so CM's internal scrollbars handle
+				 * long documents and the page itself doesn't grow forever. */
 				height: calc(100vh - 20rem) !important;
 				min-height: 400px !important;
 				font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
@@ -331,6 +365,19 @@
 				padding: 12px 16px;
 				color: var(--me-ink);
 				background: var(--me-editor-bg);
+			}
+
+			/* Fullscreen: card overlay = 100vh; let CM flex-fill the remaining
+			 * height inside EasyMDEContainer (toolbar at top, statusbar at
+			 * bottom, CM in between). Preview also stretches via top+bottom. */
+			body:has(.CodeMirror-fullscreen) .me-editor-card .CodeMirror {
+				flex: 1 1 auto;
+				height: auto !important;
+				min-height: 0 !important;
+			}
+			body:has(.CodeMirror-fullscreen) .me-editor-card .editor-preview-side {
+				height: auto !important;
+				min-height: 0 !important;
 			}
 
 			.me-editor-card .CodeMirror-cursor {
@@ -507,38 +554,77 @@
 				display: block;
 			}
 
-			/* Constrain preview height to match editor, enable independent scroll */
+			/* Constrain preview height to match editor, enable independent scroll.
+			 * Stop above the statusbar so it doesn't sit on top of "Draft saved…". */
 			.me-editor-card .editor-preview-side {
 				/* Anchor preview to EasyMDEContainer (not viewport) so the
 				 * outline panel can claim its own column without overlap. */
 				position: absolute !important;
 				top: var(--me-toolbar-h, 50px) !important;
 				right: 0 !important;
-				bottom: 0 !important;
+				bottom: var(--me-statusbar-h, 30px) !important;
 				width: 50% !important;
 				height: calc(100vh - 20rem) !important;
 				min-height: 400px !important;
 				overflow-y: auto !important;
 			}
 
-			/* When EasyMDE is in fullscreen, restore native viewport positioning
-			 * so editor + preview overlay the screen correctly. */
-			.me-editor-card .CodeMirror.CodeMirror-fullscreen {
-				height: auto !important;
-				min-height: 0 !important;
-				transition: right 0.22s ease;
+			/* Outline open: explicitly cap EasyMDEContainer width so flex
+			 * shrinkage is deterministic. Preview width is now driven by
+			 * --me-split below, no fixed override. */
+			.me-editor-card:has(.me-outline-panel:not(.collapsed)) .EasyMDEContainer {
+				flex-basis: calc(100% - 240px);
+				max-width: calc(100% - 240px);
 			}
-			body:has(.CodeMirror-fullscreen) .me-editor-card .editor-preview-side {
-				position: fixed !important;
-				top: 50px !important;
-				right: 0 !important;
-				bottom: 0 !important;
-				width: 50% !important;
-				height: auto !important;
-				min-height: 0 !important;
-				z-index: 9;
-				transition: right 0.22s ease, width 0.22s ease;
+
+			/* Side-by-side: CM occupies the left fraction defined by --me-split;
+			 * preview takes the rest. A draggable gutter sits at the seam. */
+			.me-editor-card { --me-split: 50%; }
+			.me-editor-card .CodeMirror.CodeMirror-sided {
+				width: var(--me-split) !important;
+				max-width: var(--me-split) !important;
+				box-sizing: border-box !important;
 			}
+			.me-editor-card .editor-preview-active-side {
+				width: calc(100% - var(--me-split)) !important;
+			}
+			/* Fullscreen no longer needs special CM/preview/gutter width rules:
+			 * the editor card itself becomes position:fixed inset:0, and the
+			 * regular flex/percentage layout above just scales to viewport. */
+
+			/* Draggable gutter at the split seam. Only shown when side-by-side
+			 * is active (CM has the .CodeMirror-sided class). */
+			.me-pane-gutter {
+				display: none;
+				position: absolute;
+				top: var(--me-toolbar-h, 50px);
+				bottom: var(--me-statusbar-h, 30px);
+				left: var(--me-split);
+				width: 12px;
+				margin-left: -6px;
+				cursor: col-resize;
+				z-index: 11;
+				background: transparent;
+				transition: background 0.15s ease;
+			}
+			.me-pane-gutter::before {
+				content: "";
+				position: absolute;
+				top: 0; bottom: 0;
+				left: 50%;
+				width: 1px;
+				background: var(--me-border);
+				transform: translateX(-0.5px);
+				transition: background 0.15s ease, width 0.15s ease;
+			}
+			.me-pane-gutter:hover::before,
+			.me-pane-gutter.dragging::before {
+				background: var(--me-blue);
+				width: 2px;
+			}
+			.me-editor-card:has(.CodeMirror-sided) .me-pane-gutter { display: block; }
+			body.me-pane-dragging,
+			body.me-pane-dragging * { user-select: none !important; cursor: col-resize !important; }
 
 			/* ── Preview content (match md-viewer) ─────── */
 
@@ -746,24 +832,8 @@
 				z-index: 10010 !important;
 			}
 
-			.me-editor-card .CodeMirror-fullscreen {
-				z-index: 10009 !important;
-			}
-
-			/* Only raise z-index in fullscreen (sibling of fullscreen toolbar) */
-			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview-side {
-				z-index: 10009 !important;
-			}
-
-			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview {
-				z-index: 10009 !important;
-			}
-
-			/* In fullscreen, let preview fill available space instead of 65vh */
-			.me-editor-card .editor-toolbar.fullscreen ~ .editor-preview-side {
-				height: auto !important;
-				min-height: 0 !important;
-			}
+			/* (Old fullscreen z-index hacks removed — no longer needed since
+			 * CM/preview are reset to normal flow in fullscreen-overlay mode) */
 
 			/* ── Mobile ────────────────────────────────── */
 			@media screen and (max-width: 736px) {
@@ -903,43 +973,10 @@
 				.me-outline-panel { display: none !important; }
 			}
 
-			/* In fullscreen, anchor outline panel to viewport right edge so it
-			 * stays visible alongside the editor + preview overlay. Use
-			 * transform/opacity for the open/close transition since flex-basis
-			 * doesn't apply once we switch to position: fixed. */
-			body:has(.CodeMirror-fullscreen) .me-outline-panel {
-				position: fixed !important;
-				top: 50px !important;
-				right: 0 !important;
-				bottom: 0 !important;
-				width: 240px !important;
-				height: auto !important;
-				max-height: none !important;
-				z-index: 10 !important;
-				flex-basis: auto !important;
-				padding: 0.7rem 0.45rem 0.7rem 0.5rem !important;
-				border-left: 1px solid var(--me-border) !important;
-				opacity: 1 !important;
-				transform: translateX(0);
-				overflow-y: auto;
-				transition: transform 0.22s ease, opacity 0.18s ease !important;
-			}
-			body:has(.CodeMirror-fullscreen) .me-outline-panel.collapsed {
-				display: block !important;  /* override default block hiding */
-				transform: translateX(100%);
-				opacity: 0 !important;
-				pointer-events: none;
-			}
-
-			/* When outline is open in fullscreen, shrink the editor + preview
-			 * so they don't sit underneath the outline panel. */
-			body:has(.CodeMirror-fullscreen):has(.me-outline-panel:not(.collapsed)) .CodeMirror.CodeMirror-fullscreen {
-				right: 240px !important;
-			}
-			body:has(.CodeMirror-fullscreen):has(.me-outline-panel:not(.collapsed)) .me-editor-card .editor-preview-side {
-				right: 240px !important;
-				width: calc((100vw - 240px) / 2) !important;
-			}
+			/* (Outline panel in fullscreen now uses the same flex layout as
+			 * non-fullscreen — the card itself is position:fixed inset:0, so
+			 * the regular flex-row layout (EasyMDEContainer + outline) just
+			 * scales to viewport. No special positioning needed.) */
 
 			/* ── Goto-symbol command palette (Cmd/Ctrl+Shift+O) ── */
 			.me-palette-overlay {
@@ -1074,22 +1111,24 @@
 				line-height: 1.35;
 				color: var(--me-muted);
 			}
-			.me-export-divider {
-				height: 1px;
-				background: var(--me-border);
-				margin: 0.25rem 0.4rem;
-			}
-
-			/* Off-screen render container for PDF generation (forced light) */
-			.me-pdf-render {
-				position: fixed !important;
-				left: -9999px !important;
+			/* PDF render root: keep it near the document origin so html2canvas does not crop it */
+			.me-pdf-stage {
+				position: absolute !important;
+				left: 0 !important;
 				top: 0 !important;
 				width: 800px;
+				overflow: visible;
+				background: #ffffff;
+				z-index: -1;
+				pointer-events: none;
+			}
+			.me-pdf-render {
+				width: 800px;
+				min-height: 1px;
 				background: #ffffff !important;
 				color: #1d2939 !important;
 				font: 400 14pt/1.7 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif !important;
-				padding: 30px 40px !important;
+				padding: 30px 136px 30px 24px !important;
 				box-sizing: border-box;
 			}
 			.me-pdf-render h1, .me-pdf-render h2, .me-pdf-render h3, .me-pdf-render h4 {
@@ -1116,6 +1155,7 @@
 				font: 400 0.86em/1.55 "Menlo","Consolas",monospace;
 			}
 			.me-pdf-render pre code { background: transparent !important; color: inherit !important; padding: 0; }
+			.me-pdf-render pre.shiki code .line { display: block; min-height: 1.55em; }
 			.me-pdf-render blockquote {
 				border-left: 4px solid #244f8f;
 				background: rgba(36,79,143,0.08);
@@ -1464,6 +1504,97 @@ $$
 				});
 			}
 
+			var SHIKI_IMPORT_URL = "https://esm.sh/shiki@3.0.0";
+			var SHIKI_THEME = "dark-plus";
+			var shikiModulePromise = null;
+
+			function normalizeCodeLanguage(language) {
+				var raw = (language || '').trim().toLowerCase();
+				if (!raw) return '';
+				var aliases = {
+					'c++': 'cpp',
+					cc: 'cpp',
+					cxx: 'cpp',
+					hpp: 'cpp',
+					'h++': 'cpp',
+					hxx: 'cpp',
+					py: 'python',
+					sh: 'bash',
+					shell: 'bash',
+					zsh: 'bash',
+					js: 'javascript',
+					mjs: 'javascript',
+					cjs: 'javascript',
+					ts: 'typescript',
+					mts: 'typescript',
+					cts: 'typescript',
+					yml: 'yaml',
+					md: 'markdown',
+					plain: 'text',
+					plaintext: 'text',
+					txt: 'text'
+				};
+				return aliases[raw] || raw;
+			}
+
+			function getCodeBlockLanguage(codeElement) {
+				var pre = codeElement.parentElement;
+				var raw = (pre && pre.dataset && pre.dataset.language) || '';
+				if (!raw) {
+					var match = (codeElement.className || '').match(/(?:^|\s)language-([A-Za-z0-9_+#.-]+)/);
+					raw = match ? match[1] : '';
+				}
+				return normalizeCodeLanguage(raw);
+			}
+
+			async function getShikiCodeToHtml() {
+				if (!shikiModulePromise) {
+					shikiModulePromise = import(SHIKI_IMPORT_URL).catch(function(error) {
+						shikiModulePromise = null;
+						throw error;
+					});
+				}
+				var shiki = await shikiModulePromise;
+				return shiki.codeToHtml;
+			}
+
+			async function applySyntaxHighlighting(container) {
+				var codeBlocks = Array.from(container.querySelectorAll('pre > code'));
+				var highlightableBlocks = codeBlocks.filter(function(codeElement) {
+					var lang = getCodeBlockLanguage(codeElement);
+					return lang && lang !== 'text';
+				});
+				if (!highlightableBlocks.length) return;
+
+				var codeToHtml;
+				try {
+					codeToHtml = await getShikiCodeToHtml();
+				} catch (error) {
+					console.warn('Shiki failed to initialize. Falling back to plain code blocks.', error);
+					return;
+				}
+
+				for (var i = 0; i < highlightableBlocks.length; i++) {
+					var codeElement = highlightableBlocks[i];
+					var originalPre = codeElement.parentElement;
+					var lang = getCodeBlockLanguage(codeElement);
+					try {
+						var highlightedHtml = await codeToHtml(codeElement.textContent || '', {
+							lang: lang,
+							theme: SHIKI_THEME
+						});
+						var template = document.createElement('template');
+						template.innerHTML = highlightedHtml.trim();
+						var highlightedPre = template.content.firstElementChild;
+						if (!highlightedPre) continue;
+						highlightedPre.dataset.language = lang;
+						originalPre.replaceWith(highlightedPre);
+					} catch (error) {
+						console.warn('Shiki failed to highlight a code block.', error);
+					}
+				}
+			}
+
 			function renderPreview(plainText, preview) {
 				// Pre-process: wrap block math $$...$$ in div to survive marked parsing
 				var src = plainText.replace(/\$\$([\s\S]+?)\$\$/g, function(match) {
@@ -1493,6 +1624,8 @@ $$
 
 				// KaTeX auto-render (handles both $...$ and $$...$$)
 				applyMathRendering(preview);
+				// Live preview keeps code blocks plain — Shiki highlighting is
+				// only applied at export time (Download PDF / standalone HTML).
 
 	return null; // we set innerHTML ourselves
 			}
@@ -1551,6 +1684,7 @@ $$
 					var reader = new FileReader();
 					reader.onload = function() {
 						editor.value(reader.result);
+						resetLoadedDocumentState(editor);
 						editor.codemirror.focus();
 					};
 					reader.readAsText(file);
@@ -1596,6 +1730,7 @@ $$
 				spellChecker: false,
 				autoDownloadFontAwesome: false,
 				sideBySideFullscreen: false,
+				lineWrapping: true,
 				// Custom keymap. Free Cmd/Ctrl+H for Find/Replace; bind H1/H2/H3
 				// to Cmd/Ctrl+Alt+1/2/3 (Notion style — browsers reserve plain
 				// Cmd/Ctrl+1..9 for tab switching, so Alt is required).
@@ -1740,7 +1875,7 @@ $$
 				btn.appendChild(document.createTextNode(item.label));
 			});
 
-			// ── Export dropdown menu (Copy/Download HTML, Download/Print PDF) ──
+			// ── Export dropdown menu (Download HTML / Download PDF) ──
 			(function setupExportMenu() {
 				var btn = document.querySelector('.editor-toolbar .me-export-toolbar-btn')
 					|| document.querySelector('.editor-toolbar button[title="Export…"]')
@@ -1753,22 +1888,13 @@ $$
 				menu.className = 'me-export-menu';
 				menu.hidden = true;
 				menu.innerHTML =
-					'<div class="me-export-item" data-action="copy-html">'
-						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>'
-						+ '<div class="me-export-body"><span class="me-export-label">Copy HTML</span><span class="me-export-desc">Copy rendered HTML to clipboard</span></div>'
-					+ '</div>'
-					+ '<div class="me-export-item" data-action="download-html">'
+					'<div class="me-export-item" data-action="download-html">'
 						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>'
-						+ '<div class="me-export-body"><span class="me-export-label">Download HTML</span><span class="me-export-desc">Standalone .html with embedded styles</span></div>'
+						+ '<div class="me-export-body"><span class="me-export-label">Download HTML</span><span class="me-export-desc">Standalone .html with KaTeX and highlighted code</span></div>'
 					+ '</div>'
-					+ '<div class="me-export-divider"></div>'
 					+ '<div class="me-export-item" data-action="download-pdf">'
 						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13v5"/><path d="M9 13h2a1.5 1.5 0 1 1 0 3H9"/></svg></span>'
 						+ '<div class="me-export-body"><span class="me-export-label">Download PDF</span><span class="me-export-desc">One-click .pdf · always rendered in light theme</span></div>'
-					+ '</div>'
-					+ '<div class="me-export-item" data-action="print-pdf">'
-						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>'
-						+ '<div class="me-export-body"><span class="me-export-label">Print → Save as PDF</span><span class="me-export-desc">Browser print dialog · vector text, smaller file</span></div>'
 					+ '</div>';
 				document.body.appendChild(menu);
 
@@ -1846,29 +1972,61 @@ $$
 				}, 3500);
 			}
 
-			// Standalone HTML document string (used by Download HTML + iframe Print)
-			function getStandaloneHtml(rawMd, title) {
-				var body = marked.parse(rawMd || '');
+			function getDocumentTitle(rawMd) {
+				return ((rawMd || '').match(/^#\s+(.+)$/m) || [])[1] || 'document';
+			}
+
+			function exportFilename(title, ext) {
+				var base = (title || 'document').trim().slice(0, 60).replace(/[^\w\u4e00-\u9fff -]/g, '').trim();
+				return (base || 'document') + ext;
+			}
+
+			function markdownToExportHtml(rawMd) {
+				var src = (rawMd || '').replace(/\$\$([\s\S]+?)\$\$/g, function(match) {
+					return '\n<div class="math-block">\n\n' + match + '\n\n</div>\n';
+				});
+				return marked.parse(src, { breaks: false, gfm: true });
+			}
+
+			async function renderExportContent(rawMd) {
+				var container = document.createElement('div');
+				container.innerHTML = markdownToExportHtml(rawMd);
+				addHeadingIds(container);
+
+				if (/\$/.test(container.textContent) || container.querySelector('.math-block')) {
+					await loadKatex();
+					await renderKatexIn(container);
+				}
+
+				await applySyntaxHighlighting(container);
+				return container;
+			}
+
+			// Standalone HTML document string (used by Download HTML)
+			function getStandaloneHtml(bodyHtml, title) {
 				var katexCss = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">';
 				var styles = '<style>'
-					+ 'body{font:400 14pt/1.7 "Source Sans Pro",-apple-system,sans-serif;color:#1d2939;background:#fff;max-width:820px;margin:2rem auto;padding:0 1.5rem}'
-					+ 'h1,h2,h3,h4{color:#244f8f;font-weight:700}'
-					+ 'h1{font-size:1.75em;padding-bottom:0.4rem;border-bottom:3px solid rgba(42,79,133,0.16);margin:1.4rem 0 0.6rem}'
-					+ 'h1:first-child{margin-top:0}'
-					+ 'h2{font-size:1.4em;padding-left:0.7rem;border-left:4px solid #244f8f;line-height:1.4;margin:1.3rem 0 0.5rem}'
-					+ 'h3{font-size:1.18em;margin:1.1rem 0 0.45rem}'
-					+ 'p{margin:0 0 0.8rem}'
-					+ 'code{background:rgba(36,79,143,0.10);color:#244f8f;padding:0.1rem 0.35rem;border-radius:0.25rem;font:500 0.86em/1 "Menlo","Consolas",monospace}'
-					+ 'pre{background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:0.5rem;overflow-x:auto;font:400 0.86em/1.55 "Menlo",monospace}'
-					+ 'pre code{background:transparent;color:inherit;padding:0}'
-					+ 'blockquote{border-left:4px solid #244f8f;background:rgba(36,79,143,0.08);padding:0.6rem 1rem;margin:0.9rem 0;border-radius:0 0.4rem 0.4rem 0;color:#516074}'
-					+ 'table{width:100%;border-collapse:collapse;margin:0.8rem 0}'
-					+ 'th,td{border:1px solid rgba(42,79,133,0.16);padding:0.45rem 0.7rem;text-align:left}'
-					+ 'th{background:rgba(36,79,143,0.07);font-weight:700}'
-					+ 'a{color:#244f8f}'
+					+ 'body{font:400 14pt/1.7 "Source Sans Pro",-apple-system,sans-serif;color:#1d2939;background:#fff;margin:0}'
+					+ '.markdown-body{max-width:820px;margin:2rem auto;padding:0 1.5rem}'
+					+ '.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{color:#244f8f;font-weight:700}'
+					+ '.markdown-body h1{font-size:1.75em;padding-bottom:0.4rem;border-bottom:3px solid rgba(42,79,133,0.16);margin:1.4rem 0 0.6rem}'
+					+ '.markdown-body h1:first-child{margin-top:0}'
+					+ '.markdown-body h2{font-size:1.4em;padding-left:0.7rem;border-left:4px solid #244f8f;line-height:1.4;margin:1.3rem 0 0.5rem}'
+					+ '.markdown-body h3{font-size:1.18em;margin:1.1rem 0 0.45rem}'
+					+ '.markdown-body p{margin:0 0 0.8rem}'
+					+ '.markdown-body :not(pre)>code{background:rgba(36,79,143,0.10);color:#244f8f;padding:0.1rem 0.35rem;border-radius:0.25rem;font:500 0.86em/1 "Menlo","Consolas",monospace}'
+					+ '.markdown-body pre{background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:0.5rem;overflow-x:auto;font:400 0.86em/1.55 "Menlo",monospace}'
+					+ '.markdown-body pre code{background:transparent;color:inherit;padding:0}'
+					+ '.markdown-body pre.shiki code .line{display:block;min-height:1.55em}'
+					+ '.markdown-body blockquote{border-left:4px solid #244f8f;background:rgba(36,79,143,0.08);padding:0.6rem 1rem;margin:0.9rem 0;border-radius:0 0.4rem 0.4rem 0;color:#516074}'
+					+ '.markdown-body table{width:100%;border-collapse:collapse;margin:0.8rem 0}'
+					+ '.markdown-body th,.markdown-body td{border:1px solid rgba(42,79,133,0.16);padding:0.45rem 0.7rem;text-align:left}'
+					+ '.markdown-body th{background:rgba(36,79,143,0.07);font-weight:700}'
+					+ '.markdown-body a{color:#244f8f}'
+					+ '.math-block{overflow-x:hidden;text-align:center;margin:1rem 0}.math-block .katex-display{margin:0}.math-block .katex-display>.katex{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 0}'
 					+ '</style>';
 				var safeTitle = (title || 'Document').replace(/[<>"]/g, '');
-				return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title>' + katexCss + styles + '</head><body>' + body + '</body></html>';
+				return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + safeTitle + '</title>' + katexCss + styles + '</head><body><main class="markdown-body">' + bodyHtml + '</main></body></html>';
 			}
 
 			// html2pdf.js lazy loader
@@ -1886,7 +2044,7 @@ $$
 				return html2pdfReady;
 			}
 
-			// KaTeX auto-render for offscreen / iframe DOM
+			// KaTeX auto-render for export DOM
 			function renderKatexIn(el) {
 				if (!window.renderMathInElement) return Promise.resolve();
 				try {
@@ -1902,95 +2060,172 @@ $$
 			}
 
 			var exportActions = {
-				'copy-html': function() { actionCopyHtml(easyMDE); },
-
-				'download-html': function() {
+				'download-html': async function() {
 					var src = easyMDE.value();
-					var first = (src.match(/^#\s+(.+)$/m) || [])[1];
-					var html = getStandaloneHtml(src, first);
-					var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-					var url = URL.createObjectURL(blob);
-					var a = document.createElement('a');
-					a.href = url;
-					a.download = (first ? first.trim().slice(0, 60).replace(/[^\w一-鿿 -]/g, '') : 'document') + '.html';
-					document.body.appendChild(a); a.click(); document.body.removeChild(a);
-					URL.revokeObjectURL(url);
-					showToast('✓ HTML downloaded');
+					var title = getDocumentTitle(src);
+					showToast('Rendering HTML...');
+					try {
+						var rendered = await renderExportContent(src);
+						var html = getStandaloneHtml(rendered.innerHTML, title);
+						var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+						var url = URL.createObjectURL(blob);
+						var a = document.createElement('a');
+						a.href = url;
+						a.download = exportFilename(title, '.html');
+						document.body.appendChild(a); a.click(); document.body.removeChild(a);
+						URL.revokeObjectURL(url);
+						showToast('✓ HTML downloaded');
+					} catch (err) {
+						showToast('✗ HTML export failed');
+						console.warn(err);
+					}
 				},
 
-				'download-pdf': function() {
-					showToast('Loading PDF generator…');
-					loadKatex().then(function() {
-						return loadHtml2Pdf();
-					}).then(function() {
-						// Render markdown into an off-screen container with FORCED
-						// light theme styling, regardless of the page's data-theme.
-						var rendered = marked.parse(easyMDE.value());
-						var container = document.createElement('div');
+				'download-pdf': async function() {
+					var src = easyMDE.value();
+					var title = getDocumentTitle(src);
+					var fname = exportFilename(title, '.pdf');
+					var stage = null;
+
+					try {
+						showToast('Rendering PDF...');
+						var rendered = await renderExportContent(src);
+						stage = document.createElement('div');
+						stage.className = 'me-pdf-stage';
+
+						var container = rendered;
 						container.className = 'me-pdf-render';
 						container.setAttribute('data-theme', 'light');
-						container.innerHTML = rendered;
-						document.body.appendChild(container);
+						stage.appendChild(container);
+						document.body.appendChild(stage);
 
-						renderKatexIn(container).then(function() {
-							showToast('Generating PDF…');
-							var first = (easyMDE.value().match(/^#\s+(.+)$/m) || [])[1];
-							var fname = (first ? first.trim().slice(0, 60).replace(/[^\w一-鿿 -]/g, '') : 'document') + '.pdf';
-							var opts = {
-								margin: [10, 12, 12, 12],
-								filename: fname,
-								image: { type: 'jpeg', quality: 0.96 },
-								html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-								jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
-								pagebreak: { mode: ['css', 'legacy'] }
-							};
-							window.html2pdf().from(container).set(opts).save().then(function() {
-								container.remove();
-								showToast('✓ ' + fname + ' downloaded');
-							}).catch(function(err) {
-								container.remove();
-								showToast('✗ PDF generation failed');
-								console.warn(err);
-							});
+						await new Promise(function(resolve) {
+							requestAnimationFrame(function() { requestAnimationFrame(resolve); });
 						});
-					}).catch(function(err) {
-						showToast('✗ Failed to load PDF generator');
-						console.warn(err);
-					});
-				},
 
-				'print-pdf': function() {
-					// Render markdown into a hidden iframe with full standalone HTML
-					// (light theme), then call print() inside it. Avoids polluting
-					// the current page's print stylesheet.
-					var src = easyMDE.value();
-					var first = (src.match(/^#\s+(.+)$/m) || [])[1];
-					var html = getStandaloneHtml(src, first);
-					var iframe = document.getElementById('me-print-iframe');
-					if (iframe) iframe.remove();
-					iframe = document.createElement('iframe');
-					iframe.id = 'me-print-iframe';
-					iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:0;height:0;border:0';
-					document.body.appendChild(iframe);
-					iframe.contentDocument.open();
-					iframe.contentDocument.write(html);
-					iframe.contentDocument.close();
-					showToast('Opening print dialog…');
-					setTimeout(function() {
-						try {
-							iframe.contentWindow.focus();
-							iframe.contentWindow.print();
-						} catch (err) {
-							showToast('✗ Print failed');
-						}
-						setTimeout(function() { if (iframe) iframe.remove(); }, 2000);
-					}, 600);
+						showToast('Loading PDF generator...');
+						await loadHtml2Pdf();
+						showToast('Generating PDF...');
+
+						var opts = {
+							margin: [10, 16, 12, 16],
+							filename: fname,
+							image: { type: 'jpeg', quality: 0.96 },
+							html2canvas: {
+								scale: 2,
+								useCORS: true,
+								backgroundColor: '#ffffff',
+								scrollX: 0,
+								scrollY: 0,
+								x: 0,
+								y: 0,
+								width: container.offsetWidth,
+								height: container.scrollHeight,
+								windowWidth: container.offsetWidth,
+								windowHeight: container.scrollHeight
+							},
+							jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+							pagebreak: { mode: ['css', 'legacy'] }
+						};
+
+						await window.html2pdf().from(container).set(opts).save();
+						showToast('✓ ' + fname + ' downloaded');
+					} catch (err) {
+						showToast('✗ PDF generation failed');
+						console.warn(err);
+					} finally {
+						if (stage) stage.remove();
+					}
 				}
 			};
 
 			// Sync the actual toolbar height into a CSS var so the preview-side
 			// (absolute-positioned in non-fullscreen) anchors to the bottom of
 			// the toolbar exactly, keeping editor + preview tops aligned.
+			// Force lineWrapping on. EasyMDE's option doesn't always pass cleanly
+			// to the underlying CodeMirror, so set it explicitly after init.
+			easyMDE.codemirror.setOption('lineWrapping', true);
+			easyMDE.codemirror.getWrapperElement().classList.add('CodeMirror-wrap');
+			easyMDE.codemirror.refresh();
+
+			// ── Draggable split gutter (between editor + preview in side-by-side) ──
+			(function setupSplitGutter() {
+				var card = document.querySelector('.me-editor-card');
+				var container = card && card.querySelector('.EasyMDEContainer');
+				if (!card || !container) return;
+				var cm = easyMDE.codemirror;
+
+				var gutter = document.createElement('div');
+				gutter.className = 'me-pane-gutter';
+				gutter.setAttribute('role', 'separator');
+				gutter.setAttribute('aria-orientation', 'vertical');
+				gutter.setAttribute('aria-label', 'Resize editor / preview');
+				container.appendChild(gutter);
+
+				// Restore split from localStorage
+				var STORAGE_KEY = 'me-split-pct';
+				try {
+					var saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+					if (saved && saved >= 15 && saved <= 85) {
+						applySplit(saved);
+					}
+				} catch (e) {}
+
+				function applySplit(pct) {
+					card.style.setProperty('--me-split', pct + '%');
+					card.style.setProperty('--me-split-num', (pct / 100).toString());
+				}
+
+				var rafId = null;
+				function refreshSoon() {
+					if (rafId) cancelAnimationFrame(rafId);
+					rafId = requestAnimationFrame(function() { cm.refresh(); rafId = null; });
+				}
+
+				gutter.addEventListener('pointerdown', function(e) {
+					e.preventDefault();
+					gutter.setPointerCapture(e.pointerId);
+					gutter.classList.add('dragging');
+					document.body.classList.add('me-pane-dragging');
+
+					var rect = container.getBoundingClientRect();
+					var startX = e.clientX;
+					var startPct = (parseFloat(getComputedStyle(card).getPropertyValue('--me-split')) || 50);
+
+					function onMove(ev) {
+						var dx = ev.clientX - startX;
+						// EasyMDEContainer's rect is the reference in all modes —
+						// in fullscreen the card is position:fixed inset:0 so the
+						// container width still equals the visible editor area.
+						var pct = startPct + (dx / rect.width) * 100;
+						pct = Math.max(15, Math.min(85, pct));
+						applySplit(pct);
+						refreshSoon();
+					}
+					function onUp(ev) {
+						gutter.releasePointerCapture(e.pointerId);
+						gutter.classList.remove('dragging');
+						document.body.classList.remove('me-pane-dragging');
+						gutter.removeEventListener('pointermove', onMove);
+						gutter.removeEventListener('pointerup', onUp);
+						gutter.removeEventListener('pointercancel', onUp);
+						var finalPct = parseFloat(getComputedStyle(card).getPropertyValue('--me-split')) || 50;
+						try { localStorage.setItem(STORAGE_KEY, finalPct.toFixed(1)); } catch (e) {}
+						cm.refresh();
+					}
+					gutter.addEventListener('pointermove', onMove);
+					gutter.addEventListener('pointerup', onUp);
+					gutter.addEventListener('pointercancel', onUp);
+				});
+
+				// Double-click to reset to 50/50
+				gutter.addEventListener('dblclick', function() {
+					applySplit(50);
+					try { localStorage.setItem(STORAGE_KEY, '50.0'); } catch (e) {}
+					cm.refresh();
+				});
+			})();
+
 			(function syncToolbarHeight() {
 				var tb = document.querySelector('.me-editor-card .editor-toolbar');
 				if (!tb) return;
@@ -2003,6 +2238,38 @@ $$
 				if (window.ResizeObserver) {
 					new ResizeObserver(update).observe(tb);
 				}
+			})();
+
+			(function syncStatusbarHeight() {
+				var sb = document.querySelector('.me-editor-card .editor-statusbar');
+				if (!sb) return;
+				function update() {
+					var h = sb.offsetHeight;
+					if (h > 0) document.documentElement.style.setProperty('--me-statusbar-h', h + 'px');
+				}
+				update();
+				window.addEventListener('resize', update);
+				if (window.ResizeObserver) {
+					new ResizeObserver(update).observe(sb);
+				}
+			})();
+
+			// CodeMirror caches its width on first paint; when the editor card
+			// reflows (outline panel toggle, window resize, side-by-side switch),
+			// long lines stay in their old wrapping until cm.refresh() runs. Watch
+			// the CM wrapper element with ResizeObserver and refresh on any size
+			// change. Debounced via rAF since the panel transition fires multiple
+			// resize events.
+			(function autoRefreshCm() {
+				if (!window.ResizeObserver) return;
+				var cm = easyMDE.codemirror;
+				var wrapper = cm.getWrapperElement();
+				var raf = null;
+				var ro = new ResizeObserver(function() {
+					if (raf) cancelAnimationFrame(raf);
+					raf = requestAnimationFrame(function() { cm.refresh(); raf = null; });
+				});
+				ro.observe(wrapper);
 			})();
 
 			// Wire breadcrumb "Open in Viewer" pill
@@ -2334,16 +2601,39 @@ $$
 				preview.scrollTop = ratio * maxPreview;
 			});
 
+			function resetLoadedDocumentState(editor) {
+				var cm = editor.codemirror;
+
+				function reset() {
+					cm.refresh();
+					cm.setCursor({ line: 0, ch: 0 });
+					cm.scrollTo(0, 0);
+					document.querySelectorAll('.editor-preview, .editor-preview-side').forEach(function(preview) {
+						preview.scrollTop = 0;
+					});
+					var panel = document.getElementById('me-outline-panel');
+					if (panel) panel.scrollTop = 0;
+				}
+
+				reset();
+				requestAnimationFrame(function() {
+					reset();
+					requestAnimationFrame(reset);
+				});
+			}
+
 			// Load transferred content from md-viewer
 			var transferred = localStorage.getItem('me-transfer');
 			if (transferred) {
 				localStorage.removeItem('me-transfer');
 				easyMDE.value(transferred);
+				resetLoadedDocumentState(easyMDE);
 			}
 
 			// Enable side-by-side by default on desktop
 			if (window.innerWidth > 736) {
 				easyMDE.toggleSideBySide();
+				resetLoadedDocumentState(easyMDE);
 			}
 
 			// Pre-load KaTeX if initial content has $
@@ -2357,11 +2647,20 @@ $$
 				var rebuildTimer = null;
 				var clickJumping = false;
 				var clickJumpTimer = null;
+				var outlineUserScrolling = false;
+				var outlineUserScrollTimer = null;
+				var activeSource = 'editor';
+				var activeRaf = null;
+
+				// Defensive cleanup: remove any existing outline panels (e.g. left
+				// over from hot-reload or duplicate IIFE invocation).
+				document.querySelectorAll('.me-outline-panel').forEach(function(el) { el.remove(); });
 
 				// Build DOM: outline panel (right column) + palette overlay (body level)
 				var panel = document.createElement('aside');
 				panel.className = 'me-outline-panel';
 				panel.id = 'me-outline-panel';
+				panel.tabIndex = 0;
 				panel.innerHTML = '<div class="me-outline-header">'
 					+ '<span class="me-outline-title">Outline</span>'
 					+ '<button type="button" class="me-outline-goto" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading">'
@@ -2429,7 +2728,7 @@ $$
 					}).join('');
 				}
 
-				function activeIdx() {
+				function editorActiveIdx() {
 					var info = cm.getScrollInfo();
 					var topLine = cm.lineAtHeight(info.top + 30, 'local');
 					var idx = 0;
@@ -2440,22 +2739,52 @@ $$
 					return idx;
 				}
 
+				function previewActiveIdx() {
+					var preview = document.querySelector('.editor-preview-active-side');
+					if (!preview) return editorActiveIdx();
+					var previewHeads = Array.from(preview.querySelectorAll('h1, h2, h3, h4'));
+					if (!previewHeads.length) return editorActiveIdx();
+					var scrollY = preview.scrollTop + 80;
+					var idx = 0;
+					for (var i = 0; i < previewHeads.length; i++) {
+						if (previewHeads[i].offsetTop <= scrollY) idx = i;
+						else break;
+					}
+					return Math.min(idx, Math.max(0, headings.length - 1));
+				}
+
+				function activeIdx() {
+					return activeSource === 'preview' ? previewActiveIdx() : editorActiveIdx();
+				}
+
+				function keepOutlineItemVisible(item) {
+					if (!item) return;
+					if (outlineUserScrolling) return;
+					var elTop = item.offsetTop;
+					var elH = item.offsetHeight;
+					var pH = panel.clientHeight;
+					var pScroll = panel.scrollTop;
+					if (elTop < pScroll || elTop + elH > pScroll + pH) {
+						panel.scrollTop = elTop - pH / 2 + elH / 2;
+					}
+				}
+
 				function updateActive() {
 					if (!headings.length) return;
 					var idx = activeIdx();
 					var items = listEl.querySelectorAll('.me-outline-item');
 					items.forEach(function(el, i) { el.classList.toggle('active', i === idx); });
 					if (clickJumping) return;
-					var activeItem = items[idx];
-					if (activeItem) {
-						var elTop = activeItem.offsetTop;
-						var elH = activeItem.offsetHeight;
-						var pH = panel.clientHeight;
-						var pScroll = panel.scrollTop;
-						if (elTop < pScroll || elTop + elH > pScroll + pH) {
-							panel.scrollTop = elTop - pH / 2 + elH / 2;
-						}
-					}
+					keepOutlineItemVisible(items[idx]);
+				}
+
+				function scheduleActiveUpdate(source) {
+					activeSource = source || activeSource;
+					if (activeRaf) return;
+					activeRaf = requestAnimationFrame(function() {
+						activeRaf = null;
+						updateActive();
+					});
 				}
 
 				function jumpToLine(line) {
@@ -2468,6 +2797,37 @@ $$
 					cm.focus();
 				}
 
+				function markOutlineUserScrolling() {
+					outlineUserScrolling = true;
+					if (outlineUserScrollTimer) clearTimeout(outlineUserScrollTimer);
+					outlineUserScrollTimer = setTimeout(function() {
+						outlineUserScrolling = false;
+					}, 700);
+				}
+
+				panel.addEventListener('wheel', function(e) {
+					markOutlineUserScrolling();
+					e.stopPropagation();
+
+					if (document.querySelector('.CodeMirror-fullscreen')) {
+						var maxScroll = panel.scrollHeight - panel.clientHeight;
+						if (maxScroll > 0) {
+							var delta = e.deltaY;
+							if (e.deltaMode === 1) delta *= 16;
+							else if (e.deltaMode === 2) delta *= panel.clientHeight;
+							panel.scrollTop = Math.max(0, Math.min(maxScroll, panel.scrollTop + delta));
+							e.preventDefault();
+						}
+					}
+				}, { passive: false });
+
+				panel.addEventListener('touchmove', function(e) {
+					markOutlineUserScrolling();
+					e.stopPropagation();
+				}, { passive: true });
+
+				panel.addEventListener('scroll', markOutlineUserScrolling, { passive: true });
+
 				listEl.addEventListener('click', function(e) {
 					var item = e.target.closest('.me-outline-item');
 					if (!item) return;
@@ -2479,14 +2839,20 @@ $$
 					openPalette();
 				});
 
-				cm.on('scroll', updateActive);
+				cm.on('scroll', function() { scheduleActiveUpdate('editor'); });
 				cm.on('change', function() {
 					if (rebuildTimer) clearTimeout(rebuildTimer);
 					rebuildTimer = setTimeout(function() {
 						buildOutline();
-						updateActive();
+						scheduleActiveUpdate('editor');
 					}, 300);
 				});
+
+				document.addEventListener('scroll', function(e) {
+					if (e.target && e.target.classList && e.target.classList.contains('editor-preview-side')) {
+						scheduleActiveUpdate('preview');
+					}
+				}, true);
 
 				// Toggle from toolbar button (exposed via window._meToggleOutline)
 				window._meToggleOutline = function() {
@@ -2495,6 +2861,10 @@ $$
 					try { localStorage.setItem(STORAGE_KEY, nowCollapsed ? '1' : '0'); } catch (e) {}
 					var btn = document.querySelector('.editor-toolbar .me-outline-btn');
 					if (btn) btn.classList.toggle('active', !nowCollapsed);
+					// Force CM to re-wrap long lines AFTER the panel slide-in/out
+					// transition (220ms). Refreshing mid-animation only updates to
+					// an intermediate width.
+					setTimeout(function() { cm.refresh(); }, 260);
 				};
 
 				// Mark the toolbar button as active reflecting initial state
@@ -2580,6 +2950,7 @@ $$
 
 				buildOutline();
 				updateActive();
+				resetLoadedDocumentState(easyMDE);
 			})();
 
 		})();
