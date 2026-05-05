@@ -1063,6 +1063,60 @@
 				font-style: italic;
 			}
 
+			/* ── Slash command menu (Notion-style, anchored at cursor) ── */
+			.me-slash-menu {
+				position: fixed;
+				z-index: 99999;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.5rem;
+				box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+				overflow: hidden;
+				width: 250px;
+				color: var(--me-ink);
+				display: flex;
+				flex-direction: column;
+			}
+			.me-slash-menu[hidden] { display: none; }
+			.me-slash-list {
+				max-height: 280px;
+				overflow-y: auto;
+				padding: 0.2rem;
+			}
+			.me-slash-item {
+				padding: 0.22rem 0.5rem;
+				border-radius: 0.3rem;
+				cursor: pointer;
+				font: 500 0.82rem/1.2 "Inter", sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 0.45rem;
+				color: var(--me-ink);
+			}
+			.me-slash-item .me-slash-hint {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 22px;
+				height: 20px;
+				flex-shrink: 0;
+				color: var(--me-muted);
+			}
+			.me-slash-item .me-slash-hint svg {
+				width: 15px;
+				height: 15px;
+			}
+			.me-slash-item.active { background: var(--me-blue-bg-strong); color: var(--me-blue); }
+			.me-slash-item:hover { background: var(--me-blue-bg); }
+			.me-slash-item.active .me-slash-hint,
+			.me-slash-item:hover .me-slash-hint { color: var(--me-blue); }
+			.me-slash-empty {
+				color: var(--me-muted);
+				padding: 0.5rem 0.6rem;
+				font-style: italic;
+				font-size: 0.82rem;
+			}
+
 			/* ── Export dropdown menu (positioned via JS, attached to body) ── */
 			.me-export-menu {
 				position: fixed !important;
@@ -2347,7 +2401,8 @@ $$
 						+ '</button>'
 					+ '</div>'
 					+ '<div class="me-help-body">'
-						+ '<div class="me-help-section"><h4>Navigation</h4><table class="me-help-table">'
+						+ '<div class="me-help-section"><h4>Navigation &amp; Insertion</h4><table class="me-help-table">'
+							+ row(k('/') + ' (line start)', 'Open slash command menu — insert headings, lists, code, math, tables…')
 							+ row(k(mod) + '+' + k(shift) + '+' + k('O'), 'Open <em>Go to heading</em> command palette')
 							+ row('Toolbar <svg style="vertical-align:-3px;display:inline-block" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>', 'Toggle Outline panel (right side)')
 							+ row(k('Esc'), 'Close any open dialog')
@@ -2774,8 +2829,17 @@ $$
 					return heads;
 				}
 
+				var lastOutlineSig = '';
 				function buildOutline() {
 					headings = parseHeadings(cm.getValue());
+					// Only the heading set (level + text) drives the DOM. Line
+					// numbers shift on every newline but don't change which items
+					// appear — keep them in `headings` (used for jumping) but
+					// exclude from the rebuild signature so the panel doesn't
+					// flicker on plain typing/Enter.
+					var sig = headings.map(function(h) { return h.level + '|' + h.text; }).join('\n');
+					if (sig === lastOutlineSig) return;
+					lastOutlineSig = sig;
 					if (headings.length === 0) {
 						listEl.innerHTML = '<div class="me-outline-empty">No headings yet</div>';
 						return;
@@ -3041,6 +3105,229 @@ $$
 				buildOutline();
 				updateActive();
 				resetLoadedDocumentState(easyMDE);
+			})();
+
+			// ── Slash command menu ─────────────────────────
+			// Type "/" at the start of a line (optionally indented) to open
+			// a Notion-style insertion menu. Filters as you type, navigates
+			// with ↑/↓, inserts on Enter, dismisses on Esc/click-out.
+			(function() {
+				var cm = easyMDE.codemirror;
+
+				// Lucide SVG paths reused from the toolbar (lucideIcons table).
+				// Plus a couple of slash-only icons (todo checkbox, divider).
+				var ic = {
+					h1:      lucideIcons['header-1'],
+					h2:      lucideIcons['header-2'],
+					h3:      lucideIcons['header-3'],
+					ul:      lucideIcons['fa-list-ul'],
+					ol:      lucideIcons['fa-list-ol'],
+					todo:    '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/>',
+					quote:   lucideIcons['fa-quote-left'],
+					divider: lucideIcons['fa-minus'],
+					code:    lucideIcons['fa-code'],
+					inline:  lucideIcons['fa-terminal'],
+					math:    lucideIcons['fa-superscript'],
+					link:    lucideIcons['fa-link'],
+					image:   lucideIcons['fa-image'],
+					table:   lucideIcons['fa-table'],
+					toc:     lucideIcons['fa-sitemap']
+				};
+
+				// Each item: { hint (icon SVG), label, aliases (search terms),
+				// apply(cm) — runs after the typed "/query" has been deleted
+				// and cursor is at the trigger position. }
+				var items = [
+					{ hint: wrapLucide(ic.h1),      label: 'Heading 1',     aliases: 'h1 heading title',           apply: function(cm) { cm.replaceSelection('# '); } },
+					{ hint: wrapLucide(ic.h2),      label: 'Heading 2',     aliases: 'h2 heading subtitle',        apply: function(cm) { cm.replaceSelection('## '); } },
+					{ hint: wrapLucide(ic.h3),      label: 'Heading 3',     aliases: 'h3 heading',                 apply: function(cm) { cm.replaceSelection('### '); } },
+					{ hint: wrapLucide(ic.ul),      label: 'Bulleted List', aliases: 'list bullet ul unordered',   apply: function(cm) { cm.replaceSelection('- '); } },
+					{ hint: wrapLucide(ic.ol),      label: 'Numbered List', aliases: 'list ol ordered numbered',   apply: function(cm) { cm.replaceSelection('1. '); } },
+					{ hint: wrapLucide(ic.todo),    label: 'Todo List',     aliases: 'todo task checkbox check',   apply: function(cm) { cm.replaceSelection('- [ ] '); } },
+					{ hint: wrapLucide(ic.quote),   label: 'Quote',         aliases: 'quote blockquote',           apply: function(cm) { cm.replaceSelection('> '); } },
+					{ hint: wrapLucide(ic.divider), label: 'Divider',       aliases: 'divider hr horizontal rule separator', apply: function(cm) { cm.replaceSelection('---\n'); } },
+					{ hint: wrapLucide(ic.code),    label: 'Code Block',    aliases: 'code fenced block',          apply: function(cm) {
+						cm.replaceSelection('```\n\n```\n');
+						var c = cm.getCursor();
+						// Cursor: after opening ``` (line 0 col 3) so user can type a language tag
+						cm.setCursor({ line: c.line - 3, ch: 3 });
+					}},
+					{ hint: wrapLucide(ic.inline),  label: 'Inline Code',   aliases: 'code inline mono',           apply: function(cm) {
+						cm.replaceSelection('`code`');
+						var c = cm.getCursor();
+						cm.setSelection({ line: c.line, ch: c.ch - 5 }, { line: c.line, ch: c.ch - 1 });
+					}},
+					{ hint: wrapLucide(ic.math),    label: 'Math Block',    aliases: 'math equation latex katex display', apply: function(cm) {
+						cm.replaceSelection('$$\n\n$$\n');
+						var c = cm.getCursor();
+						cm.setCursor({ line: c.line - 2, ch: 0 });
+					}},
+					{ hint: wrapLucide(ic.math),    label: 'Inline Math',   aliases: 'math inline latex katex',    apply: function(cm) {
+						cm.replaceSelection('$formula$');
+						var c = cm.getCursor();
+						cm.setSelection({ line: c.line, ch: c.ch - 8 }, { line: c.line, ch: c.ch - 1 });
+					}},
+					{ hint: wrapLucide(ic.link),    label: 'Link',          aliases: 'link url href anchor',       apply: function(cm) {
+						cm.replaceSelection('[text](url)');
+						var c = cm.getCursor();
+						cm.setSelection({ line: c.line, ch: c.ch - 10 }, { line: c.line, ch: c.ch - 6 });
+					}},
+					{ hint: wrapLucide(ic.image),   label: 'Image',         aliases: 'image picture img figure',   apply: function(cm) {
+						cm.replaceSelection('![alt](url)');
+						var c = cm.getCursor();
+						cm.setSelection({ line: c.line, ch: c.ch - 9 }, { line: c.line, ch: c.ch - 6 });
+					}},
+					{ hint: wrapLucide(ic.table),   label: 'Table',         aliases: 'table grid',                 apply: function(cm) {
+						cm.replaceSelection('| Column 1 | Column 2 |\n| --- | --- |\n| Cell | Cell |\n');
+					}},
+					{ hint: wrapLucide(ic.toc),     label: 'Table of Contents', aliases: 'toc index nav outline contents', apply: function(cm) { actionToc(easyMDE); } }
+				];
+
+				var menu = document.createElement('div');
+				menu.className = 'me-slash-menu';
+				menu.hidden = true;
+				var listEl = document.createElement('div');
+				listEl.className = 'me-slash-list';
+				menu.appendChild(listEl);
+				document.body.appendChild(menu);
+
+				var state = null; // { startPos, query, activeIdx, filtered }
+
+				function render() {
+					var q = state.query.toLowerCase();
+					state.filtered = q
+						? items.filter(function(it) {
+							return it.label.toLowerCase().indexOf(q) >= 0 || it.aliases.indexOf(q) >= 0;
+						})
+						: items.slice();
+					if (state.activeIdx >= state.filtered.length) state.activeIdx = state.filtered.length - 1;
+					if (state.activeIdx < 0) state.activeIdx = 0;
+					if (!state.filtered.length) {
+						listEl.innerHTML = '<div class="me-slash-empty">No matches</div>';
+						return;
+					}
+					listEl.innerHTML = state.filtered.map(function(it, i) {
+						return '<div class="me-slash-item' + (i === state.activeIdx ? ' active' : '') + '" data-idx="' + i + '">'
+							+ '<span class="me-slash-hint">' + it.hint + '</span>'
+							+ '<span class="me-slash-label">' + it.label + '</span>'
+							+ '</div>';
+					}).join('');
+					var active = listEl.querySelector('.me-slash-item.active');
+					if (active) active.scrollIntoView({ block: 'nearest' });
+				}
+
+				function position() {
+					var coords = cm.cursorCoords(true, 'window');
+					var maxLeft = window.innerWidth - 260;
+					var left = Math.min(coords.left, maxLeft);
+					var top = coords.bottom + 4;
+					// Flip above if not enough room below
+					if (top + 320 > window.innerHeight && coords.top > 320) {
+						top = coords.top - 4;
+						menu.style.transform = 'translateY(-100%)';
+					} else {
+						menu.style.transform = '';
+					}
+					menu.style.left = left + 'px';
+					menu.style.top = top + 'px';
+				}
+
+				function open(startPos) {
+					state = { startPos: startPos, query: '', activeIdx: 0, filtered: items.slice() };
+					render();
+					menu.hidden = false;
+					position();
+				}
+
+				function close() {
+					state = null;
+					menu.hidden = true;
+				}
+
+				function applySelection() {
+					if (!state || !state.filtered.length) return;
+					var item = state.filtered[state.activeIdx];
+					var endPos = cm.getCursor();
+					var startPos = state.startPos;
+					close();
+					// Remove the typed "/query"
+					cm.replaceRange('', startPos, endPos);
+					cm.setCursor(startPos);
+					item.apply(cm);
+					cm.focus();
+				}
+
+				cm.on('inputRead', function(cm, change) {
+					if (state) return;
+					if (change.text.length !== 1 || change.text[0] !== '/') return;
+					var cursor = cm.getCursor();
+					var line = cm.getLine(cursor.line);
+					var before = line.substring(0, cursor.ch - 1);
+					if (!/^\s*$/.test(before)) return;
+					open({ line: cursor.line, ch: cursor.ch - 1 });
+				});
+
+				cm.on('cursorActivity', function() {
+					if (!state) return;
+					var cursor = cm.getCursor();
+					if (cursor.line !== state.startPos.line || cursor.ch <= state.startPos.ch) {
+						close();
+						return;
+					}
+					var line = cm.getLine(cursor.line);
+					// If the "/" character was deleted, close
+					if (line.charAt(state.startPos.ch) !== '/') {
+						close();
+						return;
+					}
+					var newQuery = line.substring(state.startPos.ch + 1, cursor.ch);
+					// Space dismisses (matches Notion behavior)
+					if (/\s/.test(newQuery)) { close(); return; }
+					state.query = newQuery;
+					render();
+					position();
+				});
+
+				cm.on('keydown', function(cm, e) {
+					if (!state) return;
+					if (e.key === 'Escape') {
+						e.preventDefault();
+						close();
+					} else if (e.key === 'ArrowDown') {
+						e.preventDefault();
+						state.activeIdx = Math.min(state.activeIdx + 1, state.filtered.length - 1);
+						render();
+					} else if (e.key === 'ArrowUp') {
+						e.preventDefault();
+						state.activeIdx = Math.max(state.activeIdx - 1, 0);
+						render();
+					} else if (e.key === 'Enter' || e.key === 'Tab') {
+						if (state.filtered.length) {
+							e.preventDefault();
+							applySelection();
+						}
+					}
+				});
+
+				listEl.addEventListener('mousedown', function(e) {
+					var el = e.target.closest('.me-slash-item');
+					if (!el) return;
+					e.preventDefault();
+					state.activeIdx = parseInt(el.dataset.idx, 10);
+					applySelection();
+				});
+
+				document.addEventListener('mousedown', function(e) {
+					if (!state) return;
+					if (menu.contains(e.target)) return;
+					if (cm.getWrapperElement().contains(e.target)) return;
+					close();
+				});
+
+				cm.on('blur', function() {
+					// Brief delay so item-click mousedown can run first
+					setTimeout(function() { if (state && !document.activeElement.closest('.me-slash-menu')) close(); }, 80);
+				});
 			})();
 
 		})();
