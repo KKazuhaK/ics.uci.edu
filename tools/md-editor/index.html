@@ -1562,7 +1562,10 @@ $$
 
 			function getCodeBlockLanguage(codeElement) {
 				var pre = codeElement.parentElement;
-				var raw = (pre && pre.dataset && pre.dataset.language) || '';
+				// chat-widget.js installs a global marked renderer that emits
+				// <pre class="cw-code" data-lang="X"> instead of the default
+				// <code class="language-X">, so check both attribute names.
+				var raw = (pre && pre.dataset && (pre.dataset.language || pre.dataset.lang)) || '';
 				if (!raw) {
 					var match = (codeElement.className || '').match(/(?:^|\s)language-([A-Za-z0-9_+#.-]+)/);
 					raw = match ? match[1] : '';
