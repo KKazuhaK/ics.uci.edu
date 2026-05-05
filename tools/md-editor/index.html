@@ -211,6 +211,30 @@
 				padding: 0;
 			}
 
+			/* Mobile layout (toggled by JS via .me-mobile class so the layout
+			 * also flips when a desktop window is resized below 736px, not
+			 * just on touch devices): single column, hide the side-by-side
+			 * preview and outline rail, drop the row-flex so the toolbar
+			 * can fill width and wrap naturally. */
+			.me-editor-card.me-mobile { display: block !important; }
+			.me-editor-card.me-mobile .EasyMDEContainer {
+				width: 100% !important;
+				max-width: 100% !important;
+				flex-basis: auto !important;
+			}
+			.me-editor-card.me-mobile .me-outline-panel,
+			.me-editor-card.me-mobile .me-pane-gutter,
+			.me-editor-card.me-mobile .editor-preview-active-side {
+				display: none !important;
+			}
+			.me-editor-card.me-mobile .CodeMirror,
+			.me-editor-card.me-mobile .CodeMirror.CodeMirror-sided {
+				width: 100% !important;
+				max-width: 100% !important;
+				height: 55vh !important;
+				min-height: 300px !important;
+			}
+
 			/* ── EasyMDE theme overrides ───────────────── */
 
 			/* Container — flex column so toolbar/CM/statusbar stack and CM
@@ -857,10 +881,9 @@
 
 				.me-intro { padding: 0.5rem 1rem; }
 
-				.me-editor-card .CodeMirror {
-					height: 55vh !important;
-					min-height: 300px !important;
-				}
+				/* (Mobile-specific overrides also live in the .me-mobile rules
+				 * below — JS toggles that class so the layout changes even if
+				 * a desktop window is dragged narrow.) */
 
 				.me-editor-card .editor-preview-side,
 				.me-editor-card .editor-preview {
@@ -1058,7 +1081,7 @@
 				background: var(--me-card-bg);
 				border: 1px solid var(--me-blue-border);
 				border-radius: 0.6rem;
-				box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
+				box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
 				padding: 0.35rem;
 				/* Above all editor chrome (CM-fullscreen z:9, search bar z:12,
 				 * outline panel z:10) */
@@ -1789,12 +1812,6 @@ $$
 						title: 'Open .md file'
 					},
 					{
-						name: 'download-md',
-						action: actionDownload,
-						className: 'fa fa-download me-export-btn',
-						title: 'Download .md'
-					},
-					{
 						name: 'export',
 						action: function() { window._meToggleExportMenu && window._meToggleExportMenu(); },
 						className: 'fa fa-file-export me-export-btn me-export-toolbar-btn',
@@ -1865,7 +1882,6 @@ $$
 			// Add text labels to export buttons
 			[
 				{ title: 'Open .md file', label: 'Open' },
-				{ title: 'Download .md',  label: 'Save' },
 				{ title: 'Export…',       label: 'Export ▾' }
 			].forEach(function(item) {
 				var btn = document.querySelector('.editor-toolbar button[title="' + item.title + '"]');
@@ -1888,7 +1904,12 @@ $$
 				menu.className = 'me-export-menu';
 				menu.hidden = true;
 				menu.innerHTML =
-					'<div class="me-export-item" data-action="download-html">'
+					'<div class="me-export-item" data-action="download-md">'
+						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 18 3-3-3-3"/><path d="M5 15h7"/></svg></span>'
+						+ '<div class="me-export-body"><span class="me-export-label">Download .md</span><span class="me-export-desc">Source markdown · lossless, re-editable</span></div>'
+					+ '</div>'
+					+ '<div class="me-export-divider"></div>'
+					+ '<div class="me-export-item" data-action="download-html">'
 						+ '<span class="me-export-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>'
 						+ '<div class="me-export-body"><span class="me-export-label">Download HTML</span><span class="me-export-desc">Standalone .html with KaTeX and highlighted code</span></div>'
 					+ '</div>'
@@ -1906,9 +1927,18 @@ $$
 					var toolbar = btn.closest('.editor-toolbar');
 					var topAnchor = toolbar ? toolbar.getBoundingClientRect().bottom + 6 : btnRect.bottom + 6;
 					menu.style.top = topAnchor + 'px';
-					menu.style.right = Math.max(8, window.innerWidth - btnRect.right) + 'px';
-					menu.style.left = 'auto';
 					menu.style.bottom = 'auto';
+					// On mobile the menu's min-width (290px) often exceeds the
+					// space available on the right of the button — span the
+					// full viewport width with small margins instead.
+					var isMobile = window.matchMedia('(max-width: 736px)').matches;
+					if (isMobile) {
+						menu.style.left = '8px';
+						menu.style.right = '8px';
+					} else {
+						menu.style.left = 'auto';
+						menu.style.right = Math.max(8, window.innerWidth - btnRect.right) + 'px';
+					}
 				}
 				function open() {
 					position();
@@ -2060,6 +2090,7 @@ $$
 			}
 
 			var exportActions = {
+				'download-md': function() { actionDownload(easyMDE); },
 				'download-html': async function() {
 					var src = easyMDE.value();
 					var title = getDocumentTitle(src);
@@ -2636,6 +2667,27 @@ $$
 				resetLoadedDocumentState(easyMDE);
 			}
 
+			// On mobile, force side-by-side off (it doesn't fit in a narrow
+			// viewport) and tag the editor card with .me-mobile so the layout
+			// CSS can flip it to a single column. matchMedia + resize covers
+			// device-toolbar emulator switches that don't fire resize cleanly.
+			(function enforceMobileLayout() {
+				var mq = window.matchMedia('(max-width: 736px)');
+				function check() {
+					var isMobile = mq.matches;
+					var card = document.querySelector('.me-editor-card');
+					var wrapperEl = easyMDE.codemirror.getWrapperElement();
+					var sided = wrapperEl.classList.contains('CodeMirror-sided');
+					if (isMobile && sided) easyMDE.toggleSideBySide();
+					if (card) card.classList.toggle('me-mobile', isMobile);
+				}
+				check();
+				if (mq.addEventListener) mq.addEventListener('change', check);
+				else if (mq.addListener) mq.addListener(check);
+				window.addEventListener('resize', check);
+				window.addEventListener('orientationchange', check);
+			})();
+
 			// Pre-load KaTeX if initial content has $
 			if (/\$/.test(easyMDE.value())) loadKatex();
 
@@ -2854,8 +2906,15 @@ $$
 					}
 				}, true);
 
-				// Toggle from toolbar button (exposed via window._meToggleOutline)
+				// Toggle from toolbar button (exposed via window._meToggleOutline).
+				// On mobile, the side panel is hidden — clicking the button
+				// opens the goto-symbol palette instead (same headings list,
+				// works much better at narrow widths).
 				window._meToggleOutline = function() {
+					if (window.matchMedia('(max-width: 736px)').matches) {
+						if (window._meOpenPalette) window._meOpenPalette();
+						return;
+					}
 					panel.classList.toggle('collapsed');
 					var nowCollapsed = panel.classList.contains('collapsed');
 					try { localStorage.setItem(STORAGE_KEY, nowCollapsed ? '1' : '0'); } catch (e) {}
