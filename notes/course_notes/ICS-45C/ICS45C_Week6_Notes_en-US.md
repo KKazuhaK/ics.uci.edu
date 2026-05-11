@@ -20,13 +20,12 @@
 - [16. Klefstad Extended Example: Vector and CheckedVector](#16-klefstad-extended-example-vector-and-checkedvector)
 - [17. Klefstad Extended Example: Picture/Shape Framework (HW6)](#17-klefstad-extended-example-pictureshape-framework-hw6)
 - [18. "Look at Some Submissions" Snippets in Klefstad's PPT](#18-look-at-some-submissions-snippets-in-klefstads-ppt)
-- [19. ⚠️ May Belong to Week 7: Multiple Inheritance and Virtual Base Classes](#19-️-may-belong-to-week-7-multiple-inheritance-and-virtual-base-classes)
-- [20. Week 6 Comprehensive Cheat Sheet](#20-week-6-comprehensive-cheat-sheet)
-- [21. Top Five Takeaways for Week 6](#21-top-five-takeaways-for-week-6)
+- [19. Week 6 Comprehensive Cheat Sheet](#19-week-6-comprehensive-cheat-sheet)
+- [20. Top Five Takeaways for Week 6](#20-top-five-takeaways-for-week-6)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > These notes integrate Week 6 reading material LearnCpp 24.1–24.7 (inheritance basics) + 25.1, 25.2, 25.7, 25.10, 25.11 (pointers/references to base, virtual functions, pure virtual & abstract classes, dynamic_cast, printing with operator<<), together with Professor Klefstad's PPT *Topic 6: Inheritance & Polymorphism*. Content is organized by concept, with each section fusing the original reading + PPT code examples + Klefstad's aphorisms + common-pitfall callouts.
-> Some PPT content (multiple inheritance, virtual base classes, etc.) is outside the Week 6 reading list and is marked with ⚠️ — may belong to Week 7.
+> The PPT content on **multiple inheritance and virtual base classes** (pages 27, 29–31, 33) is outside the Week 6 reading list and is now covered in **Week 7 §17**.
 
 ---
 
@@ -2907,9 +2906,9 @@ public:
 };
 ```
 
-> ⚠️ This involves **virtual inheritance (virtual public)** — a way to avoid the diamond problem in multiple inheritance. **This part may belong to Week 7**.
+> ⚠️ This involves **virtual inheritance (virtual public)** — a way to avoid the diamond problem in multiple inheritance.
 >
-> But Klefstad shows it in Week 6 PPT, perhaps to say "Square can also be written this way." Detailed rules in section 19.
+> Klefstad shows it in the Week 6 PPT as a teaser; the detailed rules are covered in **Week 7§17**.
 
 ### 18.2 Snippet 2: Empty print() and delete this in Destructor (very bad example)
 
@@ -2954,83 +2953,9 @@ class Triangle : public Shape
 
 ---
 
-## 19. ⚠️ May Belong to Week 7: Multiple Inheritance and Virtual Base Classes
+## 19. Week 6 Comprehensive Cheat Sheet
 
-> Corresponds to PPT pages 29-31, 33 (these go beyond this week's reading list 24.1-24.7 + 25.1, 25.2, 25.7, 25.10, 25.11; **may be covered in Week 7**)
-
-### 19.1 Multiple Inheritance
-
-> ⚠️ Not in Week 6's reading list, but the PPT mentions it; kept for reference.
-
-C++ allows a class to inherit from multiple bases:
-
-```cpp
-class CheckedVector : public Vector { ... };
-class InitVector : public Vector { ... };
-
-// Multiple inheritance
-class InitCheckedVector : public CheckedVector, public InitVector { ... };
-```
-
-But this introduces two issues:
-1. **Ambiguity of member functions and data members**
-2. **Storage duplication** (two copies of Vector content)
-
-### 19.2 Virtual Base Classes
-
-```cpp
-class CheckedVector : public virtual Vector { ... };
-class InitVector : public virtual Vector { ... };
-class InitCheckedVector : public CheckedVector, public InitVector { ... };
-```
-
-After adding the `virtual` keyword, **Vector appears only once**, avoiding duplicate storage.
-
-**Restrictions on virtual base classes**:
-- Must have a **default constructor**
-
-> 💡 PPT aphorism: "**understanding and using virtual base classes can be difficult**" — not simple, use with care.
-
-### 19.3 Multiple Inheritance Naming Conflicts
-
-```cpp
-struct Base1 { int foo(); };
-struct Base2 { int foo(); };
-struct Derived : Base1, Base2 { };
-
-int main()
-{
-    Derived d;
-    d.foo();   // ❌ Compile error: ambiguous!
-}
-```
-
-**Fix 1**: use scope qualifier:
-
-```cpp
-d.Base1::foo();
-```
-
-**Fix 2**: add a new foo() in Derived:
-
-```cpp
-struct Derived : Base1, Base2 {
-    int foo() { Base1::foo(); Base2::foo(); }
-};
-```
-
-### 19.4 C++ Multiple Inheritance vs. Interface Classes
-
-> Likely covered in detail in Week 7. Java/C# don't allow plain multiple inheritance — **only multiple interface inheritance** — avoiding C++'s multiple-inheritance headaches.
->
-> "Best practice for C++ multiple inheritance": **inherit from at most one concrete class; let the rest be interface classes** (all pure virtual + no member variables).
-
-
----
-
-## 20. Week 6 Comprehensive Cheat Sheet
-
-### 20.1 Quick Inheritance Syntax Reference
+### 19.1 Quick Inheritance Syntax Reference
 
 ```cpp
 // Basic inheritance
@@ -3059,7 +2984,7 @@ public:
 };
 ```
 
-### 20.2 Access Specifier × Inheritance Mode Master Table (memorize)
+### 19.2 Access Specifier × Inheritance Mode Master Table (memorize)
 
 | Base member | public inheritance | protected inheritance | private inheritance |
 |:---:|:---:|:---:|:---:|
@@ -3067,7 +2992,7 @@ public:
 | protected | protected | protected | private |
 | private | inaccessible | inaccessible | inaccessible |
 
-### 20.3 Who Can Access Class Members?
+### 19.3 Who Can Access Class Members?
 
 | Specifier | Self + friends | Derived class | External code |
 |:---:|:---:|:---:|:---:|
@@ -3075,7 +3000,7 @@ public:
 | protected | ✅ | ✅ | ❌ |
 | private | ✅ | ❌ | ❌ |
 
-### 20.4 Function Resolution Order
+### 19.4 Function Resolution Order
 
 | Call form | Resolution rule |
 |---|---|
@@ -3083,7 +3008,7 @@ public:
 | `pBase->func()` or `rBase.func()` (func is not virtual) | **Static binding**: based on pBase/rBase's **declared type** |
 | `pBase->func()` or `rBase.func()` (func is virtual) | **Dynamic binding**: based on the actual object type, calling the most-derived version |
 
-### 20.5 Key Rules of Virtual Functions
+### 19.5 Key Rules of Virtual Functions
 
 | Rule | Notes |
 |---|---|
@@ -3095,7 +3020,7 @@ public:
 | Don't call virtual functions in constructors/destructors | Derived parts haven't been constructed or have already been destroyed |
 | A class with virtual functions must have a **virtual destructor** | Otherwise deletion through Base* leaks |
 
-### 20.6 Pure Virtual vs. Plain Virtual
+### 19.6 Pure Virtual vs. Plain Virtual
 
 | Feature | Plain virtual + default impl | Pure virtual (= 0) |
 |---|---|---|
@@ -3104,7 +3029,7 @@ public:
 | Function may have a definition | Of course | Optional (rarely has one) |
 | Use case | Derived class **may** override | Derived class **must** implement |
 
-### 20.7 dynamic_cast vs. static_cast
+### 19.7 dynamic_cast vs. static_cast
 
 | Comparison | static_cast | dynamic_cast |
 |---|---|---|
@@ -3116,14 +3041,14 @@ public:
 | For downcasting | ⚠️ Only when 100% sure | ✅ Recommended |
 | Requires virtual functions in base | ❌ No | ✅ Yes |
 
-### 20.8 Polymorphism Categories
+### 19.8 Polymorphism Categories
 
 | Polymorphism type | C++ implementation | Resolution time |
 |---|---|---|
 | Static polymorphism | Function overloading, operator overloading, templates | Compile time |
 | Dynamic polymorphism | **Virtual functions + pointers/references** | Runtime |
 
-### 20.9 Static vs. Dynamic Binding Use Cases
+### 19.9 Static vs. Dynamic Binding Use Cases
 
 | Scenario | Use what |
 |---|---|
@@ -3131,7 +3056,7 @@ public:
 | Heterogeneous object collection (Shape family) | Dynamic binding, virtual functions |
 | Framework + plugin | Dynamic binding, virtual functions |
 
-### 20.10 Standard Template for Printing Inherited Classes via operator<<
+### 19.10 Standard Template for Printing Inherited Classes via operator<<
 
 ```cpp
 class Base
@@ -3160,7 +3085,7 @@ public:
 };
 ```
 
-### 20.11 Python ↔ C++ Comprehensive Comparison (Week 6 highlights)
+### 19.11 Python ↔ C++ Comprehensive Comparison (Week 6 highlights)
 
 | Concept | Python | C++ |
 |---|---|---|
@@ -3174,7 +3099,7 @@ public:
 | Diamond inheritance resolution | MRO (C3 algorithm) | Virtual base classes (virtual) |
 | Access specifiers | Convention `_attr`, `__attr` | Enforced `public/protected/private` |
 
-### 20.12 Pitfall Checklist (must-read)
+### 19.12 Pitfall Checklist (must-read)
 
 | # | Mistake | Consequence | Prevention |
 |---|---|---|---|
@@ -3194,7 +3119,7 @@ public:
 | 14 | Calling pure virtual function in abstract class constructor | UB | Never do this |
 | 15 | `delete this;` in a destructor | Infinite recursion | Don't write this |
 
-### 20.13 Klefstad Aphorism Summary
+### 19.13 Klefstad Aphorism Summary
 
 | Aphorism | Meaning |
 |---|---|
@@ -3210,7 +3135,7 @@ public:
 
 ---
 
-## 21. Top Five Takeaways for Week 6
+## 20. Top Five Takeaways for Week 6
 
 ### 1. **A Derived Constructor Must Call the Base Constructor in the Init List**
 
@@ -3334,7 +3259,9 @@ public:
 >   - Look at some submissions (pages 32-35) → section 18
 >   - Picture/Shape framework (pages 36-41) → section 17
 >
-> **PPT content that may belong to Week 7** (marked with ⚠️):
-> - Multiple inheritance (pages 29-31) → section 19
-> - Virtual base classes (pages 30, 33) → section 19
+> **PPT content moved to Week 7** (see Week 7 §17):
+> - Multiple inheritance (pages 29-31)
+> - Virtual base classes (pages 30, 33)
+>
+> **Briefly mentioned in this week's PPT, treated later by LearnCpp**:
 > - Slicing mentioned in PPT (page 20, "What about this? `void rotate_shape(Shape s, ...)`") — briefly noted in section 11.6, see LearnCpp 25.9 for details (likely Week 7)

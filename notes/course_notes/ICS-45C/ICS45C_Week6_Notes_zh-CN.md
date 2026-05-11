@@ -20,13 +20,12 @@
 - [16. Klefstad 扩展示例：Vector 与 CheckedVector](#16-klefstad-扩展示例vector-与-checkedvector)
 - [17. Klefstad 扩展示例：Picture/Shape 框架（HW6）](#17-klefstad-扩展示例pictureshape-框架hw6)
 - [18. Klefstad PPT 中的"看学生提交"片段](#18-klefstad-ppt-中的看学生提交片段)
-- [19. ⚠️ 可能属于 Week 7：多继承与虚基类](#19-️-可能属于-week-7多继承与虚基类)
-- [20. Week 6 综合 Cheat Sheet](#20-week-6-综合-cheat-sheet)
-- [21. Week 6 最重要的五条记忆](#21-week-6-最重要的五条记忆)
+- [19. Week 6 综合 Cheat Sheet](#19-week-6-综合-cheat-sheet)
+- [20. Week 6 最重要的五条记忆](#20-week-6-最重要的五条记忆)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > 本笔记整合 Week 6 阅读材料 LearnCpp 24.1–24.7（继承基础）+ 25.1, 25.2, 25.7, 25.10, 25.11（指针/引用指向基类、虚函数、纯虚函数与抽象类、dynamic_cast、用 operator<< 打印），与 Klefstad 教授的 PPT *Topic 6: Inheritance & Polymorphism*。内容按概念主题组织，每节融合阅读原文 + PPT 代码例子 + Klefstad 警句 + 易错点。
-> PPT 中有部分内容（多继承、虚基类等）不在 Week 6 阅读清单内，标注 ⚠️ 可能属于 Week 7。
+> PPT 中关于**多继承与虚基类**的内容（pages 27、29–31、33）不在 Week 6 阅读清单内，现已正式收录在 **Week 7 §17**。
 
 ---
 
@@ -2911,9 +2910,9 @@ public:
 };
 ```
 
-> ⚠️ 这里涉及**虚继承（virtual public）**——多继承时避免菱形继承的钻石问题。**这部分内容可能属于 Week 7**。
+> ⚠️ 这里涉及**虚继承（virtual public）**——多继承时避免菱形继承的钻石问题。
 >
-> 但 Klefstad 在 Week 6 PPT 里展示，可能想说"Square 也可以这样写"。详细规则见第 19 节。
+> Klefstad 在 Week 6 PPT 里把它当成预告展示；详细规则在 **Week 7 §17** 里讲。
 
 ### 18.2 片段 2：空 print() 与析构里 delete this（极坏例子）
 
@@ -2958,83 +2957,9 @@ class Triangle : public Shape
 
 ---
 
-## 19. ⚠️ 可能属于 Week 7：多继承与虚基类
+## 19. Week 6 综合 Cheat Sheet
 
-> 对应 PPT pages 29-31, 33（这些超出本周阅读清单 24.1-24.7 + 25.1, 25.2, 25.7, 25.10, 25.11，**可能放到 Week 7 讲**）
-
-### 19.1 多继承（Multiple Inheritance）
-
-> ⚠️ 不在 Week 6 阅读清单内，但 PPT 提到，作为参考保留。
-
-C++ 允许一个类同时从多个基类继承：
-
-```cpp
-class CheckedVector : public Vector { ... };
-class InitVector : public Vector { ... };
-
-// 多继承
-class InitCheckedVector : public CheckedVector, public InitVector { ... };
-```
-
-但这会引起两个问题：
-1. **成员函数与数据成员的歧义**
-2. **存储重复**（两份 Vector 内容）
-
-### 19.2 虚基类（Virtual Base Classes）
-
-```cpp
-class CheckedVector : public virtual Vector { ... };
-class InitVector : public virtual Vector { ... };
-class InitCheckedVector : public CheckedVector, public InitVector { ... };
-```
-
-加 `virtual` 关键字后，**Vector 只会出现一次**，避免重复存储。
-
-**虚基类的限制**：
-- 必须有**无参构造函数**
-
-> 💡 PPT 警句："**understanding and using virtual base classes can be difficult**"——不简单，慎用。
-
-### 19.3 多继承的命名冲突
-
-```cpp
-struct Base1 { int foo(); };
-struct Base2 { int foo(); };
-struct Derived : Base1, Base2 { };
-
-int main()
-{
-    Derived d;
-    d.foo();   // ❌ 编译错误：歧义！
-}
-```
-
-**修复 1**：用作用域限定符：
-
-```cpp
-d.Base1::foo();
-```
-
-**修复 2**：在 Derived 中加新的 foo()：
-
-```cpp
-struct Derived : Base1, Base2 {
-    int foo() { Base1::foo(); Base2::foo(); }
-};
-```
-
-### 19.4 C++ 多继承 vs 接口类
-
-> 这部分可能 Week 7 详讲。Java/C# 不允许普通多继承，**只允许多继承接口**——避免了 C++ 多继承的麻烦。
->
-> C++ 中"多继承的最佳实践"：**最多继承一个具体类，其他都用接口类**（全纯虚 + 无成员变量）。
-
-
----
-
-## 20. Week 6 综合 Cheat Sheet
-
-### 20.1 继承的语法快速参考
+### 19.1 继承的语法快速参考
 
 ```cpp
 // 基本继承
@@ -3063,7 +2988,7 @@ public:
 };
 ```
 
-### 20.2 访问修饰符 × 继承方式 总表（必背）
+### 19.2 访问修饰符 × 继承方式 总表（必背）
 
 | 基类成员 | public 继承 | protected 继承 | private 继承 |
 |:---:|:---:|:---:|:---:|
@@ -3071,7 +2996,7 @@ public:
 | protected | protected | protected | private |
 | private | 不可访问 | 不可访问 | 不可访问 |
 
-### 20.3 类成员谁能访问？
+### 19.3 类成员谁能访问？
 
 | 修饰符 | 类自身 + 友元 | 派生类 | 外部代码 |
 |:---:|:---:|:---:|:---:|
@@ -3079,7 +3004,7 @@ public:
 | protected | ✅ | ✅ | ❌ |
 | private | ✅ | ❌ | ❌ |
 
-### 20.4 函数解析顺序
+### 19.4 函数解析顺序
 
 | 调用方式 | 解析规则 |
 |---|---|
@@ -3087,7 +3012,7 @@ public:
 | `pBase->func()` 或 `rBase.func()`（func 不是 virtual） | **静态绑定**：根据 pBase/rBase 的**声明类型**调用 |
 | `pBase->func()` 或 `rBase.func()`（func 是 virtual） | **动态绑定**：根据**实际指向的对象类型**调用最派生版本 |
 
-### 20.5 虚函数的关键规则
+### 19.5 虚函数的关键规则
 
 | 规则 | 备注 |
 |---|---|
@@ -3099,7 +3024,7 @@ public:
 | 不要在构造/析构里调用虚函数 | 派生部分还没构造或已销毁 |
 | 含虚函数的类必须有**虚析构函数** | 否则通过 Base* 删除会泄漏 |
 
-### 20.6 纯虚函数 vs 普通虚函数
+### 19.6 纯虚函数 vs 普通虚函数
 
 | 特性 | 普通虚 + 默认实现 | 纯虚（= 0） |
 |---|---|---|
@@ -3108,7 +3033,7 @@ public:
 | 函数是否可有定义 | 当然有 | 可有可无（罕见有定义） |
 | 适用场景 | 派生类**可选**重写 | 派生类**强制**实现 |
 
-### 20.7 dynamic_cast vs static_cast
+### 19.7 dynamic_cast vs static_cast
 
 | 比较 | static_cast | dynamic_cast |
 |---|---|---|
@@ -3120,14 +3045,14 @@ public:
 | 用于下行转换 | ⚠️ 仅当 100% 确定时 | ✅ 推荐 |
 | 要求基类有虚函数 | ❌ 不需要 | ✅ 必须 |
 
-### 20.8 多态分类
+### 19.8 多态分类
 
 | 多态类型 | C++ 实现方式 | 解析时机 |
 |---|---|---|
 | 静态多态 | 函数重载、运算符重载、模板 | 编译时 |
 | 动态多态 | **虚函数 + 指针/引用** | 运行时 |
 
-### 20.9 静态绑定 vs 动态绑定的应用场景
+### 19.9 静态绑定 vs 动态绑定的应用场景
 
 | 场景 | 用什么 |
 |---|---|
@@ -3135,7 +3060,7 @@ public:
 | 异质对象集合（Shape 系列） | 动态绑定，虚函数 |
 | 框架 + 插件 | 动态绑定，虚函数 |
 
-### 20.10 用 operator<< 打印继承类的标准模板
+### 19.10 用 operator<< 打印继承类的标准模板
 
 ```cpp
 class Base
@@ -3164,7 +3089,7 @@ public:
 };
 ```
 
-### 20.11 Python ↔ C++ 综合对比（Week 6 重点）
+### 19.11 Python ↔ C++ 综合对比（Week 6 重点）
 
 | 概念 | Python | C++ |
 |---|---|---|
@@ -3178,7 +3103,7 @@ public:
 | 钻石继承解决 | MRO（C3 算法） | 虚基类（virtual） |
 | 访问修饰符 | 约定 `_attr`、`__attr` | 强制 `public/protected/private` |
 
-### 20.12 易错点清单（必看）
+### 19.12 易错点清单（必看）
 
 | # | 错误 | 后果 | 预防 |
 |---|---|---|---|
@@ -3198,7 +3123,7 @@ public:
 | 14 | 抽象类构造里调用纯虚函数 | UB | 永远不要这样做 |
 | 15 | 用 `delete this;` 在析构函数中 | 无限递归 | 别这样写 |
 
-### 20.13 Klefstad 警句汇总
+### 19.13 Klefstad 警句汇总
 
 | 警句 | 含义 |
 |---|---|
@@ -3214,7 +3139,7 @@ public:
 
 ---
 
-## 21. Week 6 最重要的五条记忆
+## 20. Week 6 最重要的五条记忆
 
 ### 1. **派生类构造函数必须**用初始化列表**调用**基类构造函数
 
@@ -3338,8 +3263,10 @@ public:
 >   - 看学生提交（pages 32-35）→ 第 18 节
 >   - Picture/Shape 框架（pages 36-41）→ 第 17 节
 >
-> **PPT 中可能属于 Week 7 的内容**（标注 ⚠️）：
-> - 多继承（pages 29-31）→ 第 19 节
-> - 虚基类（page 30, 33）→ 第 19 节
+> **PPT 中已移至 Week 7 的内容**（见 Week 7 §17）：
+> - 多继承（pages 29-31）
+> - 虚基类（pages 30、33）
+>
+> **本周 PPT 顺带提到、由 LearnCpp 后续讲解的内容**：
 > - PPT 中提到的 Slicing（page 20，"What about this? `void rotate_shape(Shape s, ...)`"）—— 简要在第 11.6 节带过，详见 LearnCpp 25.9（应属 Week 7）
 
