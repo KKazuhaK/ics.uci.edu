@@ -18,13 +18,15 @@
 - [14. Exception Specifications and noexcept](#14-exception-specifications-and-noexcept)
 - [15. Friend Non-Member Functions](#15-friend-non-member-functions)
 - [16. Stream Classes for Strings (stringstream)](#16-stream-classes-for-strings-stringstream)
-- [17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance and Virtual Base Classes](#17-carried-over-topic-from-topic-6-ppt-multiple-inheritance-and-virtual-base-classes)
-- [18. Week 7 Comprehensive Cheat Sheet](#18-week-7-comprehensive-cheat-sheet)
-- [19. Top Five Takeaways for Week 7](#19-top-five-takeaways-for-week-7)
+- [17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance, Virtual Base Classes, and the Rule of Zero](#17-carried-over-topic-from-topic-6-ppt-multiple-inheritance-and-virtual-base-classes)
+- [18. Namespaces](#18-namespaces)
+- [19. Week 7 Comprehensive Cheat Sheet](#19-week-7-comprehensive-cheat-sheet)
+- [20. Top Five Takeaways for Week 7](#20-top-five-takeaways-for-week-7)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > These notes integrate the Week 7 reading material: LearnCpp 11.6, 11.7 (function templates), 26.1, 26.2 (template classes and non-type parameters), 20.6, 20.7 (lambdas and captures), 27.1–27.5 and 27.9 (exception handling and `noexcept`), 15.8 (friend non-member functions), and 28.4 (stream classes for strings). Content is organized by concept.
 > Professor Klefstad's *Topic 6* PPT was the only PPT bundled with this week; most of its content (inheritance, virtual functions, abstract classes, virtual destructors, the Shape/Picture framework) was already integrated into the Week 6 notes. The remaining slides from that PPT — covering **multiple inheritance and virtual base classes** (slides 27, 29–31, 33) — are revisited here in section 17 since the Week 6 notes had flagged them as "may belong to Week 7."
+> Additional content from Klefstad's *Topic 7* PPT — the **Rule of Zero** (§17.8), **template specialization via non-template overload** (§4.13), the **revised function resolution algorithm** (§4.14), **parameter matching rules** (§4.15), **template parameter defaults** (§5.8), **member templates** (§5.9), and **namespaces** (§18) — is integrated alongside the LearnCpp material.
 
 ---
 
@@ -436,6 +438,102 @@ LearnCpp closes the chapter with a candid list of downsides:
 | Error timing | At runtime (when an unsupported operation is attempted) | At compile time (when the template is instantiated) |
 | Error clarity | Often clear (`TypeError: '<' not supported between …`) | Often cryptic (multi-page template stack trace) |
 
+### 4.13 Specializing a Template via a Non-Template Overload
+
+> Corresponds to Klefstad's Topic 7 PPT — "Specializing a Template Function"
+
+Templates produce a *generic* implementation. That implementation is sometimes **wrong** or **inefficient** for a particular type. The PPT's classic example is `min` applied to C-strings:
+
+```cpp
+template <typename T>
+T min(T a, T b) {
+    return a < b ? a : b;
+}
+
+int   x = min(10, 20);       // OK: Type is int
+double y = min(10.5, 20.8);  // OK: Type is double
+
+// But for C-strings…
+const char* p = min("apple", "banana");
+// Template instantiates min<const char*>(const char*, const char*)
+// which compares POINTERS, not strings. Almost never what you want.
+```
+
+The fix: add a **non-template overload** that handles the special case:
+
+```cpp
+char* min(char* a, char* b) {
+    return strcmp(a, b) < 0 ? a : b;     // compare string CONTENTS
+}
+```
+
+Now:
+- A call with `char*` arguments picks the non-template `min(char*, char*)`.
+- A call with any other type still goes through the template.
+
+> 💡 **Key Insight**
+> Klefstad's slides call this "specializing the template," but technically C++ also offers **explicit template specialization** (`template <> char* min(char*, char*) { … }`). The non-template overload version is simpler, plays nicely with overload resolution, and is what the PPT shows.
+
+### 4.14 Revised Function Resolution Algorithm
+
+> Corresponds to Klefstad's Topic 7 PPT — "Revised Function Resolution Algorithm"
+
+When a call site has both non-template overloads and a function template available, the compiler resolves it in this order:
+
+1. **Gather all non-template functions** that match the call (exact argument types).
+2. If more than one matches → **ambiguity error**.
+3. If exactly one matches → **select it**.
+4. If none matched, **examine all template instances** that can be generated for the call.
+5. If more than one template can match → **ambiguity error**.
+6. If exactly one template matches → **instantiate it (if not already) and select it**.
+7. If still none match, **re-examine the non-templates allowing implicit type conversions**.
+
+> 💡 **Key Insight**
+> Non-template overloads with **exact** type match win first. Templates are tried before non-templates that would require **conversions**. This is why a hand-written `min(char*, char*)` beats the templated `min<const char*>` for C-strings.
+
+This is why the `print(true)` example in §4.4 prints `true` instead of `1`: the non-template `print(bool)` matches exactly, so it wins over the template.
+
+### 4.15 Parameter Matching Rules (const & reference correctness)
+
+> Corresponds to Klefstad's Topic 7 PPT — "Parameter Matching"
+
+These rules apply to **all** function calls (template or not) but are especially relevant when templates deduce reference / const-qualified types.
+
+| Formal parameter | Matches non-const actual? | Matches const actual? | Matches a literal? |
+|------------------|:--:|:--:|:--:|
+| `T` (by value)        | ✓ | ✓ | ✓ |
+| `T&` (non-const ref)  | ✓ (must be l-value) | ✗ | ✗ |
+| `const T&`            | ✓ | ✓ | ✓ (creates an anonymous temporary) |
+| `T*`                  | ✓ | ✗ | depends |
+| `const T*`            | ✓ | ✓ | ✓ |
+
+**Worked examples:**
+
+```cpp
+// 1. Non-const formal CANNOT bind to a const actual
+strcat("Hello", "World");        // ERROR: literals are const char[], strcat takes char*
+
+// 2. const formal accepts both const and non-const
+int len1 = strlen("Hello");      // OK: literal is const
+char s[] = "Hello";
+int len2 = strlen(s);            // OK: array decays to char*, conversion to const char* is fine
+
+// 3. const T& creates an anonymous temporary for literals
+template <typename T>
+void print(const T& x) { std::cout << x; }
+print(10);                       // OK: temporary int(10) bound to const int&
+
+// 4. Plain T& needs a real l-value
+template <typename T>
+void swap(T& a, T& b) { /* ... */ }
+int x = 10, y = 20;
+swap(x, y);                      // OK: x and y are l-values
+swap(10, 20);                    // ERROR: literals are r-values
+```
+
+> ⚠️ **Best Practice**
+> When a template parameter is intended for reading only, prefer `const T&` — it accepts everything (l-values, r-values, const, non-const) and avoids copies for large objects. Use plain `T&` only when the function must **modify** the caller's object.
+
 ---
 
 ## 5. Template Classes (Class Templates)
@@ -654,6 +752,80 @@ template class Array<double>;  // force instantiation of Array<double>
 The `template class Array<int>;` directive forces the compiler to stencil out every member of `Array<int>` inside `templates.cpp`. Other translation units can then include only `Array.h` and the linker will resolve their calls against `templates.o`.
 
 This is more efficient at scale but requires you to enumerate every needed instantiation by hand.
+
+### 5.8 Template Parameter Defaults
+
+> Corresponds to Klefstad's Topic 7 PPT — "Template Parameter Defaults"
+
+Just like default function arguments, template parameters can have **default values**:
+
+```cpp
+template <typename CharType = char, int Capacity = 100>
+class basic_string {
+    // can have a string of wchar_t too, but default is a char string
+};
+
+basic_string<>          s;       // CharType = char,    Capacity = 100
+basic_string<wchar_t>   ws;      // CharType = wchar_t, Capacity = 100  (default capacity)
+basic_string<char, 256> big;     // both supplied explicitly
+```
+
+This pattern is everywhere in the standard library:
+
+- `std::basic_string<CharT, Traits = char_traits<CharT>, Alloc = allocator<CharT>>`
+  - `std::string`  = `std::basic_string<char>`
+  - `std::wstring` = `std::basic_string<wchar_t>`
+- `std::vector<T, Allocator = std::allocator<T>>`
+- `std::set<Key, Compare = std::less<Key>, Allocator = std::allocator<Key>>`
+
+> 💡 **Key Insight**
+> Defaults let library authors expose a simple `Foo<MyType>` interface while still allowing power users to swap out allocators, comparators, traits, etc.
+
+> ⚠️ **Best Practice**
+> If you provide defaults, the **last** template parameter must be the most-customizable one (same rule as default function arguments — defaults at the end only).
+
+### 5.9 Member Templates
+
+> Corresponds to Klefstad's Topic 7 PPT — "Member Templates"
+
+A class doesn't have to be a template for its **member functions** to be templates. A regular class can have a **template member function** — often used for "accept any type" methods and conversion operators.
+
+The PPT's motivating example: what if `std::ostream::operator<<` was defined like this?
+
+```cpp
+class ostream {
+public:
+    ostream& operator<<(const int& item) {       // ordinary overload for int
+        // ...
+        return *this;
+    }
+
+    template <typename T>                         // member template for everything else
+    ostream& operator<<(const T& item) {
+        item.print(*this);   // requires T to have a print(ostream&) method
+        return *this;
+    }
+};
+```
+
+Any user class can then plug into `cout << myObj` simply by writing a `print(ostream&)` method — no need to globally overload `operator<<` for each new type.
+
+Real-world example — `std::shared_ptr` has a member template constructor that lets a `shared_ptr<Derived>` convert to a `shared_ptr<Base>`:
+
+```cpp
+template <typename T>
+class shared_ptr {
+public:
+    template <typename U>           // member template — U is independent of T
+    shared_ptr(const shared_ptr<U>& other) { /* ... if U* converts to T* ... */ }
+};
+
+std::shared_ptr<Derived> dp = std::make_shared<Derived>();
+std::shared_ptr<Base>    bp = dp;   // uses the member template constructor
+```
+
+> 💡 **Key Insight**
+> A member template is parameterized **independently** of the enclosing class (or its template parameters). You can have a non-template class with template members, a template class with **non-template** members, or a template class with **further** template members — every combination is legal.
 
 ---
 
@@ -2750,7 +2922,7 @@ parser >> n >> d;
 
 ---
 
-## 17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance and Virtual Base Classes
+## 17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance, Virtual Base Classes, and the Rule of Zero
 
 > Corresponds to PPT *Topic 6: Inheritance & Polymorphism*, slides 27, 29–31, and 33
 >
@@ -2912,13 +3084,183 @@ print(Bottom.__mro__)       # (Bottom, Mid1, Mid2, Base, object)
 
 C++ doesn't compute an automatic MRO — you must explicitly qualify ambiguous calls or override them. This is why C++ multiple inheritance has more sharp edges.
 
+### 17.8 The Rule of Zero
+
+> Corresponds to Klefstad's Topic 7 PPT p2 — extends Week 6's discussion of the Rule of Three / Rule of Five
+
+Week 6 introduced the special member functions (default constructor, destructor, copy constructor, copy assignment, move constructor, move assignment) and the **Rule of Three / Rule of Five**: if a class needs a custom destructor, it almost certainly needs custom copy/move operations too.
+
+The CppCoreGuidelines C.20 inverts the question. Before you write any of those operations, ask: **can I avoid defining them at all?**
+
+> **C.20: If you can avoid defining default operations, do.**
+> Reason: It's the simplest and gives the cleanest semantics.
+
+**Example:**
+
+```cpp
+struct Named_map {
+    // ... NO default operations declared ...
+    std::string name;
+    std::map<int, int> rep;
+};
+
+Named_map nm;              // default constructor — works
+Named_map nm2 { nm };      // default copy constructor — works
+Named_map nm3 = std::move(nm2);   // default move constructor — works
+```
+
+Since `std::string` and `std::map` each have all six special functions correctly defined, the **compiler-generated defaults** for `Named_map` do exactly the right thing — deep-copy on copy, move on move, destroy on destruct.
+
+> 💡 **Key Insight**
+> This is known as the **Rule of Zero**: a well-designed class **declares zero** of its own special member functions, because every member already manages its own resources via RAII.
+
+> ⚠️ **Best Practice**
+> Aim for Rule of Zero. Only escalate to Rule of Three / Rule of Five when your class manages a **raw resource** that the compiler-generated operations would mishandle — typically a raw pointer to dynamic memory, an OS file handle, a socket, or a mutex.
+
+| Rule | When | What to declare |
+|------|------|-----------------|
+| Rule of Zero | Default — all members are RAII types | Nothing |
+| Rule of Three | Class manages a raw resource (pre-C++11) | Destructor, copy ctor, copy assign |
+| Rule of Five | Class manages a raw resource (C++11+) | Destructor + 2 copy + 2 move |
+
 ---
 
-## 18. Week 7 Comprehensive Cheat Sheet
+## 18. Namespaces
+
+> Corresponds to Klefstad's Topic 7 PPT pp 28–29
+
+### 18.1 Why Namespaces Exist
+
+Before namespaces, C++ (and C) had a single flat **global scope**. Two libraries that both defined a free function `print()` or a class `List` would **collide** at link time. Namespaces solve this by giving each library its own named scope.
+
+> 💡 **Key Insight**
+> A namespace is a named region of code into which you put declarations. Two identical names in two different namespaces refer to **two different entities** — there is no conflict.
+
+All C++ Standard Library identifiers live in **namespace `std`**.
+
+### 18.2 Defining a Namespace
+
+```cpp
+namespace mySpace {
+    class Stack;
+    std::ostream& operator<<(std::ostream& out, const Stack& stk);
+    void myStackFunction(Stack s);
+}
+```
+
+Namespaces are **open** — they may be split across files and reopened to add more declarations:
+
+```cpp
+// stack.h
+namespace mySpace {
+    class Stack { /* ... */ };
+}
+
+// helpers.h
+namespace mySpace {
+    void myTopLevelFunction();    // adds to the SAME mySpace
+}
+```
+
+Everything inside `mySpace { … }` becomes `mySpace::name`.
+
+### 18.3 Three Ways to Use Names in a Namespace
+
+**1. Qualified access — always write `namespace::name`**
+
+```cpp
+mySpace::Stack stk;
+mySpace::myTopLevelFunction();
+myStackFunction(stk);         // OK: ADL finds mySpace::myStackFunction
+                              //     (argument-dependent lookup, §18.4)
+std::cout << stk;             // OK: std::cout, ADL finds mySpace::operator<<
+```
+
+This is the most explicit form — no ambiguity, no surprise.
+
+**2. `using` declaration — bring one name into the current scope**
+
+```cpp
+using mySpace::Stack;
+using std::cout;
+
+Stack stk;                    // unqualified: Stack means mySpace::Stack here
+myStackFunction(stk);
+cout << stk;                  // unqualified cout means std::cout
+```
+
+This is the moderate option — you opt in name-by-name.
+
+**3. `using namespace` directive — open up the entire namespace**
+
+```cpp
+using namespace std;
+using namespace mySpace;
+
+Stack stk;
+myTopLevelFunction();
+myStackFunction(stk);
+cout << stk;
+```
+
+> ⚠️ **Best Practice**
+> Never write `using namespace std;` at file scope inside a **header file** — it leaks into every translation unit that includes the header and effectively undoes the whole point of namespaces. Inside `.cpp` files it's tolerable; inside a small function scope it's fine. The professional default is **qualified `std::`** or narrow `using std::cout;` declarations.
+
+### 18.4 Argument-Dependent Lookup (ADL / Koenig Lookup)
+
+When you call `myStackFunction(stk)` and `stk`'s type lives in `mySpace`, the compiler **automatically** searches `mySpace` for a matching function — even without `mySpace::` qualification. This is **argument-dependent lookup** (a.k.a. Koenig lookup).
+
+This is the magic that makes `std::cout << x` work without writing `std::operator<<(std::cout, x)`: the compiler sees that `std::cout`'s type is in `std`, so it searches `std` for `operator<<`.
+
+### 18.5 Nested Namespaces and Aliases
+
+Namespaces can nest, and the C++17 short form is one line:
+
+```cpp
+namespace outer::inner {       // C++17 — same as namespace outer { namespace inner { …
+    void f();
+}
+
+outer::inner::f();
+```
+
+Long namespace names can be aliased:
+
+```cpp
+namespace fs = std::filesystem;
+fs::path p { "data.txt" };
+```
+
+### 18.6 Anonymous Namespaces (File-Local Scope)
+
+A namespace with no name gives its contents **internal linkage** — they're visible only in the current translation unit (like `static` at file scope):
+
+```cpp
+namespace {
+    int helper(int x) { return x * 2; }   // only this .cpp file can see this
+}
+```
+
+### 18.7 Python Comparison
+
+Python's **modules** are roughly C++ namespaces:
+
+| C++ | Python |
+|------|--------|
+| `mySpace::Stack` | `mySpace.Stack` |
+| `using mySpace::Stack;` | `from mySpace import Stack` |
+| `using namespace mySpace;` | `from mySpace import *` (discouraged in Python too) |
+| Anonymous namespace | Leading underscore convention for "private" names |
+
+Same trade-off: qualified access is explicit but verbose; wildcard imports are convenient but risk silent name collision.
+
+---
+
+## 19. Week 7 Comprehensive Cheat Sheet
 
 > One-page summary for quick review
 
-### 18.1 Function Templates
+### 19.1 Function Templates
 
 ```cpp
 template <typename T>
@@ -2933,7 +3275,7 @@ myMax(1, 2);          // deduce, non-template preferred if any
 - Instance is generated **once per unique type per translation unit**.
 - Static locals are **per instance**, not shared.
 
-### 18.2 Class Templates
+### 19.2 Class Templates
 
 ```cpp
 template <typename T>
@@ -2951,7 +3293,7 @@ T& Array<T>::operator[](int i) { return m_data[i]; }
 - Each out-of-class member function needs its **own** `template <typename T>`.
 - **Always put template implementations in the header** (or use `.inl` / explicit instantiation) — otherwise linker errors.
 
-### 18.3 Non-Type Template Parameters
+### 19.3 Non-Type Template Parameters
 
 ```cpp
 template <typename T, int N>
@@ -2962,7 +3304,7 @@ StaticArray<int, 12> a;   // size is part of the type
 
 - Value must be `constexpr` at the call site.
 
-### 18.4 Lambda Cheat Sheet
+### 19.4 Lambda Cheat Sheet
 
 ```cpp
 auto f = [captures](params) -> ret { body };
@@ -2984,7 +3326,7 @@ auto f = [captures](params) -> ret { body };
 | Stored in variable | `auto`, `std::function`, function pointer (no-capture only) |
 | Passed to a function | `auto&` (C++20) > template `T&` > `std::function<…>` > function pointer |
 
-### 18.5 Exception Cheat Sheet
+### 19.5 Exception Cheat Sheet
 
 | Construct | Syntax |
 |---|---|
@@ -3005,7 +3347,7 @@ auto f = [captures](params) -> ret { body };
 
 **Stack unwinding rule:** local variables in functions being unwound **are destroyed**. Uncaught exceptions ⟹ `std::terminate`, **may or may not unwind**.
 
-### 18.6 Friend Functions
+### 19.6 Friend Functions
 
 ```cpp
 class Foo {
@@ -3020,7 +3362,7 @@ void print(const Foo& f) { std::cout << f.m_value; }
 - Forward-declare a class with `class Foo;` when a friend declaration in another class needs to mention it.
 - **Prefer non-friend** when a public accessor suffices.
 
-### 18.7 Stringstream Cookbook
+### 19.7 Stringstream Cookbook
 
 ```cpp
 #include <sstream>
@@ -3036,7 +3378,7 @@ ss.str("");                       // clear buffer
 ss.clear();                       // clear error flags
 ```
 
-### 18.8 Multiple Inheritance & Virtual Bases (Carried from Topic 6 PPT)
+### 19.8 Multiple Inheritance & Virtual Bases (Carried from Topic 6 PPT)
 
 ```cpp
 class A : public virtual Base { /* ... */ };
@@ -3051,7 +3393,7 @@ class C : public A, public B { /* ... */ };   // only ONE Base subobject in C
 
 ---
 
-## 19. Top Five Takeaways for Week 7
+## 20. Top Five Takeaways for Week 7
 
 1. **Templates instantiate on demand, once per unique type, per translation unit.** Template **definitions must be visible** at the point of instantiation — that's why class template implementations live in headers (or `.inl` files), not in `.cpp` files. The linker error "undefined reference to `Array<int>::operator[]`" is the canonical symptom of forgetting this.
 
