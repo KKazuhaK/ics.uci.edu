@@ -18,13 +18,15 @@
 - [14. 异常规范与 noexcept](#14-异常规范与-noexcept)
 - [15. Friend 非成员函数](#15-friend-非成员函数)
 - [16. 字符串流（stringstream）](#16-字符串流stringstream)
-- [17. 来自 Topic 6 PPT 的遗留主题：多继承与虚基类](#17-来自-topic-6-ppt-的遗留主题多继承与虚基类)
-- [18. Week 7 综合 Cheat Sheet](#18-week-7-综合-cheat-sheet)
-- [19. Week 7 最重要的五条记忆](#19-week-7-最重要的五条记忆)
+- [17. 来自 Topic 6 PPT 的遗留主题：多继承、虚基类与零规则](#17-来自-topic-6-ppt-的遗留主题多继承与虚基类)
+- [18. Namespaces（命名空间）](#18-namespaces命名空间)
+- [19. Week 7 综合 Cheat Sheet](#19-week-7-综合-cheat-sheet)
+- [20. Week 7 最重要的五条记忆](#20-week-7-最重要的五条记忆)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > 本笔记整合 Week 7 阅读材料：LearnCpp 11.6、11.7（函数模板）+ 26.1、26.2（类模板与非类型参数）+ 20.6、20.7（lambda 与捕获）+ 27.1–27.5、27.9（异常处理与 `noexcept`）+ 15.8（friend 非成员函数）+ 28.4（字符串流）。内容按概念主题组织。
 > Klefstad 教授本周只布置了一份 PPT *Topic 6*；其中大部分内容（继承、虚函数、抽象类、虚析构函数、Shape/Picture 框架）已经在 Week 6 笔记里整合过。剩下涉及 **多继承与虚基类** 的几张幻灯片（27、29–31、33）由于在 Week 6 笔记里被标注为"可能属于 Week 7"，在本笔记的第 17 节再回头处理。
+> 来自 Klefstad *Topic 7* PPT 的额外内容 —— **零规则**（§17.8）、**用非模板重载来"特化"模板**（§4.13）、**修订后的函数决议算法**（§4.14）、**形参匹配规则**（§4.15）、**模板参数默认值**（§5.8）、**成员模板**（§5.9）、**命名空间**（§18）—— 也已经和 LearnCpp 的内容整合在一起。
 
 ---
 
@@ -436,6 +438,102 @@ LearnCpp 在章末坦白列出了模板的缺点：
 | 错误何时报 | 运行时（尝试不支持的操作时） | 编译时（模板被实例化时） |
 | 错误清晰度 | 通常清楚（`TypeError: '<' not supported between …`） | 通常晦涩（数页模板栈展开） |
 
+### 4.13 用非模板重载来"特化"模板
+
+> 对应 Klefstad 的 Topic 7 PPT —— "Specializing a Template Function"
+
+模板生成的是**通用**实现。对某些类型来说，这套通用实现**不对**或者**效率低**。PPT 的经典例子是把 `min` 用在 C 风格字符串上：
+
+```cpp
+template <typename T>
+T min(T a, T b) {
+    return a < b ? a : b;
+}
+
+int   x = min(10, 20);       // OK：T 是 int
+double y = min(10.5, 20.8);  // OK：T 是 double
+
+// 但是对 C 字符串……
+const char* p = min("apple", "banana");
+// 实例化的是 min<const char*>(const char*, const char*)
+// 它比较的是**指针的地址**，不是字符串内容。几乎肯定不是你要的。
+```
+
+修法：另外写一个**非模板重载**来专门处理这个特殊类型：
+
+```cpp
+char* min(char* a, char* b) {
+    return strcmp(a, b) < 0 ? a : b;     // 比较的是字符串**内容**
+}
+```
+
+之后：
+- 实参是 `char*` 时，调用挑中非模板版本 `min(char*, char*)`。
+- 其他类型继续走模板。
+
+> 💡 **关键洞见**
+> Klefstad 的 PPT 把这种做法叫做"特化模板"，但严格来说 C++ 还有另一种**显式模板特化**写法（`template <> char* min(char*, char*) { … }`）。用非模板重载这条路更简单，跟重载决议天然兼容，也是 PPT 上展示的写法。
+
+### 4.14 修订后的函数决议算法
+
+> 对应 Klefstad 的 Topic 7 PPT —— "Revised Function Resolution Algorithm"
+
+当一个调用点既有非模板重载、又有函数模板可用时，编译器按下面的顺序解析：
+
+1. **收集所有非模板函数**中能精确匹配这次调用的（实参类型与形参类型一致）。
+2. 如果不止一个匹配 → **歧义错误**。
+3. 如果恰好一个匹配 → **选它**。
+4. 如果一个都没匹配上，**检查所有能为此调用生成的模板实例**。
+5. 如果不止一个模板能匹配 → **歧义错误**。
+6. 如果恰好一个模板匹配 → **实例化（若尚未实例化）并选它**。
+7. 还是没有，再回头**让非模板允许隐式类型转换**，看看能不能凑上一个。
+
+> 💡 **关键洞见**
+> **精确匹配的非模板重载**最先胜出。模板比"必须做类型转换才能匹配的非模板"更优先。这就是为什么手写的 `min(char*, char*)` 能赢过 `min<const char*>`。
+
+§4.4 里那个 `print(true)` 之所以打印 `true` 而不是 `1`，也是这个原因：非模板 `print(bool)` 直接精确匹配，比模板优先。
+
+### 4.15 形参匹配规则（const 与引用正确性）
+
+> 对应 Klefstad 的 Topic 7 PPT —— "Parameter Matching"
+
+下面这套规则对**所有**函数调用都成立（无论是不是模板），但当模板需要推导出引用 / const 限定的类型时尤其重要。
+
+| 形参 | 能匹配非 const 实参吗？ | 能匹配 const 实参吗？ | 能匹配字面量吗？ |
+|------|:--:|:--:|:--:|
+| `T`（按值）        | ✓ | ✓ | ✓ |
+| `T&`（非 const 引用） | ✓（必须是左值） | ✗ | ✗ |
+| `const T&`         | ✓ | ✓ | ✓（会创建匿名临时对象） |
+| `T*`               | ✓ | ✗ | 视情况 |
+| `const T*`         | ✓ | ✓ | ✓ |
+
+**走几个例子：**
+
+```cpp
+// 1. 非 const 形参不能绑 const 实参
+strcat("Hello", "World");        // ERROR：字面量类型是 const char[]，strcat 要求 char*
+
+// 2. const 形参 const / 非 const 都能接
+int len1 = strlen("Hello");      // OK：字面量是 const
+char s[] = "Hello";
+int len2 = strlen(s);            // OK：数组退化为 char*，再转 const char* 也合法
+
+// 3. const T& 会为字面量创建匿名临时对象
+template <typename T>
+void print(const T& x) { std::cout << x; }
+print(10);                       // OK：临时 int(10) 绑到 const int&
+
+// 4. 普通 T& 必须接到真实的左值
+template <typename T>
+void swap(T& a, T& b) { /* ... */ }
+int x = 10, y = 20;
+swap(x, y);                      // OK：x、y 都是左值
+swap(10, 20);                    // ERROR：字面量是右值
+```
+
+> ⚠️ **最佳实践**
+> 如果模板参数只是想"读"传进来的对象，优先用 `const T&` —— 它什么都能接（左值、右值、const、非 const），还能避免大对象的拷贝。只有当函数需要**修改**调用方的对象时才用普通 `T&`。
+
 ---
 
 ## 5. 类模板（Template Classes）
@@ -654,6 +752,80 @@ template class Array<double>;  // force instantiation of Array<double>
 `template class Array<int>;` 这条指令强迫编译器在 `templates.cpp` 里把 `Array<int>` 的每个成员都喷出来。其他翻译单元只 include `Array.h`，链接器就能从 `templates.o` 解析它们的调用。
 
 这种方法在大型项目里更省编译时间，但你必须手工把所有需要的实例化罗列出来。
+
+### 5.8 模板参数默认值
+
+> 对应 Klefstad 的 Topic 7 PPT —— "Template Parameter Defaults"
+
+像普通函数能有默认实参一样，模板参数也可以有**默认值**：
+
+```cpp
+template <typename CharType = char, int Capacity = 100>
+class basic_string {
+    // 也可以是 wchar_t 字符串，但默认是 char 字符串
+};
+
+basic_string<>          s;       // CharType = char,    Capacity = 100
+basic_string<wchar_t>   ws;      // CharType = wchar_t, Capacity = 100  （默认容量）
+basic_string<char, 256> big;     // 两个都显式给出
+```
+
+标准库到处都是这种写法：
+
+- `std::basic_string<CharT, Traits = char_traits<CharT>, Alloc = allocator<CharT>>`
+  - `std::string`  = `std::basic_string<char>`
+  - `std::wstring` = `std::basic_string<wchar_t>`
+- `std::vector<T, Allocator = std::allocator<T>>`
+- `std::set<Key, Compare = std::less<Key>, Allocator = std::allocator<Key>>`
+
+> 💡 **关键洞见**
+> 默认值让库作者既能给用户一个简单的 `Foo<MyType>` 接口，又允许高级用户替换分配器、比较器、traits 等。
+
+> ⚠️ **最佳实践**
+> 一旦提供了默认值，**最后**那个模板参数必须是最有"换的余地"的那个（和默认函数实参同样的规则 —— 默认值只能放末尾）。
+
+### 5.9 成员模板
+
+> 对应 Klefstad 的 Topic 7 PPT —— "Member Templates"
+
+一个类**自己**不必是模板，它的**成员函数**也可以是模板。普通类也能拥有**模板成员函数**——常用来写"接受任何类型"的方法，或者类型转换运算符。
+
+PPT 举的引子：如果 `std::ostream::operator<<` 是按下面这样定义的，岂不是很爽？
+
+```cpp
+class ostream {
+public:
+    ostream& operator<<(const int& item) {       // 给 int 的普通重载
+        // ...
+        return *this;
+    }
+
+    template <typename T>                         // 给"其他一切"的成员模板
+    ostream& operator<<(const T& item) {
+        item.print(*this);   // 要求 T 拥有一个 print(ostream&) 方法
+        return *this;
+    }
+};
+```
+
+那么用户只要给自己的类写一个 `print(ostream&)` 方法，`cout << myObj` 就能直接工作——再也不用为每个新类型在全局加 `operator<<` 重载了。
+
+真实世界的例子 —— `std::shared_ptr` 有一个成员模板构造函数，能让 `shared_ptr<Derived>` 转成 `shared_ptr<Base>`：
+
+```cpp
+template <typename T>
+class shared_ptr {
+public:
+    template <typename U>           // 成员模板 —— U 和外面的 T 各自独立
+    shared_ptr(const shared_ptr<U>& other) { /* ... 只要 U* 能转 T* 就行 ... */ }
+};
+
+std::shared_ptr<Derived> dp = std::make_shared<Derived>();
+std::shared_ptr<Base>    bp = dp;   // 用的就是上面这个成员模板构造函数
+```
+
+> 💡 **关键洞见**
+> 成员模板的参数和**外层类**（哪怕外层也是模板）的参数是**独立**的。非模板类有模板成员、模板类有**非模板**成员、模板类**再**带模板成员——所有组合都合法。
 
 ---
 
@@ -2750,7 +2922,7 @@ parser >> n >> d;
 
 ---
 
-## 17. 来自 Topic 6 PPT 的遗留主题：多继承与虚基类
+## 17. 来自 Topic 6 PPT 的遗留主题：多继承、虚基类与零规则
 
 > 对应 PPT *Topic 6: Inheritance & Polymorphism*，幻灯片 27、29–31、33
 >
@@ -2912,13 +3084,183 @@ print(Bottom.__mro__)       # (Bottom, Mid1, Mid2, Base, object)
 
 C++ 不自动算 MRO —— 你必须显式限定有歧义的调用、或者覆盖它们。这就是为什么 C++ 的多继承棱角更锋利。
 
+### 17.8 零规则（Rule of Zero）
+
+> 对应 Klefstad 的 Topic 7 PPT 第 2 页 —— 在 Week 6"三/五规则"的基础上再往前一步
+
+Week 6 介绍了六个特殊成员函数（默认构造、析构、拷贝构造、拷贝赋值、移动构造、移动赋值），以及**三规则 / 五规则**：如果你的类需要一个自定义析构，那它八成也需要自定义拷贝/移动。
+
+CppCoreGuidelines 的 C.20 把这个问题反过来问。在你打算写这些操作之前，先问自己：**能不能干脆一个都不写？**
+
+> **C.20: If you can avoid defining default operations, do.**
+> 理由：这是最简单的方式，语义也最干净。
+
+**例子：**
+
+```cpp
+struct Named_map {
+    // …… 没有声明任何默认操作 ……
+    std::string name;
+    std::map<int, int> rep;
+};
+
+Named_map nm;                       // 默认构造 —— 工作
+Named_map nm2 { nm };               // 默认拷贝构造 —— 工作
+Named_map nm3 = std::move(nm2);     // 默认移动构造 —— 工作
+```
+
+因为 `std::string` 和 `std::map` 自己都正确定义了全部六个特殊函数，所以编译器为 `Named_map` 生成的默认版本就**自动正确**——拷贝时深拷贝、移动时移动、析构时正确析构。
+
+> 💡 **关键洞见**
+> 这就叫**零规则（Rule of Zero）**：设计良好的类**一个**自己的特殊成员函数都不声明，因为每个成员都已经用 RAII 管好了自己的资源。
+
+> ⚠️ **最佳实践**
+> 默认按 Rule of Zero 来。只有当你的类亲自管理某个**原始资源**——通常是裸指针指向的动态内存、操作系统文件句柄、socket、mutex —— 编译器生成的默认操作会出错时，才需要升级到 Rule of Three / Rule of Five。
+
+| 规则 | 何时适用 | 需要声明 |
+|------|---------|---------|
+| 零规则 | 默认情况 —— 所有成员都是 RAII 类型 | 什么都不写 |
+| 三规则 | 类管理一个原始资源（C++11 之前） | 析构、拷贝构造、拷贝赋值 |
+| 五规则 | 类管理一个原始资源（C++11 及之后） | 析构 + 两个拷贝 + 两个移动 |
+
 ---
 
-## 18. Week 7 综合 Cheat Sheet
+## 18. Namespaces（命名空间）
+
+> 对应 Klefstad 的 Topic 7 PPT 第 28–29 页
+
+### 18.1 为什么需要命名空间
+
+在没有命名空间的年代，C++（和 C）只有一个扁平的**全局作用域**。两个库都定义了一个叫 `print()` 的自由函数、或者都叫 `List` 的类，链接时就会**冲突**。命名空间的存在就是为了给每个库一片自己的有名字的作用域。
+
+> 💡 **关键洞见**
+> 命名空间是一片**有名字**的作用域，你把声明放进去。两个相同名字处在两个不同命名空间里，就是**两个不同的实体**，互不冲突。
+
+C++ 标准库的所有标识符都在 **`std`** 这个命名空间里。
+
+### 18.2 定义命名空间
+
+```cpp
+namespace mySpace {
+    class Stack;
+    std::ostream& operator<<(std::ostream& out, const Stack& stk);
+    void myStackFunction(Stack s);
+}
+```
+
+命名空间是**开放**的 —— 它可以跨多个文件，多次"打开"往里加东西：
+
+```cpp
+// stack.h
+namespace mySpace {
+    class Stack { /* ... */ };
+}
+
+// helpers.h
+namespace mySpace {
+    void myTopLevelFunction();    // 加进**同一个** mySpace
+}
+```
+
+`mySpace { … }` 里面的一切都变成 `mySpace::name`。
+
+### 18.3 使用命名空间名字的三种方式
+
+**1. 限定访问 —— 每次都写 `命名空间::名字`**
+
+```cpp
+mySpace::Stack stk;
+mySpace::myTopLevelFunction();
+myStackFunction(stk);         // OK：ADL 找到 mySpace::myStackFunction
+                              //     （实参依赖查找，见 §18.4）
+std::cout << stk;             // OK：std::cout，ADL 找到 mySpace::operator<<
+```
+
+最显式的写法 —— 没有歧义，也没意外。
+
+**2. `using` 声明 —— 把一个名字引入当前作用域**
+
+```cpp
+using mySpace::Stack;
+using std::cout;
+
+Stack stk;                    // 这里不加限定的 Stack 就指 mySpace::Stack
+myStackFunction(stk);
+cout << stk;                  // 不加限定的 cout 就指 std::cout
+```
+
+折中方案 —— 一个一个名字按需引入。
+
+**3. `using namespace` 指令 —— 把整个命名空间打开**
+
+```cpp
+using namespace std;
+using namespace mySpace;
+
+Stack stk;
+myTopLevelFunction();
+myStackFunction(stk);
+cout << stk;
+```
+
+> ⚠️ **最佳实践**
+> 永远不要在**头文件**的文件作用域写 `using namespace std;` —— 它会泄露到每个 include 这个头的翻译单元，把命名空间存在的意义彻底毁掉。`.cpp` 文件里可以容忍，函数内的小作用域里完全没问题。专业默认做法是**限定写 `std::`**，或者写小范围的 `using std::cout;` 声明。
+
+### 18.4 实参依赖查找（ADL / Koenig Lookup）
+
+当你写 `myStackFunction(stk)`，而 `stk` 的类型在 `mySpace` 里时，编译器会**自动**到 `mySpace` 里找匹配的函数 —— 你不需要写 `mySpace::`。这就是**实参依赖查找**（也叫 Koenig 查找）。
+
+`std::cout << x` 能不写 `std::operator<<(std::cout, x)` 直接工作，就是靠它：编译器发现 `std::cout` 的类型在 `std` 里，于是去 `std` 里找 `operator<<`。
+
+### 18.5 嵌套命名空间与别名
+
+命名空间可以嵌套，C++17 还提供了一行短写法：
+
+```cpp
+namespace outer::inner {       // C++17 —— 等同于 namespace outer { namespace inner { …
+    void f();
+}
+
+outer::inner::f();
+```
+
+太长的命名空间名可以起个别名：
+
+```cpp
+namespace fs = std::filesystem;
+fs::path p { "data.txt" };
+```
+
+### 18.6 匿名命名空间（文件级私有作用域）
+
+没有名字的命名空间，里面的内容是**内部链接**——只在当前翻译单元可见（相当于文件作用域的 `static`）：
+
+```cpp
+namespace {
+    int helper(int x) { return x * 2; }   // 只有这个 .cpp 文件能看到
+}
+```
+
+### 18.7 与 Python 的对比
+
+Python 的**模块**大致就是 C++ 的命名空间：
+
+| C++ | Python |
+|------|--------|
+| `mySpace::Stack` | `mySpace.Stack` |
+| `using mySpace::Stack;` | `from mySpace import Stack` |
+| `using namespace mySpace;` | `from mySpace import *`（Python 里也不推荐） |
+| 匿名命名空间 | 名字前加下划线"约定私有" |
+
+同样的取舍：限定访问显式但啰嗦，通配导入方便但容易撞名。
+
+---
+
+## 19. Week 7 综合 Cheat Sheet
 
 > 一页纸总结，方便快速复习
 
-### 18.1 函数模板
+### 19.1 函数模板
 
 ```cpp
 template <typename T>
@@ -2933,7 +3275,7 @@ myMax(1, 2);          // deduce, non-template preferred if any
 - 每个翻译单元里、每种独特类型 **只生成一次** 实例。
 - 静态局部变量是 **每实例独立** 的，不共享。
 
-### 18.2 类模板
+### 19.2 类模板
 
 ```cpp
 template <typename T>
@@ -2951,7 +3293,7 @@ T& Array<T>::operator[](int i) { return m_data[i]; }
 - 类外定义的每个成员函数都需要 **自己的** `template <typename T>`。
 - **模板的实现总是放在头文件里**（或用 `.inl` / 显式实例化），否则会有链接错误。
 
-### 18.3 非类型模板参数
+### 19.3 非类型模板参数
 
 ```cpp
 template <typename T, int N>
@@ -2962,7 +3304,7 @@ StaticArray<int, 12> a;   // size is part of the type
 
 - 调用点的值必须是 `constexpr`。
 
-### 18.4 Lambda 速查
+### 19.4 Lambda 速查
 
 ```cpp
 auto f = [captures](params) -> ret { body };
@@ -2984,7 +3326,7 @@ auto f = [captures](params) -> ret { body };
 | 存进变量 | `auto`、`std::function`、函数指针（仅限无捕获） |
 | 传给函数 | `auto&`（C++20）> 模板 `T&` > `std::function<…>` > 函数指针 |
 
-### 18.5 异常速查
+### 19.5 异常速查
 
 | 结构 | 语法 |
 |---|---|
@@ -3005,7 +3347,7 @@ auto f = [captures](params) -> ret { body };
 
 **栈展开规则：** 被展开的函数里的局部变量 **会被销毁**。未捕获异常 ⟹ `std::terminate`，**栈不一定会展开**。
 
-### 18.6 Friend 函数
+### 19.6 Friend 函数
 
 ```cpp
 class Foo {
@@ -3020,7 +3362,7 @@ void print(const Foo& f) { std::cout << f.m_value; }
 - 另一个类的 friend 声明里要引用本类时，用 `class Foo;` 前向声明。
 - 公有 accessor 能满足需要时 **优先非 friend**。
 
-### 18.7 Stringstream 食谱
+### 19.7 Stringstream 食谱
 
 ```cpp
 #include <sstream>
@@ -3036,7 +3378,7 @@ ss.str("");                       // clear buffer
 ss.clear();                       // clear error flags
 ```
 
-### 18.8 多继承与虚基类（Topic 6 PPT 遗留）
+### 19.8 多继承与虚基类（Topic 6 PPT 遗留）
 
 ```cpp
 class A : public virtual Base { /* ... */ };
@@ -3051,7 +3393,7 @@ class C : public A, public B { /* ... */ };   // only ONE Base subobject in C
 
 ---
 
-## 19. Week 7 最重要的五条记忆
+## 20. Week 7 最重要的五条记忆
 
 1. **模板按需实例化，每种独特类型在每个翻译单元里只实例化一次。** 模板 **定义必须在实例化点可见** —— 这就是为什么类模板的实现住在头文件（或 `.inl` 文件）里、不住在 `.cpp` 里。链接错误 "undefined reference to `Array<int>::operator[]`" 是忘了这条规则的经典症状。
 
