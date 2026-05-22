@@ -122,11 +122,15 @@ def _js2json(s):
     """Best-effort JS object/array literal -> JSON string."""
     s = re.sub(r"//.*$", "", s, flags=re.MULTILINE)
     s = re.sub(r"/\*.*?\*/", "", s, flags=re.DOTALL)
-    # Quote bare keys: word: -> "word":
-    s = re.sub(r"(?<=[{\[,\n])\s*(\w+)\s*:", r' "\1":', s)
-    # Remove trailing commas before } or ]
-    s = re.sub(r",(\s*[}\]])", r"\1", s)
-    return s
+    # Split into string literals and code; only transform code parts so we
+    # don't accidentally quote things like `, word::other` inside a string.
+    parts = re.split(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')', s)
+    for i in range(0, len(parts), 2):
+        # Quote bare keys: word: -> "word":
+        parts[i] = re.sub(r"(?<=[{\[,\n])\s*(\w+)\s*:", r' "\1":', parts[i])
+        # Remove trailing commas before } or ]
+        parts[i] = re.sub(r",(\s*[}\]])", r"\1", parts[i])
+    return "".join(parts)
 
 
 def _jsvar(html, name):
