@@ -134,7 +134,7 @@ $$\boxed{\text{People（人）} + \text{Processes（过程）} + \text{Tools（�
 
 ### 5.1 不同学者的原则总结
 
-**Davis (1994)**：
+**Davis（1994）**：
 - 质量第一
 - 尽早给客户交付产品
 - **先理解问题**再动手
@@ -142,13 +142,13 @@ $$\boxed{\text{People（人）} + \text{Processes（过程）} + \text{Tools（�
 - 好的管理比好的技术更重要
 - **人是成功的关键**
 
-**Royce (1998)**：
+**Royce（1998）**：
 - 遵循**架构优先**的过程
 - **基于组件的开发**（Buy vs. Build）减少编码量
 - 频繁向客户展示初步版本
 - **增量式发布**
 
-**Wasserman (1996)**：
+**Wasserman（1996）**：
 - 模块化（Modularity）
 - 抽象（Abstraction）
 - 用户界面原型（UI Prototyping）
