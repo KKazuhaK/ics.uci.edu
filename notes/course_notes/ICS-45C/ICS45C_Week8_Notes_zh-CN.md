@@ -19,8 +19,9 @@
 - [15. I/O 流 — iostream 库](#15-io-流--iostream-库)
 - [16. 用 istream 做输入](#16-用-istream-做输入)
 - [17. 用 ostream 与 ios 做输出](#17-用-ostream-与-ios-做输出)
-- [18. Week 8 综合 Cheat Sheet](#18-week-8-综合-cheat-sheet)
-- [19. Week 8 最重要的五条记忆](#19-week-8-最重要的五条记忆)
+- [18. 容器横向对比速查表](#18-容器横向对比速查表)
+- [19. Week 8 综合 Cheat Sheet](#19-week-8-综合-cheat-sheet)
+- [20. Week 8 最重要的五条记忆](#20-week-8-最重要的五条记忆)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > 本笔记整合 Week 8 阅读材料：LearnCpp 21.1（标准库）、21.2（STL 容器总览）、21.3（STL iterator 总览）、21.4（STL 算法总览）、28.1（输入输出流）、28.2（用 istream 做输入）、28.3（用 ostream 与 ios 做输出）；cppreference 上 `std::vector`、`std::set` 与 `std::map` 的参考页；以及 Klefstad 教授的 *Topic 8* PPT —— STL 容器、iterator、算法、insert/stream/reverse iterator adapter、容器适配器、函数对象与 ranges。内容按 **主题** 组织，而不是按出处。
@@ -466,6 +467,8 @@ int main() {
 
 > ⚠️ **微妙的推论** —— `std::set` *永远不调用* `operator==`。它只调用 `operator<`。所以一个 `<` 行为怪、`==` 行为正常的类型，可能在 set 里出现意外的 "重复" 或 "不重复"。
 
+> ⚠️ **通过 iterator 访问的元素是 `const` 的。** 对 `set<Key>` 的 iterator 解引用得到的是 `const Key&`，不是 `Key&`。你 **不能** 原地修改元素 —— 改了可能破坏排序不变量、悄悄地把树搞坏。要 "改" 一个元素就：`erase` 旧的，再 `insert` 新的。（这就是为什么 `std::map` 的 `value_type` 是 `pair<const Key, T>` —— *key* 部分是 const，也是同一个不变量的要求。）
+
 #### 6.1.2 成员函数地图（cppreference）
 
 | 类别 | 函数 |
@@ -662,6 +665,21 @@ std::pair<const Key, T>
 
 > 💡 **为什么需要 `try_emplace`？** 假设 `T` 构造起来很贵（比如要靠函数调用造一个大 `std::string`）。`insert({k, expensive_construct()})` 总是会构造 value，即使 `k` 已存在、然后又把它丢掉。`try_emplace(k, args_for_construct...)` 只在需要时才构造。
 
+**`emplace_hint(hint, args...)` —— 跳过 O(log n) 的搜索：**
+
+`insert` 和 `emplace` 通常会做一次 O(log n) 的树搜索来定位新元素该放哪里。`emplace_hint` 让你传一个 iterator 来告诉它 *"从这里开始找"*：
+
+```cpp
+std::map<int, std::string> m;
+auto it = m.end();
+for (int i = 0; i < 1000; ++i)
+    it = m.emplace_hint(it, i, "v");   // 摊还 O(1) 一次，而不是 O(log n)
+```
+
+- 如果 hint 指向 *紧挨着* 新元素应该放的位置，插入会是 **摊还 O(1)** 而不是 O(log n)。
+- 如果 hint 给错了，实现会退回到普通的 O(log n) 搜索 —— 所以乱给的 hint 没额外代价，但也帮不上忙。
+- 经典用法：**批量插入已经排好序的数据**（上面的写法，或者键单调递增时反复传 `m.end()`）。`set` / `multiset` / `multimap` 上也有同样的技巧。
+
 #### 6.2.5 cppreference 示例
 
 ```cpp
@@ -706,6 +724,34 @@ int main() {
 ```
 
 > 💡 **List-initialization 语法** —— `{{"CPU", 10}, {"GPU", 15}}` 是两个 brace-init-list，每个构造一个 `pair<string, int>`，最外层再包成一个 `initializer_list<pair>` 传给 map 的构造函数。你会一直看到这个写法。
+
+#### 6.2.6 迭代器失效（set / multiset / map / multimap）
+
+有序关联容器底层是树，所以失效规则比 `vector` **友好得多** —— 这是它们在实践中最大的优势之一。
+
+| 操作 | 谁会失效 |
+|---|---|
+| `insert` / `emplace` / `emplace_hint` | **没有任何失效。** 所有现存的 iterator、指针、引用都依然有效。 |
+| `erase(it)` | **只有被删元素的那个 iterator 失效。** 其他所有 iterator、指针、引用都还有效。 |
+| `erase(key)` | 同上，只有指向被删元素的 iterator 失效。 |
+| `clear()` | 所有 iterator（容器变空）。 |
+| `swap(other)` | end iterator 可能失效；其他 iterator 都保持有效（按 cppreference 说法，它们 "跟着" 元素移动到新容器）。 |
+| 容器析构 / 重新赋值 | 所有 iterator。 |
+
+> 💡 **和 `vector` 对比** —— `vector::insert` 可能让插入点之后的 **所有** iterator 失效（reallocation 时则全部失效）。set/map 这边即使在 iteration 过程中插入，已经持有的 iterator 也还是安全的。
+
+**iteration 中安全 erase 的写法**（因为 erase 只会让 *被删的* iterator 失效，你必须接住返回值）：
+
+```cpp
+for (auto it = m.begin(); it != m.end(); ) {
+    if (should_remove(*it))
+        it = m.erase(it);     // erase 返回指向 **下一个** 元素的 iterator
+    else
+        ++it;
+}
+```
+
+或者 C++20 直接用：`std::erase_if(m, predicate)` 帮你做（参见 §6.2.5 的示例）。
 
 ### 6.3 `std::unordered_set` 与 `std::unordered_map`
 
@@ -1658,6 +1704,60 @@ int main() {
 
 其余内容参考 `https://en.cppreference.com/w/cpp/io/basic_istream`。
 
+### 16.9 流状态 —— 为什么 `while (std::cin >> x)` 会终止
+
+每个流都带着一组 **状态位（state bits）**，记录这个流目前是不是还能用。每次操作（`>>`、`getline()`、`read()`）之后这些位都会更新。从 `std::cin` 读到坏输入时它不会抛异常 —— 它会默默地把某个状态位设上，然后继续往下走。你必须自己检查。
+
+#### 四个状态位
+
+| 位（`std::ios_base::iostate`） | 含义 |
+|---|---|
+| `goodbit` | 一切正常，没有任何错误位（值为 `0`）。 |
+| `eofbit`  | 上次读取时已经到文件末尾（例如 stdin 上按了 `Ctrl+D`、或者文件流读完了）。 |
+| `failbit` | 上次操作 **失败** —— 通常是格式错误（比如想读 `int` 但流里是 `"abc"`）。流还活着，**可以恢复**。 |
+| `badbit`  | 严重的底层错误（例如底层设备崩了）。通常不可恢复。 |
+
+#### 怎么检查
+
+| 调用 | 返回 `true` 的条件 |
+|---|---|
+| `stream.good()`  | 一个位都没设 —— 流是健康的。 |
+| `stream.eof()`   | `eofbit` 被设了。 |
+| `stream.fail()`  | `failbit` **或** `badbit` 被设了（这是常用的"出错没"判断）。 |
+| `stream.bad()`   | `badbit` 被设了。 |
+| `stream` *（在 boolean 上下文里）* | `!fail()` —— 也就是流还能用。`while (std::cin >> x)` 测的就是这个。 |
+| `stream.rdstate()` | 返回原始 bitset，需要查特定位时用。 |
+
+#### 读取循环为什么能工作
+
+```cpp
+int x;
+while (std::cin >> x) {           // 测的是流的 bool 转换 → !fail()
+    std::cout << x << '\n';
+}
+// 当 extraction 失败（坏输入）或者到流末尾时，循环退出。
+```
+
+`std::cin >> x` 返回 `std::cin`（按引用）。把它转 `bool` 实际就是调 `!fail()`。所以只要上次 extraction 成功，循环就继续。当你输入 `done` 而不是数字时，`failbit` 被设上，循环结束。
+
+#### 从失败的 extraction 中恢复
+
+读失败之后，流就 "卡住" 了 —— `failbit` 被设上，之后每次读都会立刻失败，而且坏输入还留在缓冲区里。需要两步：
+
+```cpp
+int n;
+while (!(std::cin >> n)) {
+    std::cin.clear();                                                       // 1. 把状态位复位回 goodbit
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');     // 2. 把坏输入扔掉
+    std::cout << "Please enter a number: ";
+}
+```
+
+- `clear()` 把所有错误位清零（也有可选参数允许设置特定的位）。
+- `ignore(...)` 把违规字符丢掉，这样下次读才能读到新输入。
+
+> **口诀：** **先 `clear` 再 `ignore`** —— 先清状态，再清缓冲。漏掉一步输入循环就会无限转。
+
 ---
 
 ## 17. 用 ostream 与 ios 做输出
@@ -1762,13 +1862,27 @@ std::cout << std::boolalpha << true << ' ' << false << '\n';
 
 #### 进制
 
-| Manipulator | 效果 | Flag |
+| Manipulator | 效果 | 对应的 flag |
 |---|---|---|
 | `std::dec` | 十进制（默认） | `std::ios::dec` |
 | `std::hex` | 十六进制 | `std::ios::hex` |
 | `std::oct` | 八进制 | `std::ios::oct` |
 
-（这三个都属于 `std::ios::basefield`。）
+> **"Flag"那一列是什么？** 是这个 manipulator 在底层实际拨动的开关位。`std::cout << std::hex` 等价于 `std::cout.setf(std::ios::hex, std::ios::basefield)` —— manipulator 是上层的便捷写法，flag 是它真正在操作的状态位。这两栏不是两种不同的东西，而是**同一件事的两种写法**：左边是你日常写代码用的，右边是它背后操作的位（写 `setf`/`unsetf` 时才会直接打到右边那个名字）。
+
+（这三个 flag 都属于 `std::ios::basefield` 这一组 —— 互斥的进制选项。）
+
+#### `showbase` —— 打印 `0x` / `0` 前缀
+
+默认情况下，hex 和 oct 输出不会带语言里的字面量前缀。`std::showbase` 把它打开：
+
+```cpp
+std::cout << std::hex << 27 << '\n';                    // 1b
+std::cout << std::hex << std::showbase << 27 << '\n';   // 0x1b
+std::cout << std::oct << std::showbase << 27 << '\n';   // 033
+```
+
+Sticky —— 一旦打开，之后每次 hex/oct 输出都会带前缀，直到你 `std::noshowbase`。和 `std::uppercase` 配合很搭（`0X1B` 而不是 `0x1b`）。
 
 ### 17.7 精度、记法、小数点（浮点）
 
@@ -1824,17 +1938,47 @@ std::cout << std::setprecision(7) << 123.456 << '\n';  // 123.456
 | Scientific | 3 | 1.235e+004 | 1.235e-001 |
 | Scientific | 6 | 1.234500e+004 | 1.234500e-001 |
 
+#### `showpoint` 的实际效果
+
+直觉上：不开 `showpoint` 的话，像 `12345.0` 这种值会打成 `12345`，`123.0` 会打成 `123` —— 小数点和尾随的 0 在 "不开就藏" 的情况下会被隐藏。打开它就强制显示：
+
+```cpp
+std::cout << std::setprecision(3) << 123.456 << '\n';                  // 123    （默认模式）
+std::cout << std::showpoint << std::setprecision(3) << 123.456 << '\n';// 123.
+std::cout << std::showpoint << std::setprecision(6) << 123.456 << '\n';// 123.456
+std::cout << std::showpoint << std::setprecision(6) << 12345.0 << '\n';// 12345.0
+```
+
+所以 `showpoint` 不改变 *打多少位*，它只是保证小数点以及 precision 预算之内的尾随 0 永远都显示。
+
 ### 17.8 宽度、填充与对齐
 
 不设 **字段宽度** 时，数字打印不带任何 padding。设了之后，数字会被填充（如果数字本身比字段更宽,字段被忽略 —— 永远不会截断）。
 
-| Manipulator | 效果 |
-|---|---|
-| `std::setw(int)`    | 设置 **下一个** 输出的字段宽度（在 `<iomanip>` 里） |
-| `std::setfill(char)`| 设置填充字符（在 `<iomanip>` 里） |
-| `std::left`         | 在字段内左对齐 |
-| `std::right`        | 右对齐（默认） |
-| `std::internal`     | 符号左对齐、数字右对齐 |
+| Manipulator | 效果 | 对应的 flag / 成员函数 |
+|---|---|---|
+| `std::setw(int)`    | 设置 **下一个** 输出的字段宽度（在 `<iomanip>` 里） | 调用 `stream.width(int)` |
+| `std::setfill(char)`| 设置填充字符（在 `<iomanip>` 里） | 调用 `stream.fill(char)` |
+| `std::left`         | 在字段内左对齐 | flag `std::ios::left` |
+| `std::right`        | 右对齐（默认） | flag `std::ios::right` |
+| `std::internal`     | 符号左对齐、数字右对齐 | flag `std::ios::internal` |
+
+> **关于右边那一列。** 和前面 `basefield` 那张表是一样的思路 —— `std::left` / `std::right` / `std::internal` 是 manipulator，背后拨的是 `std::ios::adjustfield` 这一组里的 flag 位（互斥：设了一个会自动把另外两个清掉）。而 `std::setw` / `std::setfill` 不一样，它们不对应任何 flag 位，而是直接调流对象的 `width()` / `fill()` 成员函数来保存"宽度"和"填充字符"这两份状态。所以这张表里有些 manipulator 映射到 **flag**，有些映射到 **成员函数** —— 两边都只是改同一份底层流状态的不同入口而已。
+
+#### 成员函数形式（manipulator 的等价写法）
+
+上面这几个 iomanip manipulator（以及 §17.7 的 `std::setprecision`）在流对象上都有对应的成员函数版本：
+
+| 成员函数 | 等价 manipulator | 备注 |
+|---|---|---|
+| `stream.fill()`        | — （getter） | 返回当前填充字符。 |
+| `stream.fill(char)`    | `std::setfill(char)` | 设置填充字符，返回旧的填充字符。 |
+| `stream.width()`       | — （getter） | 返回当前字段宽度。 |
+| `stream.width(int)`    | `std::setw(int)` | 设置宽度（同样 **one-shot**，跟 `setw` 一样），返回旧宽度。 |
+| `stream.precision()`   | — （getter） | 返回当前精度（默认 `6`）。 |
+| `stream.precision(int)`| `std::setprecision(int)` | 设置精度，返回旧精度（和 manipulator 一样是 sticky 的）。 |
+
+所以下面例子里写的 `std::cout.fill('*')` 其实就是 `std::cout << std::setfill('*')` 的另一种写法。哪种好读就用哪种 —— iomanip manipulator 适合写在 `<<` 表达式链里，成员函数适合作为一次性的"配置语句"单独写一行。
 
 默认是右对齐：
 
@@ -1857,12 +2001,168 @@ std::cout << std::setw(10) << std::internal << -12345 << '\n';// -****12345
 
 > ⚠️ **小心** —— `setw()`（以及 `width()`）只影响 **下一次** 输出。它们 **不是 sticky 的**。绝大多数其他 flag/manipulator *是* sticky 的，设了之后会一直保留直到你再次修改。
 
+> ⚠️ **字段宽度是 *下限*，不是上限。** 如果数值本身比字段更宽，字段会被悄悄忽略 —— 数值会完整打印，**永远不会截断**：
+> ```cpp
+> std::cout << std::setw(3) << 12345 << '|' << '\n';   // 12345|   （字段被忽略）
+> std::cout << std::setw(8) << 12345 << '|' << '\n';   //    12345|  （字段填充）
+> ```
+> 所以 `setw(3)` 救不了你的表格 —— 一个超长数字会把版面冲破。要真正截断得自己做（比如用 `std::ostringstream` + 手动截断）。
+
+#### Sticky vs one-shot —— 完整对照
+
+**Sticky（持久）** = 一旦设置，之后这个流上的 **每一次** 输出都会用，直到你显式改掉它。
+**One-shot（一次性）** = 只对 **下一次** 输出生效，用完就自动复位。
+
+| Manipulator / flag | 持久？ | 备注 |
+|---|---|---|
+| `std::setw(n)` / `width(n)` | ❌ **one-shot** | 常用 manipulator 里唯一不持久的。每次输出后会被重置回 `0`。 |
+| `std::hex` / `std::dec` / `std::oct` | ✅ 持久 | 整数进制；默认是 `dec`。 |
+| `std::fixed` / `std::scientific` | ✅ 持久 | 浮点记法。 |
+| `std::setprecision(n)` | ✅ 持久 | 位数（在 `fixed`/`scientific` 模式下含义不同）。 |
+| `std::setfill(c)` | ✅ 持久 | 填充字符；默认是空格。 |
+| `std::left` / `std::right` / `std::internal` | ✅ 持久 | 在字段宽度内的对齐方式。 |
+| `std::boolalpha` / `std::noboolalpha` | ✅ 持久 | bool 打印成 `true`/`false` 还是 `1`/`0`。 |
+| `std::showpoint` / `std::noshowpoint` | ✅ 持久 | 是否始终显示小数点和尾随 0。 |
+| `std::showpos` / `std::noshowpos` | ✅ 持久 | 正数是否显示 `+`。 |
+| `std::uppercase` / `std::nouppercase` | ✅ 持久 | 影响 hex 数字以及科学记法里的 `e`/`E` 大小写。 |
+| `std::showbase` / `std::noshowbase` | ✅ 持久 | 十六进制/八进制输出是否带 `0x` / `0` 前缀。 |
+
+**实际后果：**
+
+```cpp
+std::cout << std::hex << std::setw(6) << 27 << '\n';   // "    1b"  （宽度生效）
+std::cout << 42 << '\n';                                // "2a"      （还是 hex！但宽度没了）
+```
+
+第一行之后，`hex` **还开着**（sticky），但宽度 **没了**（one-shot）。如果想每行都有字段宽度，就得每次都重新写 `std::setw(6)`。
 
 ---
 
-## 18. Week 8 综合 Cheat Sheet
+## 18. 容器横向对比速查表
 
-### 18.1 容器选择决策树
+> 把第 5–7 节里所有容器揉在一起的一站式对照表 —— 复习时只要看这一节，就能在 *用法 / 原理 / 差别* 三个维度上把所有容器盘清楚
+
+### 18.1 三大家族总览
+
+| 家族 | 你能控制顺序吗？ | 典型成员 | 共同特征 |
+|---|---|---|---|
+| **Sequence Containers**（序列容器） | ✅ 自己决定元素位置 | `vector` / `deque` / `list` / `forward_list` / `array` / `string` | 保留 **插入顺序** |
+| **Associative Containers**（关联容器） | ❌ 容器决定（按排序或哈希） | `set` / `multiset` / `map` / `multimap` / `unordered_*` | 自动按 key 组织 |
+| **Container Adapters**（容器适配器） | 受限接口 | `stack` / `queue` / `priority_queue` | 包在 sequence container 外面，暴露 LIFO/FIFO/优先级语义 |
+
+### 18.2 Sequence Containers —— 用法 vs 原理 vs 差别
+
+| 容器 | 底层结构 | 随机访问 `v[i]` | 尾部 push/pop | 头部 push/pop | 中间插/删 | iterator 类别 | 关键特点 |
+|---|---|---|---|---|---|---|---|
+| **`vector`** | 动态数组（连续内存） | **O(1)** ⚡ | 摊销 O(1) | **O(n)** | O(n) | random-access / contiguous | 现代 C++ 默认选择；cache 友好；扩容时所有 iterator 失效 |
+| **`deque`** | 分段数组（多段固定块） | O(1)（比 vector 慢） | O(1) | **O(1)** ⚡ | O(n) | random-access | 两端都快；`stack`/`queue` 的默认底层 |
+| **`list`** | **双向链表** | ❌ 不支持 | O(1) | O(1) | **O(1)**（要有 iterator）⚡ | bidirectional | 中间插/删快；不支持 `std::sort`（要用 `.sort()` 成员） |
+| **`forward_list`** | **单向链表** | ❌ | ❌（没 `push_back`） | O(1)（`push_front`） | O(1)（要有前驱 iterator） | forward | 比 list 更省内存；只能向前走 |
+| **`array<T,N>`** | 静态数组（栈上） | O(1) | ❌ 大小固定 | ❌ | ❌ | random-access / contiguous | 编译期固定大小；零开销 STL 兼容 |
+| **`string`** | 动态数组（连续，char 专用） | O(1) | O(1) | O(n) | O(n) | random-access / contiguous | 本质上是 `vector<char>` + 字符串辅助 |
+
+> 💡 **底层原理对比** ——
+> - **数组型**（vector / deque / array / string）：元素 **连续** 或 **近似连续** 存储 → 随机访问快、cache 命中高，但中间增删要移动大量元素
+> - **链表型**（list / forward_list）：节点 + 指针 → 中间增删只动指针 = O(1)，但走到第 *i* 个元素必须遍历 = O(n)
+>
+> 复杂度看上去相同的两个容器，**实际跑起来可能差几个数量级**：链表节点散落在堆上，每跳一次都是一次 cache miss。这就是为什么"理论上 `list` 中间插入比 `vector` 快"在实际 workload 上 **几乎从不成立**，除非元素特别大且确实只在中间动。
+
+### 18.3 Associative Containers —— 用法 vs 原理 vs 差别
+
+| 容器 | 底层结构 | 排序？ | key 唯一？ | 有 value？ | 查找 | 插入/删除 | iterator 类别 |
+|---|---|---|---|---|---|---|---|
+| **`set`** | 红黑树（自平衡 BST） | ✅ 按 key | ✅ | ❌ 只有 key | O(log n) | O(log n) | bidirectional |
+| **`multiset`** | 红黑树 | ✅ | ❌ 允许重复 | ❌ | O(log n) | O(log n) | bidirectional |
+| **`map`** | 红黑树 | ✅ 按 key | ✅ | ✅ `pair<const Key, T>` | O(log n) | O(log n) | bidirectional |
+| **`multimap`** | 红黑树 | ✅ | ❌ 允许重复 | ✅ | O(log n) | O(log n) | bidirectional |
+| **`unordered_set`** | 哈希表 | ❌ | ✅ | ❌ | **平均 O(1)** ⚡ | 平均 O(1) | forward |
+| **`unordered_map`** | 哈希表 | ❌ | ✅ | ✅ | **平均 O(1)** ⚡ | 平均 O(1) | forward |
+
+> 💡 **底层原理对比** ——
+> - **有序版**（无 `unordered_` 前缀）：**红黑树**；自动按 key 排序；范围查询（`lower_bound`、`upper_bound`、`equal_range`）便宜；iteration 顺序确定
+> - **无序版**（`unordered_*`）：**哈希表**；只在乎单点查找速度，不在乎顺序；iteration 顺序 **不可预测**；最坏情况退化到 O(n)
+>
+> ⚠️ **三个最容易被坑的差别：**
+> - `std::set` ≠ Python `set`。Python 的 `set` 是哈希 → 对应 `unordered_set`；`std::set` 是 BST
+> - 唯一性判定靠 `!comp(a,b) && !comp(b,a)`，**只调用 `<`，从不调用 `==`**
+> - `map[k]` 在 key 不存在时 **会悄悄插入一个默认值**！只读访问要用 `find` / `at` / `contains`
+
+### 18.4 Container Adapters —— 用法 vs 原理 vs 差别
+
+| 适配器 | 抽象语义 | 默认底层 | 可选底层 | 主要操作 | 内部实现要点 |
+|---|---|---|---|---|---|
+| **`stack`** | LIFO（后进先出） | `deque` | `vector` / `deque` / `list` | `push` / `pop` / `top` | 直接转发到底层的 `push_back` / `pop_back` |
+| **`queue`** | FIFO（先进先出） | `deque` | `deque` / `list` | `push` / `pop` / `front` / `back` | 用 `push_back` + `pop_front` —— **所以不能用 vector**（没 `pop_front`） |
+| **`priority_queue`** | 最大堆 / 优先队列 | `vector` | `vector` / `deque` | `push` / `pop` / `top` | **二叉堆**：push/pop 都是 O(log n)，top 是 O(1) |
+
+> 💡 **适配器的本质** —— 它们 *本身* 不实现任何数据结构，只是 *把已有 sequence container 的一组成员函数重新命名/限制*，以匹配抽象数据类型（ADT）。换句话说：`std::stack<int>` 大致等于"只允许调用 `push_back`/`pop_back`/`back` 的 `std::deque<int>`"。
+
+### 18.5 复杂度大总表（最适合背的一张）
+
+| 操作 | `vector` | `deque` | `list` | `set` / `map` | `unordered_set` / `unordered_map` |
+|---|---|---|---|---|---|
+| 随机访问 `[i]` | **O(1)** | O(1) | ❌ | ❌（map 的 `[key]` 是 O(log n)） | ❌（map 的 `[key]` 平均 O(1)） |
+| 尾部插入 | 摊销 O(1) | O(1) | O(1) | — | — |
+| 头部插入 | O(n) | **O(1)** | O(1) | — | — |
+| 中间插入（已有 iterator） | O(n) | O(n) | **O(1)** | — | — |
+| 按值查找 | O(n) | O(n) | O(n) | O(log n) | **平均 O(1)** |
+| 按 key 查找 | — | — | — | O(log n) | **平均 O(1)** |
+| 有序遍历 | 插入顺序 | 插入顺序 | 插入顺序 | **按 key 升序** | 无序 |
+
+### 18.6 Iterator 失效规则横向对比（极易考）
+
+| 容器 | `insert` / `emplace` | `erase` |
+|---|---|---|
+| **`vector`** | 扩容了 → **全部失效**；没扩容 → 插入点之后全部失效 | 被删及其后所有 iterator 全部失效 |
+| **`deque`** | 通常让所有 iterator 失效（但指针/引用可能保留） | 通常让所有 iterator 失效 |
+| **`list` / `forward_list`** | **完全不失效** ✅ | **只有被删的 iterator 失效** |
+| **`set` / `map`**（有序） | **完全不失效** ✅ | **只有被删的 iterator 失效** |
+| **`unordered_*`** | rehash 了 → 所有 iterator 失效；指针/引用不失效 | 只有被删的 iterator 失效 |
+
+> 💡 **背诵口诀** —— **数组型扩容会全失效；树/链表只失效被删的那一个；哈希表 rehash 会失效。**
+
+### 18.7 选用决策树
+
+```
+你需要……
+├─ 按位置索引 + 主要在尾部增删？        → vector ⭐
+├─ 两端都频繁增删？                      → deque
+├─ 大小编译期固定？                      → array
+├─ 大量中间插/删，不要随机访问？        → list
+├─ 字符序列？                            → string
+│
+├─ 只关心成员关系（在不在）？
+│   ├─ 要排序遍历 / 范围查询？           → set
+│   └─ 只要最快查找？                    → unordered_set
+│
+├─ key → value 映射？
+│   ├─ 要按 key 排序遍历？               → map
+│   └─ 只要最快查找？                    → unordered_map ⭐（最常用）
+│
+└─ 受限接口（教科书数据结构）？
+    ├─ 栈（LIFO）？                      → stack
+    ├─ 队列（FIFO）？                    → queue
+    └─ 优先级（最大堆）？                → priority_queue
+```
+
+### 18.8 最高频陷阱速览
+
+| 陷阱 | 现象 | 正解 |
+|---|---|---|
+| `vector<int> v(100)` vs `v{100}` | 前者是 100 个 0，后者是 1 个值为 100 的元素 | 想要 N 个 0 就用 **圆括号** |
+| `map[k]` 在不存在 key 上 | **悄悄插入** 默认值；甚至会让 `const map` 编不过 | 用 `find` / `contains` / `at` |
+| `vector::erase` 后还 `++it` | UB | `it = v.erase(it);` 接住返回值 |
+| 想 `std::sort(list)` | 编译错（list 不是 random-access） | 用 `list.sort()` 成员函数 |
+| 改 `set` / `map` 里的 key | UB（破坏排序不变量） | 先 `erase` 旧的再 `insert` 新的 |
+| `vector<bool>` 当普通容器用 | 拿不到 `bool&` / `bool*`（其实是位打包） | 用 `vector<char>` 或 `bitset` |
+| 用 `==` 比 iterator | 比的是 **位置** 不是值 | 想比值要先 `*it1 == *it2` |
+| `queue` 用 `vector` 当底层 | 编译错 —— `vector` 没 `pop_front` | 用默认 `deque` 或 `list` |
+
+---
+
+## 19. Week 8 综合 Cheat Sheet
+
+### 19.1 容器选择决策树
 
 ```
 Do you need to associate values with keys?
@@ -1879,7 +2179,7 @@ Do you need to associate values with keys?
                   └── Restricted (LIFO/FIFO/priority) → stack, queue, priority_queue
 ```
 
-### 18.2 容器复杂度速查
+### 19.2 容器复杂度速查
 
 | 容器 | `op[i]` | `push_back` | `push_front` | `insert(it,x)` | `find(x)` |
 |---|---|---|---|---|---|
@@ -1920,7 +2220,7 @@ v.shrink_to_fit(); // non-binding request to shrink capacity to size
 | `s.upper_bound(k)` | 指向第一个 > k 的元素的 iterator |
 | `s.equal_range(k)` | `{lower_bound(k), upper_bound(k)}` |
 
-### 18.3 Iterator 速查
+### 19.3 Iterator 速查
 
 | 操作 | 含义 |
 |---|---|
@@ -1938,7 +2238,7 @@ v.shrink_to_fit(); // non-binding request to shrink capacity to size
 `input` → `forward` → `bidirectional` → `random-access` → `contiguous`
 `output`（独立的另一条层次）
 
-### 18.4 Algorithm 速查
+### 19.4 Algorithm 速查
 
 ```cpp
 #include <algorithm>
@@ -1974,18 +2274,22 @@ std::copy(b, e, out);
 std::for_each(b, e, fn);
 ```
 
-### 18.5 Iterator Adapter 速查
+### 19.5 Iterator Adapter 速查
 
-| Adapter | 由什么构造 | 每次 `*it = x;` 调用 |
-|---|---|---|
-| `back_inserter(c)`  | 带 `push_back` 的 sequence container  | `c.push_back(x)`  |
-| `front_inserter(c)` | 带 `push_front` 的 sequence container | `c.push_front(x)` |
-| `inserter(c, pos)`  | 任何带 `insert` 的容器                | `c.insert(pos, x)` |
-| `ostream_iterator<T>(s, "delim")` | 输出流 | `s << x; s << "delim";` |
-| `istream_iterator<T>(s)` | 输入流 | 通过 `>>` 读取 |
-| `istream_iterator<T>()` | （默认构造） | 代表 EOF |
+| Adapter | 要求 | 适用容器 / 流 | 每次 `*it = x;` 调用 |
+|---|---|---|---|
+| `back_inserter(c)`  | 容器有 `push_back` | `vector`、`deque`、`list`、`string` | `c.push_back(x)` |
+| `front_inserter(c)` | 容器有 `push_front` | `deque`、`list`、`forward_list`（**没有** `vector`、`string`） | `c.push_front(x)` |
+| `inserter(c, pos)`  | 容器有 `insert` | 几乎所有 STL 容器：`vector`、`deque`、`list`、`forward_list`、`set` / `multiset`、`map` / `multimap`、`unordered_*` | `c.insert(pos, x)` |
+| `ostream_iterator<T>(s, "delim")` | 输出流对象 | `std::cout`、`std::cerr`、`std::clog`、`std::ofstream`、`std::ostringstream` | `s << x; s << "delim";` |
+| `istream_iterator<T>(s)` | 输入流对象 | `std::cin`、`std::ifstream`、`std::istringstream` | 通过 `>>` 读取 |
+| `istream_iterator<T>()` | （默认构造）| — | 代表 EOF（流尾 sentinel） |
 
-### 18.6 I/O 流速查
+> ⚠️ **关联容器（`set` / `map` 等）只能用 `inserter`**，不能用 `back_inserter` / `front_inserter` —— 它们自己决定元素位置，没有"前"/"后"的概念。对 `set` 来说 `inserter(s, s.end())` 是惯用写法（或者干脆直接 `s.insert(x)`，跳过 iterator adapter）。
+>
+> ⚠️ **`array` 和 `forward_list` 都不能用 `back_inserter`** —— `array` 是定长，`forward_list` 只有 `push_front` 没有 `push_back`。
+
+### 19.6 I/O 流速查
 
 **预定义的流：**
 
@@ -2034,7 +2338,7 @@ std::cout << std::setw(8)     << std::setfill('*') << std::right << "hi";  // **
 > - **Sticky**（一直保留直到再次修改）：`boolalpha`、`hex`、`fixed`、`setprecision`、`setfill`、`left`/`right`
 > - **一次性**（仅影响下一个输出）：`setw`（以及 `width()`）
 
-### 18.7 Function Object 的几种形态
+### 19.7 Function Object 的几种形态
 
 ```cpp
 // 1. Free function
@@ -2057,7 +2361,7 @@ std::for_each(b, e, [](int i){ std::cout << i; });
 
 ---
 
-## 19. Week 8 最重要的五条记忆
+## 20. Week 8 最重要的五条记忆
 
 1. **STL 是一个三角：containers、iterators、algorithms。** 每个 algorithm 都用 iterator **写一次**，每个 container 也只暴露一次 iterator。"每个算法 × 每个容器" 的组合爆炸于是塌缩成 *M + N* 块，而不是 *M × N* 块。这一刻你想明白了，这个库就从"一本琐碎条目的电话簿"变成了"一套自洽的设计"。你必须背下来的推论是：**algorithm 不接受 container —— 它接受一对 iterator**。
 

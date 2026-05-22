@@ -19,8 +19,9 @@
 - [15. I/O Streams — The iostream Library](#15-io-streams--the-iostream-library)
 - [16. Input with istream](#16-input-with-istream)
 - [17. Output with ostream and ios](#17-output-with-ostream-and-ios)
-- [18. Week 8 Comprehensive Cheat Sheet](#18-week-8-comprehensive-cheat-sheet)
-- [19. Top Five Takeaways for Week 8](#19-top-five-takeaways-for-week-8)
+- [18. Container Cross-Comparison Reference](#18-container-cross-comparison-reference)
+- [19. Week 8 Comprehensive Cheat Sheet](#19-week-8-comprehensive-cheat-sheet)
+- [20. Top Five Takeaways for Week 8](#20-top-five-takeaways-for-week-8)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > These notes integrate the Week 8 reading material: LearnCpp 21.1 (the standard library), 21.2 (STL containers overview), 21.3 (STL iterators overview), 21.4 (STL algorithms overview), 28.1 (input and output streams), 28.2 (input with istream), and 28.3 (output with ostream and ios); cppreference reference pages for `std::vector`, `std::set`, and `std::map`; and Klefstad's *Topic 8* PPT — STL containers, iterators, algorithms, insert/stream/reverse iterator adapters, container adapters, function objects, and ranges. Content is organized by **topic**, not by source.
@@ -466,6 +467,8 @@ In plain English: neither is *strictly less than* the other under the comparison
 
 > ⚠️ **Subtle implication** — `std::set` *never* calls `operator==`. It only calls `operator<`. So a type that has a weird `<` and a normal `==` can produce surprising "duplicates" or "non-duplicates" in a set.
 
+> ⚠️ **Elements are effectively `const` through iterators.** Dereferencing a `set<Key>` iterator gives you `const Key&`, not `Key&`. You **cannot** modify an element in place — doing so could break the sort invariant and silently corrupt the tree. To "change" an element: `erase` the old one and `insert` the new one. (Same reason `std::map`'s `value_type` is `pair<const Key, T>` — the *key* part is const for the same invariant.)
+
 #### 6.1.2 Member Function Map (cppreference)
 
 | Category | Functions |
@@ -662,6 +665,21 @@ Three useful type aliases you'll see:
 
 > 💡 **Why `try_emplace`?** Suppose `T` is expensive to construct (e.g. a big `std::string` built from a function call). `insert({k, expensive_construct()})` always constructs the value, even if it then throws it away because `k` already existed. `try_emplace(k, args_for_construct...)` only constructs when needed.
 
+**`emplace_hint(hint, args...)` — bypass the O(log n) search:**
+
+`insert` and `emplace` normally do an O(log n) tree search to find where the new element goes. `emplace_hint` lets you pass an iterator that says *"start looking here"*:
+
+```cpp
+std::map<int, std::string> m;
+auto it = m.end();
+for (int i = 0; i < 1000; ++i)
+    it = m.emplace_hint(it, i, "v");   // amortized O(1) per insert, vs O(log n)
+```
+
+- If the hint points *just past* where the new element should go, insertion is **amortized O(1)** instead of O(log n).
+- If the hint is wrong, the implementation falls back to a regular O(log n) search — so a bad hint costs you nothing extra, but doesn't help.
+- Classic use: **bulk-inserting already-sorted data** (above pattern, or feeding `m.end()` repeatedly when keys arrive in increasing order). Same trick exists for `set` / `multiset` / `multimap`.
+
 #### 6.2.5 cppreference Worked Example
 
 ```cpp
@@ -706,6 +724,34 @@ int main() {
 ```
 
 > 💡 **List initialization syntax** — `{{"CPU", 10}, {"GPU", 15}}` is two brace-init-lists, each constructing a `pair<string, int>`, packaged in an outer `initializer_list<pair>` consumed by the map's constructor. You'll see this constantly.
+
+#### 6.2.6 Iterator Invalidation (set / multiset / map / multimap)
+
+Ordered associative containers are tree-based, so their invalidation rules are **much friendlier** than `vector`'s — this is one of their biggest practical advantages.
+
+| Operation | What gets invalidated |
+|---|---|
+| `insert` / `emplace` / `emplace_hint` | **Nothing.** All existing iterators, pointers, and references stay valid. |
+| `erase(it)` | **Only the erased element's iterator.** Every other iterator, pointer, and reference remains valid. |
+| `erase(key)` | Same: only iterators to the erased elements are invalidated. |
+| `clear()` | All iterators (the container is now empty). |
+| `swap(other)` | End iterators may be invalidated; all other iterators stay valid (they "follow" the elements to the new container, per cppreference). |
+| Destruction / re-assignment of the container | All iterators. |
+
+> 💡 **Contrast with `vector`** — `vector::insert` can invalidate **everything** past the insertion point (or everything if it reallocates). For set/map, even mid-iteration insertion is safe for the iterators you're already holding.
+
+**Safe erase-while-iterating idiom** (because erase invalidates *only* the erased iterator, you must capture the return value):
+
+```cpp
+for (auto it = m.begin(); it != m.end(); ) {
+    if (should_remove(*it))
+        it = m.erase(it);     // erase returns iterator to the NEXT element
+    else
+        ++it;
+}
+```
+
+Or in C++20: `std::erase_if(m, predicate)` does this for you (see §6.2.5 worked example).
 
 ### 6.3 `std::unordered_set` and `std::unordered_map`
 
@@ -1658,6 +1704,60 @@ These are useful for hand-written parsers (look-ahead with `peek()`, error recov
 
 For everything else, the reference is `https://en.cppreference.com/w/cpp/io/basic_istream`.
 
+### 16.9 Stream State — Why `while (std::cin >> x)` Terminates
+
+Every stream carries a small set of **state bits** that say whether it's still usable. After every operation (`>>`, `getline()`, `read()`), these bits get updated. Reading from `std::cin` doesn't throw on bad input — it sets a bit and silently moves on. You have to check.
+
+#### The four state bits
+
+| Bit (in `std::ios_base::iostate`) | Meaning |
+|---|---|
+| `goodbit` | Everything is fine, no errors set (the "all clear" state, value `0`). |
+| `eofbit`  | End-of-file was reached on the last read (e.g. `Ctrl+D` on stdin, end of a file stream). |
+| `failbit` | The last operation **failed** — usually a format error (e.g. tried to read `int` from `"abc"`). Stream is still alive but recoverable. |
+| `badbit`  | A serious low-level failure (e.g. the underlying device crashed). Usually not recoverable. |
+
+#### How you check them
+
+| Call | Returns `true` when... |
+|---|---|
+| `stream.good()`  | No bits set — stream is healthy. |
+| `stream.eof()`   | `eofbit` is set. |
+| `stream.fail()`  | `failbit` **or** `badbit` is set (combined check — the common one). |
+| `stream.bad()`   | `badbit` is set. |
+| `stream` *(in a boolean context)* | `!fail()` — i.e. stream is still usable. This is what `while (std::cin >> x)` actually tests. |
+| `stream.rdstate()` | Returns the raw bitset, if you need to inspect specific bits. |
+
+#### Why the read loop works
+
+```cpp
+int x;
+while (std::cin >> x) {           // tests stream's bool conversion → !fail()
+    std::cout << x << '\n';
+}
+// Loop exits when extraction failed (bad input) OR end-of-stream reached.
+```
+
+`std::cin >> x` returns `std::cin` (by reference). Converting it to `bool` calls `!fail()`. So the loop runs as long as the last extraction succeeded. When you type `done` instead of a number, `failbit` is set, the loop ends.
+
+#### Recovering from a failed extraction
+
+After a failed read, the stream is "stuck" — `failbit` is set, so every subsequent read fails immediately, and the bad input is still sitting in the buffer. You need two steps:
+
+```cpp
+int n;
+while (!(std::cin >> n)) {
+    std::cin.clear();                                                       // 1. reset state bits to goodbit
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');     // 2. throw away the bad input
+    std::cout << "Please enter a number: ";
+}
+```
+
+- `clear()` resets all error bits (also takes an optional argument if you want to set specific bits).
+- `ignore(...)` discards the offending characters so the next read sees fresh input.
+
+> **Mnemonic:** **`clear` then `ignore`** — clear the state, then clear the buffer. Forget one and your input loop spins forever.
+
 ---
 
 ## 17. Output with ostream and ios
@@ -1762,13 +1862,27 @@ std::cout << std::boolalpha << true << ' ' << false << '\n';
 
 #### Numeric base
 
-| Manipulator | Effect | Flag |
+| Manipulator | Effect | Underlying flag |
 |---|---|---|
 | `std::dec` | decimal (default) | `std::ios::dec` |
 | `std::hex` | hexadecimal | `std::ios::hex` |
 | `std::oct` | octal | `std::ios::oct` |
 
-(All three belong to `std::ios::basefield`.)
+> **What is the "flag" column?** It's the state bit the manipulator actually flips under the hood. `std::cout << std::hex` is equivalent to `std::cout.setf(std::ios::hex, std::ios::basefield)` — the manipulator is the convenient surface syntax, the flag is the bit it toggles. These two columns aren't two different things; they're **two ways to say the same thing**: left is what you usually write, right is the name you use when you reach for `setf`/`unsetf` directly.
+
+(All three flags belong to the `std::ios::basefield` group — mutually exclusive base options.)
+
+#### `showbase` — print the `0x` / `0` prefix
+
+By default, hex and octal output don't include the language's literal prefix. `std::showbase` turns it on:
+
+```cpp
+std::cout << std::hex << 27 << '\n';                    // 1b
+std::cout << std::hex << std::showbase << 27 << '\n';   // 0x1b
+std::cout << std::oct << std::showbase << 27 << '\n';   // 033
+```
+
+Sticky — once you turn it on, every subsequent hex/oct output gets the prefix until you `std::noshowbase`. Pairs nicely with `std::uppercase` (`0X1B` instead of `0x1b`).
 
 ### 17.7 Precision, Notation, Decimal Points (Floating Point)
 
@@ -1824,17 +1938,47 @@ std::cout << std::setprecision(7) << 123.456 << '\n';  // 123.456
 | Scientific | 3 | 1.235e+004 | 1.235e-001 |
 | Scientific | 6 | 1.234500e+004 | 1.234500e-001 |
 
+#### `showpoint` in code
+
+Visually: without `showpoint`, a value like `12345.0` prints as `12345` and `123.0` prints as `123` — the decimal point and trailing zeros get hidden when they'd otherwise be silent. Turn it on to force them:
+
+```cpp
+std::cout << std::setprecision(3) << 123.456 << '\n';                  // 123    (default mode)
+std::cout << std::showpoint << std::setprecision(3) << 123.456 << '\n';// 123.
+std::cout << std::showpoint << std::setprecision(6) << 123.456 << '\n';// 123.456
+std::cout << std::showpoint << std::setprecision(6) << 12345.0 << '\n';// 12345.0
+```
+
+So `showpoint` doesn't change *how many* digits print — it just makes sure the decimal point and any trailing zeros that fall within the precision budget always show.
+
 ### 17.8 Width, Fill, and Justification
 
 Without a **field width**, numbers print with no surrounding padding. With one, the number is padded (or, if it's wider than the field, the field is ignored — it never truncates).
 
-| Manipulator | Effect |
-|---|---|
-| `std::setw(int)`    | sets the field width for the **next** output (in `<iomanip>`) |
-| `std::setfill(char)`| sets the padding character (in `<iomanip>`) |
-| `std::left`         | left-justify within the field |
-| `std::right`        | right-justify (default) |
-| `std::internal`     | left-justify the **sign**, right-justify the digits |
+| Manipulator | Effect | Underlying flag / member function |
+|---|---|---|
+| `std::setw(int)`    | sets the field width for the **next** output (in `<iomanip>`) | calls `stream.width(int)` |
+| `std::setfill(char)`| sets the padding character (in `<iomanip>`) | calls `stream.fill(char)` |
+| `std::left`         | left-justify within the field | flag `std::ios::left` |
+| `std::right`        | right-justify (default) | flag `std::ios::right` |
+| `std::internal`     | left-justify the **sign**, right-justify the digits | flag `std::ios::internal` |
+
+> **About the right-hand column.** Same pattern as the `basefield` table earlier — `std::left` / `std::right` / `std::internal` are manipulators that flip flag bits in the `std::ios::adjustfield` group (mutually exclusive: setting one auto-clears the others). `std::setw` / `std::setfill` are different — they don't correspond to a flag bit; instead they directly call the stream's `width()` / `fill()` member functions to store width/fill state. So in this table some manipulators map to **flags** and some map to **member functions** — both are just different ways to twiddle the same underlying stream state.
+
+#### Member function form (alternative to the manipulators)
+
+The `iomanip` manipulators above (and `std::setprecision` from §17.7) all have direct member-function equivalents on the stream object:
+
+| Member function | Equivalent manipulator | Notes |
+|---|---|---|
+| `stream.fill()`        | — (getter) | Returns the current fill character. |
+| `stream.fill(char)`    | `std::setfill(char)` | Sets fill, returns the old fill character. |
+| `stream.width()`       | — (getter) | Returns the current field width. |
+| `stream.width(int)`    | `std::setw(int)` | Sets width (also **one-shot**, like `setw`), returns old width. |
+| `stream.precision()`   | — (getter) | Returns the current precision (default `6`). |
+| `stream.precision(int)`| `std::setprecision(int)` | Sets precision, returns old precision (sticky, same as the manipulator). |
+
+So `std::cout.fill('*')` (used in the example above) is just `std::cout << std::setfill('*')` written differently. Pick whichever reads better in context — the iomanip manipulator chains naturally inside `<<` expressions, the member function is convenient as a one-off setup statement.
 
 Default behavior is right-justification:
 
@@ -1857,12 +2001,168 @@ std::cout << std::setw(10) << std::internal << -12345 << '\n';// -****12345
 
 > ⚠️ **Watch out** — `setw()` (and `width()`) only affects the **next** output statement. They are **not sticky**. Most other flags/manipulators *are* sticky and remain set until you change them.
 
+> ⚠️ **The field width is a *minimum*, not a maximum.** If the value is **wider** than the field, the field is silently ignored — the value prints in full, **never truncated**:
+> ```cpp
+> std::cout << std::setw(3) << 12345 << '|' << '\n';   // 12345|   (field ignored)
+> std::cout << std::setw(8) << 12345 << '|' << '\n';   //    12345|  (field padded)
+> ```
+> So `setw(3)` won't save you from a long number breaking out of a tabular layout — you'd need to format the string yourself (e.g. via `std::ostringstream` + manual truncation).
+
+#### Sticky vs one-shot — full reference
+
+"Sticky" = once set, it stays in effect for **every** subsequent output on that stream until you explicitly change it.
+"One-shot" = applies to the **next** output only, then auto-resets.
+
+| Manipulator / flag | Sticky? | Notes |
+|---|---|---|
+| `std::setw(n)` / `width(n)` | ❌ **one-shot** | The only commonly-used non-sticky one. Resets to `0` after each output. |
+| `std::hex` / `std::dec` / `std::oct` | ✅ sticky | Integer base; default is `dec`. |
+| `std::fixed` / `std::scientific` | ✅ sticky | Float notation. |
+| `std::setprecision(n)` | ✅ sticky | Digit count (interpretation depends on `fixed`/`scientific`). |
+| `std::setfill(c)` | ✅ sticky | Fill character; default is space. |
+| `std::left` / `std::right` / `std::internal` | ✅ sticky | Justification within the field width. |
+| `std::boolalpha` / `std::noboolalpha` | ✅ sticky | Print bools as `true`/`false` vs `1`/`0`. |
+| `std::showpoint` / `std::noshowpoint` | ✅ sticky | Always show decimal point + trailing zeros. |
+| `std::showpos` / `std::noshowpos` | ✅ sticky | Show `+` on positives. |
+| `std::uppercase` / `std::nouppercase` | ✅ sticky | Case for hex digits and `e`/`E` in scientific. |
+| `std::showbase` / `std::noshowbase` | ✅ sticky | Prefix `0x` / `0` on hex/oct output. |
+
+**Practical consequence:**
+
+```cpp
+std::cout << std::hex << std::setw(6) << 27 << '\n';   // "    1b"  (width applied)
+std::cout << 42 << '\n';                                // "2a"      (still hex! width gone)
+```
+
+After the first line, `hex` is **still on** (sticky) but the width is **gone** (one-shot). If you want the field width on every line, you have to re-pass `std::setw(6)` every single time.
 
 ---
 
-## 18. Week 8 Comprehensive Cheat Sheet
+## 18. Container Cross-Comparison Reference
 
-### 18.1 Container Decision Tree
+> A single-stop comparison table that pulls every container from sections 5–7 side by side — read this section alone when reviewing, and you'll have all containers nailed down across the three axes of *usage / underlying mechanism / differences*.
+
+### 18.1 The Three Families at a Glance
+
+| Family | Do you control the order? | Typical members | Common trait |
+|---|---|---|---|
+| **Sequence Containers** | ✅ You decide where each element goes | `vector` / `deque` / `list` / `forward_list` / `array` / `string` | Preserves **insertion order** |
+| **Associative Containers** | ❌ The container decides (sorted or hashed) | `set` / `multiset` / `map` / `multimap` / `unordered_*` | Auto-organized by key |
+| **Container Adapters** | Restricted interface | `stack` / `queue` / `priority_queue` | Wraps an existing sequence container and exposes LIFO/FIFO/priority semantics |
+
+### 18.2 Sequence Containers — Usage vs Mechanism vs Differences
+
+| Container | Underlying structure | Random access `v[i]` | push/pop back | push/pop front | Mid insert/erase | Iterator category | Key trait |
+|---|---|---|---|---|---|---|---|
+| **`vector`** | Dynamic array (contiguous memory) | **O(1)** ⚡ | amortized O(1) | **O(n)** | O(n) | random-access / contiguous | Default modern-C++ choice; cache-friendly; reallocation invalidates all iterators |
+| **`deque`** | Segmented array (chunks of fixed blocks) | O(1) (slower than vector) | O(1) | **O(1)** ⚡ | O(n) | random-access | Fast at both ends; default underlying for `stack`/`queue` |
+| **`list`** | **Doubly linked list** | ❌ not supported | O(1) | O(1) | **O(1)** (given iterator) ⚡ | bidirectional | Fast mid insert/erase; doesn't work with `std::sort` (use `.sort()` member) |
+| **`forward_list`** | **Singly linked list** | ❌ | ❌ (no `push_back`) | O(1) (`push_front`) | O(1) (with predecessor iterator) | forward | More memory-efficient than list; forward-only |
+| **`array<T,N>`** | Static array (stack-allocated) | O(1) | ❌ fixed size | ❌ | ❌ | random-access / contiguous | Size known at compile time; zero-overhead STL-compatible |
+| **`string`** | Dynamic array (contiguous, char only) | O(1) | O(1) | O(n) | O(n) | random-access / contiguous | Essentially `vector<char>` + string helpers |
+
+> 💡 **Underlying mechanism comparison** —
+> - **Array-based** (vector / deque / array / string): elements stored **contiguously** or **near-contiguously** → fast random access and high cache hit rate, but middle insert/erase requires shifting many elements
+> - **Linked** (list / forward_list): nodes + pointers → middle insert/erase only changes pointers = O(1), but walking to the *i*-th element requires traversal = O(n)
+>
+> Two containers with the same Big-O can **differ by orders of magnitude in practice**: linked nodes are scattered across the heap, so each hop is a cache miss. This is why "in theory `list` middle-insertion is faster than `vector`" **almost never holds in real workloads**, unless elements are very large and you really only mutate in the middle.
+
+### 18.3 Associative Containers — Usage vs Mechanism vs Differences
+
+| Container | Underlying structure | Sorted? | Unique keys? | Has value? | Lookup | Insert/erase | Iterator category |
+|---|---|---|---|---|---|---|---|
+| **`set`** | Red-black tree (self-balancing BST) | ✅ by key | ✅ | ❌ key only | O(log n) | O(log n) | bidirectional |
+| **`multiset`** | Red-black tree | ✅ | ❌ duplicates allowed | ❌ | O(log n) | O(log n) | bidirectional |
+| **`map`** | Red-black tree | ✅ by key | ✅ | ✅ `pair<const Key, T>` | O(log n) | O(log n) | bidirectional |
+| **`multimap`** | Red-black tree | ✅ | ❌ duplicates allowed | ✅ | O(log n) | O(log n) | bidirectional |
+| **`unordered_set`** | Hash table | ❌ | ✅ | ❌ | **avg O(1)** ⚡ | avg O(1) | forward |
+| **`unordered_map`** | Hash table | ❌ | ✅ | ✅ | **avg O(1)** ⚡ | avg O(1) | forward |
+
+> 💡 **Underlying mechanism comparison** —
+> - **Ordered versions** (no `unordered_` prefix): **red-black tree**; auto-sorted by key; range queries (`lower_bound`, `upper_bound`, `equal_range`) are cheap; iteration order is deterministic
+> - **Unordered versions** (`unordered_*`): **hash table**; cares only about single-point lookup speed, not order; iteration order is **unspecified**; worst case degrades to O(n)
+>
+> ⚠️ **Three differences most likely to bite you:**
+> - `std::set` ≠ Python `set`. Python's `set` is a hash → corresponds to `unordered_set`; `std::set` is a BST
+> - Uniqueness is judged by `!comp(a,b) && !comp(b,a)` — **calls `<` only, never `==`**
+> - `map[k]` on a missing key **silently inserts a default value**! For read-only access use `find` / `at` / `contains`
+
+### 18.4 Container Adapters — Usage vs Mechanism vs Differences
+
+| Adapter | Abstract semantics | Default underlying | Allowed underlyings | Main operations | Implementation notes |
+|---|---|---|---|---|---|
+| **`stack`** | LIFO (last-in, first-out) | `deque` | `vector` / `deque` / `list` | `push` / `pop` / `top` | Forwards directly to underlying's `push_back` / `pop_back` |
+| **`queue`** | FIFO (first-in, first-out) | `deque` | `deque` / `list` | `push` / `pop` / `front` / `back` | Uses `push_back` + `pop_front` — **so vector won't work** (no `pop_front`) |
+| **`priority_queue`** | Max-heap / priority queue | `vector` | `vector` / `deque` | `push` / `pop` / `top` | **Binary heap**: push/pop are O(log n), top is O(1) |
+
+> 💡 **The essence of adapters** — They *themselves* implement no data structure; they merely *rename and restrict* a subset of an existing sequence container's members to match an abstract data type (ADT). In other words: `std::stack<int>` is roughly "a `std::deque<int>` that only lets you call `push_back`/`pop_back`/`back`."
+
+### 18.5 The Master Complexity Table (most worth memorizing)
+
+| Operation | `vector` | `deque` | `list` | `set` / `map` | `unordered_set` / `unordered_map` |
+|---|---|---|---|---|---|
+| Random access `[i]` | **O(1)** | O(1) | ❌ | ❌ (map's `[key]` is O(log n)) | ❌ (map's `[key]` is avg O(1)) |
+| Insert at back | amortized O(1) | O(1) | O(1) | — | — |
+| Insert at front | O(n) | **O(1)** | O(1) | — | — |
+| Insert in middle (with iterator) | O(n) | O(n) | **O(1)** | — | — |
+| Find by value | O(n) | O(n) | O(n) | O(log n) | **avg O(1)** |
+| Find by key | — | — | — | O(log n) | **avg O(1)** |
+| Ordered iteration | insertion order | insertion order | insertion order | **ascending key order** | unspecified |
+
+### 18.6 Iterator Invalidation Cross-Comparison (very testable)
+
+| Container | `insert` / `emplace` | `erase` |
+|---|---|---|
+| **`vector`** | Capacity grew → **all invalidated**; didn't grow → all from insertion point onward | Erased and everything after it |
+| **`deque`** | Usually invalidates all iterators (pointers/references may survive) | Usually invalidates all iterators |
+| **`list` / `forward_list`** | **Nothing invalidated** ✅ | **Only the erased iterator** |
+| **`set` / `map`** (ordered) | **Nothing invalidated** ✅ | **Only the erased iterator** |
+| **`unordered_*`** | rehash → all iterators invalidated; pointers/references survive | Only the erased iterator |
+
+> 💡 **Mnemonic** — **Array-types invalidate all on grow; tree/list invalidate only the erased one; hash tables invalidate all on rehash.**
+
+### 18.7 Selection Decision Tree
+
+```
+You need…
+├─ Index by position + mostly grow at the back?      → vector ⭐
+├─ Frequent push/pop at both ends?                    → deque
+├─ Fixed size at compile time?                        → array
+├─ Lots of mid insert/erase, no random access?        → list
+├─ A character sequence?                              → string
+│
+├─ Just membership (in or out)?
+│   ├─ Need sorted iteration / range queries?         → set
+│   └─ Just want fastest lookup?                      → unordered_set
+│
+├─ Key → value mapping?
+│   ├─ Need sorted iteration by key?                  → map
+│   └─ Just want fastest lookup?                      → unordered_map ⭐ (most common)
+│
+└─ Restricted interface (textbook data structure)?
+    ├─ Stack (LIFO)?                                  → stack
+    ├─ Queue (FIFO)?                                  → queue
+    └─ Priority (max-heap)?                           → priority_queue
+```
+
+### 18.8 Top-Frequency Pitfalls
+
+| Pitfall | Symptom | Fix |
+|---|---|---|
+| `vector<int> v(100)` vs `v{100}` | First is 100 zeros; second is one element of value 100 | For N zeros, use **parentheses** |
+| `map[k]` on missing key | **Silently inserts** default value; even fails to compile on `const map` | Use `find` / `contains` / `at` |
+| `++it` after `vector::erase` | UB | `it = v.erase(it);` — capture the return value |
+| `std::sort(list)` | Compile error (list isn't random-access) | Use the `list.sort()` member function |
+| Modifying a key in `set` / `map` | UB (breaks the sort invariant) | `erase` the old entry, then `insert` the new one |
+| Using `vector<bool>` as a normal container | Can't take `bool&` / `bool*` (it's bit-packed) | Use `vector<char>` or `bitset` |
+| Comparing iterators with `==` | Compares **position**, not value | To compare values, dereference first: `*it1 == *it2` |
+| `queue` with `vector` as underlying | Compile error — `vector` has no `pop_front` | Use the default `deque`, or `list` |
+
+---
+
+## 19. Week 8 Comprehensive Cheat Sheet
+
+### 19.1 Container Decision Tree
 
 ```
 Do you need to associate values with keys?
@@ -1879,7 +2179,7 @@ Do you need to associate values with keys?
                   └── Restricted (LIFO/FIFO/priority) → stack, queue, priority_queue
 ```
 
-### 18.2 Container Complexity Cheat Sheet
+### 19.2 Container Complexity Cheat Sheet
 
 | Container | `op[i]` | `push_back` | `push_front` | `insert(it,x)` | `find(x)` |
 |---|---|---|---|---|---|
@@ -1920,7 +2220,7 @@ v.shrink_to_fit(); // non-binding request to shrink capacity to size
 | `s.upper_bound(k)` | iterator to first element > k |
 | `s.equal_range(k)` | `{lower_bound(k), upper_bound(k)}` |
 
-### 18.3 Iterator Cheat Sheet
+### 19.3 Iterator Cheat Sheet
 
 | Operation | What it does |
 |---|---|
@@ -1938,7 +2238,7 @@ v.shrink_to_fit(); // non-binding request to shrink capacity to size
 `input` → `forward` → `bidirectional` → `random-access` → `contiguous`
 `output` (separate hierarchy)
 
-### 18.4 Algorithm Cheat Sheet
+### 19.4 Algorithm Cheat Sheet
 
 ```cpp
 #include <algorithm>
@@ -1974,18 +2274,22 @@ std::copy(b, e, out);
 std::for_each(b, e, fn);
 ```
 
-### 18.5 Iterator Adapter Cheat Sheet
+### 19.5 Iterator Adapter Cheat Sheet
 
-| Adapter | Constructs from | Each `*it = x;` calls |
-|---|---|---|
-| `back_inserter(c)`  | sequence container with `push_back`  | `c.push_back(x)`  |
-| `front_inserter(c)` | sequence container with `push_front` | `c.push_front(x)` |
-| `inserter(c, pos)`  | any container with `insert`          | `c.insert(pos, x)` |
-| `ostream_iterator<T>(s, "delim")` | output stream | `s << x; s << "delim";` |
-| `istream_iterator<T>(s)` | input stream | reads via `>>` |
-| `istream_iterator<T>()` | (default) | represents EOF |
+| Adapter | Requires | Works on | Each `*it = x;` calls |
+|---|---|---|---|
+| `back_inserter(c)`  | container with `push_back` | `vector`, `deque`, `list`, `string` | `c.push_back(x)` |
+| `front_inserter(c)` | container with `push_front` | `deque`, `list`, `forward_list` (**not** `vector`, `string`) | `c.push_front(x)` |
+| `inserter(c, pos)`  | container with `insert` | nearly all STL containers: `vector`, `deque`, `list`, `forward_list`, `set` / `multiset`, `map` / `multimap`, `unordered_*` | `c.insert(pos, x)` |
+| `ostream_iterator<T>(s, "delim")` | an output stream | `std::cout`, `std::cerr`, `std::clog`, `std::ofstream`, `std::ostringstream` | `s << x; s << "delim";` |
+| `istream_iterator<T>(s)` | an input stream | `std::cin`, `std::ifstream`, `std::istringstream` | reads via `>>` |
+| `istream_iterator<T>()` | (default) | — | represents EOF (end-of-stream sentinel) |
 
-### 18.6 I/O Stream Cheat Sheet
+> ⚠️ **Associative containers (`set` / `map` / etc.) only work with `inserter`**, not `back_inserter` / `front_inserter` — they decide element position themselves, so "back"/"front" has no meaning. For a `set`, the idiom is `inserter(s, s.end())` (or just call `s.insert(x)` directly and skip the iterator adapter altogether).
+>
+> ⚠️ **Neither `array` nor `forward_list` works with `back_inserter`** — `array` is fixed-size, `forward_list` has only `push_front` and no `push_back`.
+
+### 19.6 I/O Stream Cheat Sheet
 
 **Predefined streams:**
 
@@ -2034,7 +2338,7 @@ std::cout << std::setw(8)     << std::setfill('*') << std::right << "hi";  // **
 > - **Sticky** (lasts until changed): `boolalpha`, `hex`, `fixed`, `setprecision`, `setfill`, `left`/`right`
 > - **One-shot** (next output only): `setw` (and `width()`)
 
-### 18.7 Function Object Forms
+### 19.7 Function Object Forms
 
 ```cpp
 // 1. Free function
@@ -2057,7 +2361,7 @@ std::for_each(b, e, [](int i){ std::cout << i; });
 
 ---
 
-## 19. Top Five Takeaways for Week 8
+## 20. Top Five Takeaways for Week 8
 
 1. **The STL is a triangle: containers, iterators, algorithms.** Each algorithm is written **once** in terms of iterators, and each container exposes iterators **once**. The combinatorial explosion of "every algorithm × every container" collapses to *M + N* pieces instead of *M × N*. The moment you realize this, the library stops feeling like a phone book of trivia and starts feeling like a coherent design. The corollary you must memorize: **algorithms don't take containers — they take iterator pairs**.
 
