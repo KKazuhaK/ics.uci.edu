@@ -32,7 +32,7 @@ TSB 是一家英国银行，试图从一个基础设施迁移到另一个。在�
 
 Shopa 是一家英国创业公司，最终关闭的根本原因在于公司始终没有弄清楚应该开发什么产品。内部团队对产品方向没有达成共识，导致工程团队和销售团队之间产生冲突。这是一个典型的需求缺失或不清晰时会发生什么的教科书级案例。
 
-![Shopa 关闭公告截图,附有诊断性引文："公司……依然在试图弄清楚自己要造什么产品……公司内部没人知道他们在做什么。"](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/shopa-failure.jpg)
+![Shopa 关闭公告截图，附有诊断性引文："公司……依然在试图弄清楚自己要造什么产品……公司内部没人知道他们在做什么。"](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/shopa-failure.jpg)
 
 ### 1.5 行业统计数据
 
@@ -71,7 +71,7 @@ $$\boxed{\textbf{需求} = \text{软件应该做什么（不涉及如何实现�
 
 糟糕的需求是项目失败或受阻最常见的单一原因。根据 CHAOS 报告，需求缺陷导致的返工成本占总返工成本的 **70%** 以上，而返工本身大约消耗项目总预算的 **30–50%**。缺乏用户输入和参与一直被列为最常见的问题。
 
-![Kassab 等(IEEE SW 2017)对 98 个项目缺陷来源的问卷统计:"需求问题(遗漏、变更或错误)"是被报告最多的单一缺陷来源,高于设计、测试和编码问题。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/kassab-defect-causes.jpg)
+![Kassab 等（IEEE SW 2017）对 98 个项目缺陷来源的问卷统计："需求问题（遗漏、变更或错误）"是被报告最多的单一缺陷来源，高于设计、测试和编码问题。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/kassab-defect-causes.jpg)
 
 ### 2.3 软件生命周期成本
 
@@ -87,13 +87,13 @@ $$\boxed{\textbf{需求} = \text{软件应该做什么（不涉及如何实现�
 | 集成 | 8% |
 | **维护** | **67%** |
 
-![软件生命周期成本饼图:维护阶段占据 67%,分析、规格说明、设计、编码、测试、集成六个阶段加起来只占 33%。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/lifecycle-costs.png)
+![软件生命周期成本饼图：维护阶段占据 67%，分析、规格说明、设计、编码、测试、集成六个阶段加起来只占 33%。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/lifecycle-costs.png)
 
 ### 2.4 变更成本随时间增长
 
 在分析和规格说明阶段，变更成本最低。随着进入设计、实现、集成，尤其是维护阶段，成本会急剧上升。因此，在需求阶段多投入时间能在后期节省巨大成本。
 
-![变更成本柱状图:在分析、规格说明、设计阶段几乎为零,到实现与集成阶段小幅上升,而维护阶段飙升至约 200 倍。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/cost-of-change.png)
+![变更成本柱状图：在分析、规格说明、设计阶段几乎为零，到实现与集成阶段小幅上升，而维护阶段飙升至约 200 倍。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/cost-of-change.png)
 
 ### 2.5 在美国，哪个类别雇佣了最多的程序员？
 
@@ -114,7 +114,7 @@ $$\boxed{\textbf{需求} = \text{软件应该做什么（不涉及如何实现�
 
 扩展瀑布模型的流程为：需求分析 → 需求规格说明 → 设计 → 实现 → 验证 → 维护。
 
-![瀑布模型示意图:"需求分析"与"需求规格说明"拆分为前两个阶段,依次流向设计、实现、验证、维护。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/waterfall.png)
+![瀑布模型示意图："需求分析"与"需求规格说明"拆分为前两个阶段，依次流向设计、实现、验证、维护。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-2/waterfall.png)
 
 ### 3.2 需求分析技术
 

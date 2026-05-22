@@ -275,10 +275,10 @@ Testing is not the job of one role. Different testers find different bugs.
 | **Programmers** | Write unit tests as they code (often: before they code, in test-driven development); run them on every change. Catch low-level faults early |
 | **Testers** (dedicated QA staff) | Design and run more rigorous test suites — integration tests, regression tests, scripted system tests. Often write tests against the spec without looking at the code |
 | **Users** | Test the system in something closer to real-world conditions, in several flavors: |
-| &nbsp;&nbsp;↳ Acceptance testing | Customer or customer's representative verifies that the system meets contracted requirements before it is accepted |
-| &nbsp;&nbsp;↳ Alpha testing | Internal use, typically still by the developing organization, in a controlled environment |
-| &nbsp;&nbsp;↳ Beta testing | Real, external users with a pre-release build, in real-world conditions |
-| &nbsp;&nbsp;↳ Crowdsourcing / bug bounties | Pay outside testers (security researchers, the public) per bug found. Common for security-sensitive systems |
+| 　　↳ Acceptance testing | Customer or customer's representative verifies that the system meets contracted requirements before it is accepted |
+| 　　↳ Alpha testing | Internal use, typically still by the developing organization, in a controlled environment |
+| 　　↳ Beta testing | Real, external users with a pre-release build, in real-world conditions |
+| 　　↳ Crowdsourcing / bug bounties | Pay outside testers (security researchers, the public) per bug found. Common for security-sensitive systems |
 
 > The reason "who" matters: **each tester has different blind spots**. Programmers know how the code is supposed to work, so they unconsciously test the cases they already wrote for. Independent testers don't share those assumptions and find different bugs. Real users hit input combinations no engineer would think to try.
 
@@ -383,10 +383,10 @@ The lecture lists six concrete strategies for choosing test cases. Some are base
 |---|------|------|------|
 | 1 | **Intuition** | The tester's experience and gut feeling about what might break | Mentioned, not preferred — useful but not systematic |
 | 2 | **Specification (black-box testing)** | The *specification* of what the program should do, without looking at the code | Two systematic sub-strategies follow: |
-| 2a | &nbsp;&nbsp;Equivalence-class partitioning | Group inputs into classes that the spec treats the same; pick one representative per class | Black-box, systematic |
-| 2b | &nbsp;&nbsp;Boundary-value analysis | Pick inputs *at the edges* of equivalence classes (zero, max, off-by-one) — bugs cluster at boundaries | Black-box, systematic |
+| 2a | 　　Equivalence-class partitioning | Group inputs into classes that the spec treats the same; pick one representative per class | Black-box, systematic |
+| 2b | 　　Boundary-value analysis | Pick inputs *at the edges* of equivalence classes (zero, max, off-by-one) — bugs cluster at boundaries | Black-box, systematic |
 | 3 | **Code (white-box testing)** | The *source code itself*, to ensure every part is exercised | One sub-strategy: |
-| 3a | &nbsp;&nbsp;Path analysis | Ensure each path through the control flow graph is tested at least once | White-box, systematic |
+| 3a | 　　Path analysis | Ensure each path through the control flow graph is tested at least once | White-box, systematic |
 | 4 | **Existing test cases (regression testing)** | The test suite from previous versions — re-run every existing test on the new version to make sure nothing that used to work has broken | Defensive — catches *new* bugs in *old* features |
 | 5 | **Faults** | Known fault patterns (common bug taxonomies, things this team has gotten wrong before) | Often part of "intuition" in practice, but can be made systematic |
 
