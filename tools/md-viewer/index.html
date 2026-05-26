@@ -579,6 +579,176 @@
 				content: " ";
 			}
 
+			.markdown-body .mermaid-block {
+				position: relative;
+				margin: 1.25rem 0;
+				background: var(--notes-blockquote-bg);
+				border: 1px solid var(--notes-border);
+				border-radius: 0.75rem;
+				height: 30rem;
+				overflow: hidden;
+			}
+
+			.markdown-body .mermaid-stage {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0.65rem;
+				left: 0;
+				overflow: hidden;
+				cursor: grab;
+				user-select: none;
+				touch-action: none;
+			}
+
+			.markdown-body .mermaid-resize-handle {
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				height: 0.65rem;
+				cursor: ns-resize;
+				z-index: 3;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: transparent;
+				border-bottom-left-radius: 0.7rem;
+				border-bottom-right-radius: 0.7rem;
+				transition: background 0.15s ease;
+			}
+
+			.markdown-body .mermaid-resize-handle::after {
+				content: "";
+				display: block;
+				width: 2.75rem;
+				height: 3px;
+				border-radius: 999px;
+				background: rgba(127, 142, 165, 0.4);
+				transition: background 0.15s ease, width 0.15s ease;
+			}
+
+			.markdown-body .mermaid-resize-handle:hover {
+				background: rgba(127, 142, 165, 0.08);
+			}
+
+			.markdown-body .mermaid-resize-handle:hover::after {
+				background: rgba(127, 142, 165, 0.7);
+				width: 3.5rem;
+			}
+
+			.markdown-body .mermaid-resize-handle.is-resizing::after {
+				background: var(--notes-blue);
+				width: 3.5rem;
+			}
+
+			.markdown-body .mermaid-stage.is-grabbing {
+				cursor: grabbing;
+			}
+
+			.markdown-body .mermaid-stage > svg {
+				position: absolute;
+				left: 0;
+				top: 0;
+				transform-origin: 0 0;
+				max-width: none !important;
+				max-height: none !important;
+				width: auto !important;
+				height: auto !important;
+			}
+
+			.markdown-body .mermaid-controls {
+				position: absolute;
+				top: 0.55rem;
+				right: 0.55rem;
+				display: flex;
+				gap: 0.1rem;
+				z-index: 2;
+				background: rgba(15, 20, 30, 0.55);
+				padding: 0.2rem;
+				border-radius: 0.55rem;
+				backdrop-filter: blur(6px);
+				-webkit-backdrop-filter: blur(6px);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+			}
+
+			.markdown-body .mermaid-controls button {
+				width: 1.85rem;
+				height: 1.85rem;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				background: transparent;
+				color: rgba(255, 255, 255, 0.92);
+				border: none;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				transition: background 0.12s ease, color 0.12s ease;
+				padding: 0;
+			}
+
+			.markdown-body .mermaid-controls button svg {
+				width: 16px;
+				height: 16px;
+				display: block;
+			}
+
+			.markdown-body .mermaid-controls button:hover {
+				background: rgba(255, 255, 255, 0.16);
+				color: #fff;
+			}
+
+			.markdown-body .mermaid-controls button:active {
+				background: rgba(255, 255, 255, 0.28);
+			}
+
+			.markdown-body .mermaid-zoom-indicator {
+				position: absolute;
+				left: 0.6rem;
+				bottom: 0.6rem;
+				background: rgba(15, 20, 30, 0.55);
+				color: rgba(255, 255, 255, 0.9);
+				padding: 0.18rem 0.55rem;
+				border-radius: 0.4rem;
+				font: 500 0.75rem ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+				z-index: 2;
+				backdrop-filter: blur(6px);
+				-webkit-backdrop-filter: blur(6px);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				pointer-events: none;
+			}
+
+			.markdown-body .mermaid-block.mermaid-error {
+				height: auto;
+				overflow: visible;
+				padding: 1rem 1.25rem;
+				text-align: left;
+				background: var(--notes-error-bg);
+				border-color: var(--notes-error-border);
+				color: var(--notes-error-text);
+			}
+
+			.markdown-body .mermaid-block.mermaid-error .mermaid-error-msg {
+				font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+				font-size: 0.85rem;
+				margin-bottom: 0.5rem;
+				white-space: pre-wrap;
+				word-break: break-word;
+			}
+
+			.markdown-body .mermaid-block.mermaid-error pre {
+				background: rgba(0, 0, 0, 0.06);
+				border: 1px solid var(--notes-error-border);
+				margin: 0;
+				color: var(--notes-error-text);
+			}
+
+			@media (max-width: 736px) {
+				.markdown-body .mermaid-block {
+					height: 22rem;
+				}
+			}
+
 			.markdown-body table {
 				width: 100%;
 				border-collapse: collapse;
@@ -1423,6 +1593,255 @@
 				return shiki.codeToHtml;
 			}
 
+			const MERMAID_IMPORT_URL = "https://esm.sh/mermaid@11";
+			let mermaidModulePromise = null;
+			let mermaidIdCounter = 0;
+
+			function currentMermaidTheme() {
+				const theme = document.documentElement.getAttribute("data-theme");
+				return theme === "dark" ? "dark" : "default";
+			}
+
+			async function getMermaid() {
+				if (!mermaidModulePromise) {
+					mermaidModulePromise = import(MERMAID_IMPORT_URL)
+						.then(function(mod) { return mod.default || mod; })
+						.catch(function(error) {
+							mermaidModulePromise = null;
+							throw error;
+						});
+				}
+				return mermaidModulePromise;
+			}
+
+			function attachMermaidPanZoom(wrapper, svg) {
+				const stage = document.createElement("div");
+				stage.className = "mermaid-stage";
+				stage.appendChild(svg);
+
+				const lucide = {
+					plus: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+					minus: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+					reset: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>'
+				};
+
+				const controls = document.createElement("div");
+				controls.className = "mermaid-controls";
+				controls.innerHTML =
+					'<button type="button" data-action="zoom-in" title="Zoom in" aria-label="Zoom in">' + lucide.plus + '</button>' +
+					'<button type="button" data-action="zoom-out" title="Zoom out" aria-label="Zoom out">' + lucide.minus + '</button>' +
+					'<button type="button" data-action="reset" title="Reset view" aria-label="Reset view">' + lucide.reset + '</button>';
+
+				const indicator = document.createElement("div");
+				indicator.className = "mermaid-zoom-indicator";
+				indicator.textContent = "100%";
+
+				const resizeHandle = document.createElement("div");
+				resizeHandle.className = "mermaid-resize-handle";
+				resizeHandle.title = "Drag to resize";
+
+				wrapper.appendChild(stage);
+				wrapper.appendChild(controls);
+				wrapper.appendChild(indicator);
+				wrapper.appendChild(resizeHandle);
+
+				svg.removeAttribute("style");
+				const vb = svg.viewBox && svg.viewBox.baseVal;
+				let naturalW = (vb && vb.width) ? vb.width : (parseFloat(svg.getAttribute("width")) || 800);
+				let naturalH = (vb && vb.height) ? vb.height : (parseFloat(svg.getAttribute("height")) || 600);
+				svg.setAttribute("width", naturalW);
+				svg.setAttribute("height", naturalH);
+
+				const MIN_SCALE = 0.2;
+				const MAX_SCALE = 6;
+				let scale = 1;
+				let tx = 0;
+				let ty = 0;
+
+				function apply() {
+					svg.style.transform = "translate(" + tx + "px, " + ty + "px) scale(" + scale + ")";
+					indicator.textContent = Math.round(scale * 100) + "%";
+				}
+
+				function defaultView() {
+					const stageW = stage.clientWidth || 1;
+					const stageH = stage.clientHeight || 1;
+					let initial = 1;
+					if (naturalW * initial > stageW * 0.95) {
+						initial = (stageW * 0.92) / naturalW;
+					}
+					scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, initial));
+					tx = (stageW - naturalW * scale) / 2;
+					ty = Math.min(0, (stageH - naturalH * scale) / 2);
+					apply();
+				}
+
+				function zoomAt(factor, originX, originY) {
+					const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * factor));
+					const realFactor = newScale / scale;
+					if (realFactor === 1) return;
+					tx = originX - (originX - tx) * realFactor;
+					ty = originY - (originY - ty) * realFactor;
+					scale = newScale;
+					apply();
+				}
+
+				let dragging = false;
+				let startX = 0, startY = 0, startTx = 0, startTy = 0, activePointer = null;
+
+				stage.addEventListener("pointerdown", function(event) {
+					if (event.button !== 0) return;
+					dragging = true;
+					activePointer = event.pointerId;
+					startX = event.clientX;
+					startY = event.clientY;
+					startTx = tx;
+					startTy = ty;
+					stage.classList.add("is-grabbing");
+					try { stage.setPointerCapture(event.pointerId); } catch (e) {}
+				});
+
+				stage.addEventListener("pointermove", function(event) {
+					if (!dragging || event.pointerId !== activePointer) return;
+					tx = startTx + (event.clientX - startX);
+					ty = startTy + (event.clientY - startY);
+					apply();
+				});
+
+				function endDrag(event) {
+					if (!dragging || (event && event.pointerId !== activePointer)) return;
+					dragging = false;
+					activePointer = null;
+					stage.classList.remove("is-grabbing");
+				}
+				stage.addEventListener("pointerup", endDrag);
+				stage.addEventListener("pointercancel", endDrag);
+				stage.addEventListener("pointerleave", endDrag);
+
+				stage.addEventListener("wheel", function(event) {
+					event.preventDefault();
+					const rect = stage.getBoundingClientRect();
+					const ox = event.clientX - rect.left;
+					const oy = event.clientY - rect.top;
+					const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+					zoomAt(factor, ox, oy);
+				}, { passive: false });
+
+				controls.addEventListener("click", function(event) {
+					const target = event.target.closest("button");
+					if (!target) return;
+					const action = target.dataset.action;
+					const cx = stage.clientWidth / 2;
+					const cy = stage.clientHeight / 2;
+					if (action === "zoom-in") zoomAt(1.25, cx, cy);
+					else if (action === "zoom-out") zoomAt(1 / 1.25, cx, cy);
+					else if (action === "reset") defaultView();
+				});
+
+				let resizing = false;
+				let resizeStartY = 0, resizeStartH = 0;
+
+				resizeHandle.addEventListener("pointerdown", function(event) {
+					if (event.button !== 0) return;
+					resizing = true;
+					resizeStartY = event.clientY;
+					resizeStartH = wrapper.offsetHeight;
+					resizeHandle.classList.add("is-resizing");
+					try { resizeHandle.setPointerCapture(event.pointerId); } catch (e) {}
+					event.preventDefault();
+				});
+
+				resizeHandle.addEventListener("pointermove", function(event) {
+					if (!resizing) return;
+					const delta = event.clientY - resizeStartY;
+					const minH = 240;
+					const maxH = Math.max(minH + 60, window.innerHeight - 80);
+					const newH = Math.max(minH, Math.min(maxH, resizeStartH + delta));
+					wrapper.style.height = newH + "px";
+				});
+
+				function endResize(event) {
+					if (!resizing) return;
+					resizing = false;
+					resizeHandle.classList.remove("is-resizing");
+					if (event && event.pointerId) {
+						try { resizeHandle.releasePointerCapture(event.pointerId); } catch (e) {}
+					}
+				}
+				resizeHandle.addEventListener("pointerup", endResize);
+				resizeHandle.addEventListener("pointercancel", endResize);
+
+				if (stage.clientWidth > 0 && stage.clientHeight > 0) {
+					defaultView();
+				} else {
+					requestAnimationFrame(defaultView);
+				}
+			}
+
+			async function applyMermaidRendering(container) {
+				const mermaidBlocks = Array.from(container.querySelectorAll('pre[data-language="mermaid"]'));
+				if (!mermaidBlocks.length) {
+					return;
+				}
+
+				let mermaid;
+				try {
+					mermaid = await getMermaid();
+				} catch (error) {
+					console.warn("Mermaid failed to load. Falling back to plain code blocks.", error);
+					return;
+				}
+
+				try {
+					mermaid.initialize({
+						startOnLoad: false,
+						theme: currentMermaidTheme(),
+						securityLevel: "loose",
+						fontFamily: "Inter, system-ui, sans-serif"
+					});
+				} catch (error) {
+					console.warn("Mermaid initialize failed.", error);
+				}
+
+				for (const pre of mermaidBlocks) {
+					const codeEl = pre.querySelector("code");
+					const source = codeEl ? (codeEl.textContent || "") : (pre.textContent || "");
+					const id = "mermaid-" + (++mermaidIdCounter) + "-" + Date.now().toString(36);
+					const wrapper = document.createElement("div");
+					wrapper.className = "mermaid-block";
+
+					try {
+						const result = await mermaid.render(id, source);
+						const template = document.createElement("template");
+						template.innerHTML = result.svg.trim();
+						const svgEl = template.content.querySelector("svg");
+						if (!svgEl) throw new Error("Mermaid produced no SVG element");
+						attachMermaidPanZoom(wrapper, svgEl);
+						if (result.bindFunctions) {
+							try { result.bindFunctions(wrapper); } catch (e) {}
+						}
+					} catch (error) {
+						console.warn("Mermaid rendering failed.", error);
+						wrapper.classList.add("mermaid-error");
+						const errDetail = document.createElement("div");
+						errDetail.className = "mermaid-error-msg";
+						errDetail.textContent = (error && error.message) ? error.message : "Mermaid render failed";
+						const fallbackPre = document.createElement("pre");
+						const fallbackCode = document.createElement("code");
+						fallbackCode.textContent = source;
+						fallbackPre.appendChild(fallbackCode);
+						wrapper.appendChild(errDetail);
+						wrapper.appendChild(fallbackPre);
+					}
+
+					pre.replaceWith(wrapper);
+					const orphan = document.getElementById(id);
+					if (orphan && !wrapper.contains(orphan)) {
+						orphan.remove();
+					}
+				}
+			}
+
 			async function applySyntaxHighlighting(container) {
 				const codeBlocks = Array.from(container.querySelectorAll("pre > code"));
 				const highlightableBlocks = codeBlocks.filter(function(codeElement) {
@@ -2088,7 +2507,14 @@
 				buildToc(contentEl);
 				if (window._mvGotoContentChanged) window._mvGotoContentChanged();
 
-				Promise.resolve(applySyntaxHighlighting(contentEl))
+				Promise.resolve(applyMermaidRendering(contentEl))
+					.catch(function(error) {
+						console.warn("Mermaid rendering failed.", error);
+					})
+					.then(function() {
+						if (window._mvGotoContentChanged) window._mvGotoContentChanged();
+						return applySyntaxHighlighting(contentEl);
+					})
 					.catch(function(error) {
 						console.warn("Syntax highlighting failed.", error);
 					});

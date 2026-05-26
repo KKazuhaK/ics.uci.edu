@@ -313,30 +313,6 @@ flowchart TD
     n6 --> ex
 ```
 
-纯文本版本（给不支持 Mermaid 渲染的环境）:
-
-```text
-        entry
-          |
-          v
-          1            (head = getHead())
-          |
-          v
-          2            (if head == null)
-         / \
-       T/   \F
-       /     \
-      3       4        (3: return null;  4: if head.next == null)
-      |      / \
-      |   T /   \F
-      |    /     \
-      |   5       6    (5: return null;  6: return head.next.node)
-       \  |      /
-        \ |     /
-         vvv  vv
-          exit
-```
-
 ![幻灯片"Example 1: Building the control-flow graph"，左边是六行 `def getSecondElement()` 源代码，右边是对应的 CFG，以竖直链状画成紫色描边的椭圆:entry → 1 → 2，从 2 出发 T 分支到 3、F 分支到 4，4 再 T 分支到 5、F 分支到 6；节点 3、5、6 都汇入底部的单一 exit 椭圆。](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/getsecondelement-cfg.png)
 
 这张图通过函数体共有三条端到端路径:
