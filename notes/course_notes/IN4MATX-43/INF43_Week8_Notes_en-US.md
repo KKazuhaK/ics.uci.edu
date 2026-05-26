@@ -313,30 +313,6 @@ flowchart TD
     n6 --> ex
 ```
 
-Plain-text version (for environments without Mermaid rendering):
-
-```text
-        entry
-          |
-          v
-          1            (head = getHead())
-          |
-          v
-          2            (if head == null)
-         / \
-       T/   \F
-       /     \
-      3       4        (3: return null;  4: if head.next == null)
-      |      / \
-      |   T /   \F
-      |    /     \
-      |   5       6    (5: return null;  6: return head.next.node)
-       \  |      /
-        \ |     /
-         vvv  vv
-          exit
-```
-
 ![Lecture slide "Example 1: Building the control-flow graph" showing the six-line `def getSecondElement()` source on the left and the corresponding CFG on the right as a vertical chain of purple-outlined ovals: entry → 1 → 2, with 2 branching T to 3 and F to 4, and 4 branching T to 5 and F to 6; nodes 3, 5, 6 all converge into a single exit oval at the bottom.](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/getsecondelement-cfg.png)
 
 The graph has three end-to-end paths through the body:
