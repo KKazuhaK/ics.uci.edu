@@ -1223,10 +1223,223 @@ int main() {
 | `copy(b, e, dest)` | 把范围拷到 `dest` 里 |
 | `unique(b, e)` | 删掉相邻重复元素（要彻底去重得先排序） |
 | `unique_copy(b, e, dest)` | 拷范围,跳过相邻重复元素 |
-| `remove(b, e, val)` | "删除" `val`（实际是搬移；容器大小不变 —— 见 erase-remove 惯用法） |
+| `remove(b, e, val)` | "删除" `val`（实际是搬移；容器大小不变 —— 见 §11.7 erase-remove 惯用法） |
 | `binary_search(b, e, val)` | 在已排序范围里返回 `val` 是否存在 |
 | `lower_bound(b, e, val)` | 指向第一个 ≥ val 的 iterator |
 | `upper_bound(b, e, val)` | 指向第一个 > val 的 iterator |
+
+### 11.6 谓词算法 — `all_of` / `any_of` / `none_of`（C++11）
+
+这三个返回 `bool` —— 用谓词扫一遍范围,回答 "全部?有一个吗?都没有?":
+
+```cpp
+#include <algorithm>
+#include <vector>
+
+std::vector<int> v{2, 4, 6, 8};
+
+bool all_even  = std::all_of (v.begin(), v.end(), [](int x){ return x % 2 == 0; });   // true
+bool any_neg   = std::any_of (v.begin(), v.end(), [](int x){ return x  <  0; });      // false
+bool none_zero = std::none_of(v.begin(), v.end(), [](int x){ return x ==  0; });      // true
+```
+
+| 算法 | 语义 | 空范围时 |
+|---|---|---|
+| `all_of(b, e, p)` | 全部满足 `p`? | `true`（空集对所有谓词成立 —— *vacuous truth*） |
+| `any_of(b, e, p)` | 至少一个满足? | `false` |
+| `none_of(b, e, p)` | 没有一个满足? | `true` |
+
+> 💡 **短路求值** —— 都在第一个反例（`all_of` / `none_of`）或第一个命中（`any_of`）时停止,不会扫完范围。
+
+### 11.7 Erase-Remove 惯用法
+
+§11.5 提了 `remove(b, e, val)` 不真删 —— 它只是**把不等于 `val` 的元素往前移**,然后返回一个 iterator 指向 "新的逻辑末尾"。容器大小不变,后面那段是 "残留":
+
+```cpp
+std::vector<int> v{1, 2, 3, 2, 4, 2, 5};
+auto new_end = std::remove(v.begin(), v.end(), 2);
+// v 现在是 {1, 3, 4, 5, ?, ?, ?}      ← 后三个是 unspecified
+// new_end 指向第 5 个位置（? 开始那里）
+// v.size() 还是 7 — 没删!
+```
+
+**Erase-remove 惯用法** —— 用 `erase(new_end, v.end())` 把残留段切掉:
+
+```cpp
+v.erase(std::remove(v.begin(), v.end(), 2), v.end());
+// 现在 v 是 {1, 3, 4, 5},size() == 4
+```
+
+带谓词的版本 —— `remove_if`:
+
+```cpp
+v.erase(std::remove_if(v.begin(), v.end(),
+                       [](int x){ return x % 2 == 0; }),
+        v.end());
+// 移除所有偶数
+```
+
+**C++20 的现代写法** —— `std::erase` / `std::erase_if` 是上面这套的内置版本,一行搞定:
+
+```cpp
+std::erase(v, 2);                                  // ≡ erase-remove(v, 2)
+std::erase_if(v, [](int x){ return x % 2 == 0; }); // ≡ erase-remove_if
+```
+
+> ⚠️ **`std::list` 不要用这套** —— `list` 有自己的成员函数 `myList.remove(val)` 和 `myList.remove_if(pred)`,真删而且 O(n) —— 别套 `erase-remove`（对链表没必要,链表删除是 O(1) 节点重连）。
+
+| 容器 | 推荐删除惯用法 |
+|---|---|
+| `vector` / `deque` / `string` | `c.erase(std::remove[_if](...), c.end())` 或 C++20 `std::erase[_if]` |
+| `list` / `forward_list` | `c.remove(val)` / `c.remove_if(pred)`（成员函数） |
+| `set` / `map`（关联） | `c.erase(val)`（直接删 key）或 `c.erase(it)`（按位置） |
+
+### 11.8 容器比较 —— `equal` / `mismatch` / `lexicographical_compare`
+
+```cpp
+std::vector<int> a{1, 2, 3, 4};
+std::vector<int> b{1, 2, 3, 4};
+std::vector<int> c{1, 2, 9, 4};
+
+bool eq = std::equal(a.begin(), a.end(), b.begin());   // true（元素逐个 ==）
+
+auto [ita, itb] = std::mismatch(a.begin(), a.end(), c.begin());
+// ita -> a[2] (= 3), itb -> c[2] (= 9) — 第一处不同
+```
+
+| 算法 | 含义 |
+|---|---|
+| `equal(b1, e1, b2)` | 两序列**元素逐个相等**?（C++14+ 推荐用四参重载 `equal(b1, e1, b2, e2)`,先比长度） |
+| `mismatch(b1, e1, b2)` | 找第一处不同,返回两个 iterator 组成的 pair |
+| `lexicographical_compare(b1, e1, b2, e2)` | 字典序 `<`（像 `string` 的 `<` 那样） |
+
+> 💡 **直接用容器的 `==`** —— 对相同类型的两个标准容器,`a == b` 已经做了 size 检查 + 逐元素比较,通常更简洁。`std::equal` 用在**类型不同但内容应该等价**的场景（比如 `vector<int>` 和 `int[]`,或者比 `vector<int>` 的子区段）。
+
+### 11.9 排序范围上的集合算法
+
+> ⚠️ **前提:两个输入范围都必须是已排序的!** 跟 `binary_search`、`lower_bound` 一样。这些算法**不是**给 `std::set` 用的,而是给任意排序范围（包括 `vector`、`MapArray::keys()`、`std::set`）用的。
+
+```cpp
+#include <algorithm>
+#include <vector>
+#include <iterator>
+
+std::vector<int> a{1, 2, 3, 4, 5};
+std::vector<int> b{3, 4, 5, 6, 7};
+
+std::vector<int> out;
+std::set_union       (a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {1,2,3,4,5,6,7}
+
+out.clear();
+std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {3,4,5}
+
+out.clear();
+std::set_difference  (a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {1,2}   （在 a 但不在 b）
+```
+
+| 算法 | 输出 |
+|---|---|
+| `set_union(a, b, out)` | `a ∪ b`（并集） |
+| `set_intersection(a, b, out)` | `a ∩ b`（交集） |
+| `set_difference(a, b, out)` | `a \ b`（差集） |
+| `set_symmetric_difference(a, b, out)` | `(a∪b)\(a∩b)`（对称差） |
+| `includes(a_first, a_last, b_first, b_last)` | 返回 `bool` —— `b ⊆ a`? |
+
+> 💡 **跨周链接:HW9 的 `MapArray`** —— 它内部是排序的 `vector<pair<K,V>>`,所以这些算法直接能用 —— 只要你的比较器只看 `pair::first` 就行。Week 9 §14 见。
+
+### 11.10 堆算法 —— `<algorithm>`
+
+`<algorithm>` 直接提供操作**任意 random-access 范围**的堆操作 —— 这正是 `std::priority_queue`（§7.3）内部用的东西,但你也可以拿来在自己的 `vector` 上手动维护堆:
+
+```cpp
+#include <algorithm>
+#include <vector>
+
+std::vector<int> v{3, 1, 4, 1, 5, 9, 2, 6};
+
+std::make_heap(v.begin(), v.end());          // 重排成 max-heap, v.front() 是最大
+// v: 9 6 4 3 5 1 2 1   （具体顺序由实现决定,但根永远是最大）
+
+std::cout << v.front() << '\n';              // 9 — 堆顶
+
+v.push_back(10);                             // 先 push_back
+std::push_heap(v.begin(), v.end());          // 然后让新元素 sift-up
+
+std::pop_heap(v.begin(), v.end());           // 把堆顶搬到末尾,然后修复堆
+int top = v.back();
+v.pop_back();                                // 真删
+
+std::sort_heap(v.begin(), v.end());          // 把堆变成有序范围（O(n log n)）
+```
+
+| 算法 | 用途 | 前置条件 |
+|---|---|---|
+| `make_heap(b, e)` | 把范围重排成 max-heap | —— |
+| `push_heap(b, e)` | 让 `*(e-1)` sift-up | `[b, e-1)` 已经是堆 |
+| `pop_heap(b, e)` | 把 `*b` 换到 `*(e-1)`,然后修 `[b, e-1)` | `[b, e)` 是堆 |
+| `sort_heap(b, e)` | 反复 `pop_heap` 直到有序 | `[b, e)` 是堆 |
+| `is_heap(b, e)` | 是堆? | —— |
+| `is_heap_until(b, e)` | 返回最长堆前缀的末尾 | —— |
+
+默认是 **max-heap**（用 `<`）,想 min-heap 传 `std::greater<>{}`:
+
+```cpp
+std::make_heap(v.begin(), v.end(), std::greater<>{});
+```
+
+> 💡 **vs. `priority_queue`** —— 适配器 `priority_queue`（§7.3）就是用 `make_heap`/`push_heap`/`pop_heap` 实现的,只是把 `vector` + 这些函数封装起来。**直接用这些函数的好处**:你能同时访问范围内所有元素（适配器只能看 `top()`）,还能用 `sort_heap` 一键把堆转成排好序的范围。
+
+### 11.11 `<numeric>` 数值算法全家桶
+
+§11.2 已经见过 `iota`,§11.4 见过 `accumulate`。`<numeric>` 里还有几个常用的:
+
+```cpp
+#include <numeric>
+#include <vector>
+#include <functional>
+
+std::vector<int> v{1, 2, 3, 4, 5};
+
+// 1. iota — 填充连续递增值（§11.2）
+std::iota(v.begin(), v.end(), 0);                                   // {0, 1, 2, 3, 4}
+
+// 2. accumulate — 累加（§11.4）,也能用自定义二元运算
+int sum  = std::accumulate(v.begin(), v.end(), 0);                  // 0+0+1+2+3+4 = 10
+int prod = std::accumulate(v.begin(), v.end(), 1, std::multiplies<>{}); // 1*0*1*2*3*4 = 0
+
+// 3. inner_product — 两个范围的点积
+std::vector<int> a{1, 2, 3}, b{4, 5, 6};
+int dot = std::inner_product(a.begin(), a.end(), b.begin(), 0);     // 1*4+2*5+3*6 = 32
+
+// 4. partial_sum — 前缀和
+std::vector<int> ps(v.size());
+std::partial_sum(v.begin(), v.end(), ps.begin());                   // {0, 1, 3, 6, 10}
+
+// 5. adjacent_difference — 相邻差（partial_sum 的反向）
+std::vector<int> diff(v.size());
+std::adjacent_difference(v.begin(), v.end(), diff.begin());         // {0, 1, 1, 1, 1}
+```
+
+| 算法 | 用途 |
+|---|---|
+| `accumulate(b, e, init[, op])` | 用 `op` 折叠范围（默认 `+`）—— **顺序保证从左到右** |
+| `inner_product(b1, e1, b2, init[, op1, op2])` | 默认是点积 `Σ a[i]*b[i]` |
+| `partial_sum(b, e, out[, op])` | 前缀累计写到 `out` |
+| `adjacent_difference(b, e, out[, op])` | `out[i] = b[i] - b[i-1]`,`out[0] = b[0]` |
+| `iota(b, e, start)` | 填 `start, start+1, ...` |
+
+**C++17 并行友好版**（只是认识一下）:
+
+| 算法 | 与传统版区别 |
+|---|---|
+| `reduce(b, e, init[, op])` | 像 `accumulate` 但**不保证顺序** —— 编译器可以并行折叠,要求 `op` 满足结合律 |
+| `transform_reduce(b1, e1, b2, init, op1, op2)` | `inner_product` 的并行版 |
+| `inclusive_scan` / `exclusive_scan` | `partial_sum` 的并行版 |
+
+> ⚠️ **`accumulate` 初值类型决定结果类型** —— `accumulate(v.begin(), v.end(), 0)` 即使 `v` 是 `vector<double>` 也会全部截断成 `int`。要 `double` 结果就传 `0.0`。
 
 ---
 
@@ -2272,6 +2485,45 @@ int n2 = std::count_if(b, e, pred);
 // Bulk
 std::copy(b, e, out);
 std::for_each(b, e, fn);
+
+// Predicate logic (§11.6)
+bool all  = std::all_of (b, e, pred);
+bool any  = std::any_of (b, e, pred);
+bool none = std::none_of(b, e, pred);
+
+// Erase-remove idiom (§11.7) — vector / deque / string
+v.erase(std::remove   (v.begin(), v.end(), val),  v.end());
+v.erase(std::remove_if(v.begin(), v.end(), pred), v.end());
+// C++20 一行版:
+std::erase   (v, val);
+std::erase_if(v, pred);
+
+// Range comparison (§11.8)
+bool eq = std::equal(b1, e1, b2);                       // 逐元素 ==
+auto [pa, pb] = std::mismatch(b1, e1, b2);              // 第一处不同
+bool lt = std::lexicographical_compare(b1, e1, b2, e2); // 字典序 <
+
+// Set algorithms on SORTED ranges (§11.9)
+std::set_union              (a_b, a_e, b_b, b_e, out);
+std::set_intersection       (a_b, a_e, b_b, b_e, out);
+std::set_difference         (a_b, a_e, b_b, b_e, out);  // a \ b
+std::set_symmetric_difference(a_b, a_e, b_b, b_e, out);
+bool sub = std::includes(a_b, a_e, b_b, b_e);           // b ⊆ a?
+
+// Heap algorithms — random-access range (§11.10)
+std::make_heap (b, e);              // 重排成 max-heap
+std::push_heap (b, e);              // 让 *(e-1) sift-up
+std::pop_heap  (b, e);              // 把 *b 换到 *(e-1)
+std::sort_heap (b, e);              // 堆 → 排好序
+bool h = std::is_heap(b, e);
+
+// <numeric> family (§11.11)
+std::inner_product       (a_b, a_e, b_b, init);   // 点积
+std::partial_sum         (b, e, out);             // 前缀和
+std::adjacent_difference (b, e, out);             // 相邻差
+// C++17 并行友好:
+std::reduce              (b, e, init);            // 无序版 accumulate
+std::transform_reduce    (a_b, a_e, b_b, init, op1, op2);
 ```
 
 ### 19.5 Iterator Adapter 速查

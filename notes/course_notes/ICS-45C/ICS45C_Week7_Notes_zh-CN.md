@@ -18,7 +18,7 @@
 - [14. 异常规范与 noexcept](#14-异常规范与-noexcept)
 - [15. Friend 非成员函数](#15-friend-非成员函数)
 - [16. 字符串流（stringstream）](#16-字符串流stringstream)
-- [17. 来自 Topic 6 PPT 的遗留主题：多继承、虚基类与零规则](#17-来自-topic-6-ppt-的遗留主题多继承与虚基类)
+- [17. 来自 Topic 6 PPT 的遗留主题：多继承、虚基类与零规则](#17-来自-topic-6-ppt-的遗留主题多继承虚基类与零规则)
 - [18. Namespaces（命名空间）](#18-namespaces命名空间)
 - [19. Week 7 综合 Cheat Sheet](#19-week-7-综合-cheat-sheet)
 - [20. Week 7 最重要的五条记忆](#20-week-7-最重要的五条记忆)
@@ -968,6 +968,8 @@ auto found = std::find_if(arr.begin(), arr.end(),
 > 遵循"在最小作用域、最接近首次使用处定义"的原则，当你需要一个平凡的一次性函数作为实参传出去时，lambda 优于普通函数。
 
 ### 7.4 把 lambda 存进变量
+
+> 💡 **关于 `std::all_of`** —— 当范围里**所有**元素都满足谓词时返回 `true`。完整算法目录在 Week 8 §11.6(谓词算法)。
 
 ```cpp
 // Inline (function literal):  hard to read

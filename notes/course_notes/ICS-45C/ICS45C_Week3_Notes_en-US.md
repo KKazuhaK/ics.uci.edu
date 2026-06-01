@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [1. Introduction to std::string](#1-introduction-to-stdstring)
-- [2. Introduction to std::string_view](#2-introduction-to-stdstringview)
+- [2. Introduction to std::string_view](#2-introduction-to-stdstring_view)
 - [3. Return by Reference and Return by Address](#3-return-by-reference-and-return-by-address)
 - [4. Default Constructors and Default Arguments](#4-default-constructors-and-default-arguments)
 - [5. Introduction to C-style Arrays](#5-introduction-to-c-style-arrays)
