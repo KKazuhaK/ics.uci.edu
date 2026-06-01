@@ -1744,10 +1744,33 @@ $$
 
 			/* ── Preview render pipeline ───────────────── */
 
+			/* Heading slug \u2014 identical algorithm to md-viewer's slugifyHeading,
+			   so TOCs generated here resolve the same way when read in md-viewer. */
+			function plainTextForSlug(text) {
+				return text
+					.replace(/`([^`]+)`/g, "$1")
+					.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+					.replace(/\*\*([^*]+)\*\*/g, "$1")
+					.replace(/\*([^*]+)\*/g, "$1")
+					.replace(/<[^>]+>/g, "")
+					.trim();
+			}
+
+			function slugifyHeading(text, slugCounts) {
+				var base = plainTextForSlug(text)
+					.toLowerCase()
+					.replace(/[^\p{L}\p{N}\s_-]/gu, "")
+					.replace(/\s/g, "-")
+					.replace(/^-+|-+$/g, "") || "section";
+				var seen = slugCounts.get(base) || 0;
+				slugCounts.set(base, seen + 1);
+				return seen === 0 ? base : base + "-" + seen;
+			}
+
 			function addHeadingIds(container) {
+				var slugCounts = new Map();
 				container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(el) {
-					var text = el.textContent.trim();
-					el.id = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+					el.id = slugifyHeading(el.textContent, slugCounts);
 				});
 			}
 
@@ -1902,6 +1925,7 @@ $$
 				var cm = editor.codemirror;
 				var lines = cm.getValue().split('\n');
 				var toc = [];
+				var slugCounts = new Map();
 				var inCode = false;
 				for (var i = 0; i < lines.length; i++) {
 					var line = lines[i];
@@ -1910,10 +1934,10 @@ $$
 					var m = line.match(/^(#{1,6})\s+(.+)/);
 					if (!m) continue;
 					var level = m[1].length;
-					var text = m[2].replace(/[*_`\[\]]/g, '').trim();
-					var anchor = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+					var label = plainTextForSlug(m[2]);
+					var anchor = slugifyHeading(m[2], slugCounts);
 					var indent = '  '.repeat(level - 1);
-					toc.push(indent + '1. [' + text + '](#' + anchor + ')');
+					toc.push(indent + '1. [' + label + '](#' + anchor + ')');
 				}
 				if (!toc.length) return;
 				var result = '## Table of Contents\n\n' + toc.join('\n') + '\n\n';
