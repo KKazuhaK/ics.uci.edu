@@ -14,11 +14,12 @@
 - [10. Designing Classes That Use STL (Klefstad's "Using STL")](#10-designing-classes-that-use-stl-klefstads-using-stl)
 - [11. C++20 Ranges and Views](#11-c20-ranges-and-views)
 - [12. HW9 — Implementing SetList and MapArray Containers](#12-hw9--implementing-setlist-and-maparray-containers)
-- [13. SetList Forward Iterator](#13-setlist-forward-iterator)
-- [14. MapArray and Its Random-Access Iterator](#14-maparray-and-its-random-access-iterator)
-- [15. Utilities for Keeping a Vector Sorted (lower_bound + vector::insert)](#15-utilities-for-keeping-a-vector-sorted-lower_bound--vectorinsert)
-- [16. Week 9 Comprehensive Cheat Sheet](#16-week-9-comprehensive-cheat-sheet)
-- [17. Top Five Takeaways for Week 9](#17-top-five-takeaways-for-week-9)
+- [13. Iterator `++`/`--` — The Universal Skeleton (and the Random-Access Extras)](#13-iterator-----the-universal-skeleton-and-the-random-access-extras)
+- [14. SetList Forward Iterator](#14-setlist-forward-iterator)
+- [15. MapArray and Its Random-Access Iterator](#15-maparray-and-its-random-access-iterator)
+- [16. Utilities for Keeping a Vector Sorted (lower_bound + vector::insert)](#16-utilities-for-keeping-a-vector-sorted-lower_bound--vectorinsert)
+- [17. Week 9 Comprehensive Cheat Sheet](#17-week-9-comprehensive-cheat-sheet)
+- [18. Top Five Takeaways for Week 9](#18-top-five-takeaways-for-week-9)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > These notes integrate the Week 9 assigned reading material: LearnCpp 23.6 (Container classes), 23.7 (`std::initializer_list`), 9.6 (`assert` and `static_assert`), 18.2 (Introduction to iterators), 22.1 (Introduction to smart pointers and move semantics), 22.5 (`std::unique_ptr`), 22.6 (`std::shared_ptr`); the cppreference reference for `std::iterator_traits`; and Klefstad's *Topic 9* PPT — C++20 ranges/views, smart pointers, the HW9 `SetList` + `MapArray` containers and their iterators, and the "Using STL" design pattern. The trailing slides of Klefstad's *Topic 8* PPT that introduce ranges (slide 25) are also covered here because Topic 9's PPT expands on them.
@@ -26,7 +27,7 @@
 > **Cross-week PPT content notes:**
 > - **Topic 8 PPT slides 26–27** (standard C++ exception hierarchy, STL exceptions) cover material that was reading for Week 7 (LearnCpp 27.x). Those slides are already integrated in the Week 7 notes; not duplicated here.
 > - **Topic 8 PPT slides 11–13** (basic iterator operations and the "ZZZ Activity: Linked List Iterator") line up with this week's reading on iterators (LearnCpp 18.2), so they appear in Section 5 of these notes.
-> - **Topic 9 PPT slide 10** (Template Class `Array`) and the **HW9 design** in slides 9, 11–15 are written by Klefstad to set up the Week 9 homework — not part of any LearnCpp chapter. They appear in Section 12–Section 15.
+> - **Topic 9 PPT slide 10** (Template Class `Array`) and the **HW9 design** in slides 9, 11–15 are written by Klefstad to set up the Week 9 homework — not part of any LearnCpp chapter. They appear in Section 12–Section 16.
 > - Slides from Topic 9 that may extend into Week 10 (cppreference ranges link, specific HW9 details) are flagged with ⚠️ when uncertain, but kept in the notes for completeness.
 
 ---
@@ -126,7 +127,7 @@ This is a feature, not a bug: knowing the element type at compile time enables i
 
 ### 2.5 The simplest container: `IntArray` (full implementation from LearnCpp 23.6)
 
-We will build an `IntArray` step by step. This is **exactly the kind of class you must write for HW9** — minus the templates and iterators, which Section 11–14 add on. It is also exactly the kind of class Klefstad's *Topic 9 PPT slide 10* refers to: "**Template Class Array — One complete example of the simplest container — a wrapper around a C-array — Array.cpp**".
+We will build an `IntArray` step by step. This is **exactly the kind of class you must write for HW9** — minus the templates and iterators, which Section 11–15 add on. It is also exactly the kind of class Klefstad's *Topic 9 PPT slide 10* refers to: "**Template Class Array — One complete example of the simplest container — a wrapper around a C-array — Array.cpp**".
 
 #### Step 1: The data and the empty class
 
@@ -824,7 +825,7 @@ Each form has limitations:
 
 > 💡 **The mechanism is iterators.** Range-based for is sugar for `for (auto it = c.begin(); it != c.end(); ++it) { auto&& x = *it; ... }`.
 
-> 💡 **Pointers as iterators for non-contiguous structures** (LearnCpp's "For advanced readers"): in a linked list, each node has a `next` pointer; you can iterate by following that chain. Even without arithmetic, a pointer can play the role of an iterator — `++` becomes `p = p->next`. This is exactly what Klefstad's HW9 forward iterator (Section 13) does.
+> 💡 **Pointers as iterators for non-contiguous structures** (LearnCpp's "For advanced readers"): in a linked list, each node has a `next` pointer; you can iterate by following that chain. Even without arithmetic, a pointer can play the role of an iterator — `++` becomes `p = p->next`. This is exactly what Klefstad's HW9 forward iterator (Section 14) does.
 
 ### 5.2 What an iterator is
 
@@ -984,7 +985,7 @@ Not every iterator supports every operator — that's the **iterator categories*
 
 ### 5.9 Klefstad PPT slide 13 — "ZZZ Activity: Linked List Iterator"
 
-> ⚠️ **"ZZZ Activity"** is Klefstad's lecture cue for "this is something we will return to in detail" — and indeed HW9's `SetList` iterator (Section 13) is exactly this.
+> ⚠️ **"ZZZ Activity"** is Klefstad's lecture cue for "this is something we will return to in detail" — and indeed HW9's `SetList` iterator (Section 14) is exactly this.
 
 The setup on slide 13:
 
@@ -2282,11 +2283,124 @@ The end iterator is just a wrapped null pointer. That makes `it != end()` equiva
 
 ---
 
-## 13. `SetList` Forward Iterator
+## 13. Iterator `++`/`--` — The Universal Skeleton (and the Random-Access Extras)
+
+Before implementing the two HW9 iterators concretely (`SetList`'s forward iterator in Section 14, `MapArray`'s random-access iterator in Section 15), it pays to see the **one pattern they both instantiate**. Across *every* iterator category, the increment/decrement operators have an identical shape — only the single "how do I take one step" line in the middle changes.
+
+### 13.1 The fixed shell (tag-independent)
+
+No matter the category, prefix and postfix always look like this:
+
+```cpp
+// Prefix ++ : take one step, return *this BY REFERENCE
+Iter& operator++() {
+    /* take one step */
+    return *this;
+}
+
+// Postfix ++ : save the old value, reuse prefix, return the old copy
+Iter operator++(int) {     // the dummy `int` only distinguishes the two overloads
+    Iter temp = *this;     // 1. snapshot the old position
+    ++(*this);             // 2. reuse prefix to do the real work
+    return temp;           // 3. hand back the OLD value (by value)
+}
+```
+
+`--` is the same skeleton with "take one step" replaced by "step backward."
+
+Two rules that never change, regardless of tag:
+- **Prefix returns a reference** (`Iter&`) to the iterator itself; **postfix returns a copy** (`Iter`, by value) of the old position.
+- **Postfix is always "snapshot + call prefix + return the snapshot."** You never re-implement the movement logic in postfix — you delegate to prefix. This holds for `++` and `--`, in every category.
+
+> 💡 This is why, once you've written prefix, postfix is mechanical copy-paste. It's also why `++it` is preferred over `it++` in loops: postfix builds and returns an extra throwaway copy.
+
+### 13.2 By tag: which operators you write, and how "one step" works
+
+The shell above is constant. What changes per category is (a) *which* operators you must provide and (b) what the "take one step" line actually does.
+
+#### ① `forward_iterator` — only `++`, no `--`
+
+The underlying structure is typically a **singly linked list** (HW9's `SetList`). You can only follow `next`; there is no way back, so there is **no `operator--`**.
+
+```cpp
+// member: ListNode* current;
+
+Iter& operator++() {                 // "one step" = follow the next pointer
+    current = current->next;
+    return *this;
+}
+Iter operator++(int) { Iter t = *this; ++(*this); return t; }
+
+// NO operator-- : forward doesn't require it, and a singly linked list can't do it
+```
+
+#### ② `bidirectional_iterator` — `++` and `--`, walking node pointers
+
+The underlying structure is typically a **doubly linked list or tree** (the real `std::list` / `std::set` / `std::map`). Each node has both `prev` and `next`, so you can walk both ways — but still only **one node at a time**.
+
+```cpp
+// member: Node* ptr;
+
+Iter& operator++() { ptr = ptr->next; return *this; }   // one step forward = follow next
+Iter operator++(int) { Iter t = *this; ++(*this); return t; }
+
+Iter& operator--() { ptr = ptr->prev; return *this; }   // one step back = follow prev
+Iter operator--(int) { Iter t = *this; --(*this); return t; }
+```
+
+> Bidirectional adds **only** `--` over forward. There is still no `+ n` jump — to go back three, you call `--` three times.
+
+#### ③ `random_access_iterator` — `++`/`--` **plus** `+= -= + -` `[]`, via pointer arithmetic
+
+The underlying structure is **contiguous memory** (HW9's `MapArray`, whose member is a `pair*`). Now "one step" is no longer chasing a link — it's **address arithmetic**, and the same arithmetic generalizes to jumping by `n`:
+
+```cpp
+// member: std::pair<Key, Value>* current;   // difference_type = std::ptrdiff_t
+
+// ++ / -- : single step (raw-pointer inc/dec already does the address math)
+Iter& operator++() { ++current; return *this; }
+Iter operator++(int) { Iter t = *this; ++current; return t; }
+Iter& operator--() { --current; return *this; }
+Iter operator--(int) { Iter t = *this; --current; return t; }
+
+// jump by n — THIS is what random-access adds over bidirectional
+Iter& operator+=(difference_type n) { current += n; return *this; }   // compound: mutate, return ref (like prefix ++)
+Iter& operator-=(difference_type n) { current -= n; return *this; }
+
+Iter operator+(difference_type n) const { Iter t = *this; t += n; return t; }  // copy, reuse +=, return copy (like postfix)
+Iter operator-(difference_type n) const { Iter t = *this; t -= n; return t; }
+
+// iterator − iterator → distance between them (O(1), random-access only)
+difference_type operator-(const Iter& o) const { return current - o.current; }
+
+// indexing
+reference operator[](difference_type n) const { return current[n]; }
+```
+
+Notice the structural echoes of the shell:
+- **`+=` / `-=` are "compound" — they mutate `*this` and return `Iter&`**, exactly like prefix `++`.
+- **Binary `+` / `-` (iterator + n) do NOT mutate — they copy, delegate to `+=`/`-=`, and return the copy**, exactly like postfix `++`.
+- There are **two `operator-`**: *iterator − n* → an iterator (move back `n`), and *iterator − iterator* → a `difference_type` (how far apart). Both are random-access-only.
+
+### 13.3 One-glance summary
+
+| Category | `++` | `--` | `+= -= + - [] < >` | "one step" mechanism | HW9 example |
+|---|:---:|:---:|:---:|---|---|
+| `forward_iterator` | ✅ | ❌ | ❌ | `p = p->next` | **`SetList`** |
+| `bidirectional_iterator` | ✅ | ✅ | ❌ | `p = p->next` / `p = p->prev` | (real `set` / `map`) |
+| `random_access_iterator` | ✅ | ✅ | ✅ | pointer arithmetic: `++p`, `p += n` | **`MapArray`** |
+
+**The takeaway:** the pre/post **shell never changes**; postfix is *always* "snapshot + call prefix + return snapshot." Going up the hierarchy only (a) adds operators (`--`, then `+= -= + - [] < >`) and (b) swaps the one-line "step" mechanism (`next` → `next`/`prev` → pointer arithmetic).
+
+> ⚠️ **Heads-up on the concrete HW9 code.** The skeleton above is the *canonical* STL form: prefix returns `Iter&`, the jump parameter is `difference_type`. Klefstad's HW9 code in Sections 14–15 follows the PPT style and returns prefix **by value** (`iterator operator++()`) and types the jump parameter as `int`. Both compile and work for HW9; the canonical form here is the better mental model and what real STL iterators use.
+
+---
+
+## 14. `SetList` Forward Iterator
 
 > Corresponds to Topic 9 PPT slide 12
 
-### 13.1 The class structure
+### 14.1 The class structure
 
 ```cpp
 // nested inside template SetList<T>
@@ -2309,7 +2423,7 @@ private:
 };
 ```
 
-### 13.2 Why `forward_iterator_tag`?
+### 14.2 Why `forward_iterator_tag`?
 
 A singly-linked list can:
 
@@ -2327,7 +2441,7 @@ The iterator category that exactly matches "read/write, multi-pass, forward only
 
 > 💡 **Implication** — algorithms that *require* random access (`std::sort`, `std::nth_element`) won't compile when passed a `SetList::iterator`. Algorithms that need only forward (`std::find`, `std::for_each`, `std::copy`) work fine.
 
-### 13.3 Member implementations
+### 14.3 Member implementations
 
 ```cpp
 iterator(ListNode* node) : current{ node } {}
@@ -2349,13 +2463,13 @@ reference operator*() const { return current->data; }    // dereferencing end() 
 > ```
 > The `int` parameter is a dummy that distinguishes the two overloads; it's never used. The pre-increment version returns a reference (or its `*this`), the post-increment returns a copy of the old value. Pre-increment is also the form preferred in `for` loops.
 
-### 13.4 Why `std::ptrdiff_t` for `difference_type`?
+### 14.4 Why `std::ptrdiff_t` for `difference_type`?
 
 `std::ptrdiff_t` (from `<cstddef>`) is the signed integer type wide enough to represent the distance between any two pointers in a valid array. For HW9 it's the conventional, safe choice. Algorithms that ask "how far apart are these iterators?" via `std::distance(it1, it2)` get back a `difference_type`.
 
 For a forward iterator, `std::distance` is O(n) — it walks from `it1` to `it2`. For a random-access iterator (next section), it's O(1).
 
-### 13.5 Putting it all together — a `for` loop over `SetList`
+### 14.5 Putting it all together — a `for` loop over `SetList`
 
 Given the iterator above and `SetList`'s `begin()` / `end()`, this loop works:
 
@@ -2379,11 +2493,11 @@ if (it != s.end()) std::cout << "found\n";
 
 ---
 
-## 14. `MapArray` and Its Random-Access Iterator
+## 15. `MapArray` and Its Random-Access Iterator
 
 > Corresponds to Topic 9 PPT slides 13–14
 
-### 14.1 The big idea
+### 15.1 The big idea
 
 `std::map<K,V>` is typically implemented as a balanced binary search tree (red-black). That has O(log n) insert/find/erase, but lots of pointer overhead per node.
 
@@ -2396,7 +2510,7 @@ if (it != s.end()) std::cout << "found\n";
 
 For small-to-medium n, this often beats a real `map`. (The C++ standard library calls this pattern "flat_map" and recently standardized it.)
 
-### 14.2 Class structure (PPT slide 13)
+### 15.2 Class structure (PPT slide 13)
 
 ```cpp
 template <typename K, typename V>
@@ -2427,7 +2541,7 @@ struct MapArray {
 
 > ⚠️ **Klefstad's API choice** — `operator[]` and `find` take `K&` (non-const reference). Conventionally these would be `const K&`. Match Klefstad's signature for HW9 to satisfy the autograder, but be aware that `const K&` is the standard library's choice.
 
-### 14.3 Implementing `operator[]` — insert-if-absent
+### 15.3 Implementing `operator[]` — insert-if-absent
 
 `std::map<K,V>::operator[]` has a peculiar (but very Pythonic) behavior: if the key is missing, it **inserts a default-constructed value** and returns a reference to it. So `m["new key"] = 42;` works.
 
@@ -2443,7 +2557,7 @@ V& operator[](K& k) {
 }
 ```
 
-### 14.4 Implementing `find` — binary search
+### 15.4 Implementing `find` — binary search
 
 ```cpp
 iterator find(K& val) {
@@ -2461,7 +2575,7 @@ Two parts:
 1. `std::lower_bound` does binary search in O(log n) and returns an iterator to **the first element whose key is not less than `val`** — i.e., either an exact match or the first element greater.
 2. Check if the returned position actually holds `val` (`it->first == val`). If yes, return its iterator; if no, return `end()` (not found).
 
-### 14.5 Implementing `insert` — keep sorted (PPT slide 15)
+### 15.5 Implementing `insert` — keep sorted (PPT slide 15)
 
 ```cpp
 iterator insert(value_type val) {
@@ -2481,9 +2595,9 @@ iterator insert(value_type val) {
 }
 ```
 
-The two utilities this depends on are the focus of Section 15: `std::lower_bound` and `vector::insert`.
+The two utilities this depends on are the focus of Section 16: `std::lower_bound` and `vector::insert`.
 
-### 14.6 The `MapArray::iterator` — random access (PPT slide 14)
+### 15.6 The `MapArray::iterator` — random access (PPT slide 14)
 
 ```cpp
 struct iterator {
@@ -2512,7 +2626,7 @@ private:
 };
 ```
 
-### 14.7 Why `random_access_iterator_tag`?
+### 15.7 Why `random_access_iterator_tag`?
 
 Because the underlying storage is a `std::vector`, which is contiguous memory:
 
@@ -2524,7 +2638,7 @@ All these properties qualify as **random access**. (Strictly, since the storage 
 
 > 💡 **Implication** — algorithms that need random access (`std::sort`, `std::nth_element`, binary search) work on `MapArray::iterator`. Compare with `SetList::iterator` (forward only), where they don't.
 
-### 14.8 Implementing the operators
+### 15.8 Implementing the operators
 
 Because `current` is a `pointer` (a `value_type*`), most operators are just thin wrappers around pointer arithmetic:
 
@@ -2547,13 +2661,13 @@ reference operator[](difference_type d) const { return current[d]; }
 
 > ⚠️ **`operator->` is special.** Unlike `*`, which returns the element, `->` returns a pointer that the compiler then dereferences again. The user writes `it->first`; the compiler rewrites it as `(it.operator->())->first` which is `current->first`. This is what lets you write `it->first` and `it->second` to access map pair members.
 
-### 14.9 Iterator validity and `vector::insert` invalidation
+### 15.9 Iterator validity and `vector::insert` invalidation
 
 > ⚠️ **Critical reminder** — `vector::insert` may **reallocate** the underlying buffer (when capacity is exceeded). **All existing iterators (and pointers) into the vector are then invalid.** Section 5.10's invalidation table applies.
 
 For `MapArray::insert`, this matters: if you store an iterator to "where we will insert," the iterator you saved becomes stale once the insert completes. The standard pattern is to use the iterator **returned** by `A.insert(pos, val)`, which points at the newly-inserted element in the (possibly reallocated) buffer.
 
-### 14.10 Putting `MapArray` together
+### 15.10 Putting `MapArray` together
 
 ```cpp
 MapArray<std::string, int> m;
@@ -2572,11 +2686,11 @@ for (auto& [key, value] : m)        // structured binding (C++17)
 
 ---
 
-## 15. Utilities for Keeping a Vector Sorted (`lower_bound` + `vector::insert`)
+## 16. Utilities for Keeping a Vector Sorted (`lower_bound` + `vector::insert`)
 
 > Corresponds to Topic 9 PPT slide 15. Both utilities live in standard headers and are pre-tested — `MapArray` builds on them rather than re-implementing.
 
-### 15.1 `std::lower_bound` — binary search for insertion point
+### 16.1 `std::lower_bound` — binary search for insertion point
 
 ```cpp
 auto it = std::lower_bound(first, last, value);
@@ -2602,7 +2716,7 @@ Three things `lower_bound` tells you:
 > ```
 > The first argument is an element of the range, the second is the search value — note the asymmetry.
 
-### 15.2 `std::vector::insert(pos, value)`
+### 16.2 `std::vector::insert(pos, value)`
 
 ```cpp
 vector<int> v = {1, 3, 5, 7};
@@ -2616,17 +2730,19 @@ v.insert(it, 4);
 - **May reallocate the vector**'s buffer if size > capacity. Reallocation invalidates **all** iterators and pointers into the vector.
 - **Returns** an iterator pointing at the newly-inserted element (valid even after reallocation, because it's looked up from the new storage).
 
-> ⚠️ **Iterator invalidation lookup table** (cppreference, Section 5.10):
-> | Operation | Invalidates |
-> |---|---|
-> | `insert` (no reallocation) | iterators at or after the insertion point |
-> | `insert` (reallocation) | **all** iterators (and pointers, references) |
-> | `push_back` (no realloc) | only `end()` |
-> | `push_back` (realloc) | all |
-> | `erase` | the erased element and all after it (including `end()`) |
-> So after `auto newIt = v.insert(pos, value);`, any previously held iterator (including the `pos` you computed earlier) is stale. **Use `newIt`**.
+> ⚠️ **Iterator invalidation lookup table** (cppreference, see §5.10)
 
-### 15.3 The `lower_bound` + `insert` idiom — sorted insertion in 2 lines
+| Operation | Invalidates |
+|---|---|
+| `insert` (no reallocation) | iterators at or after the insertion point |
+| `insert` (reallocation) | **all** iterators (and pointers, references) |
+| `push_back` (no realloc) | only `end()` |
+| `push_back` (realloc) | all |
+| `erase` | the erased element and all after it (including `end()`) |
+
+So after `auto newIt = v.insert(pos, value);`, any previously held iterator (including the `pos` you computed earlier) is stale. **Use `newIt`**.
+
+### 16.3 The `lower_bound` + `insert` idiom — sorted insertion in 2 lines
 
 This is the entire engine of `MapArray::insert`:
 
@@ -2645,7 +2761,7 @@ if (pos != v.end() && *pos == value)
 return v.insert(pos, value);             // not present, insert here
 ```
 
-### 15.4 Performance summary for `MapArray`
+### 16.4 Performance summary for `MapArray`
 
 | Operation | Time | Reason |
 |---|---|---|
@@ -2660,9 +2776,9 @@ return v.insert(pos, value);             // not present, insert here
 For small n (say, up to a few thousand), `MapArray` typically *beats* `std::map` on real workloads because of cache effects. The crossover is workload-dependent.
 
 ---
-## 16. Week 9 Comprehensive Cheat Sheet
+## 17. Week 9 Comprehensive Cheat Sheet
 
-### 16.1 Container Class Skeleton
+### 17.1 Container Class Skeleton
 
 Every user-defined container — `IntArray`, `SetList<T>`, `MapArray<K,V>` — has the same shape. Memorize this skeleton; the homework grader expects all of it.
 
@@ -2695,7 +2811,7 @@ public:
     iterator  find(/* ... */);
     iterator  erase(iterator pos);
 
-    // ---- nested iterator type (see Section 16.4) ----
+    // ---- nested iterator type (see Section 17.4) ----
     struct iterator { /* ... */ };
 
 private:
@@ -2705,7 +2821,7 @@ private:
 
 > 💡 **Rule of Zero shortcut**: If every data member is itself an STL container or a smart pointer, you can `= default` (or just omit) all six special members. The members do the right thing automatically. You only write copy/move/destructor by hand when you hold a **raw** owning pointer.
 
-### 16.2 `std::initializer_list` Quick Reference
+### 17.2 `std::initializer_list` Quick Reference
 
 ```cpp
 #include <initializer_list>
@@ -2729,7 +2845,7 @@ public:
 | Adding a list ctor to an existing class | `Foo x{5};` suddenly creates a 1-element list instead of a size-5 container | Use `Foo x(5);` for the size-based call; document the breaking change |
 | Storing a pointer from the list | `it->begin()` dangles after the temporary `initializer_list` dies | **Copy** the contents into your own storage in the ctor body |
 
-### 16.3 `assert` vs `static_assert`
+### 17.3 `assert` vs `static_assert`
 
 | | `assert(cond)` | `static_assert(cond, "msg")` |
 |---|---|---|
@@ -2750,7 +2866,7 @@ static_assert(std::is_integral_v<T>, "T must be an integral type");
 
 > ⚠️ **Never use assert for runtime conditions that can legitimately fail** — bad user input, file-not-found, network errors, etc. Those need real error handling (exceptions or error codes). Asserts are for catching *bugs*, not for handling *expected* failures.
 
-### 16.4 Iterator Categories Quick Reference
+### 17.4 Iterator Categories Quick Reference
 
 | Category | Tag (`std::xxx_iterator_tag`) | Operations | Example container |
 |---|---|---|---|
@@ -2768,7 +2884,115 @@ input ──→ forward ──→ bidirectional ──→ random-access ──�
 output (separate hierarchy)
 ```
 
-### 16.5 The Five `iterator_traits` Typedefs
+### 17.4b STL-Provided Iterator Types (Adapters and Special Iterators)
+
+Section 17.4 lists **categories** — the abstract spec for "what operations must an iterator support, minimum." This section lists the concrete iterator types **the standard library actually ships**, and which category each one falls into.
+
+**Container-native iterators** (every container ships a pair)
+
+| Type | Header | Category | Notes |
+|---|---|---|---|
+| `C::iterator` | container header (`<vector>`, etc.) | depends on container | read/write; returned by `begin()` / `end()` |
+| `C::const_iterator` | same | same | read-only; returned by `cbegin()` / `cend()` |
+| `C::reverse_iterator` | same | bidirectional or higher | traverses backwards; returned by `rbegin()` / `rend()` |
+| `C::const_reverse_iterator` | same | same | reverse + read-only; returned by `crbegin()` / `crend()` |
+
+Specific category per standard container's `iterator`:
+
+| Container | `iterator` category |
+|---|---|
+| `std::array`, `std::vector`, `std::string` | **contiguous** (C++17; random-access pre-C++17) |
+| `std::deque` | random-access |
+| `std::list` | bidirectional |
+| `std::set`, `std::map`, `std::multiset`, `std::multimap` | bidirectional |
+| `std::forward_list` | **forward** |
+| `std::unordered_set` / `unordered_map` family | forward |
+| **HW9 `SetList<T>`** | forward |
+| **HW9 `MapArray<K,V>`** | random-access (backed by `vector`) |
+
+> 💡 On a const container, `begin()` *already* returns `const_iterator`. `cbegin()` exists so you can also **force** a read-only iterator out of a non-const container (e.g. when using `auto` but you don't want modification to be allowed).
+
+**Reverse iterator adapter** — `<iterator>`
+
+| Type | Category | Use |
+|---|---|---|
+| `std::reverse_iterator<It>` | same as the wrapped `It` (must be at least bidirectional) | wraps a bidirectional iterator so `++` walks backwards. This is what `rbegin()` returns internally |
+| `std::make_reverse_iterator(it)` (C++14) | same | factory function — build a reverse iterator from an ordinary one |
+
+```cpp
+std::vector<int> v{1, 2, 3, 4, 5};
+for (auto it = v.rbegin(); it != v.rend(); ++it)
+    std::cout << *it << ' ';   // 5 4 3 2 1
+```
+
+**Insert iterator adapters** — `<iterator>`, all are `output_iterator_tag`
+
+| Type | Factory function | Behavior | Container requirement |
+|---|---|---|---|
+| `std::back_insert_iterator<C>` | `std::back_inserter(c)` | `*it = x` calls `c.push_back(x)` | needs `push_back` — `vector`, `deque`, `list`, `string` |
+| `std::front_insert_iterator<C>` | `std::front_inserter(c)` | `*it = x` calls `c.push_front(x)` | needs `push_front` — `deque`, `list`, `forward_list` |
+| `std::insert_iterator<C>` | `std::inserter(c, pos)` | `*it = x` calls `c.insert(pos, x)`, then `pos` auto-advances | any container with `insert(pos, val)` — `set`, `map`, `vector`, ... |
+
+```cpp
+std::vector<int> src{1, 2, 3};
+std::vector<int> dst;
+std::copy(src.begin(), src.end(), std::back_inserter(dst));   // dst: {1,2,3}
+
+std::set<int> s;
+std::copy(src.begin(), src.end(), std::inserter(s, s.end())); // s:   {1,2,3}
+```
+
+> ⚠️ Without `back_inserter`, `std::copy(..., dst.begin())` **overwrites** the existing elements of `dst` instead of appending — output iterators don't grow the container on their own. One of the most common newbie STL traps.
+
+**Stream iterators** — `<iterator>`
+
+| Type | Category | Meaning |
+|---|---|---|
+| `std::istream_iterator<T>` | input | wraps `cin >> T` as an input iterator; `++` reads the next value; **the default-constructed instance is the "end" sentinel** |
+| `std::ostream_iterator<T>` | output | `*it = x` calls `out << x`, with an optional trailing separator |
+| `std::istreambuf_iterator<char>` | input | character-level — the canonical way to slurp an entire file into a `string` |
+| `std::ostreambuf_iterator<char>` | output | character-level output |
+
+Classic one-liner STL idioms:
+
+```cpp
+// Read all ints from cin, write each to cout separated by spaces
+std::copy(std::istream_iterator<int>(std::cin),
+          std::istream_iterator<int>(),                  // default-constructed = end
+          std::ostream_iterator<int>(std::cout, " "));
+
+// Whole file → string
+std::string contents{std::istreambuf_iterator<char>(file),
+                     std::istreambuf_iterator<char>()};
+```
+
+**Move iterator** (C++11) — `<iterator>`
+
+| Type | Category | Use |
+|---|---|---|
+| `std::move_iterator<It>` | same as `It` | `*it` returns an **rvalue reference** (`T&&`) instead of a normal `T&` — so algorithms *move* instead of *copy* |
+| `std::make_move_iterator(it)` | same | factory |
+
+```cpp
+std::vector<std::string> src{"a", "b", "c"};
+std::vector<std::string> dst(std::make_move_iterator(src.begin()),
+                             std::make_move_iterator(src.end()));
+// The strings in src have been moved out; src's elements are now in a
+// valid-but-unspecified state.
+```
+
+**C++20 adapters** (just be aware — HW9 doesn't need these)
+
+| Type | Use |
+|---|---|
+| `std::counted_iterator<It>` | wraps an iterator so it "remembers how many steps are left" — used with ranges |
+| `std::common_iterator<It, S>` | adapts a ranges-style `(iterator, sentinel)` pair into an "old-style" `(iter, iter)` pair, so it can be fed into C++17 algorithms |
+
+**Bottom line for HW9:** you only **write** one kind of iterator yourself — `SetList::iterator` (forward) and `MapArray::iterator` (random-access), both as **nested classes inside the container**, not adapters. But remember: the STL already ships the entire adapter set above for free — any algorithm from Week 8 (`copy`, `transform`, `accumulate`, ...) can drop into them. Combine with `back_inserter` / `ostream_iterator` / `make_reverse_iterator` and the algorithm writes wherever you need, no hand-rolled loop required.
+
+> 💡 **Cross-week see also** — Week 8 §11.9 (set algorithms on sorted ranges) and §11.10 (heap algorithms) both apply directly to this week's HW9 containers: `MapArray` (sorted-vector backend) works with `set_union` / `set_intersection` / `set_difference`, and any random-access range works with `make_heap` / `pop_heap`. That's the payoff of "STL from the user's perspective" — once your iterator meets the category requirement, the full Week 8 algorithm catalog comes for free.
+
+### 17.5 The Five `iterator_traits` Typedefs
 
 Every iterator type **must** expose all five — either as nested `using`s in the iterator class, or via an `iterator_traits` specialization. Algorithms read these to pick the right strategy.
 
@@ -2787,7 +3011,7 @@ struct iterator {
 
 **Pointer specialization (cppreference):** `std::iterator_traits<T*>` is specialized so that `T*` itself counts as a contiguous iterator. That is why algorithms work on plain C-arrays.
 
-### 16.6 Smart Pointer Decision Table
+### 17.6 Smart Pointer Decision Table
 
 | Question | Answer |
 |---|---|
@@ -2819,7 +3043,7 @@ struct iterator {
 - **Less typing / no repeated type name**: `make_shared<Widget>(args)` instead of `shared_ptr<Widget>(new Widget(args))`.
 - **`make_shared` does one heap allocation** for the object + control block (vs two for the `new` form).
 
-### 16.7 RAII Replaces the Rule of Three
+### 17.7 RAII Replaces the Rule of Three
 
 | Old (Week 5 / Week 6, HW4–HW6) | New (Week 9, HW9 onward) |
 |---|---|
@@ -2834,7 +3058,7 @@ struct iterator {
 
 > 💡 **Rule of Zero**: If you can express your class entirely as a composition of types that already manage their own resources, you can write **zero** special member functions. This is the modern C++ ideal. **HW9's `MapArray` is naturally Rule of Zero** (it just holds a `std::vector<std::pair<K,V>>`); **HW9's `SetList` is *not*** Rule of Zero because it uses raw `ListNode*` (per slide 6 warning — iterators would break otherwise).
 
-### 16.8 C++20 Ranges & Views in One Page
+### 17.8 C++20 Ranges & Views in One Page
 
 ```cpp
 #include <ranges>
@@ -2865,7 +3089,7 @@ bool is_palindrome(std::string const& s) {
 - **Views are lazy.** Nothing happens until iteration. Pipelining `| filter | transform | reverse` does no work until the range-for actually consumes elements.
 - **Algorithms live in `std::ranges::`.** Views live in `std::views::` (which is itself a namespace alias for `std::ranges::views`).
 
-### 16.9 HW9 Performance Summary
+### 17.9 HW9 Performance Summary
 
 | Operation | `SetList<T>` (linked) | `MapArray<K,V>` (sorted vec) | `std::set<T>` (RB-tree) | `std::map<K,V>` (RB-tree) |
 |---|---|---|---|---|
@@ -2879,7 +3103,7 @@ bool is_palindrome(std::string const& s) {
 
 **Read it this way:** for *small* `n` (a few thousand or fewer), `MapArray` typically beats `std::map` despite the worse asymptotic insert cost, because contiguous memory is enormously faster than chasing pointers. The crossover depends on your workload; the lesson is that **Big-O is not the whole story** — the constants matter.
 
-### 16.10 The HW9 Incremental Development Recipe (Klefstad)
+### 17.10 The HW9 Incremental Development Recipe (Klefstad)
 
 This is the order Professor Klefstad specifies for tackling HW9. **Do not skip steps.**
 
@@ -2898,7 +3122,7 @@ This is the order Professor Klefstad specifies for tackling HW9. **Do not skip s
 
 > ⚠️ **The deadly anti-pattern**: replacing *both* `std::set` and `std::map` simultaneously, then trying to debug. You will not know which of your two containers caused which error message. Always swap **one at a time**.
 
-### 16.11 The `lower_bound` + `vector::insert` Idiom (MapArray's secret weapon)
+### 17.11 The `lower_bound` + `vector::insert` Idiom (MapArray's secret weapon)
 
 ```cpp
 // Keep v sorted while inserting `value`
@@ -2916,7 +3140,7 @@ Both `lower_bound` (returns iterator to first element ≥ value) and `vector::in
 
 ---
 
-## 17. Top Five Takeaways for Week 9
+## 18. Top Five Takeaways for Week 9
 
 1. **A container class is a contract, not just a data structure.** To play in the STL sandbox, your container must expose: type aliases (`value_type`, `pointer`, `reference`, …), a `begin()`/`end()` iterator pair, plus a sensible subset of `insert`/`find`/`erase`/`size`/`empty`. Get the *contract* right and `std::ranges::sort(myContainer)`, `for (auto& e : myContainer)`, and `std::distance(begin, end)` all just work — *for free*. Get it wrong and nothing works. **HW9's `SetList` and `MapArray` are graded on whether they fulfill this contract**, not on whether they're clever. The takeaway: when you design a class that holds many of something, first ask *"what does the STL expect of a container?"* — then write that, then add your specifics.
 

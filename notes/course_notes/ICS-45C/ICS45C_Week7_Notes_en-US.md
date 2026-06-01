@@ -18,7 +18,7 @@
 - [14. Exception Specifications and noexcept](#14-exception-specifications-and-noexcept)
 - [15. Friend Non-Member Functions](#15-friend-non-member-functions)
 - [16. Stream Classes for Strings (stringstream)](#16-stream-classes-for-strings-stringstream)
-- [17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance, Virtual Base Classes, and the Rule of Zero](#17-carried-over-topic-from-topic-6-ppt-multiple-inheritance-and-virtual-base-classes)
+- [17. Carried-Over Topic from Topic 6 PPT: Multiple Inheritance, Virtual Base Classes, and the Rule of Zero](#17-carried-over-topic-from-topic-6-ppt-multiple-inheritance-virtual-base-classes-and-the-rule-of-zero)
 - [18. Namespaces](#18-namespaces)
 - [19. Week 7 Comprehensive Cheat Sheet](#19-week-7-comprehensive-cheat-sheet)
 - [20. Top Five Takeaways for Week 7](#20-top-five-takeaways-for-week-7)
@@ -968,6 +968,8 @@ auto found = std::find_if(arr.begin(), arr.end(),
 > Following the principle of defining things in the smallest scope and closest to first use, lambdas are preferred over normal functions when you need a trivial, one-off function to pass as an argument.
 
 ### 7.4 Storing a Lambda in a Variable
+
+> 💡 **About `std::all_of`** — returns `true` iff the predicate holds for every element in the range. Full algorithm catalog is in Week 8 §11.6 (predicate algorithms).
 
 ```cpp
 // Inline (function literal):  hard to read

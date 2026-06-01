@@ -14,11 +14,12 @@
 - [10. 设计使用 STL 的类（Klefstad 的 "Using STL"）](#10-设计使用-stl-的类klefstad-的-using-stl)
 - [11. C++20 Ranges 与 Views](#11-c20-ranges-与-views)
 - [12. HW9 — 实现 SetList 与 MapArray 容器](#12-hw9--实现-setlist-与-maparray-容器)
-- [13. SetList 前向迭代器](#13-setlist-前向迭代器)
-- [14. MapArray 与它的随机访问迭代器](#14-maparray-与它的随机访问迭代器)
-- [15. 保持 vector 有序的工具(lower_bound + vector::insert)](#15-保持-vector-有序的工具lower_bound--vectorinsert)
-- [16. Week 9 综合 Cheat Sheet](#16-week-9-综合-cheat-sheet)
-- [17. Week 9 最重要的五条记忆](#17-week-9-最重要的五条记忆)
+- [13. 迭代器 ++/-- 的通用骨架(以及随机访问的额外运算符)](#13-迭代器----的通用骨架以及随机访问的额外运算符)
+- [14. SetList 前向迭代器](#14-setlist-前向迭代器)
+- [15. MapArray 与它的随机访问迭代器](#15-maparray-与它的随机访问迭代器)
+- [16. 保持 vector 有序的工具(lower_bound + vector::insert)](#16-保持-vector-有序的工具lower_bound--vectorinsert)
+- [17. Week 9 综合 Cheat Sheet](#17-week-9-综合-cheat-sheet)
+- [18. Week 9 最重要的五条记忆](#18-week-9-最重要的五条记忆)
 
 > UCI ICS 45C: Programming in C++ (35770)
 > 本笔记整合 Week 9 阅读材料:LearnCpp 23.6(容器类)、23.7(`std::initializer_list`)、9.6(`assert` 与 `static_assert`)、18.2(迭代器入门)、22.1(智能指针与移动语义入门)、22.5(`std::unique_ptr`)、22.6(`std::shared_ptr`);cppreference 上 `std::iterator_traits` 的参考页;以及 Klefstad 的 *Topic 9* PPT — C++20 ranges/views、智能指针、HW9 的 `SetList` + `MapArray` 容器及其迭代器,还有 "Using STL" 设计模式。Klefstad 的 *Topic 8* PPT 末尾引入 ranges 的部分(slide 25)也放在这里,因为 Topic 9 PPT 是在它的基础上展开的。
@@ -26,7 +27,7 @@
 > **跨周 PPT 内容说明:**
 > - **Topic 8 PPT slides 26–27**(标准 C++ 异常层次、STL 异常)对应 Week 7 阅读(LearnCpp 27.x)。那些幻灯片已经整合到 Week 7 笔记里,这里不再重复。
 > - **Topic 8 PPT slides 11–13**(基础迭代器操作 + "ZZZ Activity:Linked List Iterator")正好对应本周的迭代器阅读(LearnCpp 18.2),因此放在本笔记第 5 节。
-> - **Topic 9 PPT slide 10**(Template Class `Array`)和 **HW9 设计**(slides 9、11–15)是 Klefstad 为 Week 9 作业准备的,LearnCpp 不覆盖。放在第 12–15 节。
+> - **Topic 9 PPT slide 10**(Template Class `Array`)和 **HW9 设计**(slides 9、11–15)是 Klefstad 为 Week 9 作业准备的,LearnCpp 不覆盖。放在第 12–16 节。
 > - Topic 9 中可能延伸到 Week 10 的幻灯片(cppreference ranges 链接、具体 HW9 细节)在不确定的地方用 ⚠️ 标注,但为了完整性仍保留。
 
 ---
@@ -126,7 +127,7 @@
 
 ### 2.5 最简单的容器:`IntArray`(LearnCpp 23.6 的完整实现)
 
-我们一步步搭 `IntArray`。这 **正是 HW9 要你写的那种类** — 只是 HW9 还要加上模板和迭代器,见 11–14 节。它也正是 Klefstad *Topic 9 PPT slide 10* 说的那个 "**Template Class Array — 最简单的容器的一个完整例子 — 包装 C 数组 — Array.cpp**"。
+我们一步步搭 `IntArray`。这 **正是 HW9 要你写的那种类** — 只是 HW9 还要加上模板和迭代器,见 11–15 节。它也正是 Klefstad *Topic 9 PPT slide 10* 说的那个 "**Template Class Array — 最简单的容器的一个完整例子 — 包装 C 数组 — Array.cpp**"。
 
 #### 第 1 步:数据 + 空类
 
@@ -824,7 +825,7 @@ int main()
 
 > 💡 **背后机制就是迭代器。** range-based for 是 `for (auto it = c.begin(); it != c.end(); ++it) { auto&& x = *it; ... }` 的语法糖。
 
-> 💡 **对非连续结构,指针也能当迭代器**(LearnCpp 的 "For advanced readers"):链表里,每个节点有 `next` 指针;你可以靠跟着这条链遍历。即便没有算术,指针也能扮演迭代器的角色 — `++` 变成 `p = p->next`。Klefstad HW9 的前向迭代器(第 13 节)就是这样。
+> 💡 **对非连续结构,指针也能当迭代器**(LearnCpp 的 "For advanced readers"):链表里,每个节点有 `next` 指针;你可以靠跟着这条链遍历。即便没有算术,指针也能扮演迭代器的角色 — `++` 变成 `p = p->next`。Klefstad HW9 的前向迭代器(第 14 节)就是这样。
 
 ### 5.2 迭代器是什么
 
@@ -984,7 +985,7 @@ for (int i : array) std::cout << i << ' ';
 
 ### 5.9 Klefstad PPT slide 13 — "ZZZ Activity: Linked List Iterator"
 
-> ⚠️ **"ZZZ Activity"** 是 Klefstad 的讲课信号,意思是 "这是后面会详细回到的东西" — 而 HW9 的 `SetList` 迭代器(第 13 节)正是这个。
+> ⚠️ **"ZZZ Activity"** 是 Klefstad 的讲课信号,意思是 "这是后面会详细回到的东西" — 而 HW9 的 `SetList` 迭代器(第 14 节)正是这个。
 
 slide 13 的设定:
 
@@ -2282,11 +2283,124 @@ end 迭代器就是包了 null 指针。这样 `it != end()` 等价 `it.current 
 
 ---
 
-## 13. `SetList` 前向迭代器
+## 13. 迭代器 `++`/`--` 的通用骨架(以及随机访问的额外运算符)
+
+在具体实现 HW9 的两个迭代器之前(`SetList` 的前向迭代器在第 14 节、`MapArray` 的随机访问迭代器在第 15 节),值得先看清它们**共同套用的同一个模式**。在*每一种*迭代器类别里,自增/自减运算符的形状都是一样的 —— 唯一变化的,只是中间那一行"怎么走一步"。
+
+### 13.1 固定的"壳"(与 tag 无关)
+
+无论哪个类别,前置和后置永远长这样:
+
+```cpp
+// 前置 ++:走一步,按引用返回 *this
+Iter& operator++() {
+    /* 走一步 */
+    return *this;
+}
+
+// 后置 ++:存旧值,复用前置,返回旧值副本
+Iter operator++(int) {     // 哑参 `int` 只用来区分两个重载
+    Iter temp = *this;     // 1. 先快照当前位置
+    ++(*this);             // 2. 复用前置去做真正的移动
+    return temp;           // 3. 交回那个"旧"位置(按值)
+}
+```
+
+`--` 是同一个骨架,把"走一步"换成"往回走一步"。
+
+两条永不改变的规则,跟 tag 无关:
+- **前置返回引用**(`Iter&`),指向迭代器自身;**后置返回副本**(`Iter`,按值),是旧位置的拷贝。
+- **后置永远是"快照 + 调前置 + 返回快照"。** 你永远不在后置里重写移动逻辑 —— 一律委托给前置。`++` 和 `--` 在每一个类别里都如此。
+
+> 💡 所以一旦写好前置,后置就是机械的复制粘贴。这也是为什么循环里偏好 `++it` 而不是 `it++`:后置会多构造、多返回一个用完即弃的副本。
+
+### 13.2 按 tag 分层:写哪些运算符,"走一步"怎么写
+
+上面的壳是不变的。每个类别变的是 (a) 你*必须*提供*哪些*运算符,以及 (b)"走一步"那一行到底做什么。
+
+#### ① `forward_iterator` —— 只写 `++`,不写 `--`
+
+底层通常是**单链表**(HW9 的 `SetList`)。只能顺着 `next` 往前,回不去,所以**没有 `operator--`**。
+
+```cpp
+// 成员:ListNode* current;
+
+Iter& operator++() {                 // "走一步" = 跟着 next 指针
+    current = current->next;
+    return *this;
+}
+Iter operator++(int) { Iter t = *this; ++(*this); return t; }
+
+// 没有 operator-- :forward 不要求,单链表也做不到
+```
+
+#### ② `bidirectional_iterator` —— `++` 和 `--` 都写,靠节点指针走
+
+底层通常是**双向链表或树**(真正的 `std::list` / `std::set` / `std::map`)。每个节点同时有 `prev` 和 `next`,所以能两头走 —— 但一次仍然只能挪**一个节点**。
+
+```cpp
+// 成员:Node* ptr;
+
+Iter& operator++() { ptr = ptr->next; return *this; }   // 前进一步 = 跟着 next
+Iter operator++(int) { Iter t = *this; ++(*this); return t; }
+
+Iter& operator--() { ptr = ptr->prev; return *this; }   // 后退一步 = 跟着 prev
+Iter operator--(int) { Iter t = *this; --(*this); return t; }
+```
+
+> bidirectional 相比 forward **只多了 `--`**。仍然没有 `+ n` 跳跃 —— 想往回走三格,只能 `--` 三次。
+
+#### ③ `random_access_iterator` —— `++`/`--` **外加** `+= -= + -` `[]`,靠指针算术
+
+底层是**连续内存**(HW9 的 `MapArray`,成员是 `pair*`)。这时"走一步"不再是跟指针链,而是**地址算术**,而且同样的算术天然推广到"一次跳 `n` 格":
+
+```cpp
+// 成员:std::pair<Key, Value>* current;   // difference_type = std::ptrdiff_t
+
+// ++ / -- :单步(裸指针自增/自减已经自带正确的地址算术)
+Iter& operator++() { ++current; return *this; }
+Iter operator++(int) { Iter t = *this; ++current; return t; }
+Iter& operator--() { --current; return *this; }
+Iter operator--(int) { Iter t = *this; --current; return t; }
+
+// 跳 n 格 —— 这才是 random-access 比 bidirectional 多出来的部分
+Iter& operator+=(difference_type n) { current += n; return *this; }   // 复合赋值:就地修改,返回引用(像前置 ++)
+Iter& operator-=(difference_type n) { current -= n; return *this; }
+
+Iter operator+(difference_type n) const { Iter t = *this; t += n; return t; }  // 拷贝、复用 +=、返回副本(像后置)
+Iter operator-(difference_type n) const { Iter t = *this; t -= n; return t; }
+
+// 迭代器 − 迭代器 → 两者之间的距离(O(1),只有 random-access 有)
+difference_type operator-(const Iter& o) const { return current - o.current; }
+
+// 下标
+reference operator[](difference_type n) const { return current[n]; }
+```
+
+注意它们和"壳"在结构上的呼应:
+- **`+=` / `-=` 是"复合"运算符 —— 就地修改 `*this` 并返回 `Iter&`**,跟前置 `++` 一模一样。
+- **二元 `+` / `-`(迭代器 + n)不就地修改 —— 拷贝一份、委托给 `+=`/`-=`、返回那个副本**,跟后置 `++` 一模一样。
+- 有**两个 `operator-`**:*迭代器 − n* → 一个迭代器(往回 `n` 格),*迭代器 − 迭代器* → 一个 `difference_type`(相距多远)。两者都只有 random-access 才有。
+
+### 13.3 一图速览
+
+| 类别 | `++` | `--` | `+= -= + - [] < >` | "走一步"的机制 | HW9 例子 |
+|---|:---:|:---:|:---:|---|---|
+| `forward_iterator` | ✅ | ❌ | ❌ | `p = p->next` | **`SetList`** |
+| `bidirectional_iterator` | ✅ | ✅ | ❌ | `p = p->next` / `p = p->prev` | (真正的 `set` / `map`) |
+| `random_access_iterator` | ✅ | ✅ | ✅ | 指针算术:`++p`、`p += n` | **`MapArray`** |
+
+**要点:**前置/后置的**壳永远不变**;后置*总是*"快照 + 调前置 + 返回快照"。沿层级往上走,只是 (a) 多了运算符(先是 `--`,再是 `+= -= + - [] < >`),以及 (b) 换掉那一行"走一步"的机制(`next` → `next`/`prev` → 指针算术)。
+
+> ⚠️ **关于 HW9 实际代码的提醒。** 上面的骨架是 STL 的*规范*写法:前置返回 `Iter&`,跳跃参数类型是 `difference_type`。Klefstad 在第 14–15 节里的 HW9 代码沿用 PPT 风格,前置**按值返回**(`iterator operator++()`),跳跃参数用 `int`。两种都能编译、都能用于 HW9;这里的规范写法是更好的心智模型,也是真正的 STL 迭代器所采用的形式。
+
+---
+
+## 14. `SetList` 前向迭代器
 
 > 对应 Topic 9 PPT slide 12
 
-### 13.1 类结构
+### 14.1 类结构
 
 ```cpp
 // 嵌套在模板 SetList<T> 内
@@ -2309,7 +2423,7 @@ private:
 };
 ```
 
-### 13.2 为什么是 `forward_iterator_tag`?
+### 14.2 为什么是 `forward_iterator_tag`?
 
 单向链表可以:
 
@@ -2327,7 +2441,7 @@ private:
 
 > 💡 **含义** — 要求随机访问的算法(`std::sort`、`std::nth_element`)对 `SetList::iterator` 编译不过。只要 forward 的算法(`std::find`、`std::for_each`、`std::copy`)能用。
 
-### 13.3 成员实现
+### 14.3 成员实现
 
 ```cpp
 iterator(ListNode* node) : current{ node } {}
@@ -2349,13 +2463,13 @@ reference operator*() const { return current->data; }    // 对 end() 解引用�
 > ```
 > 那个 `int` 参数是哑参,用来区分两个重载;从不使用。前置返回引用(或它的 `*this`),后置返回旧值的拷贝。`for` 循环里也偏好前置。
 
-### 13.4 为什么 `difference_type` 是 `std::ptrdiff_t`?
+### 14.4 为什么 `difference_type` 是 `std::ptrdiff_t`?
 
 `std::ptrdiff_t`(来自 `<cstddef>`)是足以表示任何有效数组里两个指针距离的有符号整数类型。HW9 用它是约定俗成、安全的选择。问 "这两个迭代器多远?" 的算法 `std::distance(it1, it2)` 返回 `difference_type`。
 
 对前向迭代器,`std::distance` 是 O(n) — 它从 `it1` 走到 `it2`。对随机访问迭代器(下一节)是 O(1)。
 
-### 13.5 拼起来 — 在 `SetList` 上的 `for` 循环
+### 14.5 拼起来 — 在 `SetList` 上的 `for` 循环
 
 有了上面的迭代器以及 `SetList` 的 `begin()` / `end()`,这个循环能用:
 
@@ -2379,11 +2493,11 @@ if (it != s.end()) std::cout << "found\n";
 
 ---
 
-## 14. `MapArray` 与它的随机访问迭代器
+## 15. `MapArray` 与它的随机访问迭代器
 
 > 对应 Topic 9 PPT slides 13–14
 
-### 14.1 大思路
+### 15.1 大思路
 
 `std::map<K,V>` 通常实现为平衡二叉搜索树(红黑)。它的 insert/find/erase 都是 O(log n),但每个节点带很多指针开销。
 
@@ -2396,7 +2510,7 @@ if (it != s.end()) std::cout << "found\n";
 
 对小到中等的 n,这经常比真正的 `map` 快。(C++ 标准库把这个模式叫 "flat_map",最近也标准化了。)
 
-### 14.2 类结构(PPT slide 13)
+### 15.2 类结构(PPT slide 13)
 
 ```cpp
 template <typename K, typename V>
@@ -2427,7 +2541,7 @@ struct MapArray {
 
 > ⚠️ **Klefstad 的 API 选择** — `operator[]` 和 `find` 接 `K&`(非 const 引用)。按惯例本该是 `const K&`。HW9 跟着 Klefstad 的签名走才能过 autograder,但知道标准库选的是 `const K&`。
 
-### 14.3 实现 `operator[]` — 不存在则插入
+### 15.3 实现 `operator[]` — 不存在则插入
 
 `std::map<K,V>::operator[]` 有个奇怪(但很 Pythonic)的行为:如果键缺失,它 **插入一个默认构造的值** 并返回它的引用。这样 `m["new key"] = 42;` 才有效。
 
@@ -2443,7 +2557,7 @@ V& operator[](K& k) {
 }
 ```
 
-### 14.4 实现 `find` — 二分查找
+### 15.4 实现 `find` — 二分查找
 
 ```cpp
 iterator find(K& val) {
@@ -2461,7 +2575,7 @@ iterator find(K& val) {
 1. `std::lower_bound` 用 O(log n) 二分查找,返回 **第一个键不小于 `val`** 的位置 — 要么恰好匹配,要么是第一个更大的。
 2. 检查返回位置是否真的是 `val`(`it->first == val`)。是 → 返回迭代器;否 → 返回 `end()`(没找到)。
 
-### 14.5 实现 `insert` — 保持有序(PPT slide 15)
+### 15.5 实现 `insert` — 保持有序(PPT slide 15)
 
 ```cpp
 iterator insert(value_type val) {
@@ -2481,9 +2595,9 @@ iterator insert(value_type val) {
 }
 ```
 
-这两个工具是第 15 节的重点:`std::lower_bound` 和 `vector::insert`。
+这两个工具是第 16 节的重点:`std::lower_bound` 和 `vector::insert`。
 
-### 14.6 `MapArray::iterator` — 随机访问(PPT slide 14)
+### 15.6 `MapArray::iterator` — 随机访问(PPT slide 14)
 
 ```cpp
 struct iterator {
@@ -2512,7 +2626,7 @@ private:
 };
 ```
 
-### 14.7 为什么是 `random_access_iterator_tag`?
+### 15.7 为什么是 `random_access_iterator_tag`?
 
 因为底层存储是 `std::vector`,连续内存:
 
@@ -2524,7 +2638,7 @@ private:
 
 > 💡 **含义** — 需要随机访问的算法(`std::sort`、`std::nth_element`、二分)对 `MapArray::iterator` 有效。对比 `SetList::iterator`(只前向),它们用不了。
 
-### 14.8 实现这些运算符
+### 15.8 实现这些运算符
 
 因为 `current` 是 `pointer`(一个 `value_type*`),大多数运算符就是指针算术的薄包装:
 
@@ -2547,13 +2661,13 @@ reference operator[](difference_type d) const { return current[d]; }
 
 > ⚠️ **`operator->` 很特别。** 不像 `*` 返回元素,`->` 返回一个指针,编译器随后再次解引用。用户写 `it->first`,编译器重写为 `(it.operator->())->first`,等价 `current->first`。这就是为什么你能写 `it->first` 和 `it->second` 访问 map pair 成员。
 
-### 14.9 迭代器有效性与 `vector::insert` 失效
+### 15.9 迭代器有效性与 `vector::insert` 失效
 
 > ⚠️ **关键提醒** — `vector::insert` 可能 **重新分配** 底层缓冲(超出容量时)。**之后所有现有迭代器(和指针)都失效。** 5.10 的失效表适用。
 
 对 `MapArray::insert`,这有影响:如果你存了一个指向 "我们要插入的位置" 的迭代器,insert 完成后它就过期了。标准模式是用 `A.insert(pos, val)` **返回** 的迭代器,它指向(可能重分配后)缓冲中新插入的元素。
 
-### 14.10 把 `MapArray` 拼起来
+### 15.10 把 `MapArray` 拼起来
 
 ```cpp
 MapArray<std::string, int> m;
@@ -2572,11 +2686,11 @@ for (auto& [key, value] : m)        // 结构化绑定(C++17)
 
 ---
 
-## 15. 保持 vector 有序的工具(`lower_bound` + `vector::insert`)
+## 16. 保持 vector 有序的工具(`lower_bound` + `vector::insert`)
 
 > 对应 Topic 9 PPT slide 15。两者都住在标准头里,经过测试 — `MapArray` 基于它们,不必重新实现。
 
-### 15.1 `std::lower_bound` — 二分查找插入位置
+### 16.1 `std::lower_bound` — 二分查找插入位置
 
 ```cpp
 auto it = std::lower_bound(first, last, value);
@@ -2602,7 +2716,7 @@ auto it = std::lower_bound(first, last, value);
 > ```
 > 第一个参数是范围里的元素,第二个是要搜的值 — 注意不对称。
 
-### 15.2 `std::vector::insert(pos, value)`
+### 16.2 `std::vector::insert(pos, value)`
 
 ```cpp
 vector<int> v = {1, 3, 5, 7};
@@ -2616,17 +2730,19 @@ v.insert(it, 4);
 - **超出容量时可能重分配** vector 的缓冲。重分配让 **所有** 进入 vector 的迭代器和指针失效。
 - **返回** 指向新插入元素的迭代器(重分配后也有效,因为它从新存储里查出来)。
 
-> ⚠️ **迭代器失效查表**(cppreference,5.10 节):
-> | 操作 | 失效什么 |
-> |---|---|
-> | `insert`(没重分配) | 插入点及之后的迭代器 |
-> | `insert`(重分配) | **所有** 迭代器(以及指针、引用) |
-> | `push_back`(没重分配) | 只 `end()` |
-> | `push_back`(重分配) | 所有 |
-> | `erase` | 被擦元素及其后所有(包括 `end()`) |
-> 所以 `auto newIt = v.insert(pos, value);` 后,任何之前持有的迭代器(包括你之前算出的 `pos`)都过期。**用 `newIt`。**
+> ⚠️ **迭代器失效查表**(cppreference,见 §5.10)
 
-### 15.3 `lower_bound` + `insert` 习惯用法 — 两行实现有序插入
+| 操作 | 失效什么 |
+|---|---|
+| `insert`(没重分配) | 插入点及之后的迭代器 |
+| `insert`(重分配) | **所有** 迭代器(以及指针、引用) |
+| `push_back`(没重分配) | 只 `end()` |
+| `push_back`(重分配) | 所有 |
+| `erase` | 被擦元素及其后所有(包括 `end()`) |
+
+所以 `auto newIt = v.insert(pos, value);` 后,任何之前持有的迭代器(包括你之前算出的 `pos`)都过期。**用 `newIt`。**
+
+### 16.3 `lower_bound` + `insert` 习惯用法 — 两行实现有序插入
 
 这就是 `MapArray::insert` 的全部引擎:
 
@@ -2645,7 +2761,7 @@ if (pos != v.end() && *pos == value)
 return v.insert(pos, value);             // 不存在,插入
 ```
 
-### 15.4 `MapArray` 性能汇总
+### 16.4 `MapArray` 性能汇总
 
 | 操作 | 时间 | 原因 |
 |---|---|---|
@@ -2660,9 +2776,9 @@ return v.insert(pos, value);             // 不存在,插入
 小 n 时(比如几千以内),`MapArray` 在真实负载下经常 *打败* `std::map`,因为 cache 效应巨大。临界点跟负载有关。
 
 ---
-## 16. Week 9 综合 Cheat Sheet
+## 17. Week 9 综合 Cheat Sheet
 
-### 16.1 容器类骨架
+### 17.1 容器类骨架
 
 每个自定义容器 — `IntArray`、`SetList<T>`、`MapArray<K,V>` — 都是同一个形状。把这骨架记下来;HW 评分会查全套。
 
@@ -2695,7 +2811,7 @@ public:
     iterator  find(/* ... */);
     iterator  erase(iterator pos);
 
-    // ---- 嵌套迭代器类型(见 16.4) ----
+    // ---- 嵌套迭代器类型(见 17.4) ----
     struct iterator { /* ... */ };
 
 private:
@@ -2705,7 +2821,7 @@ private:
 
 > 💡 **Rule of Zero 捷径**:如果每个数据成员本身就是 STL 容器或智能指针,你可以把全部六个特殊成员 `= default`(甚至省略)。成员自己会做对。你只在持有 **裸** 拥有指针时手写拷贝/移动/析构。
 
-### 16.2 `std::initializer_list` 速查
+### 17.2 `std::initializer_list` 速查
 
 ```cpp
 #include <initializer_list>
@@ -2729,7 +2845,7 @@ public:
 | 给已有类加 list 构造 | `Foo x{5};` 突然变成 1 元素 list,不再是 size-5 容器 | size 风格的调用用 `Foo x(5);`;在改动日志里写明 |
 | 存了 list 的指针 | 临时 `initializer_list` 死了之后 `it->begin()` 悬空 | 在构造体内 **拷贝** 内容到自己的存储 |
 
-### 16.3 `assert` vs `static_assert`
+### 17.3 `assert` vs `static_assert`
 
 | | `assert(cond)` | `static_assert(cond, "msg")` |
 |---|---|---|
@@ -2750,7 +2866,7 @@ static_assert(std::is_integral_v<T>, "T must be an integral type");
 
 > ⚠️ **永远别用 assert 处理可能合法失败的运行时情况** — 用户输入错、文件不存在、网络错误等等。那些要真正的错误处理(异常或错误码)。assert 抓的是 *bug*,不是 *预期* 失败。
 
-### 16.4 迭代器类别速查
+### 17.4 迭代器类别速查
 
 | 类别 | Tag(`std::xxx_iterator_tag`) | 操作 | 例子容器 |
 |---|---|---|---|
@@ -2768,7 +2884,114 @@ input ──→ forward ──→ bidirectional ──→ random-access ──�
 output(单独层级)
 ```
 
-### 16.5 `iterator_traits` 的五个 typedef
+### 17.4b STL 提供的具体迭代器类型(适配器与特殊迭代器)
+
+上面 17.4 列的是**类别**(category) — 即"一个迭代器最少要支持什么操作"的抽象规格。这一节列的是 STL 标准库**实际提供**的具体迭代器类型,以及它们各自落在哪个类别上。
+
+**容器自家迭代器**(每个容器都成对提供)
+
+| 类型 | 头文件 | 类别 | 说明 |
+|---|---|---|---|
+| `C::iterator` | 容器头(`<vector>` 等) | 取决于容器 | 读写;`begin()` / `end()` 返回 |
+| `C::const_iterator` | 同上 | 同上 | 只读;`cbegin()` / `cend()` 返回 |
+| `C::reverse_iterator` | 同上 | bidirectional 或以上 | 反向遍历;`rbegin()` / `rend()` 返回 |
+| `C::const_reverse_iterator` | 同上 | 同上 | 反向 + 只读;`crbegin()` / `crend()` 返回 |
+
+每个标准容器的 `iterator` 的具体类别:
+
+| 容器 | `iterator` 类别 |
+|---|---|
+| `std::array`、`std::vector`、`std::string` | **contiguous**(C++17;C++17 之前是 random-access) |
+| `std::deque` | random-access |
+| `std::list` | bidirectional |
+| `std::set`、`std::map`、`std::multiset`、`std::multimap` | bidirectional |
+| `std::forward_list` | **forward** |
+| `std::unordered_set` / `unordered_map` 系列 | forward |
+| **HW9 `SetList<T>`** | forward |
+| **HW9 `MapArray<K,V>`** | random-access(底层是 `vector`) |
+
+> 💡 在 const 容器上 `begin()` *已经* 返回 `const_iterator`。`cbegin()` 存在的意义是:在非 const 容器上也能**强制**要一个只读迭代器(比如想用 `auto` 但不希望允许修改)。
+
+**反向迭代器适配器** — `<iterator>`
+
+| 类型 | 类别 | 用途 |
+|---|---|---|
+| `std::reverse_iterator<It>` | 同被包装的 `It`(至少 bidirectional) | 把一个 bidirectional 迭代器反过来 — `++` 实际走 `--`。`rbegin()` 内部就是它 |
+| `std::make_reverse_iterator(it)`(C++14) | 同上 | 工厂函数,从普通迭代器造反向迭代器 |
+
+```cpp
+std::vector<int> v{1, 2, 3, 4, 5};
+for (auto it = v.rbegin(); it != v.rend(); ++it)
+    std::cout << *it << ' ';   // 5 4 3 2 1
+```
+
+**插入迭代器适配器** — `<iterator>`,全部是 `output_iterator_tag`
+
+| 类型 | 工厂函数 | 行为 | 容器要求 |
+|---|---|---|---|
+| `std::back_insert_iterator<C>` | `std::back_inserter(c)` | `*it = x` 调用 `c.push_back(x)` | 需要 `push_back` — `vector`、`deque`、`list`、`string` |
+| `std::front_insert_iterator<C>` | `std::front_inserter(c)` | `*it = x` 调用 `c.push_front(x)` | 需要 `push_front` — `deque`、`list`、`forward_list` |
+| `std::insert_iterator<C>` | `std::inserter(c, pos)` | `*it = x` 调用 `c.insert(pos, x)`,然后 `pos` 自动前进 | 任何带 `insert(pos, val)` 的容器 — `set`、`map`、`vector`…… |
+
+```cpp
+std::vector<int> src{1, 2, 3};
+std::vector<int> dst;
+std::copy(src.begin(), src.end(), std::back_inserter(dst));   // dst: {1,2,3}
+
+std::set<int> s;
+std::copy(src.begin(), src.end(), std::inserter(s, s.end())); // s:   {1,2,3}
+```
+
+> ⚠️ 没有 `back_inserter`,`std::copy(..., dst.begin())` 会**覆盖** `dst` 已有元素,而不是追加 — output 迭代器不会自己扩容。这是 STL 新手最常见的踩雷之一。
+
+**流迭代器** — `<iterator>`
+
+| 类型 | 类别 | 含义 |
+|---|---|---|
+| `std::istream_iterator<T>` | input | 把 `cin >> T` 包成 input 迭代器;`++` 读下一个值;**默认构造的实例 = "end" 哨位** |
+| `std::ostream_iterator<T>` | output | `*it = x` 调用 `out << x`,可附加分隔符 |
+| `std::istreambuf_iterator<char>` | input | 字符级 — 整个文件读到 `string` 的常用招式 |
+| `std::ostreambuf_iterator<char>` | output | 字符级输出 |
+
+经典 STL 一行流:
+
+```cpp
+// 从 cin 读所有 int,逐个输出到 cout,空格分隔
+std::copy(std::istream_iterator<int>(std::cin),
+          std::istream_iterator<int>(),                  // 默认构造 = end
+          std::ostream_iterator<int>(std::cout, " "));
+
+// 整个文件 → string
+std::string contents{std::istreambuf_iterator<char>(file),
+                     std::istreambuf_iterator<char>()};
+```
+
+**移动迭代器**(C++11) — `<iterator>`
+
+| 类型 | 类别 | 用途 |
+|---|---|---|
+| `std::move_iterator<It>` | 同 `It` | `*it` 返回**右值引用**(`T&&`),而不是普通 `T&` — 让算法走 *移动* 而非 *复制* |
+| `std::make_move_iterator(it)` | 同上 | 工厂 |
+
+```cpp
+std::vector<std::string> src{"a", "b", "c"};
+std::vector<std::string> dst(std::make_move_iterator(src.begin()),
+                             std::make_move_iterator(src.end()));
+// src 里的字符串已被移走,src 的元素现在处于"合法但未指定"的状态
+```
+
+**C++20 适配器**(只是认识一下,HW9 不要求)
+
+| 类型 | 用途 |
+|---|---|
+| `std::counted_iterator<It>` | 让一个迭代器"记得还剩多少步" — 配合 ranges 用 |
+| `std::common_iterator<It, S>` | 把 `(iterator, sentinel)` 这种 ranges 风格的 pair 适配成"老式" `(iter, iter)` 接口,好喂给 C++17 算法 |
+
+**总结(HW9 视角):** 你这周只会**自己写一种**迭代器类型 — `SetList::iterator`(forward)和 `MapArray::iterator`(random-access),都是**容器内部的嵌套类**,不是适配器。但要记住:STL 已经把上面这一整套适配器都预制好了 — Week 8 学的算法(`copy`、`transform`、`accumulate`……)只要搭配 `back_inserter` / `ostream_iterator` / `make_reverse_iterator` 等,就能直接写到你需要的地方,无需手写循环。
+
+> 💡 **跨周 see also** — Week 8 §11.9(排序范围上的集合算法)和 §11.10(堆算法)都直接适用于本周的 HW9 容器:`MapArray`(排序 vector 后端)能跑 `set_union` / `set_intersection` / `set_difference`,任何 random-access 范围都能跑 `make_heap` / `pop_heap`。这就是 "用户视角的 STL" 的红利 — 一旦你的迭代器满足类别要求,Week 8 整套算法白送。
+
+### 17.5 `iterator_traits` 的五个 typedef
 
 每个迭代器类型 **必须** 暴露全部五个 — 要么作为迭代器类里的嵌套 `using`,要么通过 `iterator_traits` 特化。算法读它们挑策略。
 
@@ -2787,7 +3010,7 @@ struct iterator {
 
 **指针特化(cppreference)**:`std::iterator_traits<T*>` 被特化成让 `T*` 自己算作连续迭代器。所以算法在普通 C 数组上能用。
 
-### 16.6 智能指针决策表
+### 17.6 智能指针决策表
 
 | 问题 | 答案 |
 |---|---|
@@ -2819,7 +3042,7 @@ struct iterator {
 - **少打字 / 不重复类型名**:`make_shared<Widget>(args)` 而不是 `shared_ptr<Widget>(new Widget(args))`。
 - **`make_shared` 一次堆分配** 给对象 + 控制块(vs `new` 形式的两次)。
 
-### 16.7 RAII 替代 Rule of Three
+### 17.7 RAII 替代 Rule of Three
 
 | 旧(Week 5 / Week 6,HW4–HW6) | 新(Week 9,HW9 起) |
 |---|---|
@@ -2834,7 +3057,7 @@ struct iterator {
 
 > 💡 **Rule of Zero**:如果你能把类完全表达为已经管理自身资源的类型的组合,你可以写 **零个** 特殊成员函数。这是现代 C++ 的理想。**HW9 的 `MapArray` 自然是 Rule of Zero**(它只持有 `std::vector<std::pair<K,V>>`);**HW9 的 `SetList` *不是*** Rule of Zero,因为它用裸 `ListNode*`(slide 6 警告 — 否则迭代器会出问题)。
 
-### 16.8 C++20 Ranges 和 Views 一页纸
+### 17.8 C++20 Ranges 和 Views 一页纸
 
 ```cpp
 #include <ranges>
@@ -2865,7 +3088,7 @@ bool is_palindrome(std::string const& s) {
 - **Views 惰性。** 迭代前什么都不发生。`| filter | transform | reverse` 在 range-for 真正消费元素之前不做任何工作。
 - **算法住在 `std::ranges::`。** Views 住在 `std::views::`(它本身是 `std::ranges::views` 的别名)。
 
-### 16.9 HW9 性能汇总
+### 17.9 HW9 性能汇总
 
 | 操作 | `SetList<T>`(链) | `MapArray<K,V>`(有序 vec) | `std::set<T>`(RB 树) | `std::map<K,V>`(RB 树) |
 |---|---|---|---|---|
@@ -2879,7 +3102,7 @@ bool is_palindrome(std::string const& s) {
 
 **这样读:** 对 *小* n(几千以内),`MapArray` 经常打败 `std::map`,虽然 insert 渐进更糟,因为连续内存远比追指针快。临界点取决于负载;教训是 **Big-O 不是全部** — 常数有影响。
 
-### 16.10 HW9 递进开发配方(Klefstad)
+### 17.10 HW9 递进开发配方(Klefstad)
 
 这是 Klefstad 教授指定的 HW9 攻克顺序。**不要跳步。**
 
@@ -2898,7 +3121,7 @@ bool is_palindrome(std::string const& s) {
 
 > ⚠️ **致命反模式**:同时替换 `std::set` *和* `std::map`,然后调试。你不会知道哪个错误信息来自哪个容器。**永远一次换一个。**
 
-### 16.11 `lower_bound` + `vector::insert` 习惯用法(MapArray 的秘密武器)
+### 17.11 `lower_bound` + `vector::insert` 习惯用法(MapArray 的秘密武器)
 
 ```cpp
 // 在 v 里有序插入 `value`
@@ -2916,7 +3139,7 @@ return v.insert(pos, value);     // 不存在 — 插入
 
 ---
 
-## 17. Week 9 最重要的五条记忆
+## 18. Week 9 最重要的五条记忆
 
 1. **容器类是一个契约,不只是数据结构。** 想进 STL 沙盒,你的容器必须暴露:类型别名(`value_type`、`pointer`、`reference`……)、一对 `begin()`/`end()` 迭代器,加上 `insert`/`find`/`erase`/`size`/`empty` 中合理的一部分。把 *契约* 写对,`std::ranges::sort(myContainer)`、`for (auto& e : myContainer)`、`std::distance(begin, end)` 全都 *免费* 起飞。写错就什么都不灵。**HW9 的 `SetList` 和 `MapArray` 评分的就是是否兑现了这套契约**,不是聪不聪明。要点:你设计一个装多个东西的类时,先问 *"STL 期望容器是什么样?"* — 然后照着写,再加上你自己的特性。
 

@@ -1223,10 +1223,223 @@ int main() {
 | `copy(b, e, dest)` | Copies range into `dest` |
 | `unique(b, e)` | Removes adjacent duplicates (must sort first to remove all dups) |
 | `unique_copy(b, e, dest)` | Copies range, skipping adjacent duplicates |
-| `remove(b, e, val)` | "Removes" `val` (actually shifts; container size unchanged — see erase-remove idiom) |
+| `remove(b, e, val)` | "Removes" `val` (actually shifts; container size unchanged — see §11.7 erase-remove idiom) |
 | `binary_search(b, e, val)` | Returns `true` if `val` exists in a sorted range |
 | `lower_bound(b, e, val)` | Iterator to first element ≥ val |
 | `upper_bound(b, e, val)` | Iterator to first element > val |
+
+### 11.6 Predicate Algorithms — `all_of` / `any_of` / `none_of` (C++11)
+
+The three return `bool` — they sweep a range with a predicate and answer "all? any? none?":
+
+```cpp
+#include <algorithm>
+#include <vector>
+
+std::vector<int> v{2, 4, 6, 8};
+
+bool all_even  = std::all_of (v.begin(), v.end(), [](int x){ return x % 2 == 0; });   // true
+bool any_neg   = std::any_of (v.begin(), v.end(), [](int x){ return x  <  0; });      // false
+bool none_zero = std::none_of(v.begin(), v.end(), [](int x){ return x ==  0; });      // true
+```
+
+| Algorithm | Meaning | Empty range |
+|---|---|---|
+| `all_of(b, e, p)` | All satisfy `p`? | `true` (the empty set satisfies any predicate — *vacuous truth*) |
+| `any_of(b, e, p)` | At least one satisfies? | `false` |
+| `none_of(b, e, p)` | None satisfies? | `true` |
+
+> 💡 **Short-circuit evaluation** — all three stop at the first counterexample (`all_of` / `none_of`) or first hit (`any_of`); they don't scan the whole range.
+
+### 11.7 Erase-Remove Idiom
+
+§11.5 noted that `remove(b, e, val)` doesn't actually delete — it **shifts the elements not equal to `val` to the front** and returns an iterator to the "new logical end." The container's size doesn't change; the tail is leftover junk:
+
+```cpp
+std::vector<int> v{1, 2, 3, 2, 4, 2, 5};
+auto new_end = std::remove(v.begin(), v.end(), 2);
+// v is now {1, 3, 4, 5, ?, ?, ?}      ← last three are unspecified
+// new_end points to the 5th slot (where ? begins)
+// v.size() is still 7 — nothing was deleted!
+```
+
+**The erase-remove idiom** — chop off the leftover with `erase(new_end, v.end())`:
+
+```cpp
+v.erase(std::remove(v.begin(), v.end(), 2), v.end());
+// Now v is {1, 3, 4, 5}, size() == 4
+```
+
+Predicate version — `remove_if`:
+
+```cpp
+v.erase(std::remove_if(v.begin(), v.end(),
+                       [](int x){ return x % 2 == 0; }),
+        v.end());
+// Removes every even number
+```
+
+**Modern C++20 form** — `std::erase` / `std::erase_if` is a built-in one-liner version of the above:
+
+```cpp
+std::erase(v, 2);                                  // ≡ erase-remove(v, 2)
+std::erase_if(v, [](int x){ return x % 2 == 0; }); // ≡ erase-remove_if
+```
+
+> ⚠️ **Don't use this on `std::list`** — `list` has its own members `myList.remove(val)` and `myList.remove_if(pred)`, which really delete in O(n) — don't pile on the `erase-remove` dance (it's pointless on a linked list since list erasure is O(1) node-unlink).
+
+| Container | Recommended delete idiom |
+|---|---|
+| `vector` / `deque` / `string` | `c.erase(std::remove[_if](...), c.end())` or C++20 `std::erase[_if]` |
+| `list` / `forward_list` | `c.remove(val)` / `c.remove_if(pred)` (member functions) |
+| `set` / `map` (associative) | `c.erase(val)` (delete by key) or `c.erase(it)` (by position) |
+
+### 11.8 Range Comparison — `equal` / `mismatch` / `lexicographical_compare`
+
+```cpp
+std::vector<int> a{1, 2, 3, 4};
+std::vector<int> b{1, 2, 3, 4};
+std::vector<int> c{1, 2, 9, 4};
+
+bool eq = std::equal(a.begin(), a.end(), b.begin());   // true (element-wise ==)
+
+auto [ita, itb] = std::mismatch(a.begin(), a.end(), c.begin());
+// ita -> a[2] (= 3), itb -> c[2] (= 9) — first divergence
+```
+
+| Algorithm | Meaning |
+|---|---|
+| `equal(b1, e1, b2)` | Two sequences **element-wise equal**? (C++14+ prefer the four-arg overload `equal(b1, e1, b2, e2)` which checks length first) |
+| `mismatch(b1, e1, b2)` | Find the first divergence; returns a pair of iterators |
+| `lexicographical_compare(b1, e1, b2, e2)` | Dictionary-order `<` (like `string`'s `<`) |
+
+> 💡 **Just use the container's `==`** — for two standard containers of the same type, `a == b` already does the size check + element-wise compare and is usually more concise. `std::equal` is for cases where **the types differ but the contents should be equivalent** (e.g. a `vector<int>` against an `int[]`, or comparing a sub-range of a `vector<int>`).
+
+### 11.9 Set Algorithms on Sorted Ranges
+
+> ⚠️ **Precondition: both input ranges must be sorted!** Same rule as `binary_search` / `lower_bound`. These algorithms are **not** specific to `std::set` — they apply to any sorted range (a `vector`, `MapArray::keys()`, a `std::set`, etc.).
+
+```cpp
+#include <algorithm>
+#include <vector>
+#include <iterator>
+
+std::vector<int> a{1, 2, 3, 4, 5};
+std::vector<int> b{3, 4, 5, 6, 7};
+
+std::vector<int> out;
+std::set_union       (a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {1,2,3,4,5,6,7}
+
+out.clear();
+std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {3,4,5}
+
+out.clear();
+std::set_difference  (a.begin(), a.end(), b.begin(), b.end(),
+                      std::back_inserter(out));   // {1,2}   (in a, not in b)
+```
+
+| Algorithm | Output |
+|---|---|
+| `set_union(a, b, out)` | `a ∪ b` (union) |
+| `set_intersection(a, b, out)` | `a ∩ b` (intersection) |
+| `set_difference(a, b, out)` | `a \ b` (set difference) |
+| `set_symmetric_difference(a, b, out)` | `(a∪b)\(a∩b)` (symmetric difference) |
+| `includes(a_first, a_last, b_first, b_last)` | returns `bool` — is `b ⊆ a`? |
+
+> 💡 **Cross-week link: HW9 `MapArray`** — it's internally a sorted `vector<pair<K,V>>`, so these algorithms drop right in — provided your comparator looks only at `pair::first`. See Week 9 §14.
+
+### 11.10 Heap Algorithms — `<algorithm>`
+
+`<algorithm>` ships heap operations that act on **any random-access range** — these are exactly what `std::priority_queue` (§7.3) uses internally, but you can also use them on your own `vector` to maintain a heap by hand:
+
+```cpp
+#include <algorithm>
+#include <vector>
+
+std::vector<int> v{3, 1, 4, 1, 5, 9, 2, 6};
+
+std::make_heap(v.begin(), v.end());          // rearrange into a max-heap, v.front() is largest
+// v: 9 6 4 3 5 1 2 1   (exact order is implementation-defined, but the root is always max)
+
+std::cout << v.front() << '\n';              // 9 — top of heap
+
+v.push_back(10);                             // first push_back
+std::push_heap(v.begin(), v.end());          // then sift the new element up
+
+std::pop_heap(v.begin(), v.end());           // swap top to the back, then fix the heap
+int top = v.back();
+v.pop_back();                                // actually delete
+
+std::sort_heap(v.begin(), v.end());          // turn the heap into a sorted range (O(n log n))
+```
+
+| Algorithm | Use | Precondition |
+|---|---|---|
+| `make_heap(b, e)` | Rearrange range into a max-heap | — |
+| `push_heap(b, e)` | Sift `*(e-1)` up | `[b, e-1)` is already a heap |
+| `pop_heap(b, e)` | Swap `*b` to `*(e-1)`, then fix `[b, e-1)` | `[b, e)` is a heap |
+| `sort_heap(b, e)` | Repeatedly `pop_heap` until sorted | `[b, e)` is a heap |
+| `is_heap(b, e)` | Is it a heap? | — |
+| `is_heap_until(b, e)` | Returns the end of the longest heap prefix | — |
+
+Default is **max-heap** (uses `<`); for min-heap pass `std::greater<>{}`:
+
+```cpp
+std::make_heap(v.begin(), v.end(), std::greater<>{});
+```
+
+> 💡 **vs. `priority_queue`** — the adapter `priority_queue` (§7.3) is implemented with `make_heap`/`push_heap`/`pop_heap` — it just wraps a `vector` plus these functions. **Why prefer the raw functions:** you can access *all* elements of the range simultaneously (the adapter only exposes `top()`), and `sort_heap` lets you collapse a heap into a sorted range in one call.
+
+### 11.11 The `<numeric>` Family
+
+§11.2 already showed `iota`; §11.4 showed `accumulate`. `<numeric>` has a few more workhorses:
+
+```cpp
+#include <numeric>
+#include <vector>
+#include <functional>
+
+std::vector<int> v{1, 2, 3, 4, 5};
+
+// 1. iota — fill with successive incrementing values (§11.2)
+std::iota(v.begin(), v.end(), 0);                                   // {0, 1, 2, 3, 4}
+
+// 2. accumulate — fold (§11.4), with an optional binary op
+int sum  = std::accumulate(v.begin(), v.end(), 0);                  // 0+0+1+2+3+4 = 10
+int prod = std::accumulate(v.begin(), v.end(), 1, std::multiplies<>{}); // 1*0*1*2*3*4 = 0
+
+// 3. inner_product — dot product of two ranges
+std::vector<int> a{1, 2, 3}, b{4, 5, 6};
+int dot = std::inner_product(a.begin(), a.end(), b.begin(), 0);     // 1*4+2*5+3*6 = 32
+
+// 4. partial_sum — prefix sums
+std::vector<int> ps(v.size());
+std::partial_sum(v.begin(), v.end(), ps.begin());                   // {0, 1, 3, 6, 10}
+
+// 5. adjacent_difference — pairwise differences (inverse of partial_sum)
+std::vector<int> diff(v.size());
+std::adjacent_difference(v.begin(), v.end(), diff.begin());         // {0, 1, 1, 1, 1}
+```
+
+| Algorithm | Use |
+|---|---|
+| `accumulate(b, e, init[, op])` | Fold range with `op` (default `+`) — **order is guaranteed left-to-right** |
+| `inner_product(b1, e1, b2, init[, op1, op2])` | Default behavior is dot product `Σ a[i]*b[i]` |
+| `partial_sum(b, e, out[, op])` | Write the prefix accumulation to `out` |
+| `adjacent_difference(b, e, out[, op])` | `out[i] = b[i] - b[i-1]`, `out[0] = b[0]` |
+| `iota(b, e, start)` | Fill with `start, start+1, ...` |
+
+**C++17 parallelism-friendly variants** (just be aware):
+
+| Algorithm | Difference vs. classic |
+|---|---|
+| `reduce(b, e, init[, op])` | Like `accumulate` but **order is NOT guaranteed** — the compiler can fold in parallel; `op` must be associative |
+| `transform_reduce(b1, e1, b2, init, op1, op2)` | Parallel-friendly `inner_product` |
+| `inclusive_scan` / `exclusive_scan` | Parallel-friendly `partial_sum` |
+
+> ⚠️ **`accumulate`'s init type determines the result type** — `accumulate(v.begin(), v.end(), 0)` truncates everything to `int` even if `v` is a `vector<double>`. Pass `0.0` to get a `double` result.
 
 ---
 
@@ -2272,6 +2485,45 @@ int n2 = std::count_if(b, e, pred);
 // Bulk
 std::copy(b, e, out);
 std::for_each(b, e, fn);
+
+// Predicate logic (§11.6)
+bool all  = std::all_of (b, e, pred);
+bool any  = std::any_of (b, e, pred);
+bool none = std::none_of(b, e, pred);
+
+// Erase-remove idiom (§11.7) — vector / deque / string
+v.erase(std::remove   (v.begin(), v.end(), val),  v.end());
+v.erase(std::remove_if(v.begin(), v.end(), pred), v.end());
+// C++20 one-liners:
+std::erase   (v, val);
+std::erase_if(v, pred);
+
+// Range comparison (§11.8)
+bool eq = std::equal(b1, e1, b2);                       // element-wise ==
+auto [pa, pb] = std::mismatch(b1, e1, b2);              // first divergence
+bool lt = std::lexicographical_compare(b1, e1, b2, e2); // dictionary <
+
+// Set algorithms on SORTED ranges (§11.9)
+std::set_union              (a_b, a_e, b_b, b_e, out);
+std::set_intersection       (a_b, a_e, b_b, b_e, out);
+std::set_difference         (a_b, a_e, b_b, b_e, out);  // a \ b
+std::set_symmetric_difference(a_b, a_e, b_b, b_e, out);
+bool sub = std::includes(a_b, a_e, b_b, b_e);           // b ⊆ a?
+
+// Heap algorithms — random-access range (§11.10)
+std::make_heap (b, e);              // rearrange into max-heap
+std::push_heap (b, e);              // sift *(e-1) up
+std::pop_heap  (b, e);              // swap *b to *(e-1)
+std::sort_heap (b, e);              // heap → sorted
+bool h = std::is_heap(b, e);
+
+// <numeric> family (§11.11)
+std::inner_product       (a_b, a_e, b_b, init);   // dot product
+std::partial_sum         (b, e, out);             // prefix sum
+std::adjacent_difference (b, e, out);             // pairwise differences
+// C++17 parallel-friendly:
+std::reduce              (b, e, init);            // unordered accumulate
+std::transform_reduce    (a_b, a_e, b_b, init, op1, op2);
 ```
 
 ### 19.5 Iterator Adapter Cheat Sheet
