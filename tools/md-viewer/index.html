@@ -1945,7 +1945,7 @@
 			function slugifyHeading(text, slugCounts) {
 				const base = plainTextForSlug(text)
 					.toLowerCase()
-					.replace(/[^\p{L}\p{N}\s-]/gu, "")
+					.replace(/[^\p{L}\p{N}\s_-]/gu, "")
 					.replace(/\s/g, "-")
 					.replace(/^-+|-+$/g, "") || "section";
 
@@ -2194,7 +2194,9 @@
 
 			function extractWeekLabel(note) {
 				const match = note.match(/(?:^|_)Week\s*([0-9]+)/i);
-				return match ? "Week " + match[1] : "";
+				if (match) return "Week " + match[1];
+				if (/(?:^|_)Final[_-]?Review/i.test(note)) return "Final Review";
+				return "";
 			}
 
 			function formatReaderDescription(template, courseName, weekLabel) {
@@ -2244,7 +2246,7 @@
 					const title = weekLabel
 						? profile.displayName + " " + weekLabel + " Notes"
 						: profile.displayName + " Notes";
-					const heading = weekLabel
+					const heading = /^Week/i.test(weekLabel)
 						? weekLabel + " " + localized.headingBase
 						: localized.headingBase;
 					return {
