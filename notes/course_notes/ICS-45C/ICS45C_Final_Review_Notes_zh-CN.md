@@ -9,7 +9,7 @@
 
 ## 考试须知与策略（出自 Topic 10 课件）
 
-- **在考试开始*之前*仔细阅读题目说明。** 知道你的**指定座位**（考前不久会发布到 EdStem）。携带**带照片的证件**（也会使用带照片的点名册）。
+- **在考试开始之前仔细阅读题目说明。** 知道你的**指定座位**（考前不久会发布到 EdStem）。携带**带照片的证件**（也会使用带照片的点名册）。
 - **手机完全收起来**——把手机拿出来 = 零分 / “重罪级作弊”。不要佩戴遮挡眼睛的帽檐、连帽衫或太阳镜。
 - **在答题卡上涂黑你的考试版本（Exam Version）**，并写上你的**姓名 + UCI NetID**。
 - **应试策略：** 仔细阅读每道题 → *再*读一遍 → 把试卷册当作草稿纸用 → 作答 → 立刻把答案涂到答题卡上 → **相信你学过的东西，别把自己反复猜成错误答案** → 如果还有时间，最后再检查一遍。
@@ -54,6 +54,49 @@
 - `#include <file>` — 以文本方式粘贴进声明（例如，`#include <iostream>` 引入 I/O 声明）。
 - `#define NAME value` — 定义一个**宏（macro）**（文本替换）。
 - `#ifdef` / `#ifndef` … `#endif` — 条件编译（仅当某个名字被定义/未被定义时才编译这个代码块）。
+
+#### 深入条件编译 — `#ifdef` / `#ifndef` / `#if` / `#else` / `#elif` / `#endif` 💡
+**条件编译（conditional compilation）**让**预处理器在编译器看到代码之前就保留或删掉一整块代码**，依据是某个宏是否被定义（或者一个编译期常量）。被跳过的代码根本不会被编译——就好像你把它删掉了一样。
+
+| 指令 | 在什么情况下保留该代码块 |
+|---|---|
+| `#ifdef NAME` | `NAME` **已被** `#define` |
+| `#ifndef NAME` | `NAME` **未被**定义 |
+| `#if expr` | 常量整数表达式 `expr` **非零**（可以用 `defined(NAME)`） |
+| `#elif expr` | 前面的判断都失败**且** `expr` 非零（else-if） |
+| `#else` | 前面所有判断都失败 |
+| `#endif` | 关闭该代码块——**每个 `#if`/`#ifdef`/`#ifndef` 都必须有一个配对的 `#endif`** |
+| `#undef NAME` | （不是判断）移除一个已有的定义 |
+
+**这个名字从哪来？** 要么来自代码里的 `#define`，要么来自**编译器选项**：`g++ -DDEBUG ...` 会定义 `DEBUG`；`-DLEVEL=2` 则把它定义*为一个值*。（本课程的构建就是用 `-DNDEBUG` 来关掉 `assert` 的。）
+```cpp
+// 1) 包含守卫 —— 最常见的用法（见下面的 Q4）
+#ifndef COMPLEX_HPP
+#define COMPLEX_HPP
+// ... 头文件主体：每个翻译单元最多编译一次 ...
+#endif
+
+// 2) 平台相关代码（预处理后只有一个分支会留下）
+#ifdef _WIN32
+    constexpr char SEP = '\\';     // Windows
+#elif defined(__APPLE__)
+    constexpr char SEP = '/';      // macOS
+#else
+    constexpr char SEP = '/';      // Linux / 其它
+#endif
+
+// 3) 仅调试时编译的代码，用 g++ -DDEBUG 打开
+#ifdef DEBUG
+    std::cerr << "x = " << x << '\n';   // 只存在于 debug 构建中
+#endif
+
+// 4) 判断一个“值”，而不只是“是否被定义”
+#if LEVEL >= 2
+    verbose_logging();
+#endif
+```
+> ⚠️ **陷阱：** `#ifdef X` 只问*“`X` 存在吗？”*——要根据它的值来分支，得用 `#if X == 1`。每个 `#if`/`#ifdef`/`#ifndef` **都必须**有配对的 `#endif`（漏写会得到一个让人摸不着头脑的 “unterminated #if” 错误）。这些名字**没有类型、也没有作用域**（它们只是预处理器的纯文本）——这正是为什么现代 C++ 把预处理器留给*包含守卫以及平台/构建配置*，而把普通逻辑交给 `constexpr` + `if constexpr`。
+🐍 Python **没有预处理器**。最接近的近亲——`if __debug__:` 或 `if sys.platform == "win32":`——都在**运行期**执行，而且没被选中的分支照样会被编译；`#ifdef` 则是在编译*之前*就把代码*移除*。
 
 ### 宏，以及该用什么来代替它 — (Q3)
 **宏（macro）**是一种预处理器文本替换（`#define MAX 1024`）。预处理器会在编译器运行*之前*盲目地替换文本，所以宏**没有类型检查、也没有作用域（scope）**。
@@ -118,6 +161,85 @@ int j = 8 - k * i / 2 + k * 2;   // == 8 - ((k*i)/2) + (k*2)
 ```
 > ⚠️ 考试时如果拿不准，就**显式地加上括号**并逐步追踪。
 
+#### `operator precedence`——值得背下来的那张表
+
+承接 (Q10)：那里的三个指针追踪例子只是*简单*的部分。考试里真正让人翻车的，是那些看上去毫不相关的运算符之间的**相对**顺序（`<<` 对 `?:`、`==` 对 `&`）。把下面这张表从上到下背熟；这就足以解析 Klefstad 期末里出的任何表达式。
+
+**优先级表——从高到低**（同一档内优先级*相等*，由结合性决定先后）：
+
+| 档位 | 运算符 | 结合性 | 读作 |
+|---|---|---|---|
+| 1（最高） | `()` `[]` `->` `.` 后缀 `++` `--` | 左结合（左→右） | 调用／下标／成员／后置自增 |
+| 2 | 前缀 `++` `--` 一元 `+` `-` `!` `~` 解引用 `*` 取地址 `&` `(type)` `sizeof` | **右结合（右→左）** | 所有一元运算符 |
+| 3 | `*` `/` `%` | 左结合（左→右） | 乘除取模 |
+| 4 | `+` `-`（二元） | 左结合（左→右） | 加减 |
+| 5 | `<<` `>>` | 左结合（左→右） | 移位／流插入-提取 |
+| 6 | `<` `<=` `>` `>=` | 左结合（左→右） | 关系 |
+| 7 | `==` `!=` | 左结合（左→右） | 相等 |
+| 8 | `&` | 左结合（左→右） | 按位 AND |
+| 9 | `^` | 左结合（左→右） | 按位 XOR |
+| 10 | `\|` | 左结合（左→右） | 按位 OR |
+| 11 | `&&` | 左结合（左→右） | 逻辑 AND |
+| 12 | `\|\|` | 左结合（左→右） | 逻辑 OR |
+| 13 | `?:` | **右结合（右→左）** | 条件运算符（三元运算符） |
+| 14 | `=` `+=` `-=` `*=` `/=` `%=` `<<=` …… | **右结合（右→左）** | 赋值 |
+| 15（最低） | `,` | 左结合（左→右） | 逗号 |
+
+💡 你真正会用到的两类**右结合**档位是：一元档（2）、条件运算符 `?:`（13）和赋值（14）。其余全部是左结合。
+
+**每学期都会出现的陷阱**——各配一行考试风格的代码：
+
+（a）⚠️ `<<`（第 5 档）**高于** `?:`（第 13 档）。所以流插入中的三元表达式*必须*加括号：
+```cpp
+cout << a ? b : c;     // 解析为 (cout << a) ? b : c —— b/c 被丢弃；-Werror 会拒绝它
+cout << (a ? b : c);   // 正确：插入 b 或 c
+```
+
+（b）⚠️ `==`（第 7 档）**高于**按位 `&`（第 8 档）。经典的位测试 bug：
+```cpp
+if (x & 1 == 0) { ... }    // 解析为  x & (1 == 0)  ==  x & 0  ==  0  —— 永远为 false！
+if ((x & 1) == 0) { ... }  // 正确：测试最低位
+```
+
+（c）⚠️ `?:`（第 13 档）**高于** `=`（第 14 档），所以赋值结合得*最松*：
+```cpp
+int m = a > b ? a : b;     // 先算 (a > b ? a : b)，再赋值 —— 这没问题
+m = cond ? x : y = 0;      // 解析为  m = (cond ? x : (y = 0))  —— 右结合，出人意料
+```
+
+（d）指针／访问链——前缀 `*`（第 2 档）**低于** `->` `[]`（第 1 档），所以先做访问（延续 Q10 的例子）：
+```cpp
+*p->next      // == *(p->next)     先 ->，再解引用
+*a[i]         // == *(a[i])        先下标，再解引用
+&a[0]         // == &(a[0])        先下标，再取地址
+++*p          // == ++(*p)         先解引用，再对所指对象前置自增
+*p++          // == *(p++)         后置自增的是“指针”，解引用的是“旧指针”
+```
+
+（e）⚠️🐍 求值顺序：`i = i++ + ++i;` 在没有顺序点的情况下多次读写 `i`——这是**未定义行为（undefined behavior）**。优先级只告诉你它如何*解析*，不告诉你*副作用的发生顺序*。🐍 Python 按从左到右求值、语义明确，而且根本没有 `++`／`--`；在 C++ 里这一行根本**不被允许**——绝对不要写。
+
+**手动追踪**（永远先改写成完全加括号的形式，再求值）：
+```cpp
+// 1)  混合算术，给定 k = 3, i = 4
+int j = 8 - k * i / 2 + k * 2;
+//   第 1 步（第 3 档，左→右）：8 - ((k * i) / 2) + (k * 2)
+//   第 2 步代入：             8 - ((3 * 4) / 2) + (3 * 2) = 8 - 6 + 6
+//   第 3 步（第 4 档，左→右）：(8 - 6) + 6 = 8
+
+// 2)  位运算 + 相等，给定 x = 6
+bool even = x & 1 == 0;
+//   == x & (1 == 0)   （第 7 档先于第 8 档）
+//   == 6 & 0  == 0  -> false   （意图错了！）   修正：(x & 1) == 0  -> true
+
+// 3)  逻辑 vs 关系 vs 移位
+if (a < b == c > d) { ... }
+//   == ((a < b) == (c > d))    （第 6 档先于第 7 档）—— 比较两个 bool
+cout << x + 1 << " " << (n > 0 ? "+" : "-");
+//   == (((cout << (x + 1)) << " ") << (n > 0 ? "+" : "-"))   —— 注意 ?: 上必须加的括号
+```
+
+💡 **应试技巧：** 你*不必*在压力下把整张表背得分毫不差——拿不准时，就**显式加上括号并手动 trace** 加括号后的形式。“正确且一目了然”胜过“聪明却写错”，而且 `-Werror` 不会因为你多写了括号而报错。
+
 ### 左值与右值 — (Q11)
 - **左值（l-value）** = 具有身份／地址、可以出现在 `=` **左边**的东西（一个有名字、可寻址的对象）。例如：变量 `x`、数组元素 `v[i]`、`*p`。
 - **右值（r-value）** = 没有持久地址的临时值／值（只能在右边）。例如：字面量 `10`、`a + b` 的结果、按值返回的临时对象。
@@ -169,6 +291,17 @@ j = 70;         // 间接修改 i
 ```
 🐍 Python 中的名字是指向对象的*引用*（最接近 C++ 的引用），但 Python 中没有任何类似裸指针或 `*`／`&` 区分的东西。
 
+**⚠️ 在一行里声明多个指针——`*` 绑定到变量，而不是类型。**
+```cpp
+int* p1, p2, p3;     // 只有 p1 是指针；p2 和 p3 是普通的 int！
+                     // （* 附着在声明符上，而不是附着在 'int' 上）
+int x = 0;
+p2 = &x;             // 错误：invalid conversion from 'int*' to 'int'（p2 是 int）
+
+int *q1, *q2, *q3;   // 修复：给每个名字都加 *（最清楚的做法是一行只声明一个）
+```
+> 💡 对比 `int q1, q2, q3;`——那里 `int` 作用于三个变量，所以三个都是 `int`。只有 `*`（和 `&`）才会出这个意外：它们绑定到每一个单独的名字，而不是绑定到类型。
+
 ### `const` 关键字 — (Q16)
 `const` 意味着“不能被修改”。用于变量、参数（防止意外修改 + 启用 `const&` 的效率优势），以及成员函数（承诺不修改 `*this`）。
 ```cpp
@@ -212,6 +345,55 @@ int x = static_cast<int>(std::round(d));  // double -> int 并四舍五入
 ```
 > ⚠️ **课程的构建使用 `-Werror`。** 隐式的*收窄*转换（例如 `double → int`、`int → char`）会变成错误，因此你必须用 `static_cast` 把它们显式化。
 
+#### The four C++ casts compared — `static_cast` / `const_cast` / `dynamic_cast` / `reinterpret_cast` 💡
+
+C++ 用**四种命名 cast**取代了 C 中一刀切的 C 风格强制转换（C-style cast），每一种各司其职。选对 cast 既能表达*意图*，又能让编译器（compiler）拒绝误用。本节把 `const_cast`（Q19）和 `static_cast`（Q20）汇总到一起，并补上你还没见过的另外两种。
+
+| Cast | 作用 | 何时检查？ | 典型场景 | 安全性 |
+|:---|:---|:---:|:---|:---|
+| `static_cast<T>` | 在**相关**类型间转换 | **编译期**（无运行期检查） | 数值转换、`void*`→`T*`、继承体系里 up/down | *只要*关系真实就安全；错误的向下转型（downcast）是**未定义行为（undefined behavior）** |
+| `const_cast<T>` | 加/去掉 `const` / `volatile` | 编译期 | 强行把值传过一个错误地标了 `const` 的 API | 去掉 `const` 后**写入**一个真正 `const` 的对象属于未定义行为——代码异味 |
+| `dynamic_cast<T>` | 在**多态类型（polymorphic type）**体系里做带检查的向下转型 | **运行期**（使用 RTTI） | 安全地 `Base*` → `Derived*` | 安全：会在运行期告诉你这次转换是否有效 |
+| `reinterpret_cast<T>` | 重新解释**原始比特位** | 编译期（无真正检查） | 指针 ↔ 整数、底层/`memcpy` 风格代码 | **危险**，本课程中几乎从不正确 |
+
+**`static_cast` — (Q20) 💡** 相关类型间最常用的转换：数值转换、`void*`→`T*`，以及继承体系里 up/down 且*无运行期检查*。
+```cpp
+char c  = static_cast<char>(i);            // int -> char（窄化，必须显式）
+int  x  = static_cast<int>(std::round(d)); // double -> int 并取整
+Base* b = static_cast<Base*>(derivedPtr);  // 向上转型：永远安全（Derived is-a Base）
+```
+> ⚠️ **本课程构建使用 `-Werror`。** 隐式*窄化*转换（`double → int`、`int → char`）会变成错误，所以你必须用 `static_cast` 显式转换。`static_cast` 的**向下转型**能毫无怨言地通过编译，却**不**做任何运行期检查——如果对象其实并不是那个派生类型，你就会得到**未定义行为**。
+
+**`const_cast` — (Q19)** 唯一能加上或去掉 `const`/`volatile` 的 cast。仅当你必须把一个逻辑上可修改的对象传过一个错误地接收 `const` 的 API 时才需要它。**罕见且属于代码异味**；通过指针写入一个真正 `const` 的对象是未定义行为。
+```cpp
+const int* cp = &x;
+int* p = const_cast<int*>(cp);   // 去掉 const（仅当你确知 x 并非真正 const 时）
+```
+
+**`dynamic_cast` — 带检查的向下转型** 💡 只能用于**多态类型（polymorphic type）**——基类必须**至少有一个虚函数**（在我们的体系里，虚析构函数 / `draw()` 已使 `Shape` 成为多态类型，见第 7 节）。用它在运行期安全地把 `Base*` 转成 `Derived*`：
+- **指针版**：如果对象实际并非那个派生类型，返回 `nullptr`。
+- **引用版**：无法返回空，所以失败时**抛出 `std::bad_cast`**。
+- **向上转型（upcast）**（`Derived*` → `Base*`）本来就是隐式的——根本不需要 cast。
+```cpp
+Shape* shapePtr = pic.at(i);                       // 静态类型 Shape*，动态类型未知
+if (Circle* cp = dynamic_cast<Circle*>(shapePtr)) {
+    cp->setRadius(5);            // 安全：仅当 shapePtr 真的指向 Circle 时才会进入
+}                               // 不是 Circle -> dynamic_cast 得到 nullptr，跳过该分支
+
+Shape& s = *shapePtr;
+Circle& cr = dynamic_cast<Circle&>(s);  // 引用形式：若不是 Circle 则抛出 std::bad_cast
+```
+> 💡 如果你发现自己频繁动用 `dynamic_cast`，不如改用**虚函数（virtual function）**——让每个 `Shape` 通过动态分派来回答（第 7 节的多态要点），而不是去做类型判断。
+
+**`reinterpret_cast` — 原始比特位重新解释** ⚠️ 告诉编译器把这些比特当作另一个、*互不相关*的类型来看待（例如指针 ↔ 整数）。它**不**对值或表示做任何转换。本课程中几乎从不恰当，仅留给底层系统代码。
+```cpp
+std::uintptr_t addr = reinterpret_cast<std::uintptr_t>(ptr); // 指针 -> 整数（罕见、底层）
+```
+
+> ⚠️ **绝不要用 C 风格强制转换（C-style cast）`(T)x`。** 它会按“尽力而为”的顺序静默地依次尝试 `static_cast`、`const_cast`、`reinterpret_cast`（或它们的组合）——所以一个笔误就可能悄悄把你本想做的数值转换变成比特位重新解释，且没有任何诊断信息。四种命名 cast 表明了你的**意图**，会被**恰当地检查**，而且**可被搜索**（你可以在代码库里搜 `reinterpret_cast` 来审计危险代码）。请始终使用它们。
+
+> 🐍 Python 没有编译期类型可供转换：`int(x)` / `str(x)` 是**运行期转换**，会构造新对象，而 `isinstance(obj, Circle)` 大致相当于一次 `dynamic_cast` 检查。它没有类似 `const_cast`（没有 `const`）或 `reinterpret_cast`（没有原始内存重新解释）的东西——这些只因 C++ 暴露了静态类型与内存才存在。
+
 ### `auto` — (Q21)
 `auto` 让编译器从变量的初始化表达式中**推导**出它的类型。对于冗长的迭代器类型和 lambda 非常好用。
 ```cpp
@@ -224,6 +406,25 @@ for (auto it = V.begin(); it != V.end(); ++it) ...   // 无需写出迭代器类
 - **有符号（signed）**可以保存负值和正值（实际上有一个比特用来编码符号）。
 - **无符号（unsigned）**只保存非负值，使正值范围翻倍；它在下溢／上溢时会**回绕（wrap around）**。
 - > ⚠️ 经典 bug：`v.size()` 是**无符号**的。`for (int i = 0; i < v.size(); ++i)` 混用了有符号／无符号；当 `size()==0` 时 `v.size() - 1` 会回绕成一个巨大的数。
+
+**示例——看它如何回绕：**
+```cpp
+unsigned u = 0;
+u = u - 1;               // 4294967295（UINT_MAX，32 位）—— 无符号会回绕；它不是 -1
+
+vector<int> v;           // 空容器；v.size() 的类型是 size_t（无符号）
+auto n = v.size() - 1;   // 18446744073709551615（64 位 size_t 回绕！）—— 不是 -1
+
+for (int i = 0; i < v.size(); ++i) { /* ... */ }   // int 与 size_t → -Wsign-compare（在课程的 -Werror 下会变成错误）
+```
+**修复方式：**
+```cpp
+for (size_t i = 0; i < v.size(); ++i) { /* ... */ }   // A）用匹配的无符号类型
+for (int x : v) { /* ... */ }                          // B）基于范围的 for —— 没有下标，就没有符号问题（推荐）
+if (!v.empty())                                        // C）在对无符号的 size 做减法之前先判空
+    for (size_t i = 0; i + 1 < v.size(); ++i) { /* ... */ }   // 用 +1 来比较；绝不要对空容器算 size()-1
+```
+> 💡 用 `size_t` 给容器做下标（或者干脆用基于范围的 `for`），并且**绝不要在没确认非空之前就写 `container.size() - 1`**——对空容器它会下溢成约 1.8×10¹⁹ 那么大的数。
 
 ### 条件运算符（三元运算符）`?:` — (Q23)
 `condition ? valueIfTrue : valueIfFalse`——一个产生值的**表达式**（不像 `if`，`if` 是一条语句）。
@@ -319,7 +520,7 @@ delete p;                  // 对单个对象必须使用普通的 delete
 | 额外开销 | 每个元素没有额外开销 | 每个节点多一个 `next` 指针 |
 - 两者“都应当只作为类的*实现*来使用”。链表的节点用指针串接；`nullptr` 标记末尾；空链表满足 `head == nullptr`。
 
-### 浅拷贝 vs 深拷贝——(Q34) 💡（重点考查；你在期中考试上栽过这里——见附录 D）
+### 浅拷贝 vs 深拷贝——(Q34) 💡（重点考查——见附录 D）
 - **浅拷贝（shallow copy）：** 只拷贝指针值 → 两个对象指向**同一块**堆数组。灾难：两个析构函数都会对同一块内存执行 `delete[]`（**双重释放（double-free）**），而且通过其中一个所做的改动会影响另一个。
 - **深拷贝（deep copy）：** 分配一块**新的**堆数组并拷贝各元素 → 两个对象彼此独立。
 ```cpp
@@ -352,6 +553,15 @@ int * buf = new int[2 * N];   // 栈上的局部指针 -> 堆上 2*N 个 int 的
 buf[2*N - 1] = N;             // 把 N 存入最后一个元素（下标 2*N - 1）
 delete[] buf;                 // 数组分配 -> delete[]
 ```
+
+**为什么不能直接写 `int buf[2*N];`？** 普通的 C 风格**栈**数组要求大小是一个**编译期常量**。当 `N` 是*运行期*的值时，`2*N` 在程序运行前是未知的，所以 `int buf[2*N];` 是一个**变长数组（variable-length array, VLA）**——这是某些编译器的非标准扩展，**并不是** ISO C++。符合标准的构建会拒绝它：
+```cpp
+int N = readSize();   // 运行期的值
+int buf[2*N];         // ❌ 错误："ISO C++ forbids variable length array 'buf'"（-pedantic / -Wvla）
+                      //    （普通的 g++ 会作为扩展悄悄放行，但不可移植）
+```
+即便在能编译的地方，栈数组在这里也是**错误的工具**：它在所在代码块结束时就消亡（无法活过函数、也无法被返回），无法扩容，而且 `N` 很大时还会**栈溢出**。这里要用**堆**（`new int[2*N]`），正是因为堆可以在**运行期**确定大小，并且一直存活到你 `delete[]` 它为止。
+> 💡 只有当 `N` 是编译期常量时，`int buf[2*N];` 才合法：`constexpr int N = 5; int buf[2*N];`——一个固定大小的栈数组（见 Q17 / Q28）。一旦大小是运行期的值，就必须用 `new[]`。
 
 ### 对 C 数组的 `A[i]` 会做边界检查吗？——(Q37) 💡
 **不会。** 低层次的 C 数组只是一个基地址；`A[i]` 计算的是 `*(A + i)`，**不会**检查 `i` 是否在范围内。如果 `i` 越界，你就会读/写数组之外的内存 → 未定义行为：垃圾值、损坏的数据，或者段错误。（这*正是*我们要把数组封装进一个带有受检 `operator[]` 的类里的原因。）
@@ -458,6 +668,67 @@ struct Base    { virtual void draw(); };
 struct Derived : Base { void draw() override; };  // 覆盖（相同签名，virtual）
 ```
 
+#### 深入 `virtual` 覆盖——动态分派到底是怎么工作的 💡💡
+
+> 🔗 这是 **Q68**（虚函数，第 7 节）和**虚析构函数**（Q69）的深入篇——讲分派机制和各种坑。
+
+有了 `virtual`，通过**基类指针或引用**发出的调用会在**运行期**分派到与对象**实际（动态）类型**相匹配的覆盖版本——调用经由每个对象里一个隐藏的 vtable 指针完成（Q68）。没有 `virtual` 时，同样的调用会在**编译期**绑定到**声明（静态）类型**。
+```cpp
+struct Shape  { virtual void draw() const { cout << "Shape\n"; } virtual ~Shape() = default; };
+struct Circle : Shape { void draw() const override { cout << "Circle\n"; } };
+
+Shape* s = new Circle;
+s->draw();     // "Circle" — virtual：按对象的实际类型分派
+               // 如果 draw() 不是 virtual：会打印 "Shape"（按声明类型 Shape* 绑定）
+delete s;      // 需要 Shape 的虚析构函数（Q69），否则 Circle 的那部分会泄漏
+```
+**到底什么才算一次覆盖**（写上 `override`，编译器就会逐条检查）：
+- **名字**相同、**参数列表**相同、**`const`/引用限定符**相同；
+- 基类里的那个函数是 **`virtual`** 的；
+- 返回类型**完全相同**——或者是**协变（covariant）**的（基类返回 `Base*`/`Base&` 时，派生类可返回 `Derived*`/`Derived&`）。
+- 写上 `override`，签名对不上就会变成**编译错误**；写上 `final` 则禁止它被再次覆盖。
+```cpp
+struct Base { virtual void f(int); virtual Base* clone() const; };
+struct Good : Base {
+    void  f(int)        override;   // ✅ 真正的覆盖
+    Good* clone() const override;   // ✅ 允许协变返回类型
+};
+struct Oops : Base {
+    void  f(double)     override;   // ❌ 错误："marked 'override', but does not override"
+};
+```
+
+**⚠️ 考试里最容易踩的坑：**
+
+**(1) 是名字隐藏，不是覆盖。** 派生类里一个**同名但签名不同**的成员，会把基类中**所有**同名重载*隐藏*掉——它们从派生类的接口里消失：
+```cpp
+struct B { void f(int) {} };
+struct D : B { void f() {} };   // 隐藏了 B::f(int)
+D d;
+d.f(3);       // ❌ "no matching function for call to 'D::f(int)'" — 被隐藏了，不是重载
+d.B::f(3);    // ✅ 加限定名调用（或在 D 里写  using B::f;  解除隐藏）
+```
+**(2) 忘了写 `virtual`** → 没有动态分派：基类指针的调用会用**基类**版本。（而且这时 `override` 根本编译不过——这正是你应该总是写 `override` 的原因。）
+
+**(3) 默认实参按静态类型绑定。** 虚调用执行的是派生类的**函数体**，却取了**基类**的默认实参——所以绝不要在覆盖里改默认实参：
+```cpp
+struct B { virtual void g(int x = 1) { cout << "B " << x; } };
+struct D : B { void g(int x = 2) override { cout << "D " << x; } };
+B* p = new D;
+p->g();       // 打印 "D 1" — D 的函数体，却用了 B 的默认实参！（默认实参要保持一致）
+```
+**(4) 对象切片（object slicing）。** 把一个 `Derived` **按值**拷贝进一个 `Base`，派生部分会被切掉；之后的虚调用只会用 `Base`。多态对象一律用**引用或指针**传递/保存：
+```cpp
+D d;          // 上面那个覆盖了 g 的 D
+B  b = d;     // 按值拷贝：把 D 的部分切掉了
+b.g();        // "B 1" — b 是个 B，覆盖没了
+B& r = d;     // 改用引用绑定
+r.g();        // "D 1" — 通过引用，分派依然有效
+```
+🐍 在 Python 里每个方法本来就都是"虚"的（动态），既没有重载也没有切片；C++ 要你用 `virtual` 显式选择加入，还会用切片来"惩罚"对派生对象的按值拷贝。
+
+> 🛡️ **如何堵死切片——两层防线。** (1) 如果基类是**抽象的**（含纯虚函数），那么 `Base b = d;` 和 `vector<Base>` **根本编译不过**——`error: cannot allocate an object of abstract type 'Base'`。抽象性本身就禁止了按值拷贝，所以*静默*切片只在**具体基类**时才会咬人。(2) 对于具体的多态基类，把它的拷贝构造和拷贝赋值 `=delete`（或把拷贝构造设为 `protected`），这样误写的 `Base b = d;` 会变成硬错误 `error: use of deleted function`。这正是 HW6 在 `Picture` 里存 `Shape*`、从不按值保存/拷贝 `Shape` 的原因。🔗 参见 Q71（抽象类）和 Q73（`vector<Shape*>` 示例）。
+
 ### 重载运算符：顶层 vs 成员 —— (Q44) 💡（期末复习“operators”幻灯片）
 - **作为成员函数：** **左操作数就是 `this`**（隐式），所以你少声明**一个**参数。
 - **作为顶层（普通）函数：** 你要**显式声明所有**操作数。
@@ -470,6 +741,45 @@ ostream & operator<<(ostream & out, const Complex & c) { c.print(out); return ou
 istream & operator>>(istream & in, Complex & c)        { c.read(in);  return in;  }
 ```
 **哪些必须是成员：** `=`、`[]`、`()`、`->` 以及类型转换运算符**必须是成员函数**。`<<` 和 `>>` **不能**是成员（它们的左操作数是流）——把它们做成顶层函数（通常是 `friend`）。像 `== != < > + -` 这样的对称运算符既可以是成员（带一个参数），也可以是顶层（带两个参数）。
+
+**完整示例——同一个类里两种运算符（附输出）：**
+```cpp
+#include <iostream>
+using namespace std;   // 在 .cpp 里可以这样写（但绝不要在 .hpp 里）
+
+class Complex {
+    double re, im;
+public:
+    Complex(double r = 0, double i = 0) : re(r), im(i) {}
+
+    // 成员运算符：左操作数就是 *this，所以你少声明一个参数
+    Complex  operator+ (const Complex& rhs) const { return Complex{re + rhs.re, im + rhs.im}; }
+    bool     operator==(const Complex& rhs) const { return re == rhs.re && im == rhs.im; }
+    Complex& operator+=(const Complex& rhs)       { re += rhs.re; im += rhs.im; return *this; }  // 返回 *this 以支持链式
+
+    friend ostream& operator<<(ostream&, const Complex&);   // 让流运算符能读取私有的 re/im
+};
+
+// 顶层（friend）：左操作数是流，所以它不能是成员函数
+ostream& operator<<(ostream& out, const Complex& c) {
+    return out << "(" << c.re << ", " << c.im << ")";
+}
+
+int main() {
+    Complex a{1, 2}, b{3, -4};
+    cout << (a + b)  << '\n';   // a.operator+(b)      -> (4, -2)
+    cout << (a == b) << '\n';   // a.operator==(b)     -> 0   （false）
+    a += b;                     // a.operator+=(b)
+    cout << a        << '\n';   // operator<<(cout, a) -> (4, -2)
+}
+```
+**输出：**
+```text
+(4, -2)
+0
+(4, -2)
+```
+> 💡 `a + b` 实际上是 `a.operator+(b)`——**成员**版本的左操作数就是 `a`（`*this`），所以它只带**一个**显式参数。`cout << a` 是 `operator<<(cout, a)`——它的左操作数是**流**，所以**必须**是顶层函数（这里用 `friend` 让它能读私有的 `re`/`im`）。
 
 ### 内联函数 —— (Q45)
 被标记为 `inline` 的函数是一个*请求*，希望编译器**在调用处替换函数体**，而不是进行真正的函数调用。好处：消除微小函数的调用开销（并且它是类函数宏（function-like macros）的现代、类型安全替代品）。在类体**内部**定义一个函数会使它隐式成为内联函数。
@@ -492,14 +802,122 @@ toCentigrade(6.0);   // 用 6.0 覆盖默认值
 - 一个 **`constexpr` 变量**是一个编译期常量 (Q17)。
 - 一个 **`constexpr` 函数**在给定编译期实参时*可以*在编译期求值（否则在运行期求值）。用它们来计算常量，而无需使用宏。
 
-#### C++ 程序是如何构建的 ——（哪个错误来自哪个工具？）💡（期末复习“declarations vs definitions”幻灯片；你在期中考试中漏掉了链接/重复定义的题目）
+#### C++ 程序是如何构建的 ——（哪个错误来自哪个工具？）💡（期末复习“declarations vs definitions”幻灯片；链接错误与编译错误的区分、以及“重复定义”都是常见易错点）
 | 阶段 | 处理内容 | 典型错误 |
 |---|---|---|
 | **预处理器（Preprocessor）** | `#include`、`#define`、`#ifdef` | （文本错误） |
-| **编译器（Compiler）** | 每个源文件一遍；必须**在调用前声明** | **“undeclared”** 标识符；类型错误；**编译错误** |
+| **编译器（Compiler）** | 每个源文件一遍；必须**在调用前声明** | **“undeclared”** 标识符；类型/**语法**错误；**“redefinition”**（同一文件） |
 | **链接器（Linker）** | 合并 `.o` 文件；被调用的函数必须**已定义** | **“undefined reference”**；**“multiply defined”**（同一符号在 2 个文件中被定义） |
 | **加载器（Loader）** | 将可执行文件加载到 RAM 中，调用 `main()` | — |
 | （运行期） | — | **segmentation fault**（坏指针/越界索引） |
+
+#### Which stage reports which error — worked examples 💡
+
+第 5 节的表格告诉你每类错误是**哪个工具**抓到的；这里为每一类给出**可实际运行触发的最小代码片段**、负责报错的工具，以及你大致会看到的报错信息。用课程风格的构建来编译（`g++ -std=c++20 -Wall -Werror ...`）。
+
+**（1）未声明标识符（undeclared identifier）——编译器（compiler）**（Q4）
+在本翻译单元（translation unit）里还看不到任何声明（declaration）时就调用 `foo()`：
+```cpp
+int main() {
+    foo();              // 这里用到它，但上方从未声明过
+    return 0;
+}
+void foo() { }          // 声明/定义出现得太晚了
+```
+> 编译器：`error: 'foo' was not declared in this scope`。编译器是**自上而下、一次只看一个文件**的，所以名字必须**先声明、后调用**（在 `main` 上方放一个原型即可修复）。🐍 与 Python 不同——Python 里函数只要在运行期（run time）被调用时**存在**即可，而 C++ 在编译期就解析名字。
+
+**（2）类型/窄化错误（type / narrowing error）——编译器（在 `-Werror` 下变成错误）**（Q20）
+窄化转换是在**花括号初始化（brace-initialization）** `{ }` 中被诊断出来的（用 `=` 的拷贝初始化**不会**触发窄化规则）：
+```cpp
+double d = 3.9;
+int n{d};               // 窄化 double -> int
+char c{300};            // 窄化 int -> char（300 放不下）
+```
+> `int n{d}` 默认是一个**警告**，`-Werror` 会把它变成硬性错误（`error: narrowing conversion of 'd' from 'double' to 'int'`）；`char c{300}` 即使不加 `-Werror` 也**本来就是错误**。⚠️ 修复方法是把转换写显式：`int n{static_cast<int>(d)};`、`char c{static_cast<char>(300)};`。这是在**编译期**、在当前正在编译的那一个文件里被抓到的。
+
+**（3）语法错误（例如漏掉 `;`）——编译器（compiler）**
+少一个符号就会让解析器“跑偏”，而且报错信息常常指向*下一行*：
+```cpp
+struct Point { int x; int y; }   // 右花括号后漏了 ';'
+
+int main() { Point p; return 0; }
+```
+> 编译器：`error: expected ';' after struct definition`。⚠️ 报错的那一行往往在真正出错处*之后*——遇到莫名其妙的报错，先看**上一行**是不是漏了 `;`、`}` 或 `)`。
+
+**（4）同一翻译单元内的重复定义——编译器（compiler）**（Q4——包含守卫存在的理由）
+在一个文件里把同一个类型定义两次——最常见的就是把一个**没有包含守卫**的头文件 `#include` 了两次：
+```cpp
+// shape.hpp — 没有包含守卫
+struct Shape { int sides; };
+```
+```cpp
+// main.cpp
+#include "shape.hpp"
+#include "shape.hpp"   // 第二次包含 -> struct Shape 在这个文件里被定义了两次
+int main() { return 0; }
+```
+> 编译器：`error: redefinition of 'struct Shape'`——在**编译期**、单个翻译单元内被抓到。✅ 修复：给头文件加**包含守卫**（`#ifndef SHAPE_HPP` / `#define SHAPE_HPP` / … / `#endif`）或 `#pragma once`，第二次 `#include` 就展开成空。
+> 💡 与下面的（6）对比：**重复定义（redefinition）**是一个文件看到同一类型两次（**编译器**错误）；而 **“multiply defined”** 是两个文件各自产生了同一个符号（**链接器**错误）。包含守卫能解决前者，解决不了后者。
+
+**（5）未定义引用（undefined reference）——链接器（linker）**（Q4）
+函数被**声明并调用**，所以编译器很满意——但始终没有提供定义（definition）（或者你忘了把定义它的那个 `.cpp` 一起编译/链接）：
+```cpp
+void foo();             // 仅声明——承诺它在某处存在
+int main() {
+    foo();              // 编译没问题：声明在作用域内
+    return 0;
+}
+// 在被链接的所有 .o 文件里都没有 foo() 的定义
+```
+> 链接器：`undefined reference to 'foo()'`。⚠️ 现实中最经典的原因是命令行漏了某个文件——写成 `g++ main.cpp` 而不是 `g++ main.cpp foo.cpp`。编译器只需要**声明**；链接器需要**定义**。
+
+**（6）重复定义（multiply defined）——链接器（linker）**（Q4）
+把一个**非 `inline` 的函数定义**放进头文件，然后让两个 `.cpp` 各自 `#include` 这个头文件：
+```cpp
+// util.hpp  — 一个真正的“定义”（带函数体），不是 inline
+void foo() { }          // 每个 include 它的 .cpp 都会得到自己的一份副本
+```
+```cpp
+// a.cpp
+#include "util.hpp"
+```
+```cpp
+// b.cpp
+#include "util.hpp"
+```
+> 链接器（链接 `a.o` + `b.o` 时）：`multiple definition of 'foo()'`。每个翻译单元都产出了自己的一份 `foo`，链接器拒绝替你挑一个。
+
+> ⚠️ **常见误解——包含守卫（include guard）并不能解决这个问题。** 包含守卫（`#ifndef … #define … #endif`）只能阻止**同一个头文件在同一个翻译单元内被文本性地包含两次**，从而防止*类型/类*被重复定义。它在**跨 `.cpp` 文件**之间**毫无作用**：`a.cpp` 和 `b.cpp` 是各自独立编译的，每个都从头跑一遍守卫，所以每个仍然会产出一份 `foo()` 的定义。真正的修复方法是：
+> - 在头文件里把该函数标为 `inline`（这样链接器就被允许合并这些完全相同的副本），或
+> - 在头文件里只留**声明**，把**定义**移到某一个 `.cpp` 里。
+
+**（7）段错误（segmentation fault）——运行期（run time）**（Q4）
+编译、链接都干净通过；只在执行时才崩：
+```cpp
+int main() {
+    int* p = nullptr;
+    *p = 42;            // 解引用空指针 -> 未定义行为
+    int a[3] = {};
+    return a[1000000];  // 越界乱访问 -> 未定义行为
+}
+```
+> 这里没有任何工具会警告你——这是**未定义行为（undefined behavior）**，通常在**运行期**由操作系统抛出 `Segmentation fault (core dumped)`。
+
+**一句话总结：** 编译器（compiler）是**逐文件、需要声明**；链接器（linker）是**合并文件、需要定义**。
+
+#### 声明 × 定义 × 使用——完整真值表 💡💡
+把"undeclared 与 undefined reference"的全部纠结压成一张矩阵。**声明** ＝ 调用前能看到原型；**定义** ＝ 某个参与链接的 `.o` 里有函数体；**使用** ＝ 真的被调用了。（每一行都用 `g++ -std=c++20 -Wall -Wextra` 实测过。）
+
+| 声明 | 定义 | 使用 | 编译 | 链接 | 会发生什么 |
+|:---:|:---:|:---:|:---:|:---:|---|
+| ✅ | ✅ | ✅ | ✅ | ✅ | 正常——一切都能解析 |
+| ✅ | ✅ | ❌ | ✅ | ✅ | 声明定义了但没用——完全没问题，连警告都没有 |
+| ✅ | ❌ | ✅ | ✅ | ❌ | `undefined reference`——链接器去找函数体却找不到（大家问的就是这一行） |
+| ✅ | ❌ | ❌ | ✅ | ✅ | 只声明、没函数体、也没人调——没人引用它，链接器根本不去找 → 不报错 |
+| ❌ | — | ✅ | ❌ | — | `undeclared`——编译期就拦下，根本到不了链接器 |
+| ❌ | ✅ | ✅ | 看情况 | — | 定义本身也是一种声明：定义在使用之前能编译并链接；定义在使用之后，调用处就是 `undeclared` |
+
+> 💡 把两行关键的对照着看：**声明了但没定义**只有在**被使用时**才会爆（第 3 行 → 链接器 `undefined reference`）；如果没人调它（第 4 行），链接器没理由去找，于是链接干干净净。而一个**从没声明过**的名字（第 5 行）在**编译**期就死了——根本走不到"链接错误"那一步。最后一行解释了：为什么你能调用同一文件里更早定义的函数而不用单独写原型，但调用更晚才定义的函数就得在调用前加原型。
 
 ---
 
@@ -542,6 +960,8 @@ void Complex::print(ostream & out) const { out << "(" << re << "+" << im << "i)"
 | `private` | ✅ | ❌ | ❌ |
 
 （所以 **`protected` = `private` 再加上“对派生类也可见”。**）
+
+> 🔗 与 Q67 的“继承模式”表不同：这张讲“谁能访问”成员，那张讲“继承模式”如何给继承下来的成员重新标定访问级别。
 
 ### 构造函数及其作用 — (Q53)
 一个特殊的成员函数（与类同名，没有返回类型），它**构建并初始化 `this` 对象**；在**分配内存之后立即自动**被调用。使用**成员初始化列表（member initializer list）**来构造数据成员：
@@ -635,9 +1055,100 @@ Vector(Vector && v) : maxLen(v.maxLen), buf(v.buf) {   // 窃取该指针
 | 工作量 | 分配 + 拷贝元素 | 窃取指针（开销小） |
 | 触发条件 | 左值（L-value）源 | 右值（R-value）/ `std::move` 源 |
 
+#### 完整示例——四个特殊成员各自在什么时候被调用（附输出）💡💡
+一个拥有堆上 `int* buf` 的类，四个特殊成员都加了打印，让你清楚看到到底是哪一个被调用。`std::move`（来自 `<utility>`）把左值变成右值，于是会选中**移动**版本：
+```cpp
+#include <iostream>
+#include <utility>          // std::move
+using namespace std;
+
+class Vec {
+    int* buf;
+    int  n;
+public:
+    Vec(int len) : buf(new int[len]), n(len) { cout << "ctor\n"; }
+    ~Vec() { delete[] buf; }
+
+    Vec(const Vec& o) : buf(new int[o.n]), n(o.n) {           // (1) 拷贝构造函数
+        for (int i = 0; i < n; ++i) buf[i] = o.buf[i];        //     逐个元素深拷贝
+        cout << "copy ctor\n";
+    }
+    Vec& operator=(const Vec& o) {                            // (2) 拷贝赋值
+        cout << "copy =\n";
+        if (this != &o) {                                     //     自赋值检查（按身份/地址）
+            delete[] buf;                                     //     先释放旧数组
+            n = o.n; buf = new int[n];
+            for (int i = 0; i < n; ++i) buf[i] = o.buf[i];
+        }
+        return *this;                                         //     返回 *this -> 支持链式
+    }
+    Vec(Vec&& o) noexcept : buf(o.buf), n(o.n) {              // (3) 移动构造函数 —— 窃取指针
+        o.buf = nullptr; o.n = 0;                             //     让源对象可安全析构
+        cout << "move ctor\n";
+    }
+    Vec& operator=(Vec&& o) noexcept {                        // (4) 移动赋值
+        cout << "move =\n";
+        if (this != &o) {
+            delete[] buf; buf = o.buf; n = o.n;
+            o.buf = nullptr; o.n = 0;                         //     置空源对象 -> 不会重复释放
+        }
+        return *this;
+    }
+};
+
+int main() {
+    Vec a{3}, b{3};
+    Vec c = a;              // (1) 拷贝构造 —— 用左值初始化
+    c = b;                  // (2) 拷贝赋值 —— 用左值给一个已存在的对象赋值
+    Vec d = std::move(a);   // (3) 移动构造 —— 用右值初始化（std::move）
+    d = std::move(b);       // (4) 移动赋值 —— 用右值赋值
+}
+```
+**输出：**
+```text
+ctor
+ctor
+copy ctor
+copy =
+move ctor
+move =
+```
+> 💡 触发的关键是**右边是什么**：源是**左值**（像 `a` 这样的具名对象）→ 选**拷贝**版本；源是**右值**（临时对象，或 `std::move(a)`）→ 选**移动**版本。**初始化**一个新对象（`Vec c = …`）调用**构造函数**；给**已存在**的对象赋值（`c = …`）调用**赋值运算符**。拷贝 = 分配 + 深拷贝；移动 = 窃取指针 + 置空源对象。（末尾的析构函数不打印任何输出。）
+
 ### 静态与非静态**数据**成员 — (Q63)
 - 一个**非静态**数据成员是**每个对象各有一份**的（每个实例都有自己的一份）。
 - 一个 **`static`** 数据成员被该类的**所有对象共享**（总共只有一份）；通过 `ClassName::member` 访问。
+
+**示例——一个共享的 `count`，每个对象各有一个 `id`（附输出）：**
+```cpp
+#include <iostream>
+using namespace std;
+
+class Widget {
+    int id;                 // 非静态：每个对象各有一份
+    static int count;       // 静态：整个类只有一份，被共享
+public:
+    Widget() : id(++count) {}              // 给共享计数器 +1；并给这个对象自己的 id
+    int myId() const { return id; }
+    static int total() { return count; }   // 静态成员函数：没有 this
+};
+
+int Widget::count = 0;      // 在类外定义并初始化静态成员（只此一次，放在某个 .cpp）
+
+int main() {
+    Widget a, b, c;
+    cout << a.myId() << " " << b.myId() << " " << c.myId() << '\n';  // 每个对象各自的 id
+    cout << Widget::total() << '\n';                                  // 共享的计数，通过 ClassName::
+    cout << "sizeof(Widget) = " << sizeof(Widget) << '\n';           // 静态成员不存在每个对象里
+}
+```
+**输出：**
+```text
+1 2 3
+3
+sizeof(Widget) = 4
+```
+> 💡 每个 `Widget` 都有**自己的** `id`（1、2、3）——这就是**非静态**成员。而 `count` 只有**一份**、被所有对象共享（所以 `total()` 是 3）——这就是**静态**成员，用 `Widget::total()` 访问。注意 `sizeof(Widget) == 4`（只有那一个 `int id`）：静态的 `count` 存在静态存储区里**只有一份**，**不在**每个对象内部。⚠️ 静态数据成员必须**在类外定义一次**（`int Widget::count = 0;`），否则链接器会报 "undefined reference"。
 
 ### 静态与非静态**成员函数** — (Q64)
 - 一个**非静态**方法拥有一个 `this` 指针，并作用于某个特定的对象。
@@ -661,7 +1172,7 @@ Vector arr[10]; // 每个元素都被默认构造
 >
 > **零法则**（主题 7）：*如果你能避免定义这些特殊操作，就避免。* 如果你的成员全都是行为良好的类型（`std::string`、`std::vector`、`std::map`、智能指针……），它们会自己管理自己 → **五个一个都不要写**；编译器生成的默认版本就是正确的。
 
-**那些*默认*版本做了什么，以及为什么它们对裸指针是错的：** 编译器生成的拷贝构造函数 / 拷贝赋值做的是**逐成员（浅）拷贝**，而默认析构函数不做任何特殊处理。对于一个 `char* buf`：
+**那些默认版本做了什么，以及为什么它们对裸指针是错的：** 编译器生成的拷贝构造函数 / 拷贝赋值做的是**逐成员（浅）拷贝**，而默认析构函数不做任何特殊处理。对于一个 `char* buf`：
 ```cpp
 String::~String() { delete[] buf; }
 String(const String & s) = default;   // 浅拷贝 -> 两个对象共享同一个 buf -> 双重释放（double free）！
@@ -685,6 +1196,34 @@ class Triangle : public Shape { /* ... */ };   // “Triangle 是一种 Shape”
 ```
 > 要区分**继承（“是一种”，is-a）**与**组合（“拥有/包含”，containment / “是……的一部分”）**。一个 `Engine` 是 `Car` 的*一部分* → 把它作为**数据成员**。一个 `Car` *是一种* `Vehicle` → 使用**公有继承**。
 
+**示例——父类的公用函数（继承的“复用”那一面）：**
+```cpp
+#include <iostream>
+using namespace std;
+
+struct Account {
+    double balance = 0;
+    void deposit(double x) { balance += x; }   // 公用：只写一次，每种账户都继承它
+    virtual double interest() const = 0;       // 这部分因账户类型而异
+};
+struct Savings  : Account { double interest() const override { return balance * 0.05; } };
+struct Checking : Account { double interest() const override { return balance * 0.01; } };
+
+int main() {
+    Savings s; Checking c;
+    s.deposit(1000);                 // Account::deposit —— 继承来的，没有重写
+    c.deposit(1000);                 // 完全是同一个函数
+    cout << s.interest() << '\n';    // Savings::interest
+    cout << c.interest() << '\n';    // Checking::interest
+}
+```
+**输出：**
+```text
+50
+10
+```
+> 💡 `deposit()` 在 `Account` 里**只写一次**，被 `Savings` 和 `Checking` **原样继承**——这就是把继承当作**代码复用**（不用复制粘贴）。而 `interest()` 是 `virtual` 的，**因类型而异**——这就是多态。真实的基类大多两者兼有：公用的具体方法**加上**虚函数钩子。
+
 ### 基类与派生类 —— (Q67)
 - **基类（base，超类/父类）**：定义共有的数据与方法。
 - **派生类（derived，子类/孩子类）**：继承这些成员，可以添加更多成员，可以覆盖。一个派生类自身又可以作为更进一步的类的基类（`Menu : public Window : public Screen`）。
@@ -700,6 +1239,8 @@ class Triangle : public Shape { /* ... */ };   // “Triangle 是一种 Shape”
 
 > 把继承模式理解为一个**上限（天花板）**：成员透过来时*至多*与该模式所允许的一样可访问，而无论何种模式，基类的 `private` 成员**永远**不能被派生类直接访问。在 `Vector` 之上通过 `private` 继承来构建一个 `Stack` 属于“复用”，而不是“is-a”—— 这种情况下不要使用*公有*继承（对一个栈做数组下标访问毫无意义）。
 
+> 🔗 这张表和 Q52 那张不是一回事：**那张**讲的是某个访问级别的成员谁能访问（类自身 / 派生类 / 外部）；**这张**讲的是继承下来的成员在每种继承模式下最终是什么访问级别。
+
 ### 虚函数 —— (Q68) 💡
 一个被标记为 `virtual` 的成员函数使用**动态绑定（dynamic binding）**：调用哪个版本是在**运行时**由对象的**实际（动态）类型**决定的，而不是由它声明的（静态）类型决定。正是这一点让多态能够通过基类指针/引用工作。
 ```cpp
@@ -708,15 +1249,38 @@ struct Derived : Base { int f() override; };     // “一旦虚函数，永远�
 ```
 > 风格：覆盖时写上 `override`（这样编译器会验证函数签名是否匹配）。在派生类中 `virtual` 是可选的，但为了清晰仍建议写上。
 
+> 🔗 这里是**定义**。想知道到底调用哪个版本，见下面的 **静态绑定与动态绑定**；想了解 vtable 分派机制和覆盖的各种坑（名字隐藏、对象切片、默认实参绑定），见 Q43 的 **《深入 `virtual` 覆盖》** 小节。
+
 ### 静态绑定与动态绑定 ——（运行的是哪个版本？）💡
+每当你通过基类指针或引用去用一个对象时，会同时存在两个“类型”：**静态（声明）类型**——你在声明里写的那个——以及**动态（实际）类型**——它实际指向的对象的真实类型。问题在于**由哪一个来决定调用哪个版本的函数**：
+- **非虚**调用在**编译期**按**静态（声明）类型**确定。
+- **虚**调用在**运行期**按**动态（实际）类型**确定——这就是多态。
 ```cpp
-CheckedVector cv(20);
-Vector & vp = cv;          // 声明（静态）类型是 Vector；实际（动态）类型是 CheckedVector
-vp[0];   // 如果 operator[] 是虚函数 -> CheckedVector::operator[]（动态绑定）
-         // 如果不是虚函数          -> Vector::operator[]        （静态绑定，按声明类型）
+#include <iostream>
+using namespace std;
+
+struct Animal {
+    void name()          { cout << "Animal\n"; }   // 非虚函数
+    virtual void sound() { cout << "...\n";    }   // 虚函数
+};
+struct Dog : Animal {
+    void name()           { cout << "Dog\n";  }    // 隐藏了 Animal::name（不是覆盖）
+    void sound() override { cout << "Woof\n"; }
+};
+
+int main() {
+    Dog d;
+    Animal& a = d;     // 静态（声明）类型 = Animal；动态（实际）类型 = Dog
+    a.name();          // 非虚 -> 按“静态类型”选 -> "Animal"
+    a.sound();         // 虚   -> 按“动态类型”选 -> "Woof"
+}
 ```
-- **静态绑定（static binding）**（非虚）：在编译时按**声明**类型选择。适合*同质*集合 / 纯复用。
-- **动态绑定（dynamic binding）**（虚）：推迟到运行时，按**实际**类型选择。对于*异质*混合体（一个 Picture 中的多种 Shape）是必需的。
+**输出：**
+```text
+Animal
+Woof
+```
+> 💡 同一个对象 `d`、同一个引用 `a`——但 `a.name()` 打印 **Animal**，而 `a.sound()` 打印 **Woof**。唯一的区别就是 `virtual`：没有它，调用跟着**声明**类型（`Animal`）走；有了它，调用跟着**实际**类型（`Dog`）走。这正是为什么一个装着很多 `Shape*`/`Shape&` 的 `Picture` 调用 `draw()` 时，能得到每个真实形状各自的版本（*异质*的情形）。如果集合是*同质*的、或者你只想复用，用静态绑定就够了。
 
 ### 虚析构函数，以及为什么它重要 —— (Q69) 💡💡
 当你**通过基类指针** `delete` 一个派生对象时，**除非基类的析构函数是 `virtual`**，否则只会运行基类的析构函数 —— 于是派生部分会泄漏/析构不完全。**规则：** 任何含有虚函数的类（多态层次结构中的任何基类）都需要一个**虚析构函数**，并在层次结构的**根部**引入它。
@@ -738,7 +1302,24 @@ virtual void draw() = 0;          // 纯虚函数：没有函数体，必须被�
 ```
 
 ### 抽象类 —— (Q71) 💡
-一个含有**一个或多个纯虚函数**的类是**抽象类（abstract class）**。你**不能实例化**一个抽象类（`Shape s;` 是错误的）—— 你只能声明指向它的**指针或引用**（`Shape* sp; Shape& sr;`）。它定义了一个由具体派生类去实现的接口。像 `move()` 这样的非纯方法*可以*在抽象基类中定义。
+一个含有**一个或多个纯虚函数**（`= 0`）的类是**抽象类（abstract class）**——它描述这一族类型*能做什么*，而不规定*怎么做*。你**不能直接实例化**它（`Shape s;` 会报 `error: cannot declare variable 's' to be of abstract type 'Shape'`）；你只能使用指向它的**指针或引用**（`Shape* sp; Shape& sr;`），它们再指向具体的派生类对象。
+
+抽象类仍然是一个真正的类——它**可以**拥有：
+- **数据成员**和**构造函数**（由派生类的构造函数来运行）；
+- **带函数体的非纯（具体）方法**（例如下面的 `describe()`），它们甚至可以调用纯虚方法；
+- 一个**虚析构函数**（而且应该有一个——见 Q69）。
+
+它**做不到**的是作为一个独立对象存在——而且一个**没有覆盖全部**纯虚函数的派生类**自身仍然是抽象类**。
+```cpp
+struct Shape {
+    virtual double area() const = 0;   // 纯虚函数 -> Shape 是抽象类
+    void describe() const;             // 仍然可以有具体（非纯）方法
+    virtual ~Shape() = default;
+};
+// Shape s;                 // 错误：不能实例化一个抽象类
+Shape* sp = new Circle(3);  // 可以：抽象基类只能通过指针/引用使用
+```
+> 🔗 完整可运行的多态示例——一个装着 `Circle`/`Square` 的 `vector<Shape*>` 并打印——见 **Q73 末尾的完整示例**。
 
 ### 纯虚析构函数 —— (Q72)
 当一个类没有其他纯虚函数时，你可以把它的析构函数声明为纯虚的（`virtual ~Shape() = 0;`）来**强制该类成为抽象类**。注意：纯虚析构函数**仍然需要一个定义**（函数体），因为每个派生类的析构函数都会调用基类的析构函数。
@@ -759,6 +1340,51 @@ void rotate_all(Shape* vec[], int size, int angle) {
 ```
 **好处 —— 可扩展的框架：** 你可以添加一个**新的** `Shape` 子类型（例如 `Square`），而**无需修改** `rotate_all` 或 `Picture`。*“Picture 对 Triangle 一无所知，它只知道 Shape。”*
 > 构造/析构顺序：**先构造基类，再构造派生类的成员**；析构则相反。派生类的构造函数会先调用基类的构造函数（如果你不指明某个构造函数，就调用默认的那个）。
+
+#### 完整示例——多态实战（附输出）💡💡
+把第 7 节的整幅图景浓缩进一个可运行的程序：一个抽象的 `Shape` 接口、两个具体形状，以及**只提到 `Shape` 的框架代码（`printAll`）**——但每次调用都会运行真实类型的版本。
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Shape {                                  // 抽象基类 = 接口
+    virtual string name() const = 0;
+    virtual double area() const = 0;
+    virtual ~Shape() = default;                 // 虚析构：通过 Shape* delete 是安全的
+};
+struct Circle : Shape {
+    double r;
+    Circle(double r_) : r(r_) {}
+    string name() const override { return "Circle"; }
+    double area() const override { return 3.14159 * r * r; }
+};
+struct Square : Shape {
+    double s;
+    Square(double s_) : s(s_) {}
+    string name() const override { return "Square"; }
+    double area() const override { return s * s; }
+};
+
+// 框架代码：只认识 Shape —— 从不提及 Circle/Square
+void printAll(const vector<Shape*>& pic) {
+    for (const Shape* sp : pic)
+        cout << sp->name() << " area = " << sp->area() << '\n';   // 动态分派
+}
+
+int main() {
+    vector<Shape*> pic = { new Circle(2), new Square(3) };
+    printAll(pic);                              // 每次调用都分派到真实类型
+    for (Shape* sp : pic) delete sp;            // 虚析构 -> 正确的析构函数被调用
+}
+```
+**输出：**
+```text
+Circle area = 12.5664
+Square area = 9
+```
+> 💡 关键在 `sp->name()` / `sp->area()` 这两行：通过 `Shape*`，由**实际**类型（`Circle` 或 `Square`）决定运行哪个版本——这就是多态。`printAll` 从不提及任何具体形状，所以要支持一种新形状（比如 `Triangle`），你**只需新增一个类**——框架代码原封不动。而正是 `virtual ~Shape()` 让 `delete sp` 能正确销毁真实对象（Q69）。
 
 ---
 
@@ -786,6 +1412,47 @@ Type min(Type a, Type b) { return a < b ? a : b; }
 char * min(char * a, char * b) { return strcmp(a,b) < 0 ? a : b; }  // 对 C 风格字符串做特殊处理
 ```
 
+#### 模板的重载决议——优先级阶梯（以及坑）💡💡
+当一次调用有多个版本都能匹配时，编译器选的是**最佳匹配（best match）**，而不是“谁先写谁优先”——**书写顺序不影响选中哪一个。** 假设有三个候选共用名字 `mymin`：
+```cpp
+#include <iostream>
+#include <cstring>
+using namespace std;
+template<typename T> T  mymin(T a, T b)   { cout << "[generic T]\n";          return a < b ? a : b; }
+template<typename T> T* mymin(T* a, T* b) { cout << "[pointer T*]\n";         return *a < *b ? a : b; }
+char* mymin(char* a, char* b)             { cout << "[non-template char*]\n"; return strcmp(a,b) < 0 ? a : b; }
+
+int main() {
+    int x = 1, y = 2;               mymin(x, y);     // int   -> 只有泛型 T 能匹配
+    int a = 1, b = 2;               mymin(&a, &b);   // int*  -> T* 胜过 T（更特化）
+    char s1[] = "ab", s2[] = "cd";  mymin(s1, s2);   // char* -> 三个都匹配 -> 非模板胜出
+}
+```
+**输出：**
+```text
+[generic T]
+[pointer T*]
+[non-template char*]
+```
+**优先级阶梯**（在候选其它方面打平 / 都是精确匹配时才用到）：**(1)** 非模板函数胜过任何模板；**(2)** 模板之间，**更特化**的那个胜出（`T*` 比 `T` 更特化——凡能匹配 `T*` 的也能匹配 `T`，反之不行）；**(3)** 否则用泛型模板。把这三个定义的顺序随便调换，结果都一样。
+
+**⚠️ 坑 1 —— `char* min(char*, char*)` 是重载（overload），不是真正的特化。** Klefstad 的幻灯片管它叫 “specialize”，但按标准，真正的**显式特化（explicit specialization）**要写 `template <>`：
+```cpp
+template <> char* min<char*>(char* a, char* b) { /* ... */ }   // 显式特化
+```
+应试记住：模板和普通函数一样好时，**普通（非模板）函数胜出**。而且普通重载更安全——显式特化必须在该类型第一次用到主模板*之前*声明，否则会悄悄用错版本。
+
+**⚠️ 坑 2 —— `T min(T, T)` 强制两个实参是同一个 `T`。** 混合类型推导会失败：
+```cpp
+char* cp; int* ip;
+mymin(cp, ip);   // char* 和 int* -> 错误：deduced conflicting types for 'T' ('char*' and 'int*')
+```
+要接受两个互相独立的类型，就用**两个**类型参数：
+```cpp
+template <typename T, typename U> auto mymin(T a, U b) { return a < b ? a : b; }
+mymin(3, 4.5);   // 可以
+```
+
 ### 实例化模板**函数** —— (Q76)
 只需**调用它**——编译器会从实参中**推导（deduce）**出类型，并实例化（instantiate）对应的版本：
 ```cpp
@@ -800,6 +1467,39 @@ double y = min(10.5, 20.8);   // Type = double
 Stack<double> dstack;          // 一个存放 double 的 Stack
 using intStack = Stack<int>;   // 类型别名（优于旧式的 'typedef Stack<char> charStack;'）
 ```
+**一个完整、可运行的实例化：** “实例化”一个类模板，意思是编译器会**为你用到的每个类型各自生成一个真正的、独立的类**——`Stack<int>` 和 `Stack<string>` 是由同一个模板生成的两个不同的类。
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+template <typename T>
+class Stack {
+    T buf[100];
+    int len = 0;
+public:
+    void push(T x) { buf[len++] = x; }
+    T    pop()     { return buf[--len]; }
+    bool empty() const { return len == 0; }
+};
+
+int main() {
+    using IntStack = Stack<int>;   // Stack<int> 的类型别名
+    IntStack s;                    // 和 'Stack<int> s;' 完全一样
+    s.push(1); s.push(2);
+    cout << s.pop() << '\n';       // 2
+
+    Stack<string> w;               // 或者直接实例化，不用别名
+    w.push("hi"); w.push("yo");
+    cout << w.pop() << '\n';       // yo
+}
+```
+**输出：**
+```text
+2
+yo
+```
+
 > ⚠️ **在类外定义模板方法：** 每个类外方法都必须加上模板参数列表前缀，**并且**用 `ClassName<T>::` 进行限定。正因如此，模板的定义通常**完全放在 `.hpp` 中**（编译器需要完整的定义才能针对每个类型进行实例化）。
 ```cpp
 template <typename T>
@@ -840,6 +1540,8 @@ for_each(istream_iterator<string>(in), istream_iterator<string>(),
 | `[&, M]` | `M` **按拷贝**，其余一切**按引用** |
 > ⚠️ **按引用（`&`）**会看到/影响那个活着的变量（例如 `++M[s]` 会更新真正的 map）。**按拷贝（`=`）**则在一份私有快照上操作——改动不会传播到外部，而且按拷贝捕获一个大对象代价很高。如果 lambda 的存活时间超过被捕获的变量，按引用捕获就很危险。
 
+> ⚠️ **顺序只在一个地方有影响——默认捕获符（`=` 或 `&`）必须放在第一个。** `[=, &x]` 和 `[&, x]` 都没问题；`[&x, =]` 是语法错误（`expected identifier before '='`）。而且在默认捕获*之后*再单独列某个变量时，必须用**相反**的模式——`[=, x]` 会被拒绝（`error: explicit by-copy capture of 'x' redundant with by-copy capture default`），得写成 `[=, &x]`。（把同一个变量列两次，`[x, x]`，也是错误。）
+
 > 注（主题 7 “零法则”）：lambda + 标准容器正是你为什么常常**一个**特殊成员函数都不需要写的原因。
 
 ---
@@ -870,8 +1572,69 @@ char & operator[](int index) {
 }
 ```
 
+**用 `stringstream` 在运行时拼出错误消息** —— 把实时的值（容量、下标……）拼进去，再 `throw` 出得到的 `string`：
+```cpp
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+struct Stack {
+    int data[100]; int top = 0; int cap = 100;
+    int pop() {
+        if (top <= 0) {
+            stringstream ss;
+            ss << "pop() on empty stack of capacity " << cap;   // 用运行时的值拼出消息
+            throw ss.str();                                     // 抛出得到的 std::string
+        }
+        return data[--top];
+    }
+};
+
+int main() {
+    Stack s;
+    try { s.pop(); }                      // 空栈 -> 抛出
+    catch (const string& msg) {           // 接住抛出的字符串
+        cout << "caught: " << msg << '\n';
+    }
+}
+```
+**输出：**
+```text
+caught: pop() on empty stack of capacity 100
+```
+> 💡 `ss.str()` 把流进 `ss` 的全部内容作为一个 `std::string` 返回，所以抛出的消息能带上实时数据（这里是 `cap`），而纯字符串字面量做不到。（本课程抛的是 `std::string`；标准库则抛 `std::exception` 的子类，其 `what()` 携带文本。）
+
 ### C++ 如何把 `catch` 与 `throw` 匹配起来 — (Q84) 💡
 被抛出对象的**类型**会**按顺序，自上而下**地与每个 `catch` 子句进行匹配；**第一个兼容的**处理程序会被执行。针对**基类（base）**类型的 `catch` 也会捕获**派生类（derived）**的异常（因此顺序应为：具体 → 通用；`catch(...)` 放在最后）。匹配是按类型进行的——这里**没有**像函数实参匹配那样的隐式数值转换。
+
+**示例——基类处理程序能捕获派生类异常，所以顺序要“具体 → 通用”（附输出）：**
+```cpp
+#include <iostream>
+#include <stdexcept>   // out_of_range、exception
+using namespace std;
+
+int main() {
+    try {
+        throw out_of_range("index 5 is out of range");   // out_of_range : logic_error : exception
+    }
+    catch (const out_of_range& e) {     // 最具体的放最前 -> 执行这一个
+        cout << "out_of_range: " << e.what() << '\n';
+    }
+    catch (const exception& e) {        // 基类：能捕获任何 std 异常（包括 out_of_range）
+        cout << "exception: " << e.what() << '\n';
+    }
+    catch (...) {                       // 捕获一切：最后兜底，拿不到错误信息
+        cout << "unknown error\n";
+    }
+}
+```
+**输出：**
+```text
+out_of_range: index 5 is out of range
+```
+> ⚠️ **基类处理程序要放在具体的那些之后。** 因为 `catch (const exception&)` 也能接住 `out_of_range`，把它写在前面会让具体处理程序永远到不了——g++ 甚至会警告：`exception of type 'std::out_of_range' will be caught by earlier handler`。永远按**具体 → 通用**排列，`catch (...)` 放最后。
+> 💡 **`e.what()`** 是 `std::exception` 的一个 `virtual` 成员，返回 `const char*`——一段简短、人类可读的错误描述。对标准异常来说，它就是你传给构造函数的那条消息（这里是 `"index 5 is out of range"`）；你自己的异常类可以覆盖 `what()` 来返回自定义文本。
 
 ### 追踪一段 throw/catch 程序 — (Q85)
 要能够预测输出。要点：`try` 内部 throw **之后**的代码会被**跳过**；随着栈展开到处理程序，**局部栈对象会被展开**（它们的析构函数会运行）；在匹配的 `catch` 执行完毕之后，执行会从整个 try/catch **之后**继续。
@@ -912,6 +1675,36 @@ using namespace mySpace;     // 3) using 指令：打开整个命名空间
 using namespace std;         //    （所有名字都直接可见）
 ```
 
+**这三种到底各自做了什么：**
+- **完全限定（`mySpace::Stack`）**：完全不导入——每次都写 `命名空间::名字`。永远不会有歧义；在**头文件（`.hpp`）**里就该这么用。
+- **`using` 声明（`using mySpace::Stack;`）**：把**某一个具体的名字**引入当前作用域，之后单写 `Stack` 就表示 `mySpace::Stack`。
+- **`using` 指令（`using namespace mySpace;`）**：打开**整个**命名空间——里面所有名字一下子都直接可见（方便，但可能引入命名冲突——见 Q90）。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+namespace audio {
+    void play()  { cout << "audio::play\n"; }
+    int  volume = 7;
+}
+
+int main() {
+    audio::play();              // 1) 完全限定 —— 不需要导入
+    using audio::volume;        // 2) using 声明：只导入这一个名字
+    cout << volume << '\n';     //    现在单写 'volume' 就是 audio::volume
+    using namespace audio;      // 3) using 指令：打开整个命名空间
+    play();                     //    现在 audio 里所有名字都直接可见
+}
+```
+**输出：**
+```text
+audio::play
+7
+audio::play
+```
+> 💡 按安全程度优先选：**完全限定 > `using` 声明 > `using` 指令。** 限定写法永远不会让你意外；`using` 声明只导入一个名字；`using` 指令把整个命名空间打开，是最可能造成歧义的——这也是为什么**头文件里禁止写 `using namespace std;`**（Q90）。
+
 ### 命名空间别名 —— (Q89)
 为一个很长的命名空间起一个简短的本地名字：
 ```cpp
@@ -928,8 +1721,8 @@ namespace fs = std::filesystem;   // 现在可以写 fs::path 而不必写 std::
 # 12. I/O 流、文件与 stringstream (Q91–94)
 
 ### 流上的插入器与提取器 —— (Q91) 💡
-- **`<<` 是*插入器*（inserter）** —— 把数据**发送到**输出流。它是一个**左结合的二元**运算符，所以可以链式调用：`cout << a << b << endl;` 会被解析为 `((cout << a) << b) << endl`。
-- **`>>` 是*提取器*（extractor）** —— 从输入流**读取**数据；对字符串而言，它一次读取**一个以空白分隔的单词**，并**返回该流**，而流在到达文件末尾时为 *false*。这正是读取循环这一惯用法能奏效的原因：
+- **`<<` 是插入器（inserter）** —— 把数据**发送到**输出流。它是一个**左结合的二元**运算符，所以可以链式调用：`cout << a << b << endl;` 会被解析为 `((cout << a) << b) << endl`。
+- **`>>` 是提取器（extractor）** —— 从输入流**读取**数据；对字符串而言，它一次读取**一个以空白分隔的单词**，并**返回该流**，而流在到达文件末尾时为 *false*。这正是读取循环这一惯用法能奏效的原因：
 ```cpp
 string word;
 while (in >> word) { out << word << endl; }   // 在 EOF 处停止
@@ -956,6 +1749,76 @@ cout << setw(8) << left  << "hi" << "|\n"; // 在宽度 8 内左对齐："hi    
 cout << fixed << setprecision(2) << 3.14159 << '\n';   // "3.14"
 ```
 > ⚠️ `setw(n)` **仅作用于下一个项**；对齐/精度标志是**粘性的**（保持设置直到被改变）。
+
+#### 更多 `<iomanip>` / 流操纵符（stream manipulator）—— (Q93) 💡
+Q93 已经展示了 `setw`、`left`/`right`、`setprecision` 和 `fixed`。下面补全其余的日常工具箱，外加考题最爱考的**一次性（one-shot）与粘滞（sticky）**规则。
+
+**其余常用操纵符**（除特别说明外均在 `<iomanip>` 里；`<<` 的顺序很重要）：
+
+| 操纵符 | 作用 |
+|---|---|
+| `setfill(c)` | 设置补齐到 `setw` 字段宽度（field width）时用的**填充字符（fill character）**（默认 `' '`）。 |
+| `left` / `right` / `internal` | `setw` 内的**对齐（alignment）**：补在右侧 / 补在左侧 / 补在**符号与数字之间**（例如 `-  42`）。在 `<iostream>` 里。 |
+| `setprecision(n)` | 位数：在**默认**模式下是总有效位数，在 `fixed`/`scientific` 下是小数点**后**的位数。 |
+| `fixed` / `scientific` / `defaultfloat` | 浮点格式：`3.14` / `3.14e+00` / 通用（`defaultfloat` 重置回默认）。在 `<iostream>` 里。 |
+| `hex` / `oct` / `dec` | 整数进制（16 / 8 / 10）。在 `<iostream>` 里。 |
+| `showbase` / `noshowbase` | 对整数显示进制前缀（`0x`、`0`）。 |
+| `boolalpha` / `noboolalpha` | 把布尔值打印为 `true`/`false`，而非 `1`/`0`。 |
+| `uppercase` / `nouppercase` | 在十六进制（`0XFF`）和科学计数（`1.5E+10`）中使用大写字母。 |
+| `showpos` / `noshowpos` | 给非负数打印前导 `+`。 |
+
+```cpp
+#include <iostream>
+#include <iomanip>
+std::cout << std::boolalpha << (1 < 2) << '\n';            // true   （不是 1）
+std::cout << std::hex << std::showbase << 255 << '\n';     // 0xff
+std::cout << std::uppercase << std::hex << 255 << '\n';    // 0XFF
+std::cout << std::dec << std::nouppercase << std::noshowbase; // 先撤掉粘滞的 hex/uppercase/base
+std::cout << std::showpos << 42 << '\n';                   // +42
+std::cout << std::noshowpos;                               // 重置回普通十进制
+```
+
+⚠️ 注意：上面每一行都写到**同一个** `std::cout`，所以粘滞标志会层层累积。若不加那行复位，`std::cout << std::showpos << 42` 会打印 `0X2A`（hex + uppercase + 进制前缀仍生效），**而不是** `+42`——正是下面讲的粘滞陷阱。
+
+⚠️ **一次性（one-shot）与粘滞（sticky）**——最常考的陷阱：
+- `setw(n)`（以及 `width()`）是**一次性的**：它**只作用于紧接着插入的下一项**，之后就重置为 0。
+- 其余的——`setfill`、`left`/`right`/`internal`、`setprecision`、`fixed`/`scientific`、`hex`/`oct`/`dec`、`boolalpha`、`showpos`、`uppercase`……——都是**粘滞的**：一直生效，直到被你改变。
+
+```cpp
+std::cout << std::setfill('0') << std::setw(4) << 7 << '\n';  // 0007
+std::cout << 7 << '\n';                                       // 7   （setw 已失效；setfill 仍设着，但没有宽度可补齐）
+```
+
+⚠️ **`endl` 与 `'\n'`**——另一个经典考点：
+- `'\n'` **只**写一个换行符。
+- `std::endl` 写一个换行符**并刷新（flush）缓冲区**（强制把输出立刻送出）。
+- 刷新代价高昂，所以在热点循环里狂用 `endl` 会**变慢**——优先用 `'\n'`，让流自己择机刷新（或在你真正需要时调用一次 `std::flush`）。
+
+```cpp
+for (int i = 0; i < 1'000'000; ++i)
+    std::cout << i << '\n';     // 快：带缓冲
+    // std::cout << i << std::endl;  // 慢：刷新了一百万次
+```
+
+**把一列右对齐（呼应 Q93）**——`setfill` + 粘滞对齐，`setw` 每行重新施加：
+
+```cpp
+int vals[] = {7, 42, 1234};
+for (int v : vals)
+    std::cout << std::setw(6) << v << '\n';   // 用空格补齐（默认）
+//      7
+//     42
+//   1234
+
+std::cout << std::setfill('0') << std::right; // 粘滞：只设一次
+for (int v : vals)
+    std::cout << std::setw(6) << v << '\n';   // 每行重新施加 setw（一次性）
+// 000007
+// 000042
+// 001234
+```
+
+💡 要记住的套路：**粘滞**状态（`setfill`、对齐）**在循环前设一次**；**一次性**的 `setw(n)` 要**每行重新发出**。
 
 ### `stringstream`（把一行解析成带类型的各个部分）—— (Q94) 💡💡（你在 HW8 的 `compute_grades` 中用到了它）
 **`stringstream`** 是一个以字符串为底层支撑的流 —— 你可以用 `>>` 从中提取带类型的值，就像从 `cin` 中提取一样。标准的模式是**先 `getline` 一整行，然后把它包进一个 `stringstream`** 来解析各个字段。这样会把解析**限定**在那一行内（它不会意外读到下一行去）。
@@ -986,8 +1849,15 @@ vector<int> v;  for (int i=0;i<100;++i) v.push_back(i);   // 动态数组
 一个**处理某个区间（range）**的函数模板（function template）（复制、查找、排序、变换、累加……）。它能作用于**任意**容器，因为它面向的是**迭代器**，而非直接面向容器。
 ```cpp
 #include <algorithm>
-sort(V.begin(), V.end());
-auto pos = find(V.begin(), V.end(), 3);   // 指向那个 3 的、类似指针的迭代器
+#include <ranges>      // ranges:: 版本（C++20）
+
+// 经典形式 —— 传入一对 [first, last) 迭代器来标定区间：
+sort(V.begin(), V.end());                 // (first, last)：begin() 是 first，end() 是“最后一个的后一个”
+auto pos = find(V.begin(), V.end(), 3);   // (first, last, value) -> 指向那个 3 的迭代器（找不到则为 end()）
+
+// C++20 ranges 形式 —— 直接传整个容器，不用 begin()/end()：
+ranges::sort(V);                          // (range)
+auto pos2 = ranges::find(V, 3);           // (range, value)
 ```
 
 ### 容器迭代器（container iterator）— (Q97)
@@ -1028,6 +1898,33 @@ cout << v[0] << " " << v.back() << " " << v.size();
 ```
 🐍 相当于 C++ 里的 Python `list`。
 
+**⚠️ 构造时 `()` 与 `{}` 的区别——它们可能不是一回事。** 用 `{}` 时，如果类型有 `initializer_list` 构造函数（每个 STL 容器都有），花括号会**优先选它**，于是这些值变成*元素*：
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> a(100);    // (100)：100 个 int，全为 0
+    vector<int> b{100};    // {100}：只有 1 个 int，值是 100   <- 意外之处
+    vector<int> c(3, 7);   // (3,7)：3 个 int，全为 7
+    vector<int> d{3, 7};   // {3,7}：2 个 int，3 和 7
+
+    cout << "a(100): size=" << a.size() << '\n';
+    cout << "b{100}: size=" << b.size() << "  first=" << b[0] << '\n';
+    cout << "c(3,7): size=" << c.size() << "  {" << c[0] << "," << c[1] << "," << c[2] << "}\n";
+    cout << "d{3,7}: size=" << d.size() << "  {" << d[0] << "," << d[1] << "}\n";
+}
+```
+**输出：**
+```text
+a(100): size=100
+b{100}: size=1  first=100
+c(3,7): size=3  {7,7,7}
+d{3,7}: size=2  {3,7}
+```
+> 💡 规则：`(...)` 永远调用普通构造函数（这里是*计数*构造）；`{...}` 在存在 `initializer_list` 构造函数时优先选它，把内容当作**元素**。对没有 `initializer_list` 构造的类型，两种写法一致。`{}` 还会禁止窄化（Q20）——所以它通常是更安全的默认选择，*除了*带大小的容器，那时你一般想用 `()`。
+
 ### `std::map`（含示例）— (Q102) 💡
 一个**有序排序**的关联容器，存放 **`pair<key, value>`**，可用**任意**键类型索引；**键唯一**；`insert`/`find`/`erase` 都是 **O(log N)**；按**键的顺序**迭代。
 ```cpp
@@ -1038,6 +1935,32 @@ for (auto const & [name, age] : A)        // C++17 结构化绑定（“解构�
 ```
 > ⚠️ **对 map 使用 `operator[]` 时，如果键不存在，会悄悄插入一个默认值的条目**——这是个经典陷阱。如果你只是想查找，请使用 `.find()`。
 🐍 像 Python 的 `dict`，但**始终按键保持排序**。
+
+**读取 map 的 key/value 的两种写法——并排放：**
+```cpp
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main() {
+    map<string,int> m = {{"Al", 27}, {"Bill", 33}};
+
+    for (const auto& [key, val] : m)               // 写法 1：结构化绑定（C++17）
+        cout << key << '=' << val << ' ';
+    cout << '\n';
+
+    for (const auto& p : m)                         // 写法 2：.first / .second
+        cout << p.first << '=' << p.second << ' ';  // 每个元素是 pair<const string, int>
+    cout << '\n';
+}
+```
+**输出：**
+```text
+Al=27 Bill=33
+Al=27 Bill=33
+```
+> 💡 `map` 的元素是一个 `pair<const Key, Value>`，所以 `[key, val]` 只是把这个 pair 解包：`key` 等价于 `p.first`、`val` 等价于 `p.second`。（用迭代器则是 `it->first` / `it->second`。）键上的 `const` 意味着你可以改 `val` / `.second`，但永远不能改键。
 
 ### `std::set`（含示例）— (Q103)
 一个由**唯一**值构成的**有序排序**集合（元素*本身就是*它自己的键）；`insert`/`find`/`erase` 为 O(log N)。`multiset` 允许重复值。
@@ -1060,14 +1983,123 @@ cout << p.first << " " << p.second;   // Al 27
 ### Map 与 set 的对比 — (Q105) 💡
 两者都是**有序排序、键唯一**的关联容器。区别在于：**set** 只存储**键**（值就是键）；**map** 存储**键→值的 pair**，按**键（`.first`）排序**，而值（`.second`）随之一同携带。
 
-#### 容器复杂度一览 💡（值得记忆）
+#### 常用容器操作——速查表 💡
+日常真正会用到的成员函数（各容器的单独示例见 Q100–Q104）：
+
+| 你想做什么 | 写法 | 复杂度 | 容器 |
+|---|---|---|---|
+| 在末尾添加 | `c.push_back(x)`、`c.emplace_back(args)` | 摊还 O(1) | `vector` `deque` `list` |
+| 从末尾删除 | `c.pop_back()` | O(1) | `vector` `deque` `list` |
+| 在头部添加 / 删除 | `c.push_front(x)` / `c.pop_front()` | O(1) | `deque` `list` |
+| 第一个 / 最后一个元素 | `c.front()` / `c.back()` | O(1) | `vector` `deque` `list` |
+| 大小 / 是否为空 / 清空 | `c.size()`、`c.empty()`、`c.clear()` | O(1)；`clear()` 为 O(n) | 全部 |
+| 元素访问（不检查 / 检查） | `v[i]` / `v.at(i)` | O(1) | `vector` `deque` `string` |
+| 按位置 / 区间删除 | `c.erase(it)`、`c.erase(first, last)` | O(n)；`list` 每节点 O(1) | `vector` `deque` `list` `string` |
+| 插入 / 查找 / 计数 / 是否含 / 删除 | `c.insert(x)`、`c.find(x)`、`c.count(x)`、`c.contains(x)`（C++20）、`c.erase(x)` | O(log n)；`unordered_` 平均 O(1) | `set` `map` |
+| 按键访问 | `m[k]`（不存在就插入！）、`m.at(k)` | O(log n) | `map` |
+| 适配器 | stack：`push` / `pop` / `top`；queue：`push` / `pop` / `front` / `back` | O(1) | `stack` `queue` |
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v;
+    v.push_back(10);                 // [10]
+    v.push_back(20);                 // [10, 20]
+    v.emplace_back(30);              // [10, 20, 30]（原地构造）
+    cout << v.size() << " " << v.front() << " " << v.back() << '\n';   // 3 10 30
+    v.pop_back();                    // [10, 20]
+    v[0] = 99;                       // 不检查地写入 -> [99, 20]
+    cout << v.at(1) << " " << (v.empty() ? "empty" : "filled") << '\n'; // 20 filled
+    v.clear();                       // []
+    cout << v.size() << '\n';        // 0
+}
+```
+**输出：**
+```text
+3 10 30
+20 filled
+0
+```
+> ⚠️ `v[i]` 和 `v.at(i)` 在下标越界时不同：`[]` **不做检查**（未定义行为），`at()` **会抛 `std::out_of_range`**。而 `map` 的 `m[k]` 在 `k` 不存在时**会插入一个默认项**——只想判断在不在就用 `m.contains(k)`（C++20，返回 `bool`），或老写法 `m.find(k) != m.end()` / `m.count(k)`（Q102）。（`string::contains` 要到 C++23 才有。）
+
+#### 遍历容器——有哪些循环写法 💡
+同一份数据，几种写法（基于范围的 `for` 见 Q99，迭代器循环见 Q97）：
+```cpp
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+using namespace std;
+
+int main() {
+    vector<int> v = {10, 20, 30};
+
+    for (size_t i = 0; i < v.size(); ++i) cout << v[i] << ' ';          // 1) 下标循环（vector/deque/string）
+    cout << '\n';
+    for (auto it = v.begin(); it != v.end(); ++it) cout << *it << ' ';  // 2) 迭代器循环（任何容器）
+    cout << '\n';
+    for (auto x : v) cout << x << ' ';                                  // 3) 基于范围的 for，按值（拷贝）
+    cout << '\n';
+    for (const auto& x : v) cout << x << ' ';                           // 4) 按 const& （只读，不拷贝）
+    cout << '\n';
+    for (auto& x : v) x += 1;                                           // 5) 按 & （就地修改）
+    for (const auto& x : v) cout << x << ' ';
+    cout << '\n';
+    for (auto it = v.rbegin(); it != v.rend(); ++it) cout << *it << ' '; // 6) 反向迭代器
+    cout << '\n';
+
+    map<string,int> m = {{"a",1},{"b",2}};
+    for (const auto& [key, val] : m) cout << key << '=' << val << ' ';  // 7) 结构化绑定（map/pair）
+    cout << '\n';
+}
+```
+**输出：**
+```text
+10 20 30
+10 20 30
+10 20 30
+10 20 30
+11 21 31
+31 21 11
+a=1 b=2
+```
+> 💡 只读用 **`for (const auto& x : v)`**（不拷贝），修改用 **`for (auto& x : v)`**；普通的 `for (auto x : v)` 会拷贝每个元素。**下标循环**只能用于随机访问容器（`vector`/`deque`/`string`）；**迭代器循环**对每种容器都适用。`rbegin()`/`rend()` 倒着遍历，结构化绑定 `[key, val]` 用来解包 `map`/`pair`。
+
+#### 遍历中插入 / 删除——迭代器失效 💡💡
+在循环中途修改容器，可能让你手里的迭代器**失效**；正确做法是用 `erase`/`insert` **返回**的那个迭代器重新落座（reseat）——**绝不要**对一个已被 `erase` 的迭代器做 `++`：
+```cpp
+// 错误：erase 让 `it` 失效，接下来的 ++it 是未定义行为
+for (auto it = v.begin(); it != v.end(); ++it)
+    if (*it % 2 == 0) v.erase(it);          // it 成了悬空迭代器（-D_GLIBCXX_DEBUG 构建会在此处 abort）
+
+// 正确：erase 返回指向下一个元素的迭代器；只有"没删"时才前进
+for (auto it = v.begin(); it != v.end(); )  // 注意：循环头里没有 ++it
+    if (*it % 2 == 0) it = v.erase(it);     // 用返回值给 it 重新落座
+    else              ++it;
+```
+对 `vector`，比手写循环更地道的是 **erase–remove 惯用法**（或 C++20 的一行版）：
+```cpp
+#include <algorithm>   // remove_if
+v.erase(remove_if(v.begin(), v.end(), [](int x){ return x % 2 == 0; }), v.end());
+std::erase_if(v, [](int x){ return x % 2 == 0; });   // C++20：效果相同，一行搞定
+```
+**输出** —— 手写 `erase` 循环、erase–remove 惯用法、`erase_if` 三者都把 `{1, 2, 3, 4, 5, 6}` 变成：
+```text
+1 3 5
+```
+⚠️ **不同容器的失效规则不一样：**
+- **`vector` / `deque` / `string`** —— `erase`/`insert` 会让删除/插入点**及其之后**的所有迭代器和引用失效；触发扩容的 `push_back`/`insert` 会让**全部**迭代器失效。永远用返回值重新落座。
+- **`list`** —— 只有**被删**元素的迭代器失效；`insert` 谁都不影响。中间廉价增删正是选 `list` 的全部理由。
+- **`set` / `map` / `unordered_*`**（基于节点）—— `erase` 只让**被删的那个**迭代器失效，且自 C++11 起也**返回下一个**，所以同样的 `it = c.erase(it)` 循环在这里也成立。
+
+#### 容器复杂度——操作表里没有的那部分 💡
+有两条跨容器的事实是上面那张操作表读不出来的（随机访问、尾/头部插入、查找已经在它的**复杂度**列里了）：
 | 操作 | `vector` | `deque` | `list` | `set` / `map` | `unordered_set/map` |
 |---|:---:|:---:|:---:|:---:|:---:|
-| 随机访问 `[i]` | **O(1)** | O(1) | ❌ | ❌（`map[key]` O(log n)） | ❌（`map[key]` 平均 O(1)） |
-| 在**尾部**插入/删除 | 摊还 O(1) | O(1) | O(1) | — | — |
-| 在**头部**插入/删除 | O(n) | **O(1)** | O(1) | — | — |
 | 在**中间**插入/删除（已持有迭代器） | O(n) | O(n) | **O(1)** | — | — |
-| 按值/键**查找** | O(n) | O(n) | O(n) | **O(log n)** | **平均 O(1)** |
 | 迭代顺序 | 插入顺序 | 插入顺序 | 插入顺序 | **按键排序** | 未指定 |
 
 > 💡 根据“什么必须快”来选择：需要随机访问 → `vector`；大量头部操作 → `deque`；**在已持有迭代器时**廉价地在中间插入/删除 → `list`；**有序**的键查找 → `set`/`map`；最快的**无序**查找 → `unordered_*`。
@@ -1075,26 +2107,82 @@ cout << p.first << " " << p.second;   // Al 27
 ### `std::transform`（含示例）— (Q106) 💡
 对源区间的每个元素应用一个函数，并把结果写入目的地。
 ```cpp
-transform(V.begin(), V.end(), V.begin(), [](int i){ return i+1; });   // 原地：每个 +1
+// 经典形式：transform(first, last, dest, op)
+//   first,last = 源区间；dest = 结果写到哪里；op = 对每个元素施加的函数
+transform(V.begin(), V.end(), V.begin(), [](int i){ return i+1; });   // dest == 源 -> 原地：每个 +1
 transform(begin(L1), end(L1), back_inserter(L2), square);             // L2 = L1 的各元素平方
+
+// C++20 ranges 形式：transform(range, dest, op)
+ranges::transform(V, V.begin(), [](int i){ return i+1; });            // 原地
+ranges::transform(L1, back_inserter(L2), square);                     // L2 = L1 的各元素平方
 ```
 
 ### `std::accumulate`（含示例）— (Q107) 💡
 把一个区间归约为单个值（默认为求和），从一个初始值开始。位于 **`<numeric>`** 中。
 ```cpp
-int total = accumulate(V.begin(), V.end(), 0);   // 求和；这个 0 是起始值
+// accumulate(first, last, init [, op])
+//   first,last = 区间；init = 起始值，并且它决定结果类型；op = 合并方式（默认是 +）
+int total = accumulate(V.begin(), V.end(), 0);                       // 求和，从 0 开始
+int prod  = accumulate(V.begin(), V.end(), 1, [](int a, int b){ return a*b; });  // 求积，从 1 开始
 ```
 > ⚠️ **课程提示（HW8）：** `accumulate` **没有 `ranges::` 版本**——即使你对其它算法使用了 `ranges::` 版本，也要用经典的迭代器对语法（`accumulate(begin, end, init)`）来调用它。
+
+> ⚠️ `init` 这个实参还决定了**结果类型**：对一个 `vector<double>`，`accumulate(d.begin(), d.end(), 0)` 会累加进一个 **`int`**（被截断！）——传 `0.0` 才能得到 `double`。
 
 ### `std::copy` 与 `std::move` — (Q108) 💡
 - **`copy(first, last, dest)`** 把一个区间复制到目的迭代器。把它和**插入迭代器（insert iterator）**搭配使用，目的地就能随之增长：
 ```cpp
-copy(L.begin(), L.end(), back_inserter(V));   // 为每个元素调用 V.push_back()
+// copy(first, last, dest)：first,last = 源区间；dest = 输出迭代器
+copy(L.begin(), L.end(), back_inserter(V));   // back_inserter -> 为每个元素调用 V.push_back()
 copy(istream_iterator<string>(in), istream_iterator<string>(),   // 读取单词直到 EOF……
      back_inserter(V));                                          // ……存入 V
 unique_copy(V.begin(), V.end(), ostream_iterator<string>(out, "\n"));  // 写出，跳过相邻的重复项
+ranges::copy(L, back_inserter(V));            // C++20 ranges 形式：copy(range, dest)
 ```
-- **`std::move`（这个函数）** 把一个左值（L-value）转换成右值引用（R-value reference），从而发生**移动（move）**（窃取资源）而非拷贝：`b = std::move(a);`——此后 `a` 处于一个有效但空的状态。（还有一个 `std::move` *算法*，它对一个区间进行移动赋值。）不要把这个移动*转换（cast）*与 `memmove`/复制混淆。
+- **`std::move`（这个函数）** 把一个左值（L-value）转换成右值引用（R-value reference），从而发生**移动（move）**（窃取资源）而非拷贝：`b = std::move(a);`——此后 `a` 处于一个有效但空的状态。不要把这个移动*转换（cast）*与 `memmove`/复制混淆。
+- **`std::move`（这个算法）** 是同名的另一个东西：它把一整个区间**移动赋值**到目标处（每个元素都被掏空），例如 `ranges::move(src, back_inserter(dst));`。形状和 `copy` 一样，只是它*移动*而非拷贝。
+
+### `std::for_each` 与 `std::copy_if` 💡
+- **`for_each(first, last, fn)`** 对每个元素都运行 `fn`——为的是它的**副作用**（打印、修改）。给 lambda 一个 `T&` 参数，它就能原地修改元素。
+- **`copy_if(first, last, dest, pred)`** 只拷贝那些让 `pred(x)` 为真的元素（相当于 `copy` + `filter` 合成一步）。
+```cpp
+#include <iostream>
+#include <vector>
+#include <iterator>   // back_inserter, ostream_iterator
+#include <algorithm>  // for_each, copy_if, ranges::*
+#include <ranges>
+using namespace std;
+
+int main() {
+    vector<int> v = {1, 2, 3, 4, 5, 6};
+
+    // for_each：对每个元素都运行一个函数（这里：打印）。
+    cout << "print:  ";
+    for_each(v.begin(), v.end(), [](int n){ cout << n << ' '; });
+    cout << '\n';
+
+    // for_each 的 lambda 取 T& 参数，就能原地修改每个元素：
+    for_each(v.begin(), v.end(), [](int& n){ n *= 10; });    // 每个 *= 10
+    cout << "x10:    ";
+    ranges::for_each(v, [](int n){ cout << n << ' '; });     // ranges 形式：直接传整个容器
+    cout << '\n';
+
+    // copy_if：只拷贝通过谓词的元素。
+    vector<int> picked;
+    copy_if(v.begin(), v.end(), back_inserter(picked),
+            [](int n){ return n % 20 == 0; });               // 留下 20 的倍数
+    cout << "mult20: ";
+    ranges::copy(picked, ostream_iterator<int>(cout, " "));  // 用 ranges::copy 打印
+    cout << '\n';
+}
+```
+**输出：**
+```text
+print:  1 2 3 4 5 6 
+x10:    10 20 30 40 50 60 
+mult20: 20 40 60 
+```
+> 💡 这四个算法在经典形式里都接收一对迭代器，在 `ranges::` 形式里接收整个区间。带 `_if` 的一族（`copy_if`、`find_if`、`count_if`、`remove_if`）接收一个**谓词（predicate）**（返回 `bool`）；`transform`/`for_each` 接收一个**操作（operation）**（干活 / 返回新值）。
 
 ### iterator 与 `const_iterator` 的对比 — (Q109)
 - 普通的 **`iterator`** 让你能读取**并修改**它所指向的元素（`*it = x;`）。
@@ -1109,6 +2197,21 @@ unique_copy(V.begin(), V.end(), ostream_iterator<string>(out, "\n"));  // 写出
 | 随机访问（random access） | 双向 **+ `[]`、`+n`** | `vector`、`deque`、`string`；你 HW9 的 `MapArray` 迭代器 |
 | 连续（contiguous，C++17） | 随机访问 + 物理上相邻 | `array`、`vector`、`string` |
 
+#### 声明迭代器的类别——`iterator_category` 与 `iterator_traits` 💡
+自定义迭代器用五个成员 typedef 来**声明自己属于上面哪一类**，这样 STL 算法才能挑选最优实现。其中最关键的是 `iterator_category`，把它设为一个**标签类型（tag type）**：
+```cpp
+struct MyIter {
+    using iterator_category = std::forward_iterator_tag;   // <- 类别标签
+    using value_type        = int;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = int*;
+    using reference         = int&;
+    // ... 外加这个类别所要求的 operator*、operator++、operator== 等
+};
+```
+这些标签由弱到强：`input_iterator_tag` / `output_iterator_tag` → `forward_iterator_tag` → `bidirectional_iterator_tag` → `random_access_iterator_tag` → `contiguous_iterator_tag`（C++20）。用 `std::iterator_traits<It>::iterator_category` 读回来（库里的迭代器也会报告自己的——`vector<int>::iterator` 是 `random_access_iterator_tag`，`list<int>::iterator` 是 `bidirectional_iterator_tag`）。
+> 💡 为什么重要：算法会**根据标签分派（dispatch）**。`std::distance(a, b)` 和 `std::advance(it, n)` 对随机访问迭代器是 **O(1)**（直接 `b - a` / `it += n`），对前向/双向迭代器是 **O(n)**（只能一步步走）。⚠️ 把类别声明得比迭代器实际支持的**更强**是个 bug——算法会去调用你根本没写的操作（`+= n`、`[]`、`--`）。
+
 #### 按迭代器类别编写 `operator++` / `operator--` 💡 (HW9)
 **前置/后置的“外壳”对每种类别都是固定的——只有“步进”（那一行带注释的代码）会变化：**
 ```cpp
@@ -1119,7 +2222,7 @@ Iter& operator++() { /* 向前一步 */ return *this; }
 Iter  operator++(int) { Iter tmp = *this; ++(*this); return tmp; }
 ```
 - 那个 `int` 参数是一个**未使用的哑元（dummy）**，只用来区分后置与前置。
-- **后置自增*永远*都是“保存一份拷贝 + 调用前置自增”**——这一点跨所有类别都不会变。各类别之间不同的，是前置自增内部的那个*步进*。
+- **后置自增永远都是“保存一份拷贝 + 调用前置自增”**——这一点跨所有类别都不会变。各类别之间不同的，是前置自增内部的那个*步进*。
 - `--` 形状完全相同；它的步进是“向**后**走一步”。在循环中优先用 `++it` 而不是 `it++`（后置会多产生一份拷贝）。
 
 **① 前向（forward）**——单链表（你的 `SetList`）。只有 `++`；**没有 `--`**（无法往回走）。
@@ -1178,21 +2281,155 @@ bool operator>=(const Iter& o) const { return current >= o.current; }
 
 #### 迭代器**适配器（adapters）**（在算法示例中频繁使用）💡
 - **插入迭代器（Insert iterators）：** `back_inserter(c)` → `c.push_back`；`front_inserter(c)` → `c.push_front`；`inserter(c, pos)` → `c.insert`（唯一一个能用于 `set`/`map` 的）。
-- **流迭代器（Stream iterators）：** `istream_iterator<T>(in)` 用 `>>` 读取 `T`（默认构造的 `istream_iterator<T>()` = EOF 末尾标记）；`ostream_iterator<T>(out, "sep")` 用 `<<` 写出，**在*每一个*元素之后都追加分隔符**（包括最后一个）。
+- **流迭代器（Stream iterators）：** `istream_iterator<T>(in)` 用 `>>` 读取 `T`（默认构造的 `istream_iterator<T>()` = EOF 末尾标记）；`ostream_iterator<T>(out, "sep")` 用 `<<` 写出，**在每一个元素之后都追加分隔符**（包括最后一个）。
 - **反向迭代器（Reverse iterators）：** `c.rbegin()`/`c.rend()` 向后遍历。
 
 #### C++20 Ranges 与视图（view）（主题 9）💡
-- 一个**范围（range）**就是 `begin()..end()`，因此在 **`std::ranges`** 中算法获得了单参数形式：`ranges::sort(v);` 而不是 `sort(v.begin(), v.end())`。
-- **视图（views）**（位于 `std::ranges::views` 中）是你用 `|` 组合起来的**轻量、惰性（lazy）**的范围。**惰性 = 在你迭代之前什么都不会计算。**
+
+两个相关的 C++20 特性，都住在 `<ranges>` 里。
+
+**（1）`ranges::` 算法——直接传整个容器。** 一个*范围（range）*就是一对 `begin()..end()`，而每个容器本身就已经是一个范围。所以算法的 `ranges::` 版本可以直接接收容器——不用再写 `.begin()`/`.end()`：
 ```cpp
-namespace rv = std::ranges::views;
-for (int x : v | rv::filter([](int n){ return n%2==0; }) | rv::transform([](int n){ return n*n; }))
-    cout << x << ' ';   // 各个偶数元素的平方，按需计算
+ranges::sort(v);                 // 取代  sort(v.begin(), v.end())
+auto it = ranges::find(v, 42);   // 取代  find(v.begin(), v.end(), 42)
 ```
+
+**（2）视图（views）——用 `|` 拼出来的惰性流水线。** 一个*视图（view）*（位于 `std::ranges::views`）是一个轻量的范围：你把一个数据源通过 `filter`、`transform` 这类适配器用“管道”串起来就得到它。从左往右读：`v | filter(...) | transform(...)` 的意思是*“拿 `v`，留下通过过滤的元素，再把每个留下来的元素做变换。”* 结果本身又是一个范围，所以可以直接用 range-`for` 遍历它。
+
+关键就在**惰性（lazy）**这个词：搭出流水线这个动作本身*什么都不计算*。filter/transform 只在你迭代时才运行，每次只处理一个元素，而且只处理你真正访问到的那些元素。
+```cpp
+#include <iostream>
+#include <vector>
+#include <ranges>     // std::ranges 与 std::ranges::views（C++20）
+#include <algorithm>  // ranges::sort
+using namespace std;
+namespace rv = std::ranges::views;   // 简写别名：rv:: 就是 views::
+
+int main() {
+    vector<int> v = {5, 2, 8, 1, 4, 7, 6, 3};
+
+    ranges::sort(v);                       // （1）整容器算法
+    cout << "sorted: ";
+    for (int x : v) cout << x << ' ';
+    cout << '\n';
+
+    // （2）搭一条流水线：留下偶数，再平方。此时什么都还没算。
+    auto pipeline = v | rv::filter([](int n){ return n % 2 == 0; })
+                      | rv::transform([](int n){ return n * n; });
+    cout << "even squares: ";
+    for (int x : pipeline) cout << x << ' ';   // 计算发生在这里，按需进行
+    cout << '\n';
+
+    // （3）take(3) 提前停止——第 4 个偶数从头到尾都没被平方过。
+    cout << "first 3 even squares: ";
+    for (int x : v | rv::filter([](int n){ return n % 2 == 0; })
+                   | rv::transform([](int n){ return n * n; })
+                   | rv::take(3))
+        cout << x << ' ';
+    cout << '\n';
+}
+```
+**输出：**
+```text
+sorted: 1 2 3 4 5 6 7 8 
+even squares: 4 16 36 64 
+first 3 even squares: 4 16 36 
+```
+
+想*亲眼看到*这种惰性？在 transform 里塞一句打印，看它到底什么时候触发：
+```cpp
+vector<int> v = {1, 2, 3, 4};
+auto squares = v | rv::transform([](int n){
+    cout << "  [computing " << n << '*' << n << "]\n";   // 标记“计算发生”的时刻
+    return n * n;
+});
+cout << "view built (nothing computed yet)\n";
+for (int x : squares) cout << "got " << x << '\n';
+```
+**输出：**
+```text
+view built (nothing computed yet)
+  [computing 1*1]
+got 1
+  [computing 2*2]
+got 4
+  [computing 3*3]
+got 9
+  [computing 4*4]
+got 16
+```
+> 💡 注意顺序：`view built` 先打印，然后每个平方值都是在它自己那行 `got` *之前*才被算出来——计算是和循环交错进行的，绝不会提前一次性算完。这正是“惰性 / 按需”的含义，也正因如此，上面的 `take(3)` 才能让第 4 个偶数从头到尾都不被平方。
+
+| 适配器 | 作用 |
+|---|---|
+| `filter(pred)` | 只保留 `pred(x)` 为真的元素 |
+| `transform(f)` | 把每个元素 `x` 替换成 `f(x)` |
+| `take(n)` / `drop(n)` | 保留前 `n` 个 / 跳过前 `n` 个 |
+| `reverse` | 从尾到头遍历 |
 
 #### 智能指针（smart pointer）（主题 9）——针对单个对象的 RAII 💡
 - **`unique_ptr<T>`**——唯一所有者；当它消亡时删除对象；**拷贝被删除**（只能移动，通过 `std::move`）。`auto p = std::make_unique<T>(args);`
 - **`shared_ptr<T>`**——共享所有权；当**最后一个** `shared_ptr` 消亡时对象被删除（引用计数）。`auto sp = std::make_shared<T>(args);`
+**创建一个智能指针的两种写法——以及为什么第一种不推荐：**
+```cpp
+// ❌ 不推荐——裸 new：类型名要写两遍，而且不是异常安全的。
+unique_ptr<Widget> a{new Widget(1)};   // 能用，但啰嗦
+shared_ptr<Widget> b{new Widget(2)};   // 还会强制做第二次堆分配
+
+// ✅ 推荐——make_xxx：类型只写一次，看不到 `new`。
+auto a = make_unique<Widget>(1);
+auto b = make_shared<Widget>(2);       // 对象 + 控制块只分配一次
+```
+**用推荐写法跑一遍完整程序：**
+```cpp
+#include <iostream>
+#include <memory>      // unique_ptr, shared_ptr, make_unique, make_shared
+using namespace std;
+
+struct Widget {
+    int id;
+    Widget(int i) : id(i) { cout << "ctor " << id << '\n'; }
+    ~Widget()             { cout << "dtor " << id << '\n'; }
+};
+
+int main() {
+    auto u = make_unique<Widget>(1);     // unique_ptr<Widget>，唯一所有者
+    cout << "u->id = " << u->id << '\n'; // 像裸指针一样用
+    auto u2 = std::move(u);              // 转移所有权；u 现在为空
+    cout << "u is " << (u ? "set" : "null") << '\n';
+
+    auto s = make_shared<Widget>(2);     // shared_ptr<Widget>，use_count = 1
+    auto s2 = s;                         // 拷贝 -> 共享所有权，use_count = 2
+    cout << "use_count = " << s.use_count() << '\n';
+}   // u2 释放 Widget 1；Widget 2 在最后一个 shared_ptr 消亡时释放
+```
+**输出：**
+```text
+ctor 1
+u->id = 1
+u is null
+ctor 2
+use_count = 2
+dtor 2
+dtor 1
+```
+> 💡 为什么用 `make_xxx` 而不是 `unique_ptr<T>(new T(...))`？(1) **异常安全**——万一别的实参求值时抛异常也不会泄漏；(2) 类型名只写**一次**（不用 `new T`）；(3) `make_shared` 把对象和它的控制块用**一次分配**搞定。用法和普通指针一样：`p->成员`、`*p`、`p.get()` 取裸指针、`p.reset()` 提前释放。
+
+**常见错误——拷贝 `unique_ptr` 无法通过编译：**
+```cpp
+auto u = make_unique<Widget>(1);
+auto bad = u;             // ❌ 试图拷贝——unique_ptr 没有拷贝构造函数
+auto ok  = std::move(u);  // ✅ 改用移动：所有权转移，u 变为空
+```
+编译器会直接拦住你——这是编译期错误，不是运行时才暴露的隐患（模板噪音已省略）：
+```text
+error: use of deleted function
+       'std::unique_ptr<...>::unique_ptr(const std::unique_ptr<...>&)'
+note: declared here
+  unique_ptr(const unique_ptr&) = delete;
+```
+> 💡 `unique_ptr` 是*唯一*所有者，拷贝它会造出两个所有者、都去 `delete` 同一个对象。C++ 把拷贝构造函数删除掉，就是把这种错误变成**编译错误**，而不是运行时的 double-free。`shared_ptr` 正相反——拷贝是允许的，只是把引用计数加一。
+
 > ⚠️ **HW9 陷阱（来自主题 9 的幻灯片）：** 如果一个链表节点的 `next` 是一个 `unique_ptr`，那么**迭代器无法别名（alias）这个链表**——所以对于 `SetList`，你的 `next` 必须使用一个**裸 `ListNode*`**，而不是 `unique_ptr`。
 
 | | `unique_ptr<T>` | `shared_ptr<T>` |
@@ -1317,7 +2554,7 @@ line Y [readability]: {unclear code}. Instead, {clearer code}.
 
 # 附录 D —— 期末考试的优先复习主题
 
-你的**期中反馈**（在项目里）是判断该把复习时间花在哪里的最佳信号。你失分的那些题目簇恰好能整齐地对应到上面的各个章节——优先复习这些：
+下面是这门考试**价值最高的几簇主题**——它们能整齐地对应到上面的各个章节。优先复习这些：
 
 1. **追踪控制流** *（最大的一簇：循环、`if`/嵌套 `if`、条件表达式、`switch`、布尔条件）。* Topic 10 的讲义明确列出了迭代（带 3 个字段的 `for` / 基于范围的 `for` / `while` / `do-while`）、`switch`/`case`/`default`/`break` 结构，以及混合算术运算与 `i++` 对比 `++i`。**练习手工追踪**小程序，并写出精确的输出。→ 关联第 2 节。
 2. **三法则与默认拷贝语义** *（深拷贝、默认拷贝构造函数、默认拷贝赋值）。* 要准确理解为什么编译器生成的拷贝是**浅**拷贝，以及它如何导致 double-free（双重释放）。→ 第 6 节（三法则）、第 4 节（浅拷贝对比深拷贝）。
@@ -1326,7 +2563,7 @@ line Y [readability]: {unclear code}. Instead, {clearer code}.
 5. **下标运算符 `[]`** *（重载下标运算）。* 它返回 `int&`（一个左值），以及哪个类做边界检查。→ 第 6 节 Q44/Q59、第 2 节 Q13。
 6. **构建流水线与声明** *（函数声明、编译错误对比链接错误、重复定义）。* 哪个阶段捕获哪种错误；包含守卫能防止“重复定义”。→ 第 5 节表格 + 第 1 节 Q4。
 
-> 这六个题目簇是你最容易拿分的地方。如果你手工追踪大约 10 个短程序，并能从零写出一个正确的三法则类，你就已经覆盖了价值最高的内容。
+> 这六个题目簇是考试中分值最集中的地方。如果你手工追踪大约 10 个短程序，并能从零写出一个正确的三法则类，你就已经覆盖了价值最高的内容。
 
 ---
 
