@@ -9,7 +9,7 @@
 
 ## Exam logistics & strategy (from the Topic 10 deck)
 
-- **Read the instructions carefully *before* the exam.** Know your **assigned seat** (posted to EdStem shortly before). Bring **photo ID** (photo rosters also used).
+- **Read the instructions carefully before the exam.** Know your **assigned seat** (posted to EdStem shortly before). Bring **photo ID** (photo rosters also used).
 - **Phone fully stowed** — phone out = zero / "felony cheating." No visors, hoodies, or sunglasses that block your eyes.
 - **Bubble in your Exam Version** and print your **name + UCI NetID** on the answer sheet.
 - **Test-taking strategy:** read each question carefully → read it *again* → use the booklet as scratch paper → answer → bubble it in right away → **trust what you learned; don't second-guess yourself into a wrong answer** → review at the end if time allows.
@@ -53,6 +53,49 @@ Lines starting with `#`, handled by the **preprocessor** (the first compilation 
 - `#include <file>` — textually pastes in declarations (e.g., `#include <iostream>` brings in I/O declarations).
 - `#define NAME value` — defines a **macro** (text substitution).
 - `#ifdef` / `#ifndef` … `#endif` — conditional compilation (compile this block only if a name is / isn't defined).
+
+#### Conditional compilation in depth — `#ifdef` / `#ifndef` / `#if` / `#else` / `#elif` / `#endif` 💡
+**Conditional compilation** lets the **preprocessor keep or delete a whole block of code before the compiler ever sees it**, based on whether a macro is defined (or on a compile-time constant). Skipped code is never compiled — it's as if you had deleted it.
+
+| Directive | Keeps the block when… |
+|---|---|
+| `#ifdef NAME` | `NAME` **is** `#define`d |
+| `#ifndef NAME` | `NAME` is **not** defined |
+| `#if expr` | the constant-integer `expr` is **non-zero** (may use `defined(NAME)`) |
+| `#elif expr` | the previous tests failed **and** `expr` is non-zero (else-if) |
+| `#else` | all previous tests failed |
+| `#endif` | closes the block — **every `#if`/`#ifdef`/`#ifndef` needs a matching `#endif`** |
+| `#undef NAME` | (not a test) removes an existing definition |
+
+**Where does the name come from?** Either a `#define` in the code, or a **compiler flag**: `g++ -DDEBUG ...` defines `DEBUG`; `-DLEVEL=2` defines it *with a value*. (This is how the course build switches `assert` off — with `-DNDEBUG`.)
+```cpp
+// 1) Include guard — THE most common use (see Q4 below)
+#ifndef COMPLEX_HPP
+#define COMPLEX_HPP
+// ... header body: compiled at most once per translation unit ...
+#endif
+
+// 2) Platform-specific code (exactly one branch survives the preprocessor)
+#ifdef _WIN32
+    constexpr char SEP = '\\';     // Windows
+#elif defined(__APPLE__)
+    constexpr char SEP = '/';      // macOS
+#else
+    constexpr char SEP = '/';      // Linux / other
+#endif
+
+// 3) Debug-only code, switched on with  g++ -DDEBUG
+#ifdef DEBUG
+    std::cerr << "x = " << x << '\n';   // exists only in debug builds
+#endif
+
+// 4) Test a VALUE, not just "is it defined?"
+#if LEVEL >= 2
+    verbose_logging();
+#endif
+```
+> ⚠️ **Traps:** `#ifdef X` only asks *"does `X` exist?"* — to branch on its value use `#if X == 1`. Every `#if`/`#ifdef`/`#ifndef` **must** have a matching `#endif` (a missing one gives a confusing "unterminated #if" error). These names have **no type and no scope** (they're raw preprocessor text) — which is exactly why modern C++ keeps the preprocessor for *include guards and platform/build configuration* and prefers `constexpr` + `if constexpr` for ordinary logic.
+🐍 Python has **no preprocessor**. The nearest cousins — `if __debug__:` or `if sys.platform == "win32":` — run at **run time**, and the untaken branch is still compiled; `#ifdef` instead *removes* code before compilation.
 
 ### Macros, and what to use instead — (Q3)
 A **macro** is a preprocessor text substitution (`#define MAX 1024`). The preprocessor blindly replaces text *before* the compiler runs, so macros have **no type checking and no scope**.
@@ -117,6 +160,85 @@ int j = 8 - k * i / 2 + k * 2;   // == 8 - ((k*i)/2) + (k*2)
 ```
 > ⚠️ When unsure on the exam, **parenthesize explicitly** and trace it.
 
+#### Operator precedence — the table worth memorizing
+
+Building on (Q10): the three pointer-tracing examples there are the *easy* part. What trips people up on the exam is the **relative** ordering of operators that look unrelated (`<<` vs `?:`, `==` vs `&`). Memorize this table top-to-bottom; that is enough to parse anything Klefstad puts on the final.
+
+**Precedence table — high → low** (everything in one band is *equal* precedence, broken by associativity):
+
+| Level | Operators | Associativity | Read it as |
+|---|---|---|---|
+| 1 (highest) | `()` `[]` `->` `.` postfix `++` `--` | left → right | call / index / member / post-inc |
+| 2 | prefix `++` `--` unary `+` `-` `!` `~` deref `*` address `&` `(type)` `sizeof` | **right → left** | all the unary ops |
+| 3 | `*` `/` `%` | left → right | multiplicative |
+| 4 | `+` `-` (binary) | left → right | additive |
+| 5 | `<<` `>>` | left → right | shift / stream insert-extract |
+| 6 | `<` `<=` `>` `>=` | left → right | relational |
+| 7 | `==` `!=` | left → right | equality |
+| 8 | `&` | left → right | bitwise AND |
+| 9 | `^` | left → right | bitwise XOR |
+| 10 | `\|` | left → right | bitwise OR |
+| 11 | `&&` | left → right | logical AND |
+| 12 | `\|\|` | left → right | logical OR |
+| 13 | `?:` | **right → left** | conditional (ternary) |
+| 14 | `=` `+=` `-=` `*=` `/=` `%=` `<<=` … | **right → left** | assignment |
+| 15 (lowest) | `,` | left → right | comma |
+
+💡 The two **right-to-left** bands you actually use are: the unary band (2), the conditional `?:` (13), and assignment (14). Everything else binds left-to-right.
+
+**The traps that show up every term** — each with the exam-style line:
+
+(a) ⚠️ `<<` (level 5) is **higher** than `?:` (level 13). So a ternary inside a stream insert *must* be parenthesized:
+```cpp
+cout << a ? b : c;     // parses as (cout << a) ? b : c -- b/c discarded; -Werror rejects it
+cout << (a ? b : c);   // correct: insert b or c
+```
+
+(b) ⚠️ `==` (level 7) is **higher** than bitwise `&` (level 8). The classic bit-test bug:
+```cpp
+if (x & 1 == 0) { ... }    // parses as  x & (1 == 0)  ==  x & 0  ==  0  -> always false!
+if ((x & 1) == 0) { ... }  // correct: test the low bit
+```
+
+(c) ⚠️ `?:` (level 13) is **higher** than `=` (level 14), so the assignment binds *loosest*:
+```cpp
+int m = a > b ? a : b;     // (a > b ? a : b) computed first, then assigned -- this is fine
+m = cond ? x : y = 0;      // parses as  m = (cond ? x : (y = 0))  -- right-to-left, surprising
+```
+
+(d) Pointer/access chain — prefix `*` (level 2) is **lower** than `->` `[]` (level 1), so the access happens first (continuing the Q10 examples):
+```cpp
+*p->next      // == *(p->next)     -> first, then deref
+*a[i]         // == *(a[i])        index first, then deref
+&a[0]         // == &(a[0])        index first, then take address
+++*p          // == ++(*p)         deref first, then pre-increment the pointee
+*p++          // == *(p++)         post-inc the POINTER, deref the OLD pointer
+```
+
+(e) ⚠️🐍 Sequencing: `i = i++ + ++i;` reads/writes `i` multiple times with no sequence point between them → **undefined behavior**. Precedence tells you how it *parses*, not the *order of side effects*. 🐍 Python evaluates left-to-right with defined semantics and has no `++`/`--` at all; in C++ this line is simply **not allowed** — never write it.
+
+**Manual traces** (always rewrite into the fully-parenthesized form first, then evaluate):
+```cpp
+// 1)  mixed arithmetic, given k = 3, i = 4
+int j = 8 - k * i / 2 + k * 2;
+//   step 1 (level 3, L→R):  8 - ((k * i) / 2) + (k * 2)
+//   step 2 substitute:      8 - ((3 * 4) / 2) + (3 * 2) = 8 - 6 + 6
+//   step 3 (level 4, L→R):  (8 - 6) + 6 = 8
+
+// 2)  bit + equality, given x = 6
+bool even = x & 1 == 0;
+//   == x & (1 == 0)   (level 7 before level 8)
+//   == 6 & 0  == 0  -> false   (wrong intent!)   fix: (x & 1) == 0  -> true
+
+// 3)  logical vs relational vs shift
+if (a < b == c > d) { ... }
+//   == ((a < b) == (c > d))    (level 6 before level 7) -- compares two bools
+cout << x + 1 << " " << (n > 0 ? "+" : "-");
+//   == (((cout << (x + 1)) << " ") << (n > 0 ? "+" : "-"))   -- note the required parens on ?:
+```
+
+💡 **Exam move:** you do *not* need the whole table memorized perfectly under pressure — when in doubt, **add explicit parentheses and hand-trace** the parenthesized form. Correct-and-obvious beats clever-and-wrong, and `-Werror` won't flag extra parens.
+
 ### L-value vs R-value — (Q11)
 - **L-value** = something with an identity/address that can appear on the **left** of `=` (a named, addressable object). Example: a variable `x`, an array element `v[i]`, `*p`.
 - **R-value** = a temporary/value with no persistent address (right side only). Example: a literal `10`, the result of `a + b`, a returned-by-value temporary.
@@ -168,6 +290,17 @@ j = 70;         // changes i indirectly
 ```
 🐍 Python names are *references* to objects (closest to C++ references), but Python has nothing like a raw pointer or the `*`/`&` distinction.
 
+**⚠️ Declaring several pointers on one line — the `*` binds to the variable, not the type.**
+```cpp
+int* p1, p2, p3;     // ONLY p1 is a pointer; p2 and p3 are plain int!
+                     // (the * attaches to the declarator, not to 'int')
+int x = 0;
+p2 = &x;             // error: invalid conversion from 'int*' to 'int'  (p2 is an int)
+
+int *q1, *q2, *q3;   // fix: put a * on each name (clearest: one declaration per line)
+```
+> 💡 Contrast `int q1, q2, q3;` — there `int` applies to all three, so all three are `int`. The surprise only happens with `*` (and `&`): they bind to each individual name, not to the type.
+
 ### `const` keyword — (Q16)
 `const` means "cannot be modified." Used on variables, parameters (protect from accidental modification + enable `const&` efficiency), and member functions (promise not to modify `*this`).
 ```cpp
@@ -211,6 +344,55 @@ int x = static_cast<int>(std::round(d));  // double -> int with rounding
 ```
 > ⚠️ **Course build uses `-Werror`.** Implicit *narrowing* conversions (e.g., `double → int`, `int → char`) become errors, so you must make them explicit with `static_cast`.
 
+#### The four C++ casts compared — `static_cast` / `const_cast` / `dynamic_cast` / `reinterpret_cast` 💡
+
+C++ replaces the one-size-fits-all C-style cast with **four named casts**, each with a narrow job. Picking the right one documents *intent* and lets the compiler reject misuse. This pulls together `const_cast` (Q19) and `static_cast` (Q20) and adds the two you haven't seen yet.
+
+| Cast | What it does | Checked when? | Typical use | Safety |
+|:---|:---|:---:|:---|:---|
+| `static_cast<T>` | Convert between **related** types | **Compile time** (no runtime check) | numeric conversions, `void*`→`T*`, up/down a hierarchy | Safe *if* the relationship is real; a wrong downcast is **undefined behavior** |
+| `const_cast<T>` | Add/strip `const` / `volatile` | Compile time | force a value through a wrongly-`const` API | Stripping `const` then **writing** a truly-`const` object is undefined behavior — code smell |
+| `dynamic_cast<T>` | Cross a **polymorphic** hierarchy with a checked downcast | **Run time** (uses RTTI) | safe `Base*` → `Derived*` | Safe: tells you at run time whether the cast was valid |
+| `reinterpret_cast<T>` | Reinterpret the **raw bits** | Compile time (no real check) | pointer ↔ integer, low-level/`memcpy`-style code | **Dangerous**, almost never correct in this course |
+
+**`static_cast` — (Q20) 💡** The everyday conversion between related types: numeric conversions, `void*`→`T*`, and up/down an inheritance hierarchy *with no runtime check*.
+```cpp
+char c  = static_cast<char>(i);            // int -> char (narrowing, must be explicit)
+int  x  = static_cast<int>(std::round(d)); // double -> int with rounding
+Base* b = static_cast<Base*>(derivedPtr);  // upcast: always safe (Derived is-a Base)
+```
+> ⚠️ **Course build uses `-Werror`.** Implicit *narrowing* conversions (`double → int`, `int → char`) become errors, so you must make them explicit with `static_cast`. A `static_cast` **downcast** compiles with no complaint but does **no** runtime check — if the object isn't really that derived type, you get **undefined behavior**.
+
+**`const_cast` — (Q19)** The only cast that can add or remove `const`/`volatile`. Necessary only to pass a logically-modifiable object through an API that wrongly takes `const`. **Rare and a code smell**; writing through a pointer to a truly-`const` object is undefined behavior.
+```cpp
+const int* cp = &x;
+int* p = const_cast<int*>(cp);   // strip const (only when you know x isn't really const)
+```
+
+**`dynamic_cast` — the checked downcast** 💡 Only works on **polymorphic types** — the base class must have **at least one virtual function** (in our hierarchy, the virtual destructor / `draw()` already make `Shape` polymorphic, see §7). Use it to safely turn a `Base*` into a `Derived*` at run time:
+- **Pointer version** returns `nullptr` if the object isn't actually that derived type.
+- **Reference version** can't return null, so it **throws `std::bad_cast`** on failure.
+- **Upcasting** (`Derived*` → `Base*`) is implicit — you never need a cast for it.
+```cpp
+Shape* shapePtr = pic.at(i);                       // static type Shape*, dynamic type unknown
+if (Circle* cp = dynamic_cast<Circle*>(shapePtr)) {
+    cp->setRadius(5);            // safe: ran only because shapePtr really points to a Circle
+}                               // not a Circle -> dynamic_cast yields nullptr, branch skipped
+
+Shape& s = *shapePtr;
+Circle& cr = dynamic_cast<Circle&>(s);  // reference form: throws std::bad_cast if not a Circle
+```
+> 💡 If you find yourself reaching for `dynamic_cast` a lot, prefer a **virtual function** instead — let each `Shape` answer through dispatch (the §7 polymorphism point) rather than type-testing.
+
+**`reinterpret_cast` — raw bit reinterpretation** ⚠️ Tells the compiler to treat the bits as a different, *unrelated* type (e.g., pointer ↔ integer). It performs **no** conversion of value or representation. Almost never appropriate in this course; reserved for low-level systems code.
+```cpp
+std::uintptr_t addr = reinterpret_cast<std::uintptr_t>(ptr); // pointer -> integer (rare, low-level)
+```
+
+> ⚠️ **Never use a C-style cast `(T)x`.** It silently tries `static_cast`, then `const_cast`, then `reinterpret_cast` (or a combination) in a "best-effort" order — so a typo can quietly turn an intended numeric conversion into a bit reinterpretation, with no diagnostic. The four named casts state your **intent**, are **checked** appropriately, and are **greppable** (you can search the codebase for `reinterpret_cast` to audit risky code). Always use them.
+
+> 🐍 Python has no compile-time types to cast: `int(x)` / `str(x)` are **runtime conversions** that build new objects, and `isinstance(obj, Circle)` is the rough analog of a `dynamic_cast` check. There's nothing like `const_cast` (no `const`) or `reinterpret_cast` (no raw memory reinterpretation) — those exist only because C++ exposes static types and memory.
+
 ### `auto` — (Q21)
 `auto` lets the compiler **deduce** a variable's type from its initializer. Great for verbose iterator types and lambdas.
 ```cpp
@@ -223,6 +405,25 @@ for (auto it = V.begin(); it != V.end(); ++it) ...   // no need to spell out the
 - **Signed** can hold negative and positive values (one bit effectively encodes sign).
 - **Unsigned** holds only non-negatives, doubling the positive range; it **wraps around** on underflow/overflow.
 - > ⚠️ Classic bug: `v.size()` is **unsigned**. `for (int i = 0; i < v.size(); ++i)` mixes signed/unsigned; `v.size() - 1` when `size()==0` wraps to a huge number.
+
+**Example — watch it wrap:**
+```cpp
+unsigned u = 0;
+u = u - 1;               // 4294967295 (UINT_MAX, 32-bit) — unsigned WRAPS; it is NOT -1
+
+vector<int> v;           // empty;  v.size() has type size_t (unsigned)
+auto n = v.size() - 1;   // 18446744073709551615 (64-bit size_t wraps!) — NOT -1
+
+for (int i = 0; i < v.size(); ++i) { /* ... */ }   // int vs size_t → -Wsign-compare (an ERROR under -Werror)
+```
+**Fixes:**
+```cpp
+for (size_t i = 0; i < v.size(); ++i) { /* ... */ }   // A) use the matching unsigned type
+for (int x : v) { /* ... */ }                          // B) range-based for — no index, no sign issue (preferred)
+if (!v.empty())                                        // C) guard before subtracting from an unsigned size
+    for (size_t i = 0; i + 1 < v.size(); ++i) { /* ... */ }   // compare with +1; never compute size()-1 on empty
+```
+> 💡 Index with `size_t` (or use a range-based `for`), and **never write `container.size() - 1` without first checking it isn't empty** — on an empty container it underflows to ~1.8×10¹⁹.
 
 ### Ternary conditional operator `?:` — (Q23)
 `condition ? valueIfTrue : valueIfFalse` — an **expression** that yields a value (unlike `if`, which is a statement).
@@ -318,7 +519,7 @@ Heap storage that is **never `delete`d** and to which you've lost the last point
 | Overhead | none per element | a `next` pointer per node |
 - Both "should only be used as the *implementation* of classes." A linked list's nodes are chained with pointers; `nullptr` marks the end; an empty list has `head == nullptr`.
 
-### Shallow copy vs deep copy — (Q34) 💡 (heavily tested; you missed this on the midterm — see Appendix D)
+### Shallow copy vs deep copy — (Q34) 💡 (heavily tested — see Appendix D)
 - **Shallow copy:** copies the pointer value only → two objects point at the **same** heap array. Disaster: both destructors `delete[]` the same memory (**double-free**), and changes through one affect the other.
 - **Deep copy:** allocates a **new** heap array and copies the elements → the two objects are independent.
 ```cpp
@@ -351,6 +552,15 @@ int * buf = new int[2 * N];   // local stack pointer -> heap array of 2*N ints
 buf[2*N - 1] = N;             // store N in the LAST element (index 2*N - 1)
 delete[] buf;                 // array allocation -> delete[]
 ```
+
+**Why not just `int buf[2*N];`?** A plain C-style **stack** array needs a size that is a **compile-time constant**. When `N` is a *runtime* value, `2*N` isn't known until the program runs, so `int buf[2*N];` is a **variable-length array (VLA)** — a non-standard compiler extension, **not** ISO C++. A standards-conforming build rejects it:
+```cpp
+int N = readSize();   // runtime value
+int buf[2*N];         // ❌ error: "ISO C++ forbids variable length array 'buf'"  (-pedantic / -Wvla)
+                      //    (plain g++ allows it as an extension, but it is non-portable)
+```
+Even where that extension compiles, a stack array is the **wrong tool** here: it dies at the end of its block (it can't outlive the function or be returned), it can't be resized, and a large `N` can **overflow the stack**. You use the **heap** (`new int[2*N]`) precisely because the heap can be sized at **runtime** and lives until you `delete[]` it.
+> 💡 `int buf[2*N];` *is* legal **only when `N` is a compile-time constant**: `constexpr int N = 5; int buf[2*N];` — a fixed-size stack array (Q17 / Q28). The moment the size is a runtime value, you need `new[]`.
 
 ### Is `A[i]` bounds-checked for a C array? — (Q37) 💡
 **No.** A low-level C array is just a base address; `A[i]` computes `*(A + i)` with **no** check that `i` is in range. If `i` is out of range you read/write memory outside the array → undefined behavior: garbage values, corrupted data, or a seg fault. (That's *why* we wrap arrays in a class with a checked `operator[]`.)
@@ -457,6 +667,67 @@ struct Base    { virtual void draw(); };
 struct Derived : Base { void draw() override; };  // override (same signature, virtual)
 ```
 
+#### `virtual` overriding in depth — how dynamic dispatch works 💡💡
+
+> 🔗 This is the deep companion to **Q68** (virtual functions, Section 7) and the **virtual destructor** (Q69) — the dispatch mechanism and the pitfalls.
+
+With `virtual`, a call through a **base pointer or reference** is dispatched at **run time** to the override matching the object's **actual (dynamic) type** — the call goes through a hidden per-object vtable pointer (Q68). Without `virtual`, the very same call binds at **compile time** to the **declared (static)** type.
+```cpp
+struct Shape  { virtual void draw() const { cout << "Shape\n"; } virtual ~Shape() = default; };
+struct Circle : Shape { void draw() const override { cout << "Circle\n"; } };
+
+Shape* s = new Circle;
+s->draw();     // "Circle" — virtual: dispatched by the ACTUAL type
+               // if draw() were NOT virtual: "Shape" (bound by the declared type Shape*)
+delete s;      // needs Shape's virtual destructor (Q69), or Circle's part leaks
+```
+**What actually counts as an override** (writing `override` makes the compiler check all of it):
+- same **name**, same **parameter list**, same **`const`/ref-qualifiers**;
+- the base function is **`virtual`**;
+- return type **identical** — or **covariant** (`Derived*`/`Derived&` where the base returns `Base*`/`Base&`).
+- Add `override` so any mismatch is a **compile error**; add `final` to forbid overriding it further.
+```cpp
+struct Base { virtual void f(int); virtual Base* clone() const; };
+struct Good : Base {
+    void  f(int)        override;   // ✅ real override
+    Good* clone() const override;   // ✅ covariant return is allowed
+};
+struct Oops : Base {
+    void  f(double)     override;   // ❌ error: "marked 'override', but does not override"
+};
+```
+
+**⚠️ The traps that bite on the exam:**
+
+**(1) Name hiding, not overriding.** A derived member with the **same name but a different signature** *hides* **all** base overloads of that name — they disappear from the derived interface:
+```cpp
+struct B { void f(int) {} };
+struct D : B { void f() {} };   // hides B::f(int)
+D d;
+d.f(3);       // ❌ "no matching function for call to 'D::f(int)'" — hidden, not overloaded
+d.B::f(3);    // ✅ qualify it  (or write  using B::f;  inside D to un-hide)
+```
+**(2) Forgot `virtual`** → no dynamic dispatch: a base-pointer call uses the **base** version. (And then `override` won't even compile — which is exactly why you should always write `override`.)
+
+**(3) Default arguments bind to the static type.** A virtual call runs the derived **body** but takes the **base's** default argument — so never change a default in an override:
+```cpp
+struct B { virtual void g(int x = 1) { cout << "B " << x; } };
+struct D : B { void g(int x = 2) override { cout << "D " << x; } };
+B* p = new D;
+p->g();       // prints "D 1" — D's body, but B's default arg!  (keep defaults identical)
+```
+**(4) Object slicing.** Copy a `Derived` into a `Base` **by value** and the derived part is sliced off; later virtual calls use `Base`. Always pass/store polymorphic objects **by reference or pointer**:
+```cpp
+D d;          // the D from above (overrides g)
+B  b = d;     // copy-by-value: slices the D part off
+b.g();        // "B 1" — b is a B; the override is gone
+B& r = d;     // bind by reference instead
+r.g();        // "D 1" — through a reference, dispatch still works
+```
+🐍 In Python every method is already "virtual" (dynamic), and there is no overloading or slicing; C++ makes you opt in with `virtual` and punishes by-value copies of derived objects with slicing.
+
+> 🛡️ **Preventing slicing — two layers.** (1) If the base is **abstract** (has a pure virtual), then `Base b = d;` and `vector<Base>` won't even compile — `error: cannot allocate an object of abstract type 'Base'`. Abstractness already forbids by-value copies, so the *silent* slice only bites with a **concrete** base. (2) For a concrete polymorphic base, `=delete` its copy constructor and copy assignment (or make the copy constructor `protected`) so an accidental `Base b = d;` becomes a hard `error: use of deleted function`. That is why HW6 keeps `Shape*` in a `Picture` and never stores/copies a `Shape` by value. 🔗 see Q71 (abstract class) and Q73 (the `vector<Shape*>` demo).
+
 ### Overloading an operator: top-level vs member — (Q44) 💡 (Final-review "operators" slide)
 - **As a member function:** the **left operand is `this`** (implicit), so you declare **one fewer** parameter.
 - **As a top-level (plain) function:** you declare **all** operands explicitly.
@@ -469,6 +740,45 @@ ostream & operator<<(ostream & out, const Complex & c) { c.print(out); return ou
 istream & operator>>(istream & in, Complex & c)        { c.read(in);  return in;  }
 ```
 **Which must be members:** `=`, `[]`, `()`, `->`, and type-conversion operators **must be member functions**. `<<` and `>>` **cannot** be members (their left operand is the stream) — make them top-level (often `friend`). Symmetric operators like `== != < > + -` can be either (member with one param, or top-level with two).
+
+**Worked example — one class, both kinds of operator (with output):**
+```cpp
+#include <iostream>
+using namespace std;   // OK inside a .cpp (never in a .hpp)
+
+class Complex {
+    double re, im;
+public:
+    Complex(double r = 0, double i = 0) : re(r), im(i) {}
+
+    // MEMBER operators: the left operand is *this, so you declare ONE fewer parameter
+    Complex  operator+ (const Complex& rhs) const { return Complex{re + rhs.re, im + rhs.im}; }
+    bool     operator==(const Complex& rhs) const { return re == rhs.re && im == rhs.im; }
+    Complex& operator+=(const Complex& rhs)       { re += rhs.re; im += rhs.im; return *this; }  // return *this to chain
+
+    friend ostream& operator<<(ostream&, const Complex&);   // let the stream op read private re/im
+};
+
+// TOP-LEVEL (friend): the left operand is the stream, so it CANNOT be a member
+ostream& operator<<(ostream& out, const Complex& c) {
+    return out << "(" << c.re << ", " << c.im << ")";
+}
+
+int main() {
+    Complex a{1, 2}, b{3, -4};
+    cout << (a + b)  << '\n';   // a.operator+(b)      -> (4, -2)
+    cout << (a == b) << '\n';   // a.operator==(b)     -> 0   (false)
+    a += b;                     // a.operator+=(b)
+    cout << a        << '\n';   // operator<<(cout, a) -> (4, -2)
+}
+```
+**Output:**
+```text
+(4, -2)
+0
+(4, -2)
+```
+> 💡 `a + b` is really `a.operator+(b)` — the **member's** left operand is `a` (`*this`), so it takes only **one** explicit parameter. `cout << a` is `operator<<(cout, a)` — its left operand is the **stream**, so it **must** be a top-level function (a `friend` here so it can read the private `re`/`im`).
 
 ### Inline function — (Q45)
 A function marked `inline` is a *request* that the compiler **substitute the body at the call site** instead of making a real call. Benefit: removes call overhead for tiny functions (and is the modern, type-safe replacement for function-like macros). Defining a function **inside** a class body makes it implicitly inline.
@@ -491,14 +801,122 @@ A non-member function (or another class) that a class **grants access to its `pr
 - A **`constexpr` variable** is a compile-time constant (Q17).
 - A **`constexpr` function** *can* be evaluated at compile time when given compile-time arguments (and at run time otherwise). Use them to compute constants without macros.
 
-#### How C++ programs are built — (which error comes from which tool?) 💡 (Final-review "declarations vs definitions" slide; you missed link/multiple-definition Qs on the midterm)
+#### How C++ programs are built — (which error comes from which tool?) 💡 (Final-review "declarations vs definitions" slide; the link-vs-compile-error distinction and "multiply defined" trip people up)
 | Stage | Handles | Typical error |
 |---|---|---|
 | **Preprocessor** | `#include`, `#define`, `#ifdef` | (text errors) |
-| **Compiler** | one pass per source file; must be **declared before called** | **"undeclared"** identifier; type errors; **compile errors** |
+| **Compiler** | one pass per source file; must be **declared before called** | **"undeclared"** identifier; type / **syntax** errors; **"redefinition"** (same file) |
 | **Linker** | combines `.o` files; called function must be **defined** | **"undefined reference"**; **"multiply defined"** (same symbol defined in 2 files) |
 | **Loader** | loads the executable into RAM, calls `main()` | — |
 | (run time) | — | **segmentation fault** (bad pointer/index) |
+
+#### Which stage reports which error — worked examples 💡
+
+The Section 5 table tells you *which tool* catches each error; here is a **runnable minimal snippet** for each, the tool that fires, and the message you'll roughly see. Compile with the course-style build (`g++ -std=c++20 -Wall -Werror ...`).
+
+**(1) Undeclared identifier — compiler** (Q4)
+Calling `foo()` before any declaration is visible in this translation unit:
+```cpp
+int main() {
+    foo();              // used here, but never declared above
+    return 0;
+}
+void foo() { }          // declaration/definition comes too late
+```
+> Compiler: `error: 'foo' was not declared in this scope`. The compiler reads **top-to-bottom, one file at a time**, so the name must be **declared before it is called** (a prototype above `main` would fix it). 🐍 Unlike Python, where a function just needs to *exist* by call time at run time, C++ resolves names at compile time.
+
+**(2) Type / narrowing error — compiler (an error under `-Werror`)** (Q20)
+Narrowing conversions are diagnosed in **brace-initialization** `{ }` (copy-init with `=` does **not** trigger the narrowing rule):
+```cpp
+double d = 3.9;
+int n{d};               // narrowing double -> int
+char c{300};            // narrowing int -> char (300 doesn't fit)
+```
+> `int n{d}` is a **warning** by default that `-Werror` turns into a hard error (`error: narrowing conversion of 'd' from 'double' to 'int'`); `char c{300}` is **already an error** even without `-Werror`. ⚠️ Fix by making the conversion explicit: `int n{static_cast<int>(d)};`, `char c{static_cast<char>(300)};`. This is caught at **compile time**, in the single file being compiled.
+
+**(3) Syntax error (e.g. a missing `;`) — compiler**
+One missing token derails the parser, and the message often points at the *next* line:
+```cpp
+struct Point { int x; int y; }   // missing ';' after the closing brace
+
+int main() { Point p; return 0; }
+```
+> Compiler: `error: expected ';' after struct definition`. ⚠️ The flagged line is often *after* the real mistake — on a baffling error, check the **previous** line for a missing `;`, `}`, or `)`.
+
+**(4) Redefinition in one translation unit — compiler** (Q4 — why include guards exist)
+Define the same type twice in a single file — most often by `#include`-ing a guard-less header twice:
+```cpp
+// shape.hpp — NO include guard
+struct Shape { int sides; };
+```
+```cpp
+// main.cpp
+#include "shape.hpp"
+#include "shape.hpp"   // 2nd inclusion -> struct Shape defined twice in THIS file
+int main() { return 0; }
+```
+> Compiler: `error: redefinition of 'struct Shape'` — caught at **compile time**, inside one translation unit. ✅ Fix: wrap the header in an **include guard** (`#ifndef SHAPE_HPP` / `#define SHAPE_HPP` / … / `#endif`) or `#pragma once`; the second `#include` then expands to nothing.
+> 💡 Contrast with (6) below: a **redefinition** is one file seeing a type twice (a **compiler** error); **"multiply defined"** is two files each emitting the same symbol (a **linker** error). Include guards fix the former, not the latter.
+
+**(5) Undefined reference — linker** (Q4)
+The function is **declared and called**, so the compiler is happy — but no definition is ever supplied (or you forgot to compile/link the `.cpp` that defines it):
+```cpp
+void foo();             // declaration only — promise it exists somewhere
+int main() {
+    foo();              // compiles fine: declaration is in scope
+    return 0;
+}
+// no definition of foo() anywhere in the linked .o files
+```
+> Linker: `undefined reference to 'foo()'`. ⚠️ The classic real-world cause is forgetting a file on the command line — `g++ main.cpp` instead of `g++ main.cpp foo.cpp`. The compiler only needs the **declaration**; the linker needs the **definition**.
+
+**(6) Multiply defined — linker** (Q4)
+Put a **non-`inline` function definition in a header**, then `#include` that header from two `.cpp` files:
+```cpp
+// util.hpp  — a real DEFINITION (body), not inline
+void foo() { }          // every .cpp that includes this gets its own copy
+```
+```cpp
+// a.cpp
+#include "util.hpp"
+```
+```cpp
+// b.cpp
+#include "util.hpp"
+```
+> Linker (building `a.o` + `b.o`): `multiple definition of 'foo()'`. Each translation unit emitted its own `foo`, and the linker refuses to pick one.
+
+> ⚠️ **Common misconception — include guards do NOT fix this.** An include guard (`#ifndef … #define … #endif`) only stops the **same header from being textually included twice within one translation unit**, which prevents *type/class* redefinition. It does **nothing** across separate `.cpp` files: `a.cpp` and `b.cpp` are compiled independently, each runs the guard from scratch, so each still emits a definition of `foo()`. The real fixes are:
+> - mark the function `inline` in the header (the linker is then allowed to merge the identical copies), or
+> - leave only the **declaration** in the header and move the **definition** into a single `.cpp`.
+
+**(7) Segmentation fault — run time** (Q4)
+Compiles and links cleanly; blows up only when executed:
+```cpp
+int main() {
+    int* p = nullptr;
+    *p = 42;            // dereference of null pointer -> undefined behavior
+    int a[3] = {};
+    return a[1000000];  // wild out-of-bounds index -> undefined behavior
+}
+```
+> No tool warns here — it is **undefined behavior** that typically surfaces as `Segmentation fault (core dumped)` from the OS at **run time**.
+
+**One-line takeaway:** the **compiler** works **per file and needs declarations**; the **linker** **merges files and needs definitions**.
+
+#### Declaration × definition × use — the full truth table 💡💡
+The whole "undeclared vs undefined reference" confusion in one matrix. **Declared** = a prototype is visible before the call; **Defined** = a body exists in some linked `.o`; **Used** = actually called. (Every row verified with `g++ -std=c++20 -Wall -Wextra`.)
+
+| Declared | Defined | Used | Compile | Link | What happens |
+|:---:|:---:|:---:|:---:|:---:|---|
+| ✅ | ✅ | ✅ | ✅ | ✅ | normal — everything resolves |
+| ✅ | ✅ | ❌ | ✅ | ✅ | declared + defined but unused — perfectly fine, not even a warning |
+| ✅ | ❌ | ✅ | ✅ | ❌ | `undefined reference` — the linker hunts for the body and can't find it (the case people ask about) |
+| ✅ | ❌ | ❌ | ✅ | ✅ | declared, no body, never called — nobody references it, so the linker never looks → no error |
+| ❌ | — | ✅ | ❌ | — | `undeclared` — the compiler stops here; it never reaches the linker |
+| ❌ | ✅ | ✅ | depends | — | a definition is also a declaration: define-before-use compiles and links; define-after-use is `undeclared` at the call |
+
+> 💡 The two rows that matter: **declared-but-not-defined** only explodes **when it is used** (row 3 → linker `undefined reference`); if nothing calls it (row 4) the linker has no reason to look, so it links clean. A name that was **never declared** (row 5) dies at **compile** time — it never gets far enough to be a *link* error. The last row is why you can call a function defined earlier in the same file without a separate prototype, but one defined later needs a prototype above the call.
 
 ---
 
@@ -541,6 +959,8 @@ Both are inaccessible to outside code. The difference is inheritance:
 | `private` | ✅ | ❌ | ❌ |
 
 (So **`protected` = `private` plus "also visible to derived classes."**)
+
+> 🔗 Different from the Q67 inheritance-mode table: this one is about who can access a member; that one is about how an inheritance mode re-labels inherited members.
 
 ### Constructor and its role — (Q53)
 A special member function (same name as the class, no return type) that **builds and initializes `this` object**; called **automatically right after allocation**. Use a **member initializer list** to construct data members:
@@ -634,9 +1054,100 @@ Vector(Vector && v) : maxLen(v.maxLen), buf(v.buf) {   // steal the pointer
 | Work | allocate + copy elements | steal pointer (cheap) |
 | Triggered by | L-value source | R-value / `std::move` source |
 
+#### Worked example — when each of the 4 special members fires (with output) 💡💡
+One class that owns a heap `int* buf`, with all four special members instrumented so you can see exactly which one runs. `std::move` (from `<utility>`) turns an l-value into an r-value, so it selects the **move** versions:
+```cpp
+#include <iostream>
+#include <utility>          // std::move
+using namespace std;
+
+class Vec {
+    int* buf;
+    int  n;
+public:
+    Vec(int len) : buf(new int[len]), n(len) { cout << "ctor\n"; }
+    ~Vec() { delete[] buf; }
+
+    Vec(const Vec& o) : buf(new int[o.n]), n(o.n) {           // (1) COPY ctor
+        for (int i = 0; i < n; ++i) buf[i] = o.buf[i];        //     deep-copy each element
+        cout << "copy ctor\n";
+    }
+    Vec& operator=(const Vec& o) {                            // (2) COPY assignment
+        cout << "copy =\n";
+        if (this != &o) {                                     //     self-assignment check (identity)
+            delete[] buf;                                     //     free the OLD array first
+            n = o.n; buf = new int[n];
+            for (int i = 0; i < n; ++i) buf[i] = o.buf[i];
+        }
+        return *this;                                         //     return *this -> chaining
+    }
+    Vec(Vec&& o) noexcept : buf(o.buf), n(o.n) {              // (3) MOVE ctor — steal the pointer
+        o.buf = nullptr; o.n = 0;                             //     leave source safe to destruct
+        cout << "move ctor\n";
+    }
+    Vec& operator=(Vec&& o) noexcept {                        // (4) MOVE assignment
+        cout << "move =\n";
+        if (this != &o) {
+            delete[] buf; buf = o.buf; n = o.n;
+            o.buf = nullptr; o.n = 0;                         //     null out source -> no double free
+        }
+        return *this;
+    }
+};
+
+int main() {
+    Vec a{3}, b{3};
+    Vec c = a;              // (1) copy ctor — initialize from an L-value
+    c = b;                  // (2) copy =    — assign into an existing object from an L-value
+    Vec d = std::move(a);   // (3) move ctor — initialize from an R-value (std::move)
+    d = std::move(b);       // (4) move =    — assign from an R-value
+}
+```
+**Output:**
+```text
+ctor
+ctor
+copy ctor
+copy =
+move ctor
+move =
+```
+> 💡 The trigger is **what is on the right**: an **L-value** source (a named object like `a`) picks the **copy** version; an **R-value** source (a temporary, or `std::move(a)`) picks the **move** version. **Initializing** a new object (`Vec c = …`) calls a **constructor**; assigning into an **existing** object (`c = …`) calls an **assignment operator**. Copy = allocate + deep-copy; move = steal the pointer + null the source. (The destructors at the end print nothing.)
+
 ### Static vs non-static **data** member — (Q63)
 - A **non-static** data member exists **per object** (each instance has its own).
 - A **`static`** data member is **shared by all objects** of the class (one copy total); accessed as `ClassName::member`.
+
+**Example — one shared `count`, one `id` per object (with output):**
+```cpp
+#include <iostream>
+using namespace std;
+
+class Widget {
+    int id;                 // non-static: each object has its OWN
+    static int count;       // static: ONE shared copy for the whole class
+public:
+    Widget() : id(++count) {}              // bump the shared counter; give this object its id
+    int myId() const { return id; }
+    static int total() { return count; }   // static member function: has no 'this'
+};
+
+int Widget::count = 0;      // define + initialize the static member ONCE (in a .cpp)
+
+int main() {
+    Widget a, b, c;
+    cout << a.myId() << " " << b.myId() << " " << c.myId() << '\n';  // per-object ids
+    cout << Widget::total() << '\n';                                  // shared count, via ClassName::
+    cout << "sizeof(Widget) = " << sizeof(Widget) << '\n';           // static is NOT stored per object
+}
+```
+**Output:**
+```text
+1 2 3
+3
+sizeof(Widget) = 4
+```
+> 💡 Each `Widget` got its **own** `id` (1, 2, 3) — the **non-static** member. There is only **one** `count`, shared by all objects (so `total()` is 3) — the **static** member, reached as `Widget::total()`. Note `sizeof(Widget) == 4` (just the one `int id`): the static `count` lives **once** in static storage, **not** inside each object. ⚠️ A static data member must be **defined once outside the class** (`int Widget::count = 0;`) or the linker reports "undefined reference".
 
 ### Static vs non-static **member function** — (Q64)
 - A **non-static** method has a `this` pointer and operates on a specific object.
@@ -660,7 +1171,7 @@ Vector arr[10]; // each element default-constructed
 >
 > **RULE OF ZERO** (Topic 7): *if you can avoid defining the special operations, do.* If your members are all well-behaved types (`std::string`, `std::vector`, `std::map`, smart pointers…), they manage themselves → **write none of the five**; the compiler-generated defaults are correct.
 
-**What the *defaults* do, and why they're wrong for a raw pointer:** the compiler-generated copy constructor / copy assignment do a **member-wise (shallow) copy**, and the default destructor does nothing special. With a `char* buf`:
+**What the defaults do, and why they're wrong for a raw pointer:** the compiler-generated copy constructor / copy assignment do a **member-wise (shallow) copy**, and the default destructor does nothing special. With a `char* buf`:
 ```cpp
 String::~String() { delete[] buf; }
 String(const String & s) = default;   // shallow copy -> two objects share buf -> double free!
@@ -684,6 +1195,34 @@ class Triangle : public Shape { /* ... */ };   // "Triangle is a kind of Shape"
 ```
 > Distinguish **inheritance ("is a kind of")** from **containment ("has a"/"is a part of")**. An `Engine` is *part of* a `Car` → make it a **data member**. A `Car` *is a kind of* `Vehicle` → use **public inheritance**.
 
+**Example — a shared base function (the reuse half of inheritance):**
+```cpp
+#include <iostream>
+using namespace std;
+
+struct Account {
+    double balance = 0;
+    void deposit(double x) { balance += x; }   // SHARED: written once, inherited by every account
+    virtual double interest() const = 0;       // this part varies per account type
+};
+struct Savings  : Account { double interest() const override { return balance * 0.05; } };
+struct Checking : Account { double interest() const override { return balance * 0.01; } };
+
+int main() {
+    Savings s; Checking c;
+    s.deposit(1000);                 // Account::deposit — inherited, not rewritten
+    c.deposit(1000);                 // the very same function
+    cout << s.interest() << '\n';    // Savings::interest
+    cout << c.interest() << '\n';    // Checking::interest
+}
+```
+**Output:**
+```text
+50
+10
+```
+> 💡 `deposit()` is written **once** in `Account` and **inherited unchanged** by both `Savings` and `Checking` — that is inheritance as **code reuse** (no copy-paste). `interest()` is `virtual`, so it **varies** per type — that is polymorphism. Most real base classes mix both: shared concrete methods **plus** virtual hooks.
+
 ### Base class vs derived class — (Q67)
 - **Base** (superclass/parent): defines the common data + methods.
 - **Derived** (subclass/child): inherits them, may add more, may override. A derived class can itself be a base for a further class (`Menu : public Window : public Screen`).
@@ -699,6 +1238,8 @@ The **inheritance mode** controls what the base class's members *become* inside 
 
 > Read the mode as a **ceiling**: members come through *at most* as accessible as the mode allows, and a base's `private` members are **never** directly accessible to the derived class regardless of mode. Building a `Stack` on top of a `Vector` via `private` inheritance is "reuse," not "is-a" — don't use *public* inheritance for that (array subscripting into a stack makes no sense).
 
+> 🔗 Not the same as the Q52 table: **that** one shows who can access a member of a given access level (class / derived / outside); **this** one shows what access an inherited member ends up with under each inheritance mode.
+
 ### Virtual function — (Q68) 💡
 A member function marked `virtual` uses **dynamic binding**: the version called is chosen at **run time** by the object's **actual (dynamic) type**, not its declared (static) type. This is what makes polymorphism work through a base pointer/reference.
 ```cpp
@@ -707,15 +1248,38 @@ struct Derived : Base { int f() override; };     // "once virtual, always virtua
 ```
 > Style: write `override` when overriding (the compiler then verifies the signature matches). `virtual` is optional in the derived class but preferred for clarity.
 
+> 🔗 This is the **definition**. For which version actually runs, see **Static vs dynamic binding** just below; for the vtable dispatch mechanism and the override pitfalls (name hiding, slicing, default-arg binding), see the **"`virtual` overriding in depth"** block under Q43.
+
 ### Static vs dynamic binding — (which version runs?) 💡
+Two "types" are in play whenever you use a base pointer or reference: the **static (declared) type** — what you wrote in the declaration — and the **dynamic (actual) type** — the real type of the object it refers to. The question is **which one decides which function runs**:
+- A **non-virtual** call is resolved at **compile time** by the **static (declared)** type.
+- A **virtual** call is resolved at **run time** by the **dynamic (actual)** type — that is polymorphism.
 ```cpp
-CheckedVector cv(20);
-Vector & vp = cv;          // declared (static) type Vector; actual (dynamic) type CheckedVector
-vp[0];   // if operator[] is virtual -> CheckedVector::operator[] (dynamic binding)
-         // if NOT virtual          -> Vector::operator[]        (static binding, by declared type)
+#include <iostream>
+using namespace std;
+
+struct Animal {
+    void name()          { cout << "Animal\n"; }   // NON-virtual
+    virtual void sound() { cout << "...\n";    }   // virtual
+};
+struct Dog : Animal {
+    void name()           { cout << "Dog\n";  }    // hides Animal::name (NOT an override)
+    void sound() override { cout << "Woof\n"; }
+};
+
+int main() {
+    Dog d;
+    Animal& a = d;     // static (declared) type = Animal;  dynamic (actual) type = Dog
+    a.name();          // non-virtual -> chosen by the STATIC type  -> "Animal"
+    a.sound();         // virtual     -> chosen by the DYNAMIC type -> "Woof"
+}
 ```
-- **Static binding** (non-virtual): chosen at compile time by the **declared** type. Good for a *homogeneous* set / pure reuse.
-- **Dynamic binding** (virtual): deferred to run time, by the **actual** type. Needed for a *heterogeneous* mix (Shapes in a Picture).
+**Output:**
+```text
+Animal
+Woof
+```
+> 💡 Same object `d`, same handle `a` — yet `a.name()` prints **Animal** while `a.sound()` prints **Woof**. The only difference is `virtual`: without it the call follows the **declared** type (`Animal`); with it the call follows the **actual** type (`Dog`). That is exactly why a `Picture` holding many `Shape*`/`Shape&` can call `draw()` and get each real shape's version (the *heterogeneous* case). Static binding is fine when the set is *homogeneous* or you only want reuse.
 
 ### Virtual destructor, and why it matters — (Q69) 💡💡
 When you `delete` a derived object **through a base pointer**, only the base destructor runs **unless the base destructor is `virtual`** — so the derived part leaks/under-destructs. **Rule:** any class with virtual functions (any base of a polymorphic hierarchy) needs a **virtual destructor**, introduced at the **root**.
@@ -737,7 +1301,24 @@ virtual void draw() = 0;          // pure virtual: no body, MUST be overridden
 ```
 
 ### Abstract class — (Q71) 💡
-A class with **one or more pure virtual functions** is **abstract**. You **cannot instantiate** an abstract class (`Shape s;` is an error) — you can only declare **pointers or references** to it (`Shape* sp; Shape& sr;`). It defines an interface that concrete derived classes implement. A non-pure method like `move()` *can* be defined in the abstract base.
+A class with **one or more pure virtual functions** (`= 0`) is **abstract** — it describes *what* a family of types can do without saying *how*. You **cannot instantiate** it directly (`Shape s;` gives `error: cannot declare variable 's' to be of abstract type 'Shape'`); you can only use **pointers or references** to it (`Shape* sp; Shape& sr;`), which then point at concrete derived objects.
+
+An abstract class is still a real class — it **can** have:
+- **data members** and **constructors** (run by the derived class's constructor);
+- **non-pure (concrete) methods with bodies** (like `describe()` below), which may even call the pure ones;
+- a **virtual destructor** (and it should have one — Q69).
+
+What it **can't** do is exist as a standalone object — and a derived class that **fails to override every** pure virtual is **itself still abstract**.
+```cpp
+struct Shape {
+    virtual double area() const = 0;   // pure virtual -> Shape is abstract
+    void describe() const;             // a concrete (non-pure) method is still allowed
+    virtual ~Shape() = default;
+};
+// Shape s;                 // ERROR: cannot declare variable 's' to be of abstract type 'Shape'
+Shape* sp = new Circle(3);  // OK: use the abstract base only through a pointer/reference
+```
+> 🔗 For a full runnable polymorphism demo — a `vector<Shape*>` of `Circle`/`Square` with output — see the **complete example at the end of Q73**.
 
 ### Pure virtual destructor — (Q72)
 You may declare a destructor pure virtual (`virtual ~Shape() = 0;`) to **force the class to be abstract** when it has no other pure virtual function. Catch: a pure virtual destructor **still needs a definition** (the body), because every derived destructor calls the base destructor.
@@ -758,6 +1339,51 @@ void rotate_all(Shape* vec[], int size, int angle) {
 ```
 **Benefit — extensible frameworks:** you can add a **new** `Shape` subtype (e.g., `Square`) **without changing** `rotate_all` or `Picture`. *"Picture knows nothing about Triangle, only about Shape."*
 > Construction/destruction order: **base constructed first, then derived members**; destruction is the reverse. A derived constructor calls the base constructor first (the default if you don't name one).
+
+#### Complete example — polymorphism in action (with output) 💡💡
+The whole Section-7 picture in one runnable program: an abstract `Shape` interface, two concrete shapes, and **framework code (`printAll`) that mentions only `Shape`** — yet each call runs the real type's version.
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Shape {                                  // abstract base = the interface
+    virtual string name() const = 0;
+    virtual double area() const = 0;
+    virtual ~Shape() = default;                 // virtual dtor: delete through Shape* is safe
+};
+struct Circle : Shape {
+    double r;
+    Circle(double r_) : r(r_) {}
+    string name() const override { return "Circle"; }
+    double area() const override { return 3.14159 * r * r; }
+};
+struct Square : Shape {
+    double s;
+    Square(double s_) : s(s_) {}
+    string name() const override { return "Square"; }
+    double area() const override { return s * s; }
+};
+
+// Framework code: knows ONLY about Shape — it never names Circle/Square
+void printAll(const vector<Shape*>& pic) {
+    for (const Shape* sp : pic)
+        cout << sp->name() << " area = " << sp->area() << '\n';   // dynamic dispatch
+}
+
+int main() {
+    vector<Shape*> pic = { new Circle(2), new Square(3) };
+    printAll(pic);                              // each call dispatches to the real type
+    for (Shape* sp : pic) delete sp;            // virtual dtor -> the right destructor runs
+}
+```
+**Output:**
+```text
+Circle area = 12.5664
+Square area = 9
+```
+> 💡 The key lines are `sp->name()` / `sp->area()`: through a `Shape*`, the **actual** type (`Circle` or `Square`) decides what runs — that is polymorphism. `printAll` never mentions a concrete shape, so to support a new one (say `Triangle`) you **only add a new class** — the framework stays untouched. And `virtual ~Shape()` is what makes `delete sp` destroy the real object correctly (Q69).
 
 ---
 
@@ -785,6 +1411,47 @@ A template type `T` must support whatever operations the body uses (here `operat
 char * min(char * a, char * b) { return strcmp(a,b) < 0 ? a : b; }  // special-case C-strings
 ```
 
+#### Overload resolution with templates — the priority ladder (and traps) 💡💡
+When several versions could match a call, the compiler picks the **best match**, not "whoever was written first" — **writing order does not change which one is chosen.** Suppose three candidates share the name `mymin`:
+```cpp
+#include <iostream>
+#include <cstring>
+using namespace std;
+template<typename T> T  mymin(T a, T b)   { cout << "[generic T]\n";          return a < b ? a : b; }
+template<typename T> T* mymin(T* a, T* b) { cout << "[pointer T*]\n";         return *a < *b ? a : b; }
+char* mymin(char* a, char* b)             { cout << "[non-template char*]\n"; return strcmp(a,b) < 0 ? a : b; }
+
+int main() {
+    int x = 1, y = 2;               mymin(x, y);     // int   -> only the generic T matches
+    int a = 1, b = 2;               mymin(&a, &b);   // int*  -> T* beats T (more specialized)
+    char s1[] = "ab", s2[] = "cd";  mymin(s1, s2);   // char* -> all 3 match -> non-template wins
+}
+```
+**Output:**
+```text
+[generic T]
+[pointer T*]
+[non-template char*]
+```
+**The priority ladder** (applied once the candidates otherwise tie / are all exact matches): **(1)** a non-template function beats any template; **(2)** among templates, the **more specialized** one wins (`T*` is more specialized than `T` — every `T*` is also a `T`, but not the reverse); **(3)** otherwise the generic template. Reorder the three definitions however you like — the result is identical.
+
+**⚠️ Trap 1 — `char* min(char*, char*)` is an overload, not a true specialization.** Klefstad's slides call it "specialize," but by the standard a real **explicit specialization** needs `template <>`:
+```cpp
+template <> char* min<char*>(char* a, char* b) { /* ... */ }   // explicit specialization
+```
+For the exam: when a template and a plain function are equally good, the **plain (non-template) one wins**. Plain overloads are also safer — an explicit specialization must be declared *before* the template is first used for that type, or you silently get the wrong version.
+
+**⚠️ Trap 2 — `T min(T, T)` forces both arguments to be the same `T`.** Mixed types fail to deduce:
+```cpp
+char* cp; int* ip;
+mymin(cp, ip);   // char* and int* -> ERROR: deduced conflicting types for 'T' ('char*' and 'int*')
+```
+To accept two independent types, use **two** type parameters:
+```cpp
+template <typename T, typename U> auto mymin(T a, U b) { return a < b ? a : b; }
+mymin(3, 4.5);   // OK
+```
+
 ### Instantiating a template **function** — (Q76)
 Just **call it** — the compiler **deduces** the type from the arguments and instantiates that version:
 ```cpp
@@ -799,6 +1466,39 @@ Supply the type argument(s) in angle brackets; that creates a real, usable type:
 Stack<double> dstack;          // a Stack of double
 using intStack = Stack<int>;   // type alias (preferred over old 'typedef Stack<char> charStack;')
 ```
+**A complete, runnable instantiation:** "instantiating" a class template means the compiler **stamps out a real, separate class for each type you use** — `Stack<int>` and `Stack<string>` are two distinct classes generated from the one template.
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+template <typename T>
+class Stack {
+    T buf[100];
+    int len = 0;
+public:
+    void push(T x) { buf[len++] = x; }
+    T    pop()     { return buf[--len]; }
+    bool empty() const { return len == 0; }
+};
+
+int main() {
+    using IntStack = Stack<int>;   // type alias for Stack<int>
+    IntStack s;                    // exactly the same as 'Stack<int> s;'
+    s.push(1); s.push(2);
+    cout << s.pop() << '\n';       // 2
+
+    Stack<string> w;               // or instantiate directly, no alias needed
+    w.push("hi"); w.push("yo");
+    cout << w.pop() << '\n';       // yo
+}
+```
+**Output:**
+```text
+2
+yo
+```
+
 > ⚠️ **Defining template methods outside the class:** every out-of-class method must be prefixed with the template parameter list **and** qualified with `ClassName<T>::`. Because of this, template definitions usually live **entirely in the `.hpp`** (the compiler needs the full definition to instantiate per type).
 ```cpp
 template <typename T>
@@ -839,6 +1539,8 @@ The **`[ ]`** lists variables from the **enclosing scope** that the lambda may u
 | `[&, M]` | `M` by **copy**, everything else by **reference** |
 > ⚠️ **By reference (`&`)** sees/affects the live variable (e.g., `++M[s]` updates the real map). **By copy (`=`)** works on a private snapshot — changes don't propagate out, and capturing a big object by copy is expensive. By reference is dangerous if the lambda outlives the captured variable.
 
+> ⚠️ **Order matters in exactly one spot — a default capture (`=` or `&`) must come first.** `[=, &x]` and `[&, x]` are fine; `[&x, =]` is a syntax error (`expected identifier before '='`). A named capture *after* a default must also use the **opposite** mode — `[=, x]` is rejected (`error: explicit by-copy capture of 'x' redundant with by-copy capture default`), so it has to be `[=, &x]`. (Listing the same variable twice — `[x, x]` — is an error too.)
+
 > Note (Topic 7 "Rule of Zero"): lambdas + standard containers are why you so often need to write *none* of the special member functions.
 
 ---
@@ -869,8 +1571,69 @@ char & operator[](int index) {
 }
 ```
 
+**Build the message at run time with a `stringstream`** — fold in live values (capacity, index, …), then `throw` the resulting `string`:
+```cpp
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+struct Stack {
+    int data[100]; int top = 0; int cap = 100;
+    int pop() {
+        if (top <= 0) {
+            stringstream ss;
+            ss << "pop() on empty stack of capacity " << cap;   // build the message with runtime values
+            throw ss.str();                                     // throw the resulting std::string
+        }
+        return data[--top];
+    }
+};
+
+int main() {
+    Stack s;
+    try { s.pop(); }                      // empty -> throws
+    catch (const string& msg) {           // catch the thrown string
+        cout << "caught: " << msg << '\n';
+    }
+}
+```
+**Output:**
+```text
+caught: pop() on empty stack of capacity 100
+```
+> 💡 `ss.str()` hands back everything streamed into `ss` as one `std::string`, so the thrown message can carry live data (here `cap`) that a plain string literal can't. (This course throws a `std::string`; the standard library instead throws `std::exception` subclasses whose `what()` carries the text.)
+
 ### How C++ matches `catch` to a `throw` — (Q84) 💡
 The thrown object's **type** is matched against each `catch` clause **in order, top to bottom**; the **first compatible** handler runs. A `catch` for a **base** class type catches **derived** exceptions too (so order specific → general; `catch(...)` last). Matching is by type — there is **no** implicit numeric conversion as in function-argument matching.
+
+**Example — a base handler catches derived exceptions, so order specific → general (with output):**
+```cpp
+#include <iostream>
+#include <stdexcept>   // out_of_range, exception
+using namespace std;
+
+int main() {
+    try {
+        throw out_of_range("index 5 is out of range");   // out_of_range : logic_error : exception
+    }
+    catch (const out_of_range& e) {     // most specific FIRST -> this one runs
+        cout << "out_of_range: " << e.what() << '\n';
+    }
+    catch (const exception& e) {        // base: would catch ANY std exception (incl. out_of_range)
+        cout << "exception: " << e.what() << '\n';
+    }
+    catch (...) {                       // catch-all: last resort, no error info
+        cout << "unknown error\n";
+    }
+}
+```
+**Output:**
+```text
+out_of_range: index 5 is out of range
+```
+> ⚠️ **Put the base handler after the specific ones.** Since `catch (const exception&)` also catches an `out_of_range`, writing it first makes the specific handler unreachable — g++ even warns: `exception of type 'std::out_of_range' will be caught by earlier handler`. Always order **specific → general**, with `catch (...)` last.
+> 💡 **`e.what()`** is a `virtual` member of `std::exception` that returns a `const char*` — a short, human-readable description of the error. For the standard exceptions it is the message you passed to the constructor (here `"index 5 is out of range"`); your own exception classes can override `what()` to return their own text.
 
 ### Tracing a throw/catch program — (Q85)
 Be able to predict the output. Key points: code **after** the throw inside the `try` is **skipped**; **local stack objects unwind** (their destructors run) as the stack unwinds to the handler; after the matching `catch` finishes, execution continues **after** the whole try/catch.
@@ -911,6 +1674,36 @@ using namespace mySpace;     // 3) using-directive: open the WHOLE namespace
 using namespace std;         //    (everything becomes directly visible)
 ```
 
+**What each one actually does:**
+- **Fully qualified** (`mySpace::Stack`): no import at all — you write `namespace::name` every time. Never ambiguous; the right choice in a **header** (`.hpp`).
+- **`using`-declaration** (`using mySpace::Stack;`): brings **one specific name** into the current scope, so afterward `Stack` alone means `mySpace::Stack`.
+- **`using`-directive** (`using namespace mySpace;`): opens the **whole** namespace — every name in it becomes directly visible at once (handy, but can drag in clashes — see Q90).
+
+```cpp
+#include <iostream>
+using namespace std;
+
+namespace audio {
+    void play()  { cout << "audio::play\n"; }
+    int  volume = 7;
+}
+
+int main() {
+    audio::play();              // 1) fully qualified — no import needed
+    using audio::volume;        // 2) using-declaration: import just this one name
+    cout << volume << '\n';     //    'volume' alone now means audio::volume
+    using namespace audio;      // 3) using-directive: open the WHOLE namespace
+    play();                     //    every audio name is now directly visible
+}
+```
+**Output:**
+```text
+audio::play
+7
+audio::play
+```
+> 💡 Prefer them in this order of safety: **fully qualified > `using`-declaration > `using`-directive.** Qualifying never surprises you; a `using`-declaration imports exactly one name; a `using`-directive opens everything and is the one that can cause ambiguity — which is why **`using namespace std;` is banned in headers** (Q90).
+
 ### Namespace alias — (Q89)
 Give a long namespace a short local name:
 ```cpp
@@ -927,8 +1720,8 @@ namespace fs = std::filesystem;   // now write fs::path instead of std::filesyst
 # 12. I/O Streams, Files & stringstreams (Q91–94)
 
 ### Inserters & extractors on streams — (Q91) 💡
-- **`<<` is the *inserter*** — sends data **to** an output stream. It's a **left-associative binary** operator, so you can chain: `cout << a << b << endl;` parses as `((cout << a) << b) << endl`.
-- **`>>` is the *extractor*** — reads data **from** an input stream; for strings it reads **one whitespace-delimited word** at a time, and **returns the stream**, which is *false* at end-of-file. That's why the read-loop idiom works:
+- **`<<` is the inserter** — sends data **to** an output stream. It's a **left-associative binary** operator, so you can chain: `cout << a << b << endl;` parses as `((cout << a) << b) << endl`.
+- **`>>` is the extractor** — reads data **from** an input stream; for strings it reads **one whitespace-delimited word** at a time, and **returns the stream**, which is *false* at end-of-file. That's why the read-loop idiom works:
 ```cpp
 string word;
 while (in >> word) { out << word << endl; }   // stops at EOF
@@ -955,6 +1748,76 @@ cout << setw(8) << left  << "hi" << "|\n"; // left-aligned in width 8:  "hi     
 cout << fixed << setprecision(2) << 3.14159 << '\n';   // "3.14"
 ```
 > ⚠️ `setw(n)` applies to the **next item only**; alignment/precision flags are **sticky** (stay set until changed).
+
+#### More `<iomanip>` / stream manipulators — (Q93) 💡
+Q93 already showed `setw`, `left`/`right`, `setprecision`, and `fixed`. Here is the rest of the everyday toolbox, plus the **one-shot vs sticky** rule that exam questions love.
+
+**The rest of the common manipulators** (all in `<iomanip>` unless noted; `<<` order matters):
+
+| Manipulator | What it does |
+|---|---|
+| `setfill(c)` | Sets the **fill character** used to pad to `setw` width (default `' '`). |
+| `left` / `right` / `internal` | **Alignment** within `setw`: pad on the right / pad on the left / pad **between sign and digits** (e.g. `-  42`). In `<iostream>`. |
+| `setprecision(n)` | Number of digits: total significant digits in **default** mode, digits **after** the point under `fixed`/`scientific`. |
+| `fixed` / `scientific` / `defaultfloat` | Float format: `3.14` / `3.14e+00` / general (`defaultfloat` resets to the default). In `<iostream>`. |
+| `hex` / `oct` / `dec` | Integer base (16 / 8 / 10). In `<iostream>`. |
+| `showbase` / `noshowbase` | Show the base prefix (`0x`, `0`) on integers. |
+| `boolalpha` / `noboolalpha` | Print bools as `true`/`false` instead of `1`/`0`. |
+| `uppercase` / `nouppercase` | Uppercase letters in hex (`0XFF`) and scientific (`1.5E+10`). |
+| `showpos` / `noshowpos` | Print a leading `+` on non-negative numbers. |
+
+```cpp
+#include <iostream>
+#include <iomanip>
+std::cout << std::boolalpha << (1 < 2) << '\n';            // true   (not 1)
+std::cout << std::hex << std::showbase << 255 << '\n';     // 0xff
+std::cout << std::uppercase << std::hex << 255 << '\n';    // 0XFF
+std::cout << std::dec << std::nouppercase << std::noshowbase; // undo the sticky hex/uppercase/base first
+std::cout << std::showpos << 42 << '\n';                   // +42
+std::cout << std::noshowpos;                               // reset back to plain decimal
+```
+
+⚠️ Note: every line above writes to the **same** `std::cout`, so the sticky flags accumulate. Without the reset line, `std::cout << std::showpos << 42` would print `0X2A` (hex + uppercase + base prefix still active), **not** `+42` — the exact sticky trap below.
+
+⚠️ **One-shot vs sticky** — the single most-tested trap:
+- `setw(n)` (and `width()`) is **one-shot**: it applies to **only the next inserted item**, then resets to 0.
+- Everything else — `setfill`, `left`/`right`/`internal`, `setprecision`, `fixed`/`scientific`, `hex`/`oct`/`dec`, `boolalpha`, `showpos`, `uppercase`, … — is **sticky**: it stays in effect until you change it.
+
+```cpp
+std::cout << std::setfill('0') << std::setw(4) << 7 << '\n';  // 0007
+std::cout << 7 << '\n';                                       // 7   (setw expired; setfill still set but no width to pad)
+```
+
+⚠️ **`endl` vs `'\n'`** — another classic:
+- `'\n'` writes a newline **only**.
+- `std::endl` writes a newline **and flushes the buffer** (forces output out now).
+- Flushing is expensive, so spamming `endl` inside a hot loop is **slow** — prefer `'\n'` and let the stream flush on its own (or call `std::flush` once when you actually need it).
+
+```cpp
+for (int i = 0; i < 1'000'000; ++i)
+    std::cout << i << '\n';     // fast: buffered
+    // std::cout << i << std::endl;  // SLOW: flushes a million times
+```
+
+**Right-aligning a column (echoes Q93)** — `setfill` + sticky alignment, `setw` reapplied each row:
+
+```cpp
+int vals[] = {7, 42, 1234};
+for (int v : vals)
+    std::cout << std::setw(6) << v << '\n';   // pad with spaces (default)
+//      7
+//     42
+//   1234
+
+std::cout << std::setfill('0') << std::right; // sticky: set once
+for (int v : vals)
+    std::cout << std::setw(6) << v << '\n';   // re-apply setw each line (one-shot)
+// 000007
+// 000042
+// 001234
+```
+
+💡 Pattern to remember: set the **sticky** state (`setfill`, alignment) **once before the loop**; re-issue the **one-shot** `setw(n)` **on every line**.
 
 ### `stringstream` (parse a line into typed components) — (Q94) 💡💡 (you use this in HW8 `compute_grades`)
 A **`stringstream`** is a stream backed by a string — you can extract typed values from it with `>>` just like from `cin`. The standard pattern is **`getline` a whole line, then wrap it in a `stringstream`** to parse fields. This **bounds** parsing to that one line (it can't accidentally read into the next line).
@@ -985,8 +1848,15 @@ vector<int> v;  for (int i=0;i<100;++i) v.push_back(i);   // dynamic array
 A function template that **processes a range** (copy, find, sort, transform, accumulate…). It works on **any** container because it talks to **iterators**, not the container directly.
 ```cpp
 #include <algorithm>
-sort(V.begin(), V.end());
-auto pos = find(V.begin(), V.end(), 3);   // pointer-like iterator to the 3
+#include <ranges>      // the ranges:: versions (C++20)
+
+// classic form — pass a [first, last) iterator pair that marks the range:
+sort(V.begin(), V.end());                 // (first, last): begin() = first, end() = one-past-last
+auto pos = find(V.begin(), V.end(), 3);   // (first, last, value) -> iterator to the 3 (else end())
+
+// C++20 ranges form — pass the whole container, no begin()/end():
+ranges::sort(V);                          // (range)
+auto pos2 = ranges::find(V, 3);           // (range, value)
 ```
 
 ### Container iterator — (Q97)
@@ -1027,6 +1897,33 @@ cout << v[0] << " " << v.back() << " " << v.size();
 ```
 🐍 The C++ equivalent of a Python `list`.
 
+**⚠️ `()` vs `{}` when constructing — they can mean different things.** With `{}`, if the type has an `initializer_list` constructor (every STL container does), the braces prefer **that**, so the values become the *elements*:
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> a(100);    // (100): 100 ints, all 0
+    vector<int> b{100};    // {100}: ONE int with value 100   <- the surprise
+    vector<int> c(3, 7);   // (3,7): 3 ints, all 7
+    vector<int> d{3, 7};   // {3,7}: 2 ints, 3 and 7
+
+    cout << "a(100): size=" << a.size() << '\n';
+    cout << "b{100}: size=" << b.size() << "  first=" << b[0] << '\n';
+    cout << "c(3,7): size=" << c.size() << "  {" << c[0] << "," << c[1] << "," << c[2] << "}\n";
+    cout << "d{3,7}: size=" << d.size() << "  {" << d[0] << "," << d[1] << "}\n";
+}
+```
+**Output:**
+```text
+a(100): size=100
+b{100}: size=1  first=100
+c(3,7): size=3  {7,7,7}
+d{3,7}: size=2  {3,7}
+```
+> 💡 Rule: `(...)` always calls a normal constructor (here the *count* ctor); `{...}` prefers the `initializer_list` ctor when one exists, treating the contents as **elements**. For a type with no `initializer_list` ctor the two forms agree. `{}` also forbids narrowing (Q20) — so it's the safer default *except* for sized containers, where you usually want `()`.
+
 ### `std::map` (with example) — (Q102) 💡
 A **sorted** associative container of **`pair<key, value>`**, indexable by **any** key type; **unique keys**; `insert`/`find`/`erase` are **O(log N)**; iterates in **key order**.
 ```cpp
@@ -1037,6 +1934,32 @@ for (auto const & [name, age] : A)        // C++17 structured bindings ("destruc
 ```
 > ⚠️ **`operator[]` on a map silently inserts a default-valued entry if the key is absent** — a classic trap. Use `.find()` if you only mean to look up.
 🐍 Like a Python `dict`, but **kept sorted by key**.
+
+**Two ways to read a map's key/value — side by side:**
+```cpp
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main() {
+    map<string,int> m = {{"Al", 27}, {"Bill", 33}};
+
+    for (const auto& [key, val] : m)               // way 1: structured bindings (C++17)
+        cout << key << '=' << val << ' ';
+    cout << '\n';
+
+    for (const auto& p : m)                         // way 2: .first / .second
+        cout << p.first << '=' << p.second << ' ';  // each element is pair<const string, int>
+    cout << '\n';
+}
+```
+**Output:**
+```text
+Al=27 Bill=33
+Al=27 Bill=33
+```
+> 💡 A `map` element is a `pair<const Key, Value>`, so `[key, val]` just unpacks that pair: `key` ≡ `p.first` and `val` ≡ `p.second`. (Through an iterator it is `it->first` / `it->second`.) The `const` on the key means you may change `val` / `.second`, but never the key.
 
 ### `std::set` (with example) — (Q103)
 A **sorted** collection of **unique** values (the element *is* its own key); `insert`/`find`/`erase` O(log N). `multiset` allows duplicates.
@@ -1059,14 +1982,123 @@ cout << p.first << " " << p.second;   // Al 27
 ### Map vs set — (Q105) 💡
 Both are **sorted, unique-keyed** associative containers. The difference: a **set** stores **just keys** (the value is the key); a **map** stores **key→value pairs**, sorted **by the key (`.first`)**, with the value (`.second`) along for the ride.
 
-#### Container complexity at a glance 💡 (worth memorizing)
+#### Common container operations — quick reference 💡
+The member functions you reach for day to day (each container's own example is Q100–Q104):
+
+| What you want | Syntax | Big-O | Containers |
+|---|---|---|---|
+| add at the back | `c.push_back(x)`, `c.emplace_back(args)` | amortized O(1) | `vector` `deque` `list` |
+| remove from the back | `c.pop_back()` | O(1) | `vector` `deque` `list` |
+| add / remove at the front | `c.push_front(x)` / `c.pop_front()` | O(1) | `deque` `list` |
+| first / last element | `c.front()` / `c.back()` | O(1) | `vector` `deque` `list` |
+| size / is-empty / wipe | `c.size()`, `c.empty()`, `c.clear()` | O(1); `clear()` O(n) | all |
+| element access (unchecked / checked) | `v[i]` / `v.at(i)` | O(1) | `vector` `deque` `string` |
+| erase by position / range | `c.erase(it)`, `c.erase(first, last)` | O(n); `list` O(1)/node | `vector` `deque` `list` `string` |
+| insert / find / count / contains / erase | `c.insert(x)`, `c.find(x)`, `c.count(x)`, `c.contains(x)` (C++20), `c.erase(x)` | O(log n); `unordered_` avg O(1) | `set` `map` |
+| keyed access | `m[k]` (inserts if absent!), `m.at(k)` | O(log n) | `map` |
+| adapters | stack: `push` / `pop` / `top`; queue: `push` / `pop` / `front` / `back` | O(1) | `stack` `queue` |
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v;
+    v.push_back(10);                 // [10]
+    v.push_back(20);                 // [10, 20]
+    v.emplace_back(30);              // [10, 20, 30]  (constructs in place)
+    cout << v.size() << " " << v.front() << " " << v.back() << '\n';   // 3 10 30
+    v.pop_back();                    // [10, 20]
+    v[0] = 99;                       // unchecked write -> [99, 20]
+    cout << v.at(1) << " " << (v.empty() ? "empty" : "filled") << '\n'; // 20 filled
+    v.clear();                       // []
+    cout << v.size() << '\n';        // 0
+}
+```
+**Output:**
+```text
+3 10 30
+20 filled
+0
+```
+> ⚠️ `v[i]` and `v.at(i)` differ on a bad index: `[]` is **unchecked** (undefined behavior), `at()` **throws `std::out_of_range`**. And `m[k]` on a `map` **inserts a default entry** when `k` is absent — for a pure membership test use `m.contains(k)` (C++20, returns `bool`), or the older `m.find(k) != m.end()` / `m.count(k)` (Q102). (`string::contains` only arrived in C++23.)
+
+#### Iterating a container — the ways to loop 💡
+Same data, several styles (range-based `for` is Q99, the iterator loop is Q97):
+```cpp
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+using namespace std;
+
+int main() {
+    vector<int> v = {10, 20, 30};
+
+    for (size_t i = 0; i < v.size(); ++i) cout << v[i] << ' ';          // 1) index loop (vector/deque/string)
+    cout << '\n';
+    for (auto it = v.begin(); it != v.end(); ++it) cout << *it << ' ';  // 2) iterator loop (any container)
+    cout << '\n';
+    for (auto x : v) cout << x << ' ';                                  // 3) range-for by value (a copy)
+    cout << '\n';
+    for (const auto& x : v) cout << x << ' ';                           // 4) range-for by const& (read, no copy)
+    cout << '\n';
+    for (auto& x : v) x += 1;                                           // 5) range-for by & (modify in place)
+    for (const auto& x : v) cout << x << ' ';
+    cout << '\n';
+    for (auto it = v.rbegin(); it != v.rend(); ++it) cout << *it << ' '; // 6) reverse iterator
+    cout << '\n';
+
+    map<string,int> m = {{"a",1},{"b",2}};
+    for (const auto& [key, val] : m) cout << key << '=' << val << ' ';  // 7) structured bindings (map/pair)
+    cout << '\n';
+}
+```
+**Output:**
+```text
+10 20 30
+10 20 30
+10 20 30
+10 20 30
+11 21 31
+31 21 11
+a=1 b=2
+```
+> 💡 Read with **`for (const auto& x : v)`** (no copy), modify with **`for (auto& x : v)`**; plain `for (auto x : v)` copies each element. The **index loop** works only on random-access containers (`vector`/`deque`/`string`); the **iterator loop** works on every container. `rbegin()`/`rend()` go backwards, and structured bindings `[key, val]` unpack a `map`/`pair`.
+
+#### Inserting / erasing while iterating — iterator invalidation 💡💡
+Modifying a container mid-loop can **invalidate** the iterator you hold; the fix is to reseat it on the iterator that `erase`/`insert` **returns** — never `++` an erased iterator:
+```cpp
+// WRONG: erase invalidates `it`, so the next ++it is undefined behavior
+for (auto it = v.begin(); it != v.end(); ++it)
+    if (*it % 2 == 0) v.erase(it);          // dangling it  (a -D_GLIBCXX_DEBUG build aborts here)
+
+// RIGHT: erase returns an iterator to the next element; advance only when you DON'T erase
+for (auto it = v.begin(); it != v.end(); )  // note: no ++it in the loop header
+    if (*it % 2 == 0) it = v.erase(it);     // reseat it on the returned iterator
+    else              ++it;
+```
+For a `vector`, prefer the **erase–remove idiom** (or the C++20 one-liner) over a hand-written loop:
+```cpp
+#include <algorithm>   // remove_if
+v.erase(remove_if(v.begin(), v.end(), [](int x){ return x % 2 == 0; }), v.end());
+std::erase_if(v, [](int x){ return x % 2 == 0; });   // C++20: same effect, one line
+```
+**Output** — the manual `erase` loop, the erase–remove idiom, and `erase_if` all turn `{1, 2, 3, 4, 5, 6}` into:
+```text
+1 3 5
+```
+⚠️ **Invalidation rules differ by container:**
+- **`vector` / `deque` / `string`** — `erase`/`insert` invalidate every iterator and reference **at or after** the edit point; a reallocating `push_back`/`insert` invalidates **all** of them. Always reseat from the returned iterator.
+- **`list`** — only the **erased** element's iterator dies; `insert` invalidates nothing. (Cheap middle edits are the whole reason to reach for `list`.)
+- **`set` / `map` / `unordered_*`** (node-based) — `erase` invalidates **only the erased** iterator and (since C++11) **returns the next** one, so the same `it = c.erase(it)` loop works here too.
+
+#### Container complexity — what the operations table doesn't show 💡
+Two cross-container facts you can't read off the operations table above (random access, back/front insert, and find are already in its **Big-O** column):
 | Operation | `vector` | `deque` | `list` | `set` / `map` | `unordered_set/map` |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Random access `[i]` | **O(1)** | O(1) | ❌ | ❌ (`map[key]` O(log n)) | ❌ (`map[key]` avg O(1)) |
-| Insert/remove at **back** | amortized O(1) | O(1) | O(1) | — | — |
-| Insert/remove at **front** | O(n) | **O(1)** | O(1) | — | — |
 | Insert/remove in **middle** (have iterator) | O(n) | O(n) | **O(1)** | — | — |
-| **Find** by value / key | O(n) | O(n) | O(n) | **O(log n)** | **avg O(1)** |
 | Iteration order | insertion | insertion | insertion | **sorted by key** | unspecified |
 
 > 💡 Choose by what must be fast: random access → `vector`; many front ops → `deque`; cheap middle insert/erase **when you already hold an iterator** → `list`; **sorted** keyed lookup → `set`/`map`; fastest **unsorted** lookup → `unordered_*`.
@@ -1074,26 +2106,82 @@ Both are **sorted, unique-keyed** associative containers. The difference: a **se
 ### `std::transform` (with example) — (Q106) 💡
 Applies a function to each element of a source range and writes the results to a destination.
 ```cpp
-transform(V.begin(), V.end(), V.begin(), [](int i){ return i+1; });   // in place: each +1
+// classic: transform(first, last, dest, op)
+//   first,last = source range;  dest = where results go;  op = function applied to each element
+transform(V.begin(), V.end(), V.begin(), [](int i){ return i+1; });   // dest == source -> in place: each +1
 transform(begin(L1), end(L1), back_inserter(L2), square);             // L2 = squares of L1
+
+// C++20 ranges: transform(range, dest, op)
+ranges::transform(V, V.begin(), [](int i){ return i+1; });            // in place
+ranges::transform(L1, back_inserter(L2), square);                     // L2 = squares of L1
 ```
 
 ### `std::accumulate` (with example) — (Q107) 💡
 Reduces a range to a single value (sum by default), starting from an initial value. Lives in **`<numeric>`**.
 ```cpp
-int total = accumulate(V.begin(), V.end(), 0);   // sum; the 0 is the starting value
+// accumulate(first, last, init [, op])
+//   first,last = range;  init = starting value AND it fixes the RESULT TYPE;  op = combine (default +)
+int total = accumulate(V.begin(), V.end(), 0);                       // sum, starting from 0
+int prod  = accumulate(V.begin(), V.end(), 1, [](int a, int b){ return a*b; });  // product, from 1
 ```
 > ⚠️ **Course note (HW8):** `accumulate` has **no `ranges::` version** — call it with the classic iterator-pair syntax (`accumulate(begin, end, init)`), even when you use `ranges::` versions of other algorithms.
+
+> ⚠️ The `init` argument also fixes the **result type**: on a `vector<double>`, `accumulate(d.begin(), d.end(), 0)` accumulates into an **`int`** (truncates!) — pass `0.0` to get a `double`.
 
 ### `std::copy` and `std::move` — (Q108) 💡
 - **`copy(first, last, dest)`** copies a range to a destination iterator. Pair it with an **insert iterator** so the destination grows:
 ```cpp
-copy(L.begin(), L.end(), back_inserter(V));   // calls V.push_back() for each
+// copy(first, last, dest):  first,last = source range;  dest = output iterator
+copy(L.begin(), L.end(), back_inserter(V));   // back_inserter -> V.push_back() for each
 copy(istream_iterator<string>(in), istream_iterator<string>(),   // read words until EOF...
      back_inserter(V));                                          // ...into V
 unique_copy(V.begin(), V.end(), ostream_iterator<string>(out, "\n"));  // write, skip adjacent dups
+ranges::copy(L, back_inserter(V));            // C++20 ranges form: copy(range, dest)
 ```
-- **`std::move` (the function)** casts an L-value to an R-value reference so a **move** (steal resources) happens instead of a copy: `b = std::move(a);` — afterward `a` is in a valid-but-empty state. (There is also a `std::move` *algorithm* that move-assigns a range.) Don't confuse the move *cast* with `memmove`/copying.
+- **`std::move` (the function)** casts an L-value to an R-value reference so a **move** (steal resources) happens instead of a copy: `b = std::move(a);` — afterward `a` is in a valid-but-empty state. Don't confuse the move *cast* with `memmove`/copying.
+- **`std::move` (the algorithm)** is a different thing with the same name: it move-assigns a whole range into a destination (each element is left empty), e.g. `ranges::move(src, back_inserter(dst));`. Same shape as `copy`, but it *moves* rather than copies.
+
+### `std::for_each` and `std::copy_if` 💡
+- **`for_each(first, last, fn)`** runs `fn` on every element — for its **side effect** (print, mutate). Give the lambda a `T&` parameter and it can modify the elements in place.
+- **`copy_if(first, last, dest, pred)`** copies only the elements for which `pred(x)` is true (it is `copy` + `filter` in one call).
+```cpp
+#include <iostream>
+#include <vector>
+#include <iterator>   // back_inserter, ostream_iterator
+#include <algorithm>  // for_each, copy_if, ranges::*
+#include <ranges>
+using namespace std;
+
+int main() {
+    vector<int> v = {1, 2, 3, 4, 5, 6};
+
+    // for_each: run a function on EVERY element (here: just print).
+    cout << "print:  ";
+    for_each(v.begin(), v.end(), [](int n){ cout << n << ' '; });
+    cout << '\n';
+
+    // for_each with a T& parameter MODIFIES each element in place:
+    for_each(v.begin(), v.end(), [](int& n){ n *= 10; });    // each *= 10
+    cout << "x10:    ";
+    ranges::for_each(v, [](int n){ cout << n << ' '; });     // ranges form: whole container
+    cout << '\n';
+
+    // copy_if: copy ONLY the elements that pass the predicate.
+    vector<int> picked;
+    copy_if(v.begin(), v.end(), back_inserter(picked),
+            [](int n){ return n % 20 == 0; });               // keep multiples of 20
+    cout << "mult20: ";
+    ranges::copy(picked, ostream_iterator<int>(cout, " "));  // ranges::copy to print
+    cout << '\n';
+}
+```
+**Output:**
+```text
+print:  1 2 3 4 5 6 
+x10:    10 20 30 40 50 60 
+mult20: 20 40 60 
+```
+> 💡 All four take iterator pairs in the classic form and a whole range in the `ranges::` form. The `_if` family (`copy_if`, `find_if`, `count_if`, `remove_if`) takes a **predicate** (returns `bool`); `transform`/`for_each` take an **operation** (does work / returns a new value).
 
 ### Iterator vs `const_iterator` — (Q109)
 - A plain **`iterator`** lets you read **and modify** the element it points to (`*it = x;`).
@@ -1108,6 +2196,21 @@ unique_copy(V.begin(), V.end(), ostream_iterator<string>(out, "\n"));  // write,
 | random access | bidirectional **+ `[]`, `+n`** | `vector`, `deque`, `string`; your HW9 `MapArray` iterator |
 | contiguous (C++17) | random access + physically adjacent | `array`, `vector`, `string` |
 
+#### Declaring an iterator's category — `iterator_category` & `iterator_traits` 💡
+A custom iterator advertises **which of those categories it is** with five member typedefs, so STL algorithms can pick the best implementation. The key one is `iterator_category`, set to a **tag type**:
+```cpp
+struct MyIter {
+    using iterator_category = std::forward_iterator_tag;   // <- the category tag
+    using value_type        = int;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = int*;
+    using reference         = int&;
+    // ... plus the operator*, operator++, operator==, ... this category requires
+};
+```
+The tags, weakest → strongest: `input_iterator_tag` / `output_iterator_tag` → `forward_iterator_tag` → `bidirectional_iterator_tag` → `random_access_iterator_tag` → `contiguous_iterator_tag` (C++20). Read one back with `std::iterator_traits<It>::iterator_category` (library iterators report their own — `vector<int>::iterator` is `random_access_iterator_tag`, `list<int>::iterator` is `bidirectional_iterator_tag`).
+> 💡 Why it matters: algorithms **dispatch on the tag**. `std::distance(a, b)` and `std::advance(it, n)` are **O(1)** on a random-access iterator (just `b - a` / `it += n`) but **O(n)** on a forward/bidirectional one (step one at a time). ⚠️ Declaring a *stronger* category than your iterator truly supports is a bug — algorithms will then call operations (`+= n`, `[]`, `--`) you never wrote.
+
 #### Writing `operator++` / `operator--` by iterator category 💡 (HW9)
 **The pre/post "shell" is fixed for every category — only "the step" (the one commented line) changes:**
 ```cpp
@@ -1118,7 +2221,7 @@ Iter& operator++() { /* one step forward */ return *this; }
 Iter  operator++(int) { Iter tmp = *this; ++(*this); return tmp; }
 ```
 - The `int` parameter is an **unused dummy** that only distinguishes post from pre.
-- **Post-increment is *always* "save a copy + call pre-increment"** — this never changes across categories. The thing that differs between categories is the *step* inside pre-increment.
+- **Post-increment is always "save a copy + call pre-increment"** — this never changes across categories. The thing that differs between categories is the *step* inside pre-increment.
 - `--` has the identical shape; its step is "one step **backward**." Prefer `++it` over `it++` in loops (post makes an extra copy).
 
 **① forward** — singly-linked list (your `SetList`). Only `++`; **no `--`** (can't go back).
@@ -1178,21 +2281,155 @@ bool operator>=(const Iter& o) const { return current >= o.current; }
 
 #### Iterator **adapters** (used constantly in the algorithm examples) 💡
 - **Insert iterators:** `back_inserter(c)` → `c.push_back`; `front_inserter(c)` → `c.push_front`; `inserter(c, pos)` → `c.insert` (the only one that works on `set`/`map`).
-- **Stream iterators:** `istream_iterator<T>(in)` reads `T`s with `>>` (default-constructed `istream_iterator<T>()` = the EOF end marker); `ostream_iterator<T>(out, "sep")` writes with `<<`, **appending the separator after *every* element** (including the last).
+- **Stream iterators:** `istream_iterator<T>(in)` reads `T`s with `>>` (default-constructed `istream_iterator<T>()` = the EOF end marker); `ostream_iterator<T>(out, "sep")` writes with `<<`, **appending the separator after every element** (including the last).
 - **Reverse iterators:** `c.rbegin()`/`c.rend()` walk backward.
 
 #### C++20 Ranges & views (Topic 9) 💡
-- A **range** is just `begin()..end()`, so algorithms get a one-argument form in **`std::ranges`**: `ranges::sort(v);` instead of `sort(v.begin(), v.end())`.
-- **Views** (in `std::ranges::views`) are **lightweight, lazy** ranges you compose with `|`. **Lazy = nothing is computed until you iterate.**
+
+Two related C++20 features, both living in `<ranges>`.
+
+**(1) `ranges::` algorithms — pass the whole container.** A *range* is just a `begin()..end()` pair, and every container already is one. So the `ranges::` version of an algorithm takes the container directly — no more `.begin()`/`.end()`:
 ```cpp
-namespace rv = std::ranges::views;
-for (int x : v | rv::filter([](int n){ return n%2==0; }) | rv::transform([](int n){ return n*n; }))
-    cout << x << ' ';   // squares of the even elements, computed on demand
+ranges::sort(v);                 // instead of  sort(v.begin(), v.end())
+auto it = ranges::find(v, 42);   // instead of  find(v.begin(), v.end(), 42)
 ```
+
+**(2) Views — lazy pipelines built with `|`.** A *view* (in `std::ranges::views`) is a lightweight range you build by piping a source through adaptors such as `filter` and `transform`. Read it left to right: `v | filter(...) | transform(...)` means *"take `v`, keep the elements that pass the filter, then transform each survivor."* The result is itself a range, so you can range-`for` over it.
+
+The whole point is the word **lazy**: building the pipeline computes *nothing*. The filter/transform run only while you iterate, one element at a time, and only for the elements you actually reach.
+```cpp
+#include <iostream>
+#include <vector>
+#include <ranges>     // std::ranges and std::ranges::views (C++20)
+#include <algorithm>  // ranges::sort
+using namespace std;
+namespace rv = std::ranges::views;   // short alias: rv:: == views::
+
+int main() {
+    vector<int> v = {5, 2, 8, 1, 4, 7, 6, 3};
+
+    ranges::sort(v);                       // (1) whole-container algorithm
+    cout << "sorted: ";
+    for (int x : v) cout << x << ' ';
+    cout << '\n';
+
+    // (2) build a pipeline: keep evens, then square them. Nothing runs yet.
+    auto pipeline = v | rv::filter([](int n){ return n % 2 == 0; })
+                      | rv::transform([](int n){ return n * n; });
+    cout << "even squares: ";
+    for (int x : pipeline) cout << x << ' ';   // work happens HERE, on demand
+    cout << '\n';
+
+    // (3) take(3) stops early -- the 4th even number is never even squared.
+    cout << "first 3 even squares: ";
+    for (int x : v | rv::filter([](int n){ return n % 2 == 0; })
+                   | rv::transform([](int n){ return n * n; })
+                   | rv::take(3))
+        cout << x << ' ';
+    cout << '\n';
+}
+```
+**Output:**
+```text
+sorted: 1 2 3 4 5 6 7 8 
+even squares: 4 16 36 64 
+first 3 even squares: 4 16 36 
+```
+
+Want to *see* the laziness? Drop a print inside the transform and watch when it fires:
+```cpp
+vector<int> v = {1, 2, 3, 4};
+auto squares = v | rv::transform([](int n){
+    cout << "  [computing " << n << '*' << n << "]\n";   // marks WHEN work runs
+    return n * n;
+});
+cout << "view built (nothing computed yet)\n";
+for (int x : squares) cout << "got " << x << '\n';
+```
+**Output:**
+```text
+view built (nothing computed yet)
+  [computing 1*1]
+got 1
+  [computing 2*2]
+got 4
+  [computing 3*3]
+got 9
+  [computing 4*4]
+got 16
+```
+> 💡 Look at the order: `view built` prints first, then each square is computed *right before* its own `got` line — the work is interleaved with the loop, never done up front. That is exactly what "lazy / on demand" means, and it is why `take(3)` above keeps the 4th even number from ever being squared.
+
+| Adaptor | What it does |
+|---|---|
+| `filter(pred)` | keep only the elements where `pred(x)` is true |
+| `transform(f)` | replace each element `x` with `f(x)` |
+| `take(n)` / `drop(n)` | keep the first `n` / skip the first `n` |
+| `reverse` | walk the range back to front |
 
 #### Smart pointers (Topic 9) — RAII for single objects 💡
 - **`unique_ptr<T>`** — sole owner; deletes the object when it dies; **copy is deleted** (move only, via `std::move`). `auto p = std::make_unique<T>(args);`
 - **`shared_ptr<T>`** — shared ownership; the object is deleted when the **last** `shared_ptr` dies (reference counting). `auto sp = std::make_shared<T>(args);`
+**Two ways to create one — and why the first is discouraged:**
+```cpp
+// ❌ Discouraged — raw new: you name the type twice, and it is exception-unsafe.
+unique_ptr<Widget> a{new Widget(1)};   // works, but verbose
+shared_ptr<Widget> b{new Widget(2)};   // also forces a SECOND heap allocation
+
+// ✅ Preferred — make_xxx: type written once, no visible `new`.
+auto a = make_unique<Widget>(1);
+auto b = make_shared<Widget>(2);       // one allocation for object + control block
+```
+**A full run, using the preferred form:**
+```cpp
+#include <iostream>
+#include <memory>      // unique_ptr, shared_ptr, make_unique, make_shared
+using namespace std;
+
+struct Widget {
+    int id;
+    Widget(int i) : id(i) { cout << "ctor " << id << '\n'; }
+    ~Widget()             { cout << "dtor " << id << '\n'; }
+};
+
+int main() {
+    auto u = make_unique<Widget>(1);     // unique_ptr<Widget>, the sole owner
+    cout << "u->id = " << u->id << '\n'; // use it like a raw pointer
+    auto u2 = std::move(u);              // transfer ownership; u is now null
+    cout << "u is " << (u ? "set" : "null") << '\n';
+
+    auto s = make_shared<Widget>(2);     // shared_ptr<Widget>, use_count = 1
+    auto s2 = s;                         // copy -> shared ownership, use_count = 2
+    cout << "use_count = " << s.use_count() << '\n';
+}   // u2 frees Widget 1; Widget 2 freed when the last shared_ptr dies
+```
+**Output:**
+```text
+ctor 1
+u->id = 1
+u is null
+ctor 2
+use_count = 2
+dtor 2
+dtor 1
+```
+> 💡 Why `make_xxx` instead of `unique_ptr<T>(new T(...))`? (1) **exception-safe** — no leak if some other argument's evaluation throws; (2) you write the type **once** (no `new T`); (3) `make_shared` uses a **single allocation** for the object + its control block. Use the pointer like any other: `p->member`, `*p`, `p.get()` for the raw pointer, `p.reset()` to free early.
+
+**Common mistake — copying a `unique_ptr` won't compile:**
+```cpp
+auto u = make_unique<Widget>(1);
+auto bad = u;             // ❌ tries to COPY — unique_ptr has no copy constructor
+auto ok  = std::move(u);  // ✅ move instead: ownership transfers, u becomes null
+```
+The compiler stops you — this is a build error, not a runtime surprise (template noise trimmed):
+```text
+error: use of deleted function
+       'std::unique_ptr<...>::unique_ptr(const std::unique_ptr<...>&)'
+note: declared here
+  unique_ptr(const unique_ptr&) = delete;
+```
+> 💡 A `unique_ptr` is the *sole* owner, so copying it would make two owners that both try to `delete` the same object. C++ deletes the copy constructor to turn that into a **compile error** instead of a double-free. `shared_ptr` is the opposite — copying is fine, it just bumps the reference count.
+
 > ⚠️ **HW9 trap (from the Topic 9 slides):** if a linked-list node's `next` is a `unique_ptr`, **iterators can't alias the list** — so for `SetList` you must use a **raw `ListNode*`**, not `unique_ptr`, for `next`.
 
 | | `unique_ptr<T>` | `shared_ptr<T>` |
@@ -1317,7 +2554,7 @@ line Y [readability]: {unclear code}. Instead, {clearer code}.
 
 # Appendix D — Priority topics for your Final
 
-Your **midterm feedback** (in the project) is the best signal for where to spend review time. The clusters you missed map cleanly onto sections above — prioritize these:
+These are the **highest-value clusters** for this exam, mapped onto the sections above. Prioritize them:
 
 1. **Tracing control flow** *(biggest cluster: loops, `if`/nested `if`, conditional expressions, `switch`, boolean conditions).* The Topic 10 deck explicitly lists iteration (`for` with 3 fields / ranged `for` / `while` / `do-while`), the `switch`/`case`/`default`/`break` structure, and mixed arithmetic & `i++` vs `++i`. **Practice hand-tracing** small programs and writing the exact output. → relates to Section 2.
 2. **Rule of Three & default copy semantics** *(deep copy, default copy ctor, default copy assignment).* Know exactly why the compiler-generated copy is a **shallow** copy and how it causes a double-free. → Section 6 (Rule of Three), Section 4 (shallow vs deep).
@@ -1326,7 +2563,7 @@ Your **midterm feedback** (in the project) is the best signal for where to spend
 5. **Subscript operator `[]`** *(overloaded subscripting).* It returns `int&` (an L-value) and which class does bounds-checking. → Section 6 Q44/Q59, Section 2 Q13.
 6. **Build pipeline & declarations** *(function declarations, compile vs link errors, multiple definitions).* Which stage catches which error; include guards prevent "multiply defined." → Section 5 table + Section 1 Q4.
 
-> These six clusters are where the most points are sitting for you. If you trace ~10 short programs by hand and can write a correct Rule-of-Three class from scratch, you'll have covered the highest-value material.
+> These six clusters carry the most exam points. If you trace ~10 short programs by hand and can write a correct Rule-of-Three class from scratch, you'll have covered the highest-value material.
 
 ---
 
