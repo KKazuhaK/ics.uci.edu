@@ -3,7 +3,7 @@
 generate-sitemap.py  –  Auto-generate sitemap.json
 
 Scans HTML pages, parses embedded notesCatalog / weekCatalog JS arrays,
-and assembles a structured sitemap.json for the Ask AI knowledge base.
+and assembles a structured sitemap.json for the public site.
 
   - Course notes and demo notes are auto-discovered from the filesystem
   - Descriptions from pageCopy / weekCatalog are extracted automatically
@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "sitemap.json"
-BASE_URL = "https://ics.uci.edu/~kazuhak"
+BASE_URL = "https://www.kazuha.cn"
 
 # ─── Known page descriptions (edit here when adding / renaming pages) ─
 
@@ -54,7 +54,7 @@ PAGE_META = {
         "title": "Tools",
         "description": (
             "Hub for web-based utilities including Markdown Viewer, "
-            "Markdown Editor, Code Runner, Speed Test, and AI Chat."
+            "Markdown Editor, Code Runner, and Speed Test."
         ),
     },
     "/tools/md-viewer/": {
@@ -74,13 +74,6 @@ PAGE_META = {
     "/tools/code-runner/": {
         "title": "Code Runner",
         "description": "Browser-based code runner supporting Python, C++, Java, and JavaScript execution.",
-    },
-    "/tools/ask-ai/": {
-        "title": "Ask AI",
-        "description": (
-            "AI chatbot (powered by Mistral AI) for free-form conversation. "
-            "Supports Markdown rendering and KaTeX math."
-        ),
     },
     "/tools/speedtest/": {
         "title": "Speed Test",
