@@ -1950,6 +1950,34 @@
 			}
 
 			mdParser.use(markedFootnote());
+
+			// Notes use multi-line > callouts as line-by-line boxes (course header,
+			// Klefstad quotes). CommonMark joins those lines with a space; turn soft
+			// line breaks inside blockquote paragraphs back into <br>.
+			function splitSoftBreaks(tokens) {
+				for (let index = tokens.length - 1; index >= 0; index -= 1) {
+					const token = tokens[index];
+					if (token.type === "text" && !token.tokens && token.text.includes("\n")) {
+						const pieces = [];
+						token.text.split("\n").forEach(function (part, partIndex) {
+							if (partIndex > 0) pieces.push({ type: "br", raw: "\n" });
+							if (part) pieces.push(Object.assign({}, token, { raw: part, text: part }));
+						});
+						tokens.splice(index, 1, ...pieces);
+					} else if (token.type !== "codespan" && token.tokens) {
+						splitSoftBreaks(token.tokens);
+					}
+				}
+			}
+
+			mdParser.use({
+				walkTokens(token) {
+					if (token.type !== "blockquote") return;
+					token.tokens.forEach(function (child) {
+						if (child.type === "paragraph") splitSoftBreaks(child.tokens);
+					});
+				}
+			});
 			mdParser.use({
 				extensions: [
 					{
