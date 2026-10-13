@@ -1336,7 +1336,7 @@ Less code, fewer bugs, less headache.
 ## 11. The Copy Constructor
 
 > Corresponds to LearnCpp 14.14 — Introduction to the Copy Constructor
-> + PPT class-and-struct.pptx (Complex class example)
+> \+ PPT class-and-struct.pptx (Complex class example)
 
 ### 11.1 What Is a Copy Constructor?
 

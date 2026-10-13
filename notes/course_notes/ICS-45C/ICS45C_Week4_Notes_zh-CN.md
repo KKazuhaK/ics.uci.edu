@@ -1336,7 +1336,7 @@ MyString::MyString(const MyString& source)
 ## 11. 拷贝构造函数
 
 > 对应 LearnCpp 14.14 — Introduction to the Copy Constructor
-> + PPT class-and-struct.pptx（Complex 类示例）
+> \+ PPT class-and-struct.pptx（Complex 类示例）
 
 ### 11.1 什么是拷贝构造函数？
 
