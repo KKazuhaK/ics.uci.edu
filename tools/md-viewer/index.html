@@ -502,6 +502,22 @@
 			.markdown-body blockquote > :first-child { margin-top: 0; }
 			.markdown-body blockquote > :last-child { margin-bottom: 0; }
 
+			.markdown-body .sr-only {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				overflow: hidden;
+				clip: rect(0 0 0 0);
+				white-space: nowrap;
+			}
+			.markdown-body .footnotes {
+				margin-top: 2.5rem;
+				padding-top: 1rem;
+				border-top: 1px solid var(--notes-hr);
+				font-size: 0.9em;
+			}
+			.markdown-body sup a[data-footnote-ref] { text-decoration: none; }
+
 			.markdown-body img {
 				display: block;
 				max-width: min(100%, 640px);
@@ -1473,6 +1489,8 @@
 
 		<script src="../../assets/js/bento.js" defer></script>
 		<script src="../../assets/js/chat-widget.js" defer></script>
+		<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/marked-footnote@1.4.0/dist/index.umd.min.js"></script>
 		<script>
 			function escapeHtml(text) {
 				return text
@@ -1481,23 +1499,6 @@
 					.replace(/>/g, "&gt;")
 					.replace(/"/g, "&quot;")
 					.replace(/'/g, "&#39;");
-			}
-
-			function parseInline(text) {
-				let value = escapeHtml(text);
-				const codeTokens = [];
-				value = value.replace(/`([^`]+)`/g, function (_, code) {
-					codeTokens.push(code);
-					return " CODE" + (codeTokens.length - 1) + " ";
-				});
-				value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-				value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-				value = value.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy">');
-				value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-				value = value.replace(/ CODE(\d+) /g, function (_, idx) {
-					return "<code>" + codeTokens[+idx] + "</code>";
-				});
-				return value;
 			}
 
 			const KATEX_JS_URL = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
@@ -1885,53 +1886,6 @@
 				}
 			}
 
-			function isTableSeparator(line) {
-				return /^\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?$/.test(line.trim());
-			}
-
-			function parseTableRow(line) {
-				let row = line.trim();
-				if (row.startsWith("|")) row = row.slice(1);
-				if (row.endsWith("|")) row = row.slice(0, -1);
-
-				// Respect inline code spans so table cells can contain literal pipes like `||`.
-				const cells = [];
-				let current = "";
-				let inCode = false;
-				let escapeNext = false;
-
-				for (const character of row) {
-					if (escapeNext) {
-						current += character;
-						escapeNext = false;
-						continue;
-					}
-
-					if (character === "\\") {
-						current += character;
-						escapeNext = true;
-						continue;
-					}
-
-					if (character === "`") {
-						inCode = !inCode;
-						current += character;
-						continue;
-					}
-
-					if (character === "|" && !inCode) {
-						cells.push(parseInline(current.trim()));
-						current = "";
-						continue;
-					}
-
-					current += character;
-				}
-
-				cells.push(parseInline(current.trim()));
-				return cells;
-			}
-
 			function plainTextForSlug(text) {
 				return text
 					.replace(/`([^`]+)`/g, "$1")
@@ -1975,176 +1929,139 @@
 				});
 			}
 
-			function markdownToHtml(markdown) {
-				const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-				const html = [];
-				const slugCounts = new Map();
-				let i = 0;
+			// Own Marked instance: chat-widget.js later loads another copy of marked
+			// into the same global and reconfigures it (breaks: true, custom code
+			// renderer), which must not leak into note rendering.
+			const MarkedRenderer = marked.Renderer;
+			const mdParser = new marked.Marked({ gfm: true, breaks: false });
+			let mdRenderState = { slugCounts: new Map(), baseUrl: null };
 
-				while (i < lines.length) {
-					const line = lines[i];
-					const trimmed = line.trim();
-
-					if (!trimmed) {
-						i += 1;
-						continue;
-					}
-
-					const anchorMatch = trimmed.match(/^<a\s+id="([A-Za-z0-9._:-]+)"\s*><\/a>$/);
-					if (anchorMatch) {
-						html.push('<a id="' + anchorMatch[1] + '"></a>');
-						i += 1;
-						continue;
-					}
-
-					// Block math: $$...$$ (single-line or multi-line)
-					if (trimmed.startsWith("$$")) {
-						if (trimmed.length > 4 && trimmed.endsWith("$$")) {
-							// single-line: $$...$$ → keep as-is for KaTeX
-							html.push('<div class="math-block">' + trimmed + "</div>");
-							i += 1;
-						} else {
-							// multi-line: collect until closing $$
-							const mathLines = [trimmed];
-							i += 1;
-							while (i < lines.length && lines[i].trim() !== "$$") {
-								mathLines.push(lines[i]);
-								i += 1;
-							}
-							mathLines.push("$$");
-							html.push('<div class="math-block">' + mathLines.join("\n") + "</div>");
-							i += 1;
-						}
-						continue;
-					}
-
-					if (trimmed.startsWith("```")) {
-						const fenceLanguage = trimmed.slice(3).trim().split(/\s+/)[0] || "";
-						const codeLines = [];
-						i += 1;
-						while (i < lines.length && !lines[i].trim().startsWith("```")) {
-							codeLines.push(lines[i]);
-							i += 1;
-						}
-						html.push(buildCodeBlockHtml(codeLines.join("\n"), fenceLanguage));
-						i += 1;
-						continue;
-					}
-
-					const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
-					if (headingMatch) {
-						const level = headingMatch[1].length;
-						const headingText = headingMatch[2];
-						const headingId = slugifyHeading(headingText, slugCounts);
-						html.push('<h' + level + ' id="' + headingId + '">' + parseInline(headingText) + "</h" + level + ">");
-						i += 1;
-						continue;
-					}
-
-					if (/^---+$/.test(trimmed) || /^___+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
-						html.push("<hr>");
-						i += 1;
-						continue;
-					}
-
-					if (trimmed.startsWith(">")) {
-						const quoteLines = [];
-						while (i < lines.length && lines[i].trim().startsWith(">")) {
-							quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
-							i += 1;
-						}
-						const blockParts = [];
-						let proseBuffer = [];
-						const flushProse = () => {
-							if (proseBuffer.length) {
-								blockParts.push("<p>" + proseBuffer.map(parseInline).join("<br>") + "</p>");
-								proseBuffer = [];
-							}
-						};
-						let qi = 0;
-						while (qi < quoteLines.length) {
-							const qTrim = quoteLines[qi].trim();
-							if (qTrim.startsWith("```")) {
-								flushProse();
-								const fenceLanguage = qTrim.slice(3).trim().split(/\s+/)[0] || "";
-								const codeLines = [];
-								qi += 1;
-								while (qi < quoteLines.length && !quoteLines[qi].trim().startsWith("```")) {
-									codeLines.push(quoteLines[qi]);
-									qi += 1;
-								}
-								blockParts.push(buildCodeBlockHtml(codeLines.join("\n"), fenceLanguage));
-								qi += 1;
-								continue;
-							}
-							proseBuffer.push(quoteLines[qi]);
-							qi += 1;
-						}
-						flushProse();
-						html.push("<blockquote>" + blockParts.join("") + "</blockquote>");
-						continue;
-					}
-
-					if (trimmed.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
-						const headers = parseTableRow(lines[i]);
-						const rows = [];
-						i += 2;
-						while (i < lines.length && lines[i].trim().includes("|") && lines[i].trim()) {
-							rows.push(parseTableRow(lines[i]));
-							i += 1;
-						}
-
-						let tableHtml = "<table><thead><tr>";
-						tableHtml += headers.map((cell) => "<th>" + cell + "</th>").join("");
-						tableHtml += "</tr></thead><tbody>";
-						tableHtml += rows.map((row) => "<tr>" + row.map((cell) => "<td>" + cell + "</td>").join("") + "</tr>").join("");
-						tableHtml += "</tbody></table>";
-						html.push(tableHtml);
-						continue;
-					}
-
-					const unorderedMatch = trimmed.match(/^[-*]\s+/);
-					const orderedMatch = trimmed.match(/^\d+\.\s+/);
-					if (unorderedMatch || orderedMatch) {
-						const tag = unorderedMatch ? "ul" : "ol";
-						const items = [];
-						while (i < lines.length) {
-							const current = lines[i].trim();
-							const matcher = unorderedMatch ? /^[-*]\s+(.*)$/ : /^\d+\.\s+(.*)$/;
-							const match = current.match(matcher);
-							if (!match) break;
-							items.push("<li>" + parseInline(match[1]) + "</li>");
-							i += 1;
-						}
-						html.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
-						continue;
-					}
-
-					const paragraphLines = [trimmed];
-					i += 1;
-					while (i < lines.length) {
-						const next = lines[i].trim();
-						if (!next) break;
-						if (
-							next.startsWith("```") ||
-							next.startsWith(">") ||
-							next.match(/^(#{1,6})\s+/) ||
-							next.match(/^[-*]\s+/) ||
-							next.match(/^\d+\.\s+/) ||
-							next.match(/^---+$/) ||
-							next.match(/^___+$/) ||
-							next.match(/^\*\*\*+$/) ||
-							(next.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1]))
-						) {
-							break;
-						}
-						paragraphLines.push(next);
-						i += 1;
-					}
-					html.push("<p>" + parseInline(paragraphLines.join(" ")) + "</p>");
+			// Relative image paths resolve against the note's own directory,
+			// not against /tools/md-viewer/.
+			function resolveNoteUrl(href) {
+				if (!href || !mdRenderState.baseUrl || /^(?:[a-z][a-z0-9+.-]*:|\/|#|\?)/i.test(href)) {
+					return href;
 				}
+				try {
+					return new URL(href, mdRenderState.baseUrl).href;
+				} catch (error) {
+					return href;
+				}
+			}
 
-				return html.join("\n");
+			mdParser.use(markedFootnote());
+			mdParser.use({
+				extensions: [
+					{
+						// $$...$$ on its own line(s) → .math-block, kept verbatim for KaTeX.
+						name: "mathBlock",
+						level: "block",
+						start(src) {
+							const match = src.match(/^ {0,3}\$\$/m);
+							return match ? match.index : undefined;
+						},
+						tokenizer(src) {
+							const match = src.match(/^ {0,3}(\$\$[\s\S]+?\$\$)[^\S\n]*(?:\n+|$)/);
+							if (match) return { type: "mathBlock", raw: match[0], text: match[1] };
+						},
+						renderer(token) {
+							return '<div class="math-block">' + escapeHtml(token.text) + "</div>\n";
+						}
+					},
+					{
+						// Inline $...$ / $$...$$ passes through untouched so marked doesn't
+						// eat backslashes or turn _ / * inside formulas into emphasis.
+						name: "mathInline",
+						level: "inline",
+						start(src) {
+							const index = src.indexOf("$");
+							return index < 0 ? undefined : index;
+						},
+						tokenizer(src) {
+							const match = src.match(/^\$\$[\s\S]+?\$\$/) || src.match(/^\$(?:\\.|[^\\$])+?\$/);
+							if (match) return { type: "mathInline", raw: match[0], text: match[0] };
+						},
+						renderer(token) {
+							return escapeHtml(token.text);
+						}
+					},
+					{
+						// CJK-friendly emphasis: CommonMark refuses to close **…** when the marker
+						// sits between punctuation and a CJK character (**术语（term）**之后), which
+						// the Chinese notes do constantly. Match the pair directly instead; the
+						// markers must hug non-space text, so `int * p` stays literal.
+						name: "strongCjk",
+						level: "inline",
+						start(src) {
+							const index = src.indexOf("**");
+							return index < 0 ? undefined : index;
+						},
+						tokenizer(src) {
+							const match = src.match(/^\*\*(?=[^\s*])((?:\\.|`[^`]*`|[^\\*`]|\*(?!\*))+?)(?<=[^\s*])\*\*(?!\*)/);
+							if (match) return { type: "strongCjk", raw: match[0], tokens: this.lexer.inlineTokens(match[1]) };
+						},
+						renderer(token) {
+							return "<strong>" + this.parser.parseInline(token.tokens) + "</strong>";
+						}
+					},
+					{
+						name: "emCjk",
+						level: "inline",
+						start(src) {
+							const index = src.indexOf("*");
+							return index < 0 ? undefined : index;
+						},
+						tokenizer(src) {
+							const match = src.match(/^\*(?=[^\s*])((?:\\.|`[^`]*`|[^\\*`])+?)(?<=[^\s*])\*(?!\*)/);
+							if (match) return { type: "emCjk", raw: match[0], tokens: this.lexer.inlineTokens(match[1]) };
+						},
+						renderer(token) {
+							return "<em>" + this.parser.parseInline(token.tokens) + "</em>";
+						}
+					}
+				],
+				renderer: {
+					code(token) {
+						return buildCodeBlockHtml(token.text, (token.lang || "").trim().split(/\s+/)[0]);
+					},
+					heading(token) {
+						const headingId = slugifyHeading(token.text, mdRenderState.slugCounts);
+						return "<h" + token.depth + ' id="' + headingId + '">' + this.parser.parseInline(token.tokens) + "</h" + token.depth + ">\n";
+					},
+					link(token) {
+						// `operator[]()` in prose is an empty link to CommonMark; keep it literal.
+						if (!token.text && !token.href) return escapeHtml(token.raw);
+						return false;
+					},
+					image(token) {
+						const html = MarkedRenderer.prototype.image.call(this, Object.assign({}, token, { href: resolveNoteUrl(token.href) }));
+						return html.replace(/^<img /, '<img loading="lazy" ');
+					}
+				}
+			});
+
+			// GFM splits table cells on every unescaped |, even inside `code`.
+			// Notes write `||` in table cells, so escape pipes inside code spans on table rows.
+			function escapeTablePipesInCode(markdown) {
+				let inFence = false;
+				return markdown.split("\n").map(function (line) {
+					if (/^\s*(?:```|~~~)/.test(line)) {
+						inFence = !inFence;
+						return line;
+					}
+					if (inFence || !/^\s*(?:>\s*)*\|/.test(line)) return line;
+					return line.replace(/(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/g, function (span) {
+						return span.replace(/(?<!\\)\|/g, "\\|");
+					});
+				}).join("\n");
+			}
+
+			function markdownToHtml(markdown, options) {
+				mdRenderState = {
+					slugCounts: new Map(),
+					baseUrl: (options && options.baseUrl) || null
+				};
+				return mdParser.parse(escapeTablePipesInCode(markdown.replace(/\r\n/g, "\n")));
 			}
 
 			function formatLastModified(headerValue, lang) {
@@ -2561,7 +2478,7 @@
 
 				function collectHeadings() {
 					if (!content || content.hidden) return [];
-					return Array.from(content.querySelectorAll("h1, h2, h3, h4")).map(function(el, i) {
+					return Array.from(content.querySelectorAll(":is(h1, h2, h3, h4):not(.footnotes *)")).map(function(el, i) {
 						return {
 							level: parseInt(el.tagName[1], 10),
 							text: el.textContent.trim() || "Untitled heading",
@@ -2759,7 +2676,7 @@
 					const lastMod = response.headers.get("Last-Modified");
 					const markdown = await response.text();
 					window._rawMarkdown = markdown;
-					content.innerHTML = markdownToHtml(markdown);
+					content.innerHTML = markdownToHtml(markdown, { baseUrl: new URL(markdownPath, window.location.href).href });
 					showEditButton();
 					void setupLanguageSwitch(request);
 					content.hidden = false;
@@ -2782,7 +2699,7 @@
 			function buildToc(contentEl) {
 				const sidebar = document.getElementById("toc-sidebar");
 				const panelEl = document.getElementById("toc-panel");
-				const headings = Array.from(contentEl.querySelectorAll("h1, h2, h3, h4"));
+				const headings = Array.from(contentEl.querySelectorAll(":is(h1, h2, h3, h4):not(.footnotes *)"));
 				if (headings.length < 4) return;
 
 				// marks (collapsed view) — fixed spacing, scrolls with page
