@@ -31,6 +31,7 @@ with the running line highlighted, variable watch, optional input bar).
 | `memory-trace` | any | Python Tutor-style stack/heap with pointer arrows; takes memdiag-format steps. |
 | `array-2d` | 2 | Row-major layout of a 2D/3D array, offset and address of one element. |
 | `doubling-test` | 2 | Doubling hypothesis: ratios, b = lg ratio, a = T/n^b, log-log plot. |
+| `web-demo` | IN4MATX 133 | Live HTML/CSS/JS in a sandboxed iframe (built lazily near the viewport) with a console. Source tabs: Shiki dark-plus, line numbers, line diff per step (gold = added, red rule = removed, hover the number), auto-scroll to the change, Copy; edits kept per step until Revert. Side by side on wide demos (draggable divider; layout and split remembered in `localStorage` `viz-web-demo-layout` / `viz-web-demo-split`); drag the preview's right edge to change the simulated viewport width. Preview sits in a browser-window frame (white page = real browser default). "Code Runner" hands the current code to `tools/code-runner/?from=viz` via `localStorage.cr-web-transfer`; Code Runner's Web mode imports `pageDocument()` from this file. Optional steps (cumulative CSS/JS, HTML replace, viewport width) and `libs` (bootstrap, mathjs, moment, vega-lite). |
 
 ## Component contract
 
