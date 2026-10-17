@@ -20,6 +20,11 @@
     })();
   </script>
   <style>
+    /* Four course tiles (Notes + 3 courses) in the strip beside the hero */
+    .card-strip { grid-template-columns: repeat(4, 1fr); }
+    .card-strip > .card { padding: 14px; }
+    @media (max-width: 520px) { .card-strip { grid-template-columns: 1fr; } }
+
     .recent-card { display: flex; flex-direction: column; gap: 10px; }
     .recent-list { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
     .recent-item {
@@ -105,7 +110,7 @@
         <div class="hero-blob-gold"></div>
         <div class="hero-blob-white"></div>
         <div class="hero-top">
-          <div class="eyebrow hero-eyebrow">Personal Site · Spring 2026</div>
+          <div class="eyebrow hero-eyebrow">Personal Site · Fall 2026</div>
           <h1 class="hero-title">Building small, <em>useful</em> things on the web.</h1>
           <p class="hero-sub">I'm <strong>Kazuha Mo</strong> — a CS student at UC Irvine. This is where I keep my course notes, web tools, and quiet experiments.</p>
         </div>
@@ -122,7 +127,16 @@
             <div class="card-title">Notes</div>
             <div class="card-desc">Course notes + LA/TA demos.</div>
           </div>
-          <div class="card-meta">2 courses · bilingual</div>
+          <div class="card-meta">3 courses · bilingual</div>
+        </a>
+
+        <a href="notes/course_notes/ICS-46/" class="card interactive course-card">
+          <span class="eyebrow-pill">Course</span>
+          <div>
+            <div class="card-title">ICS 46</div>
+            <div class="card-desc">Data Structures in C++.</div>
+          </div>
+          <div class="card-meta">6 lectures · latest L5</div>
         </a>
 
         <a href="notes/course_notes/ICS-45C/" class="card interactive course-card">
@@ -160,6 +174,8 @@
             if (!res.ok) throw new Error("sitemap fetch failed");
             var data = await res.json();
             var items = [];
+            // Courses taken this term sort ahead of older courses; update each term.
+            var CURRENT_COURSES = ["ICS-46"];
             (data.pages || []).forEach(function (page) {
               if (Array.isArray(page.notes)) {
                 var course = (page.title || "").replace(/\s*Notes$/i, "");
@@ -167,6 +183,7 @@
                 var courseCode = coursePathMatch ? coursePathMatch[1] : course;
                 page.notes.forEach(function (note) {
                   var m = /Week\s*(\d+)/i.exec(note.file || note.title || "");
+                  var lec = /Lec(?:ture)?\s*(\d+)/i.exec(note.file || note.title || "");
                   var langs = note.languages || ["zh-CN"];
                   var lang = langs.indexOf("zh-CN") >= 0 ? "zh-CN" : langs[0];
                   var fullNote = (note.file || "") + "_" + lang + ".md";
@@ -175,7 +192,9 @@
                     kind: "Course",
                     course: course,
                     title: note.title || note.file || "",
-                    week: m ? parseInt(m[1], 10) : 0,
+                    week: m ? parseInt(m[1], 10) : (lec ? parseInt(lec[1], 10) : 0),
+                    unit: lec && !m ? "Lecture" : "Week",
+                    current: CURRENT_COURSES.indexOf(courseCode) >= 0,
                     href: "./tools/md-viewer/?" + qs.toString()
                   });
                 });
@@ -195,6 +214,7 @@
               }
             });
             items.sort(function (a, b) {
+              if (!!a.current !== !!b.current) return a.current ? -1 : 1;
               if (b.week !== a.week) return b.week - a.week;
               return a.course.localeCompare(b.course);
             });
@@ -202,7 +222,7 @@
             if (!top.length) throw new Error("no items");
             var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]; }); };
             list.innerHTML = top.map(function (item) {
-              var weekStr = item.week ? "Week " + item.week : "";
+              var weekStr = item.week ? (item.unit || "Week") + " " + item.week : "";
               return '<a class="recent-item" href="' + esc(item.href) + '">' +
                 '<div class="recent-meta">' +
                   '<span>' + esc(item.course) + '</span>' +

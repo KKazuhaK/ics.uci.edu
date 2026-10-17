@@ -614,7 +614,8 @@
 				overflow: hidden;
 				cursor: grab;
 				user-select: none;
-				touch-action: none;
+				/* Vertical swipes scroll the page; horizontal drags / pinch stay with the diagram */
+				touch-action: pan-y;
 			}
 
 			.markdown-body .mermaid-resize-handle {
@@ -732,6 +733,29 @@
 				-webkit-backdrop-filter: blur(6px);
 				border: 1px solid rgba(255, 255, 255, 0.08);
 				pointer-events: none;
+			}
+
+			.markdown-body .mermaid-zoom-hint {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(15, 20, 30, 0.72);
+				color: #fff;
+				padding: 0.45rem 0.9rem;
+				border-radius: 999px;
+				font-size: 0.85rem;
+				font-weight: 500;
+				z-index: 2;
+				pointer-events: none;
+				opacity: 0;
+				transition: opacity 0.2s ease;
+				backdrop-filter: blur(6px);
+				-webkit-backdrop-filter: blur(6px);
+			}
+
+			.markdown-body .mermaid-zoom-hint.is-visible {
+				opacity: 1;
 			}
 
 			.markdown-body .mermaid-block.mermaid-error {
@@ -1637,6 +1661,14 @@
 				indicator.className = "mermaid-zoom-indicator";
 				indicator.textContent = "100%";
 
+				const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+				const zoomKey = isMac ? "⌘" : "Ctrl";
+				const hint = document.createElement("div");
+				hint.className = "mermaid-zoom-hint";
+				hint.textContent = new URLSearchParams(location.search).get("lang") === "zh-CN"
+					? "按住 " + zoomKey + " 滚动以缩放"
+					: "Hold " + zoomKey + " and scroll to zoom";
+
 				const resizeHandle = document.createElement("div");
 				resizeHandle.className = "mermaid-resize-handle";
 				resizeHandle.title = "Drag to resize";
@@ -1644,6 +1676,7 @@
 				wrapper.appendChild(stage);
 				wrapper.appendChild(controls);
 				wrapper.appendChild(indicator);
+				wrapper.appendChild(hint);
 				wrapper.appendChild(resizeHandle);
 
 				svg.removeAttribute("style");
@@ -1719,12 +1752,24 @@
 				stage.addEventListener("pointercancel", endDrag);
 				stage.addEventListener("pointerleave", endDrag);
 
+				// Plain wheel scrolls the page (like GitHub); zoom needs Ctrl/⌘ or a trackpad pinch (reported as ctrlKey).
+				let hintTimer = null;
 				stage.addEventListener("wheel", function(event) {
+					if (!event.ctrlKey && !event.metaKey) {
+						if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+							hint.classList.add("is-visible");
+							clearTimeout(hintTimer);
+							hintTimer = setTimeout(function() { hint.classList.remove("is-visible"); }, 1200);
+						}
+						return;
+					}
 					event.preventDefault();
+					hint.classList.remove("is-visible");
 					const rect = stage.getBoundingClientRect();
 					const ox = event.clientX - rect.left;
 					const oy = event.clientY - rect.top;
-					const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+					// Proportional to delta: a mouse notch (~100) ≈ ×1.13, a pinch tick (a few px) is gentle
+					const factor = Math.exp(-Math.max(-50, Math.min(50, event.deltaY)) * 0.0025);
 					zoomAt(factor, ox, oy);
 				}, { passive: false });
 
@@ -1840,6 +1885,67 @@
 					if (orphan && !wrapper.contains(orphan)) {
 						orphan.remove();
 					}
+				}
+			}
+
+			// ```viz <component> blocks → interactive step-through demos. Each
+			// component lives in assets/viz/<component>.js (shared site-wide); the player is assets/viz/_player.js.
+			const VIZ_BASE = "../../assets/viz/";
+
+			async function applyVizRendering(container) {
+				const blocks = Array.from(container.querySelectorAll('pre[data-language="viz"]'));
+				if (!blocks.length) {
+					return;
+				}
+
+				let player = null;
+				let playerError = null;
+				try {
+					player = await import(new URL(VIZ_BASE + "_player.js", document.baseURI).href);
+				} catch (error) {
+					playerError = error;
+				}
+
+				for (const pre of blocks) {
+					const name = pre.dataset.viz || "";
+					const source = pre.textContent || "";
+					const wrapper = document.createElement("div");
+					const problems = [];
+					let config = null;
+
+					if (!/^[a-z][a-z0-9-]*$/.test(name)) {
+						problems.push(name ? 'invalid component name "' + name + '"' : "missing component name: write ```viz <component>");
+					}
+					try {
+						config = source.trim() ? JSON.parse(source) : {};
+					} catch (error) {
+						problems.push("config is not valid JSON: " + error.message);
+					}
+
+					let mod = null;
+					if (!problems.length) {
+						try {
+							mod = await import(new URL(VIZ_BASE + name + ".js", document.baseURI).href);
+						} catch (error) {
+							problems.push('unknown component "' + name + '" (no assets/viz/' + name + ".js)");
+						}
+					}
+
+					if (!player) {
+						console.warn("viz player failed to load.", playerError);
+						wrapper.className = "mermaid-block mermaid-error";
+						wrapper.innerHTML = '<div class="mermaid-error-msg">Interactive demo failed to load.</div><pre><code>' + escapeHtml(source) + "</code></pre>";
+					} else if (problems.length) {
+						player.renderError(wrapper, problems, source);
+					} else {
+						try {
+							player.mount(wrapper, mod, config, source);
+						} catch (error) {
+							console.warn("viz render failed.", error);
+							player.renderError(wrapper, [error && error.message ? error.message : "render failed"], source);
+						}
+					}
+					pre.replaceWith(wrapper);
 				}
 			}
 
@@ -2050,7 +2156,12 @@
 				],
 				renderer: {
 					code(token) {
-						return buildCodeBlockHtml(token.text, (token.lang || "").trim().split(/\s+/)[0]);
+						const info = (token.lang || "").trim().split(/\s+/);
+						// ```viz <component> keeps its component name for applyVizRendering.
+						if (info[0].toLowerCase() === "viz") {
+							return '<pre data-language="viz" data-viz="' + escapeHtml(info[1] || "") + '"><code>' + escapeHtml(token.text) + "</code></pre>";
+						}
+						return buildCodeBlockHtml(token.text, info[0]);
 					},
 					heading(token) {
 						const headingId = slugifyHeading(token.text, mdRenderState.slugCounts);
@@ -2129,6 +2240,7 @@
 					.replace(/_/g, " ")
 					.replace(/-/g, " ")
 					.replace(/Week\s*(\d+)/gi, "Week $1")
+					.replace(/\bLec(?:ture)?\s*0*(\d+)/gi, "Lecture $1")
 					.replace(/\s+/g, " ")
 					.trim();
 			}
@@ -2140,6 +2252,8 @@
 			function extractWeekLabel(note) {
 				const match = note.match(/(?:^|_)Week\s*([0-9]+)/i);
 				if (match) return "Week " + match[1];
+				const lecture = note.match(/(?:^|_)Lec(?:ture)?\s*([0-9]+)/i);
+				if (lecture) return "Lecture " + parseInt(lecture[1], 10);
 				if (/(?:^|_)Final[_-]?Review/i.test(note)) return "Final Review";
 				return "";
 			}
@@ -2172,6 +2286,17 @@
 							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，适合按周复习语法、程序结构、测试和解题思路。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。"
 						}
 					},
+					"ICS-46": {
+						displayName: "ICS 46",
+						"en-US": {
+							headingBase: "Data Structures Reading Notes",
+							descriptionTemplate: "This page presents {course}{weekPhrase} notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents."
+						},
+						"zh-CN": {
+							headingBase: "数据结构课程阅读笔记",
+							descriptionTemplate: "这页整理的是 {course}{weekPhrase} 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。"
+						}
+					},
 					"IN4MATX-43": {
 						displayName: "IN4MATX 43",
 						"en-US": {
@@ -2191,7 +2316,7 @@
 					const title = weekLabel
 						? profile.displayName + " " + weekLabel + " Notes"
 						: profile.displayName + " Notes";
-					const heading = /^Week/i.test(weekLabel)
+					const heading = /^(?:Week|Lecture)/i.test(weekLabel)
 						? weekLabel + " " + localized.headingBase
 						: localized.headingBase;
 					return {
@@ -2454,10 +2579,14 @@
 				buildToc(contentEl);
 				if (window._mvGotoContentChanged) window._mvGotoContentChanged();
 
-				Promise.resolve(applyMermaidRendering(contentEl))
-					.catch(function(error) {
+				Promise.all([
+					Promise.resolve(applyMermaidRendering(contentEl)).catch(function(error) {
 						console.warn("Mermaid rendering failed.", error);
+					}),
+					Promise.resolve(applyVizRendering(contentEl)).catch(function(error) {
+						console.warn("viz rendering failed.", error);
 					})
+				])
 					.then(function() {
 						if (window._mvGotoContentChanged) window._mvGotoContentChanged();
 						return applySyntaxHighlighting(contentEl);
