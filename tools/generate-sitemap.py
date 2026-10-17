@@ -73,7 +73,7 @@ PAGE_META = {
     },
     "/tools/code-runner/": {
         "title": "Code Runner",
-        "description": "Browser-based code runner supporting Python, C++, Java, and JavaScript execution.",
+        "description": "Browser-based code runner supporting Python, C++, Java, and JavaScript execution, plus a Web mode (HTML/CSS/JS) with live preview and console.",
     },
     "/tools/ask-ai/": {
         "title": "Ask AI",

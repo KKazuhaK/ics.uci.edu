@@ -247,7 +247,32 @@
 			.cr-body-left {
 				min-width: 0;
 				overflow: hidden;
+				display: flex;
+				flex-direction: column;
 			}
+
+			/* Web mode: file tabs above the editor, live preview + console on the right */
+			.cr-web-tabs {
+				display: flex; align-items: center; gap: 2px;
+				padding: 0 0.5rem; background: #252526; border-bottom: 1px solid #1e1e1e;
+			}
+			.cr-web-tabs[hidden] { display: none; }
+			.cr-web-tab {
+				padding: 0.45rem 0.85rem; border: 0; border-bottom: 2px solid transparent; background: transparent;
+				color: rgba(255,255,255,0.5); font: 12.5px/1.2 "Consolas", "Cascadia Code", "Menlo", monospace; cursor: pointer;
+			}
+			.cr-web-tab:hover { color: rgba(255,255,255,0.8); }
+			.cr-web-tab.active { color: #fff; border-bottom-color: #3b82f6; }
+			.cr-web-auto {
+				margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;
+				color: rgba(255,255,255,0.55); font-size: 0.75rem; cursor: pointer; user-select: none;
+			}
+			.cr-web-auto input { accent-color: #3b82f6; }
+			.cr-preview-body { padding: 0 !important; background: rgba(255,255,255,0.04); }
+			.cr-preview-body iframe { flex: 1; width: 100%; min-height: 8rem; border: 0; background: #fff; }
+			.cr-preview-size { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.4); font-family: "Consolas", "Cascadia Code", monospace; }
+			.cr-con-warn { color: #cca700; }
+			.cr-con-info { color: rgba(255,255,255,0.5); }
 			.cr-body-right {
 				display: flex;
 				flex-direction: column;
@@ -300,7 +325,7 @@
 
 			/* Editor */
 			#cr-editor {
-				height: 100%;
+				flex: 1;
 				min-height: 0;
 				font-size: 14px;
 			}
@@ -525,7 +550,8 @@
 				.cr-shell { min-height: 0; }
 				.cr-body { grid-template-columns: 1fr !important; flex: none; }
 				.cr-resizer-h { display: none; }
-				#cr-editor { height: 280px; font-size: 13px; }
+				#cr-editor { flex: none; height: 280px; font-size: 13px; }
+				.cr-preview-body iframe { min-height: 16rem; }
 				.cr-output { font-size: 12.5px; min-height: 4rem; max-height: 16rem; }
 				.cr-shortcut { display: none; }
 				.cr-tc-case { grid-template-columns: 1fr 1fr 1.3rem; gap: 0.3rem; }
@@ -591,6 +617,12 @@
 							<div class="cr-body" id="cr-body">
 								<!-- Left: Editor -->
 								<div class="cr-body-left">
+									<div class="cr-web-tabs" id="cr-web-tabs" hidden>
+										<button type="button" class="cr-web-tab" data-tab="html">index.html</button>
+										<button type="button" class="cr-web-tab" data-tab="css">style.css</button>
+										<button type="button" class="cr-web-tab" data-tab="js">script.js</button>
+										<label class="cr-web-auto" title="Re-run the page as you type"><input type="checkbox" id="cr-web-auto" checked />Auto-run</label>
+									</div>
 									<div id="cr-editor"></div>
 								</div>
 
@@ -619,10 +651,21 @@
 										<div class="cr-section-body cr-tc-list" id="cr-tc-list"></div>
 									</div>
 
+									<div class="cr-section" id="cr-sec-preview" style="display:none">
+										<div class="cr-section-hdr" data-section="preview">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Preview</span>
+											<span class="cr-preview-size" id="cr-preview-size"></span>
+										</div>
+										<div class="cr-section-body cr-preview-body">
+											<iframe id="cr-preview" sandbox="allow-scripts allow-forms" title="Page preview"></iframe>
+										</div>
+									</div>
+
 									<div class="cr-section" id="cr-sec-output">
 										<div class="cr-section-hdr" data-section="output">
 											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-											<span class="cr-section-title">Output</span>
+											<span class="cr-section-title" id="cr-output-title">Output</span>
 											<span class="cr-output-status" id="cr-status" style="margin-left:auto"></span>
 										</div>
 										<pre class="cr-section-body cr-output" id="cr-output"><span class="cr-placeholder">Click Run or press Ctrl+Enter to execute your code.</span></pre>
@@ -699,6 +742,18 @@
 					{ label: '1.81', compiler: 'rust-1.81.0' },
 					{ label: '1.80', compiler: 'rust-1.80.1' },
 				]},
+				// Runs in the browser, not on Wandbox: the "version" select picks a library.
+				{ id: 'web',        label: 'Web (HTML/CSS/JS)', ace: 'html', ext: '.html', web: true, tpl: {
+					html: '<h1>Hello, World!</h1>\n<button id="btn">Click me</button>',
+					css: 'body {\n  font-family: system-ui, sans-serif;\n  padding: 1rem;\n}\n\nh1 {\n  color: #0064a4;\n}',
+					js: 'const btn = document.querySelector("#btn");\nbtn.addEventListener("click", () => {\n  console.log("clicked!");\n});'
+				}, versions: [
+					{ label: 'No library',      compiler: '' },
+					{ label: '+ Bootstrap 5.3', compiler: 'bootstrap' },
+					{ label: '+ Vega-Lite 5',   compiler: 'vega-lite' },
+					{ label: '+ math.js',       compiler: 'mathjs' },
+					{ label: '+ Moment.js',     compiler: 'moment' },
+				]},
 				{ id: 'bash',       label: 'Bash',         ace: 'sh',         ext: '.sh',   tpl: 'echo "Hello, World!"', versions: [
 					{ label: 'Bash', compiler: 'bash' },
 				]},
@@ -754,6 +809,7 @@
 
 			verSelect.addEventListener('change', function() {
 				localStorage.setItem('cr-ver-' + currentLang.id, verSelect.value);
+				if (currentLang.web) runWeb();
 			});
 
 			var savedLang = localStorage.getItem('cr-lang');
@@ -797,6 +853,9 @@
 .ace-vscode-dark-plus .ace_support.ace_constant{color:#569cd6}\
 .ace-vscode-dark-plus .ace_entity.ace_name.ace_function{color:#dcdcaa}\
 .ace-vscode-dark-plus .ace_entity.ace_name.ace_tag{color:#569cd6}\
+.ace-vscode-dark-plus .ace_meta.ace_tag{color:#808080}\
+.ace-vscode-dark-plus .ace_meta.ace_tag.ace_tag-name{color:#569cd6}\
+.ace-vscode-dark-plus .ace_string.ace_attribute-value{color:#ce9178}\
 .ace-vscode-dark-plus .ace_entity.ace_other.ace_attribute-name{color:#9cdcfe}\
 .ace-vscode-dark-plus .ace_variable{color:#9cdcfe}\
 .ace-vscode-dark-plus .ace_variable.ace_parameter{color:#9cdcfe}\
@@ -824,31 +883,85 @@
 				fontFamily: '"Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace'
 			});
 
-			var savedCode = localStorage.getItem('cr-code-' + currentLang.id);
-			editor.setValue(savedCode || currentLang.tpl, -1);
+			/* ── Web mode: one Ace session per file ───────── */
+			var WEB_TABS = { html: 'html', css: 'css', js: 'javascript' };
+			var WEB_TPL = LANGS.find(function(l) { return l.web; }).tpl;
+			var mainSession = editor.getSession();
+			var webSessions = {};
+			var webTab = localStorage.getItem('cr-web-tab') || 'html';
+			Object.keys(WEB_TABS).forEach(function(k) {
+				var saved = localStorage.getItem('cr-code-web-' + k);
+				var sess = ace.createEditSession(saved !== null ? saved : WEB_TPL[k], 'ace/mode/' + WEB_TABS[k]);
+				sess.setTabSize(2);
+				sess.setUseSoftTabs(true);
+				webSessions[k] = sess;
+			});
+			var webTabsEl = document.getElementById('cr-web-tabs');
+			var webAuto = document.getElementById('cr-web-auto');
+			webAuto.checked = localStorage.getItem('cr-web-auto') !== 'off';
+			webAuto.addEventListener('change', function() {
+				localStorage.setItem('cr-web-auto', webAuto.checked ? 'on' : 'off');
+				if (webAuto.checked) runWeb();
+			});
+
+			function showWebTab(k) {
+				webTab = k;
+				localStorage.setItem('cr-web-tab', k);
+				editor.setSession(webSessions[k]);
+				webTabsEl.querySelectorAll('.cr-web-tab').forEach(function(b) {
+					b.classList.toggle('active', b.dataset.tab === k);
+				});
+				editor.focus();
+			}
+			webTabsEl.addEventListener('click', function(e) {
+				var b = e.target.closest('.cr-web-tab');
+				if (b) showWebTab(b.dataset.tab);
+			});
+
+			function saveCode() {
+				if (currentLang.web) {
+					Object.keys(webSessions).forEach(function(k) {
+						localStorage.setItem('cr-code-web-' + k, webSessions[k].getValue());
+					});
+				} else {
+					localStorage.setItem('cr-code-' + currentLang.id, editor.getValue());
+				}
+			}
+
+			if (!currentLang.web) {
+				var savedCode = localStorage.getItem('cr-code-' + currentLang.id);
+				editor.setValue(savedCode || currentLang.tpl, -1);
+			}
 			editor.focus();
 
 			var saveTimer = null;
+			var autoTimer = null;
 			editor.on('change', function() {
 				clearTimeout(saveTimer);
-				saveTimer = setTimeout(function() {
-					localStorage.setItem('cr-code-' + currentLang.id, editor.getValue());
-				}, 800);
+				saveTimer = setTimeout(saveCode, 800);
+				if (currentLang.web && webAuto.checked) {
+					clearTimeout(autoTimer);
+					autoTimer = setTimeout(runWeb, 700);
+				}
 			});
 
 			/* ── Language switch ─────────────────────────── */
 			langSelect.addEventListener('change', function() {
-				localStorage.setItem('cr-code-' + currentLang.id, editor.getValue());
+				saveCode();
 				var newLang = LANGS.find(function(l) { return l.id === langSelect.value; });
 				if (!newLang) return;
 				currentLang = newLang;
 				localStorage.setItem('cr-lang', currentLang.id);
-				editor.session.setMode('ace/mode/' + currentLang.ace);
-				var saved = localStorage.getItem('cr-code-' + currentLang.id);
-				editor.setValue(saved || currentLang.tpl, -1);
-				editor.focus();
+				if (!currentLang.web) {
+					editor.setSession(mainSession);
+					editor.session.setMode('ace/mode/' + currentLang.ace);
+					var saved = localStorage.getItem('cr-code-' + currentLang.id);
+					editor.setValue(saved || currentLang.tpl, -1);
+					editor.focus();
+				}
 				populateVersions();
 				loadTestCases();
+				applyMode();
 			});
 
 			/* ── Fullscreen ─────────────────────────────── */
@@ -971,8 +1084,22 @@
 				if (file.size > 5 * 1024 * 1024) { alert('File too large (max 5 MB)'); return; }
 				var reader = new FileReader();
 				reader.onload = function() {
-					// Auto-detect language from extension
 					var dot = file.name.lastIndexOf('.');
+					var lower = dot !== -1 ? file.name.substring(dot).toLowerCase() : '';
+					// Web files go into their tab: .html/.htm/.css always, .js when already in Web mode
+					var webTabFor = { '.html': 'html', '.htm': 'html', '.css': 'css' }[lower] || (lower === '.js' && currentLang.web ? 'js' : null);
+					if (webTabFor) {
+						if (!currentLang.web) {
+							langSelect.value = 'web';
+							langSelect.dispatchEvent(new Event('change'));
+						}
+						webSessions[webTabFor].setValue(reader.result);
+						saveCode(); // the tab may not be on screen, so no editor 'change' fires
+						showWebTab(webTabFor);
+						runWeb();
+						return;
+					}
+					// Auto-detect language from extension
 					if (dot !== -1) {
 						var ext = file.name.substring(dot).toLowerCase();
 						var langId = EXT_TO_LANG[ext];
@@ -988,6 +1115,19 @@
 			});
 
 			document.getElementById('cr-btn-save').addEventListener('click', function() {
+				if (currentLang.web) {
+					// One self-contained index.html (CSS and JS inlined)
+					getWebMod().then(function(m) {
+						var page = m.pageDocument(webSource(), null, verSelect.value ? [verSelect.value] : []);
+						var url = URL.createObjectURL(new Blob([page], { type: 'text/html;charset=utf-8' }));
+						var link = document.createElement('a');
+						link.href = url;
+						link.download = 'index.html';
+						link.click();
+						URL.revokeObjectURL(url);
+					});
+					return;
+				}
 				var code = editor.getValue();
 				var blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
 				var a = document.createElement('a');
@@ -1078,7 +1218,8 @@
 			var stdinSec  = document.getElementById('cr-sec-stdin');
 			var tcSec     = document.getElementById('cr-sec-tc');
 			var outputSec = document.getElementById('cr-sec-output');
-			var allSections = [stdinSec, tcSec, outputSec];
+			var previewSec = document.getElementById('cr-sec-preview');
+			var allSections = [stdinSec, tcSec, previewSec, outputSec];
 
 			/* ── Distribute flex: last expanded visible section fills ── */
 			function syncSections() {
@@ -1086,7 +1227,11 @@
 					return s.style.display !== 'none' && !s.classList.contains('collapsed');
 				});
 				allSections.forEach(function(s) { s.style.flex = ''; });
-				if (expanded.length) {
+				if (currentLang.web) {
+					// Preview gets most of the height, the console the rest
+					if (expanded.indexOf(previewSec) !== -1) previewSec.style.flex = '3 1 0';
+					if (expanded.indexOf(outputSec) !== -1) outputSec.style.flex = expanded.length > 1 ? '1 1 0' : '1';
+				} else if (expanded.length) {
 					expanded[expanded.length - 1].style.flex = '1';
 				}
 			}
@@ -1106,7 +1251,7 @@
 			});
 
 			function isJudgeMode() {
-				return !tcSec.classList.contains('collapsed') && testCases.length > 0;
+				return !currentLang.web && !tcSec.classList.contains('collapsed') && testCases.length > 0;
 			}
 
 			var RUN_ICON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
@@ -1123,6 +1268,17 @@
 
 			/* ── Clear all ──────────────────────────────── */
 			document.getElementById('cr-btn-clear').addEventListener('click', function() {
+				if (currentLang.web) {
+					Object.keys(webSessions).forEach(function(k) {
+						webSessions[k].setValue('');
+						localStorage.removeItem('cr-code-web-' + k);
+					});
+					preview.srcdoc = '';
+					outputEl.innerHTML = CONSOLE_EMPTY;
+					statusEl.textContent = '';
+					editor.focus();
+					return;
+				}
 				editor.setValue('', -1);
 				editor.focus();
 				stdinArea.value = '';
@@ -1133,7 +1289,110 @@
 
 			/* ── Run / Judge ────────────────────────────── */
 
+			/* ── Web: render in a sandboxed iframe, console from the page ── */
+			var preview = document.getElementById('cr-preview');
+			var previewSize = document.getElementById('cr-preview-size');
+			var outputTitle = document.getElementById('cr-output-title');
+			var CONSOLE_EMPTY = '<span class="cr-placeholder">(console empty)</span>';
+			var webToken = null;
+			var webModPromise = null;
+			var consoleLines = 0;
+
+			// Shared with the notes' live demos (assets/viz/web-demo.js): same page
+			// builder and console/alert/error hook.
+			function getWebMod() {
+				if (!webModPromise) webModPromise = import('../../assets/viz/web-demo.js');
+				return webModPromise;
+			}
+
+			function webSource() {
+				return { html: webSessions.html.getValue(), css: webSessions.css.getValue(), js: webSessions.js.getValue() };
+			}
+
+			// A pasted course file links style.css / script.js etc.; those files don't
+			// exist here, so drop local <link>/<script src> and use the tabs instead.
+			function dropLocalRefs(html, notes) {
+				var local = function(url) { return !/^(?:[a-z]+:)?\/\//i.test(url); };
+				return html
+					.replace(/<link\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi, function(tag, url) {
+						if (!/stylesheet/i.test(tag) || !local(url)) return tag;
+						notes.push(url + ' \u2192 style.css tab');
+						return '';
+					})
+					.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, function(tag, url) {
+						if (!local(url)) return tag;
+						notes.push(url + ' \u2192 script.js tab');
+						return '';
+					});
+			}
+
+			function consoleLine(kind, text) {
+				if (consoleLines === 0) outputEl.innerHTML = '';
+				consoleLines++;
+				var cls = { error: 'cr-stderr', warn: 'cr-con-warn', info: 'cr-con-info' }[kind];
+				outputEl.insertAdjacentHTML('beforeend', (cls ? '<span class="' + cls + '">' + esc(text) + '</span>' : esc(text)) + '\n');
+				outputEl.scrollTop = outputEl.scrollHeight;
+				if (kind === 'error') {
+					statusEl.innerHTML = '<span class="cr-exit-err">error</span> &middot; ' + new Date().toLocaleTimeString();
+				}
+			}
+
+			window.addEventListener('message', function(e) {
+				var d = e.data;
+				if (!d || !webToken || d.__webDemo !== webToken || e.source !== preview.contentWindow) return;
+				consoleLine(d.kind, d.text);
+			});
+
+			function runWeb() {
+				if (!currentLang.web) return;
+				getWebMod().then(function(m) {
+					var notes = [];
+					var src = webSource();
+					src.html = dropLocalRefs(src.html, notes);
+					webToken = 'cr' + Math.random().toString(36).slice(2);
+					consoleLines = 0;
+					outputEl.innerHTML = CONSOLE_EMPTY;
+					notes.forEach(function(n) { consoleLine('info', '[runner] ' + n); });
+					preview.srcdoc = m.pageDocument(src, webToken, verSelect.value ? [verSelect.value] : []);
+					statusEl.innerHTML = '<span class="cr-exit-ok">rendered</span> &middot; ' + new Date().toLocaleTimeString();
+				}).catch(function(err) {
+					outputEl.innerHTML = '<span class="cr-error-msg">Error: ' + esc(err.message) + '</span>';
+				});
+			}
+
+			if (typeof ResizeObserver !== 'undefined') {
+				new ResizeObserver(function() {
+					previewSize.textContent = preview.clientWidth ? preview.clientWidth + ' \u00d7 ' + preview.clientHeight : '';
+				}).observe(preview);
+			}
+
+			// Show / hide the pieces that belong to Web vs. the compiled languages.
+			function applyMode() {
+				var web = !!currentLang.web;
+				webTabsEl.hidden = !web;
+				stdinSec.style.display = web ? 'none' : '';
+				tcSec.style.display = web ? 'none' : '';
+				previewSec.style.display = web ? '' : 'none';
+				outputTitle.textContent = web ? 'Console' : 'Output';
+				verSelect.title = web ? 'Library to load' : 'Compiler/runtime version';
+				if (web) {
+					showWebTab(webTab);
+					runWeb();
+				} else {
+					// Stop the hidden page: its timers/listeners would keep logging into Output
+					webToken = null;
+					clearTimeout(autoTimer);
+					preview.srcdoc = '';
+					outputEl.innerHTML = '<span class="cr-placeholder">Click Run or press Ctrl+Enter to execute your code.</span>';
+					statusEl.textContent = '';
+				}
+				syncSections();
+				updateRunBtn();
+				editor.resize();
+			}
+
 			function runCode() {
+				if (currentLang.web) { runWeb(); return; }
 				if (running) return;
 				if (isJudgeMode()) { judgeCode(); return; }
 				normalRun();
@@ -1268,6 +1527,33 @@
 			}
 
 			runBtn.addEventListener('click', runCode);
+
+			// Hand-off from a notes demo ("Code Runner" button in assets/viz/web-demo.js)
+			if (/[?&]from=viz\b/.test(location.search)) {
+				try {
+					var handoff = JSON.parse(localStorage.getItem('cr-web-transfer') || 'null');
+					localStorage.removeItem('cr-web-transfer');
+					// Don't silently replace the reader's own Web code
+					var mine = ['html', 'css', 'js'].some(function(k) {
+						var v = localStorage.getItem('cr-code-web-' + k);
+						return v !== null && v !== WEB_TPL[k] && v !== (handoff && handoff[k] || '');
+					});
+					if (handoff && mine && !confirm('Replace your current Web (HTML/CSS/JS) code with the code from the notes demo?\n\nCancel keeps your code.')) handoff = null;
+					if (handoff) {
+						currentLang = LANGS.find(function(l) { return l.web; });
+						langSelect.value = 'web';
+						localStorage.setItem('cr-lang', 'web');
+						populateVersions();
+						verSelect.value = (handoff.libs && handoff.libs[0]) || '';
+						localStorage.setItem('cr-ver-web', verSelect.value);
+						['html', 'css', 'js'].forEach(function(k) { webSessions[k].setValue(handoff[k] || ''); });
+						webTab = handoff.js && !handoff.css ? 'js' : 'html';
+						saveCode();
+					}
+				} catch (err) { /* ignore a malformed hand-off */ }
+				history.replaceState(null, '', location.pathname);
+			}
+			applyMode();
 
 			editor.commands.addCommand({
 				name: 'runCode',
