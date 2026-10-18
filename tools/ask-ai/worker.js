@@ -1,14 +1,16 @@
-// Cloudflare Worker: Mistral API Proxy + Entra ID OAuth
+// Cloudflare Worker: Workers AI chat proxy + Entra ID OAuth
 // Deploy this to Cloudflare Workers, NOT to your website.
 // This file is kept here for reference only.
 //
 // Environment Variables (set in Cloudflare Dashboard → Worker → Settings → Variables):
-//   MISTRAL_API_KEY    - your Mistral API key (encrypt it)
 //   CHAT_PASSWORD      - comma-separated passwords for legacy login
 //   AZURE_CLIENT_ID    - Entra ID app registration client ID
 //   AZURE_CLIENT_SECRET- Entra ID app registration client secret (encrypt it)
 //   AZURE_TENANT_ID    - Entra ID tenant ID
 //   JWT_SECRET         - random string for signing JWTs (encrypt it)
+//
+// Bindings (Dashboard → Worker → Settings → Bindings):
+//   AI                 - Workers AI binding (Add binding → Workers AI, name "AI")
 //
 // Entra ID App Registration setup:
 //   1. Go to Azure Portal → Entra ID → App registrations → New registration
@@ -17,7 +19,11 @@
 //   4. Certificates & secrets: create a client secret
 //   5. Set environment variables above with the values
 
-const MISTRAL_API = "https://api.mistral.ai/v1/chat/completions";
+// Workers AI (binding "AI"). Free plan = 10k neurons/day, never billed; once
+// used up, requests fail until the next day. Gemma 4 is ~1/3 the cost of
+// Llama 4 Scout per input token, so it handles text; Scout handles images.
+const AI_MODEL        = "@cf/google/gemma-4-26b-a4b-it";
+const AI_VISION_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 const SITEMAP_URL = "https://ics.uci.edu/~kazuhak/sitemap.json";
 const CHAT_PAGE   = "https://ics.uci.edu/~kazuhak/tools/ask-ai/";
 const ALLOWED_ORIGINS = [
@@ -248,6 +254,50 @@ function parseIdToken(idToken) {
 }
 
 // --- Main handler ---
+// PDF data URL → Markdown text via Workers AI toMarkdown(); "" on failure.
+async function pdfToText(env, dataUrl) {
+  try {
+    const b64 = String(dataUrl || "").split(",")[1] || "";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const [res] = await env.AI.toMarkdown([
+      { name: "upload.pdf", blob: new Blob([bytes], { type: "application/pdf" }) },
+    ]);
+    return res && res.format === "markdown" ? String(res.data).slice(0, 32000) : "";
+  } catch {
+    return "";
+  }
+}
+
+// Workers AI streams `data: {"response": "..."}`; the frontends parse the
+// OpenAI/Mistral shape `choices[0].delta.content`, so re-emit in that shape.
+function toOpenAiSse(stream) {
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  let buf = "";
+  const emit = (ctl, line) => {
+    if (!line.startsWith("data: ")) return;
+    const data = line.slice(6).trim();
+    if (data === "[DONE]") { ctl.enqueue(enc.encode("data: [DONE]\n\n")); return; }
+    try {
+      const j = JSON.parse(data);
+      const text = j.response != null ? j.response
+        : j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
+      if (text) ctl.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`));
+    } catch {}
+  };
+  return stream.pipeThrough(new TransformStream({
+    transform(chunk, ctl) {
+      buf += dec.decode(chunk, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for (const line of lines) emit(ctl, line);
+    },
+    flush(ctl) { if (buf) emit(ctl, buf); },
+  }));
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -297,7 +347,7 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    // POST /auth/verify → cheap password-only check (avoids burning Mistral quota on each attempt)
+    // POST /auth/verify → cheap password-only check (avoids burning AI quota on each attempt)
     if (url.pathname === "/auth/verify" && request.method === "POST") {
       const ip = request.headers.get("CF-Connecting-IP") || "unknown";
       let body;
@@ -389,52 +439,56 @@ ${truncatedContext}
 --- END PAGE CONTENT ---${isTruncated ? "\n\nNote: The page content was too long and has been truncated. If the user asks about content you cannot see, let them know that the article may be too long for you to read in full." : ""}`;
     }
 
-    // --- Build Mistral request ---
+    // --- Build Workers AI request ---
     const recentMessages = messages.slice(-20);
 
-    const cleaned = recentMessages.map((msg, idx) => {
+    // Older turns: drop attachments, keep a placeholder. Last 4 turns keep
+    // images (vision model) and get PDFs converted to text via toMarkdown().
+    const cleaned = await Promise.all(recentMessages.map(async (msg, idx) => {
       if (!Array.isArray(msg.content)) return msg;
-      if (idx >= recentMessages.length - 4) return msg;
-      const textParts = msg.content.filter(p => p.type === "text");
       const hadImage = msg.content.some(p => p.type === "image_url");
       const hadDoc = msg.content.some(p => p.type === "document_url");
-      const label = hadImage ? "(image was sent)" : hadDoc ? "(document was sent)" : "";
-      const text = textParts.map(p => p.text).join("\n");
-      return { role: msg.role, content: (text ? text + "\n" : "") + label || label };
-    });
+      if (idx < recentMessages.length - 4) {
+        const label = hadImage ? "(image was sent)" : hadDoc ? "(document was sent)" : "";
+        const text = msg.content.filter(p => p.type === "text").map(p => p.text).join("\n");
+        return { role: msg.role, content: (text ? text + "\n" : "") + label || label };
+      }
+      const parts = [];
+      for (const p of msg.content) {
+        if (p.type === "document_url") {
+          const pdf = await pdfToText(env, p.document_url);
+          parts.push({ type: "text", text: pdf ? `--- PDF CONTENT ---\n${pdf}\n--- END PDF CONTENT ---` : "(a PDF was sent but could not be read)" });
+        } else {
+          parts.push(p);
+        }
+      }
+      // Text-only turns go to the text model as a plain string.
+      if (!parts.some(p => p.type === "image_url")) {
+        return { role: msg.role, content: parts.map(p => p.text || "").join("\n") };
+      }
+      return { role: msg.role, content: parts };
+    }));
 
-    const mistralMessages = [
-      { role: "system", content: systemPrompt },
-      ...cleaned,
-    ];
-
-    const mistralBody = {
-      model: "mistral-large-latest",
-      messages: mistralMessages,
-      stream: true,
-      max_tokens: 2048,
-    };
-
-    const mistralResponse = await fetch(MISTRAL_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${env.MISTRAL_API_KEY}`,
-      },
-      body: JSON.stringify(mistralBody),
-    });
-
-    if (!mistralResponse.ok) {
-      await mistralResponse.text();
-      const status = mistralResponse.status;
-      const userMsg = status === 429 ? "Too many requests. Please wait a moment and try again."
-        : status === 422 ? "The file or message format is not supported."
-        : status === 401 ? "API authentication failed. Please contact the site owner."
-        : `Something went wrong (${status}). Please try again later.`;
+    let aiStream;
+    try {
+      const hasImage = cleaned.some(m => Array.isArray(m.content) && m.content.some(p => p.type === "image_url"));
+      aiStream = await env.AI.run(hasImage ? AI_VISION_MODEL : AI_MODEL, {
+        messages: [{ role: "system", content: systemPrompt }, ...cleaned],
+        stream: true,
+        max_tokens: 2048,
+      });
+    } catch (err) {
+      const msg = String(err && err.message || err);
+      // 4006 = daily free neuron allocation used up
+      const userMsg = /4006|neuron|allocation/i.test(msg)
+        ? "Ask AI has used up today's free quota. Please try again tomorrow."
+        : /size|too long|context|token/i.test(msg)
+          ? "The message or file is too large. Please try something shorter."
+          : "Something went wrong. Please try again later.";
       return errorResponse(userMsg, 502, origin);
     }
 
-    return new Response(mistralResponse.body, {
+    return new Response(toOpenAiSse(aiStream), {
       status: 200,
       headers: {
         "Content-Type": "text/event-stream",
