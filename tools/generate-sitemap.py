@@ -78,7 +78,7 @@ PAGE_META = {
     "/tools/ask-ai/": {
         "title": "Ask AI",
         "description": (
-            "AI chatbot (powered by Mistral AI) for free-form conversation. "
+            "Free-form AI chat (sign-in required). "
             "Supports Markdown rendering and KaTeX math."
         ),
     },

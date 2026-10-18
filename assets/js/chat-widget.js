@@ -1,5 +1,5 @@
 /* Chat Widget - Floating bubble for all pages
-   Reads current page content and sends it as context to the Mistral proxy.
+   Reads current page content and sends it as context to the Workers AI proxy.
    No password required; AI is restricted to page-related questions only. */
 
 (function () {
@@ -123,18 +123,30 @@
     "  background:rgba(255,255,255,.85); padding:2px 6px; border-radius:4px;",
     "  vertical-align:middle;",
     "}",
-    "#cw-close {",
-    "  all:unset; box-sizing:border-box; color:rgba(88,166,255,.4); cursor:pointer;",
-    "  font-size:18px; line-height:1; transition:color .15s;",
+    "#cw-close, #cw-expand {",
+    "  all:unset; box-sizing:border-box; width:28px; height:28px; border-radius:6px; cursor:pointer;",
+    "  display:inline-flex; align-items:center; justify-content:center; font-size:16px;",
+    "  color:rgba(88,166,255,.5); transition:color .15s, background .15s;",
     "}",
-    "#cw-close:hover { color:#58a6ff; }",
+    "#cw-close svg, #cw-expand svg { display:block; }",
+    "#cw-close:hover, #cw-expand:hover { color:#58a6ff; background:rgba(88,166,255,.1); }",
+    /* Expanded: centered modal over a dimmed backdrop, for long answers */
+    "#cw-backdrop { position:fixed; inset:0; z-index:99998; background:rgba(0,0,0,.4); display:none; }",
+    "#cw-backdrop.show { display:block; }",
+    "#cw-panel.cw-expanded {",
+    "  top:50%; left:50%; right:auto; bottom:auto; transform:translate(-50%,-50%);",
+    "  width:min(880px, calc(100vw - 32px)); height:min(86vh, 960px); max-height:none; animation:none;",
+    "}",
+    "#cw-panel.cw-expanded #cw-messages { min-height:0; max-height:none; padding:18px 24px; }",
+    "#cw-panel.cw-expanded .cw-msg { font-size:14.5px; }",
     "#cw-new {",
-    "  all:unset; box-sizing:border-box; cursor:pointer;",
+    "  all:unset; box-sizing:border-box; cursor:pointer; display:inline-flex; align-items:center;",
     "  font-size:12.5px; font-weight:600; line-height:1; letter-spacing:.3px;",
     "  color:#58a6ff; background:rgba(88,166,255,.18);",
     "  border:1px solid rgba(88,166,255,.4); border-radius:6px;",
     "  padding:6px 12px; transition:all .15s; white-space:nowrap;",
     "}",
+    "#cw-new svg { display:block; flex:none; }",
     "#cw-new:hover { color:#79c0ff; background:rgba(88,166,255,.28); border-color:rgba(88,166,255,.6); }",
 
     /* --- Messages --- */
@@ -233,14 +245,15 @@
     "  align-self:center; color:rgba(88,166,255,.35); font-size:12px;",
     "  background:none; border:none; padding:4px; text-align:center;",
     "}",
-    ".cw-typing { display:inline-flex; gap:4px; padding:10px 14px; }",
-    ".cw-typing span {",
-    "  width:6px; height:6px; border-radius:50%; background:rgba(88,166,255,.35);",
-    "  animation:cw-dot .9s infinite;",
+    /* Thinking indicator: shimmering label until the first token, then a small "Thought for Ns" note */
+    ".cw-msg.cw-think { display:flex; flex-direction:column; gap:6px; }",
+    ".cw-think-label {",
+    "  font-weight:500; color:transparent; -webkit-background-clip:text; background-clip:text;",
+    "  background-image:linear-gradient(90deg, rgba(88,166,255,.35) 0%, rgba(88,166,255,.95) 50%, rgba(88,166,255,.35) 100%);",
+    "  background-size:200% 100%; animation:cw-shimmer 1.6s linear infinite;",
     "}",
-    ".cw-typing span:nth-child(2) { animation-delay:.15s; }",
-    ".cw-typing span:nth-child(3) { animation-delay:.3s; }",
-    "@keyframes cw-dot { 0%,60%,100%{opacity:.3;transform:scale(1)} 30%{opacity:1;transform:scale(1.3)} }",
+    "@keyframes cw-shimmer { from{background-position:100% 0} to{background-position:-100% 0} }",
+    ".cw-thought { align-self:flex-start; font-size:12px; color:rgba(88,166,255,.6); margin-bottom:-4px; padding:0 2px; }",
 
     /* --- Input --- */
     "#cw-input-row {",
@@ -281,8 +294,9 @@
     "}",
     "html[data-theme=\"light\"] #cw-header span { color:#1e2136; }",
     "html[data-theme=\"light\"] #cw-header .cw-badge { color:#fff; background:#1e2136; }",
-    "html[data-theme=\"light\"] #cw-close { color:rgba(15,23,42,.4); }",
-    "html[data-theme=\"light\"] #cw-close:hover { color:#0064A4; }",
+    "html[data-theme=\"light\"] #cw-close, html[data-theme=\"light\"] #cw-expand { color:rgba(15,23,42,.45); }",
+    "html[data-theme=\"light\"] #cw-close:hover, html[data-theme=\"light\"] #cw-expand:hover { color:#0064A4; background:rgba(0,100,164,.08); }",
+    "html[data-theme=\"light\"] #cw-backdrop { background:rgba(15,23,42,.28); }",
     "html[data-theme=\"light\"] #cw-new {",
     "  color:#004577; background:rgba(0,100,164,.12); border:1px solid rgba(0,100,164,.28);",
     "}",
@@ -325,7 +339,8 @@
     "  background:rgba(220,80,80,.08); color:#b91c1c; border:1px solid rgba(220,80,80,.2);",
     "}",
     "html[data-theme=\"light\"] .cw-msg.system-hint { color:rgba(15,23,42,.4); }",
-    "html[data-theme=\"light\"] .cw-typing span { background:rgba(0,100,164,.4); }",
+    "html[data-theme=\"light\"] .cw-think-label { background-image:linear-gradient(90deg, rgba(0,100,164,.35) 0%, rgba(0,100,164,.95) 50%, rgba(0,100,164,.35) 100%); }",
+    "html[data-theme=\"light\"] .cw-thought { color:rgba(15,23,42,.45); }",
     "html[data-theme=\"light\"] #cw-input-row { border-top:1px solid rgba(15,23,42,.06); }",
     "html[data-theme=\"light\"] #cw-input {",
     "  background:#f1f5f9; border:1px solid rgba(15,23,42,.14); color:#1e2136;",
@@ -466,7 +481,8 @@
       '<span>Ask about this page<span class="cw-badge">Beta</span></span>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
         '<button id="cw-new" title="New chat"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.3em;"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>New Chat</button>' +
-        '<button id="cw-close" title="Close">&times;</button>' +
+        '<button id="cw-expand" title="Expand" aria-label="Expand"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg></button>' +
+        '<button id="cw-close" title="Close" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>' +
       '</div>' +
     '</div>' +
     '<div id="cw-messages">' +
@@ -485,11 +501,18 @@
     '</div>';
   document.body.appendChild(panel);
 
+  var backdrop = document.createElement("div");
+  backdrop.id = "cw-backdrop";
+  document.body.appendChild(backdrop);
+
   var messagesEl = document.getElementById("cw-messages");
   var inputEl = document.getElementById("cw-input");
   var sendBtn = document.getElementById("cw-send");
   var closeBtn = document.getElementById("cw-close");
   var newBtn = document.getElementById("cw-new");
+  var expandBtn = document.getElementById("cw-expand");
+  var EXPAND_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>';
+  var COLLAPSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/></svg>';
   var fileUploadBtn = document.getElementById("cw-file-upload");
   var fileInput = document.getElementById("cw-file-input");
   var filePreviewBar = document.getElementById("cw-file-preview");
@@ -517,9 +540,26 @@
   bubble.addEventListener("click", function () {
     var open = panel.classList.toggle("open");
     bubble.classList.toggle("open", open);
+    if (!open) setExpanded(false);
     if (open) inputEl.focus();
   });
+  function setExpanded(on) {
+    panel.classList.toggle("cw-expanded", on);
+    backdrop.classList.toggle("show", on);
+    expandBtn.innerHTML = on ? COLLAPSE_ICON : EXPAND_ICON;
+    expandBtn.title = on ? "Collapse" : "Expand";
+    expandBtn.setAttribute("aria-label", expandBtn.title);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  expandBtn.addEventListener("click", function () {
+    setExpanded(!panel.classList.contains("cw-expanded"));
+  });
+  backdrop.addEventListener("click", function () { setExpanded(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && panel.classList.contains("cw-expanded")) setExpanded(false);
+  });
   closeBtn.addEventListener("click", function () {
+    setExpanded(false);
     panel.classList.remove("open");
     bubble.classList.remove("open");
   });
@@ -651,6 +691,17 @@
     return s;
   }
 
+  /* ---------- auto-scroll ----------
+     Follow the stream only while pinned to the bottom. A distance check alone
+     can't be escaped (each new chunk lands before the user scrolls far enough),
+     so scrolling up by wheel/touch unpins and returning to the bottom re-pins. */
+  var stickToBottom = true;
+  messagesEl.addEventListener("wheel", function (e) { if (e.deltaY < 0) stickToBottom = false; }, { passive: true });
+  messagesEl.addEventListener("touchmove", function () { stickToBottom = false; }, { passive: true });
+  messagesEl.addEventListener("scroll", function () {
+    if (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 24) stickToBottom = true;
+  });
+
   /* ---------- send message ---------- */
   function addMessage(role, text) {
     var div = document.createElement("div");
@@ -669,17 +720,30 @@
 
   function showTyping() {
     var div = document.createElement("div");
-    div.className = "cw-msg assistant cw-typing";
-    div.innerHTML = "<span></span><span></span><span></span>";
+    div.className = "cw-msg assistant cw-think";
+    div.innerHTML = '<div class="cw-think-label">Thinking</div>';
+    div._start = Date.now();
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     return div;
+  }
+
+  // Answer started: replace the indicator with a small "Thought for Ns" note
+  // (only when the wait was noticeable). Reasoning text is never shown.
+  function finishThinking(typing) {
+    var secs = Math.round((Date.now() - typing._start) / 1000);
+    if (secs < 2) { typing.remove(); return; }
+    var note = document.createElement("div");
+    note.className = "cw-thought";
+    note.textContent = "Thought for " + secs + "s";
+    typing.replaceWith(note);
   }
 
   async function sendMessage() {
     var text = inputEl.value.trim();
     var file = pendingFile;
     if ((!text && !file) || isStreaming) return;
+    stickToBottom = true;
 
     // Build user message display
     var userDiv = document.createElement("div");
@@ -747,18 +811,13 @@
         throw new Error(err.error || "Request failed");
       }
 
-      // Remove typing indicator, add real message bubble
-      typing.remove();
-      var assistantDiv = addMessage("assistant", "");
+      // Keep the typing indicator until the first token arrives (the model
+      // can take several seconds before it starts writing).
+      var assistantDiv = null;
 
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
       var buffer = "";
-      var userScrolledUp = false;
-      messagesEl.addEventListener("scroll", function onScroll() {
-        if (!isStreaming) { messagesEl.removeEventListener("scroll", onScroll); return; }
-        userScrolledUp = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight > 40;
-      });
 
       while (true) {
         var result = await reader.read();
@@ -775,27 +834,25 @@
           if (data === "[DONE]") continue;
           try {
             var json = JSON.parse(data);
-            var delta =
-              json.choices &&
-              json.choices[0] &&
-              json.choices[0].delta &&
-              json.choices[0].delta.content;
+            var d = (json.choices && json.choices[0] && json.choices[0].delta) || {};
+            var delta = d.content;
             if (delta) {
+              if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
               fullText += delta;
               // Preload KaTeX on first sign of math
               if (!katexLoading && /\$|\\[(\[]/.test(fullText)) {
                 katexLoading = true; loadKatex();
               }
               assistantDiv.innerHTML = renderMd(fullText);
-              if (!userScrolledUp) messagesEl.scrollTop = messagesEl.scrollHeight;
+              if (stickToBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
             }
           } catch (e) { /* skip */ }
         }
       }
 
-      if (!fullText) assistantDiv.innerHTML = "(No response)";
+      if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
       // Final re-render to catch any math that arrived after KaTeX loaded
-      assistantDiv.innerHTML = renderMd(fullText);
+      assistantDiv.innerHTML = fullText ? renderMd(fullText) : "(No response)";
       chatHistory.push({ role: "assistant", content: fullText });
     } catch (e) {
       typing.remove();
@@ -809,6 +866,8 @@
 
   sendBtn.addEventListener("click", sendMessage);
   inputEl.addEventListener("keydown", function (e) {
+    // Enter while an IME (e.g. Chinese pinyin) is composing picks a candidate; don't send.
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
