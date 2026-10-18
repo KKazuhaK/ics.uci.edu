@@ -175,14 +175,21 @@
 				box-shadow: none;
 			}
 
+			/* Match .crumb sizing (bento.css) so the whole intro row lines up */
+			.chat-beta {
+				display: inline-flex; align-items: center; align-self: stretch;
+				margin-left: 4px; padding: 0 12px; border-radius: 999px;
+				font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
+			}
 			#logout-btn, #new-chat-btn {
 				display: inline-flex;
 				align-items: center;
 				gap: 0.25rem;
-				padding: 0.34rem 0.8rem;
+				padding: 7px 14px;
 				border-radius: 999px;
-				font-size: 0.78rem;
-				font-weight: 700;
+				font-family: inherit;
+				font-size: 14px;
+				font-weight: 600;
 				letter-spacing: normal;
 				text-transform: none;
 				text-decoration: none;
@@ -190,10 +197,9 @@
 				border-bottom: 0 !important;
 				cursor: pointer;
 				transition: background 0.2s ease, transform 0.2s ease;
-				line-height: 1.3;
+				line-height: inherit;
 				height: auto;
 			}
-			#logout-btn .fa, #new-chat-btn .fa { font-size: 0.78rem; }
 			#new-chat-btn {
 				display: none;
 				background: var(--chat-blue-bg);
@@ -488,14 +494,15 @@
 			}
 			#file-remove:hover { color: var(--chat-red); background: var(--chat-red-bg); }
 
-			.typing { display: inline-flex; gap: 4px; padding: 11px 16px; }
-			.typing span {
-				width: 6px; height: 6px; border-radius: 50%; background: var(--chat-blue-border);
-				animation: dot-pulse .9s infinite;
+			/* Thinking indicator: shimmering label until the first token, then a small "Thought for Ns" note */
+			.msg.think { display: flex; flex-direction: column; gap: 6px; }
+			.think-label {
+				font-weight: 500; color: transparent; -webkit-background-clip: text; background-clip: text;
+				background-image: linear-gradient(90deg, var(--chat-muted) 0%, var(--chat-blue-border) 50%, var(--chat-muted) 100%);
+				background-size: 200% 100%; animation: think-shimmer 1.6s linear infinite;
 			}
-			.typing span:nth-child(2) { animation-delay: .15s; }
-			.typing span:nth-child(3) { animation-delay: .3s; }
-			@keyframes dot-pulse { 0%,60%,100%{opacity:.3;transform:scale(1)} 30%{opacity:1;transform:scale(1.3)} }
+			@keyframes think-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+			.thought { align-self: flex-start; padding: 0 40px; margin-bottom: -6px; font-size: 13px; color: var(--chat-muted); }
 
 			/* Input */
 			#input-row {
@@ -635,7 +642,7 @@
 								<a href="../../tools/" class="crumb">Tools</a>
 								<span class="crumb-sep">›</span>
 								<span class="crumb crumb-current">Ask AI</span>
-								<span class="eyebrow-pill gold" style="margin-left:4px;padding:0.34rem 0.75rem;border-radius:999px;font-size:0.72rem;line-height:1.3;">Beta</span>
+								<span class="eyebrow-pill gold chat-beta">Beta</span>
 							</nav>
 							<div style="display:flex; gap:0.5rem; align-items:center;">
 								<button id="new-chat-btn"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.3em;"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>New Chat</button>
@@ -741,11 +748,17 @@
 			var pendingFile = null;
 
 			// --- Auto-scroll (only if user is near bottom) ---
+			// Follow the stream only while pinned to the bottom. A distance check alone
+			// can't be escaped (each new chunk lands before the user scrolls far enough),
+			// so scrolling up by wheel/touch unpins and returning to the bottom re-pins.
+			var stickToBottom = true;
+			messagesEl.addEventListener("wheel", function(e) { if (e.deltaY < 0) stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("touchmove", function() { stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("scroll", function() {
+				if (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 24) stickToBottom = true;
+			});
 			function autoScroll() {
-				var threshold = 80;
-				if (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < threshold) {
-					messagesEl.scrollTop = messagesEl.scrollHeight;
-				}
+				if (stickToBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
 			}
 
 			// --- Shiki (async, same as md-viewer: dark-plus theme) ---
@@ -1022,7 +1035,7 @@
 			})();
 
 			// Hits a dedicated /auth/verify endpoint that just checks the password
-			// (no Mistral round-trip) and returns one of:
+			// (no AI round-trip) and returns one of:
 			//   { ok: true }                                       → success
 			//   401 + { error, attemptsLeft }                      → wrong code, attempts remaining
 			//   429 + { error, retryAfter } (+ Retry-After header) → locked out, seconds until unlock
@@ -1147,17 +1160,30 @@
 
 			function showTyping() {
 				var div = document.createElement("div");
-				div.className = "msg assistant typing";
-				div.innerHTML = "<span></span><span></span><span></span>";
+				div.className = "msg assistant think";
+				div.innerHTML = '<div class="think-label">Thinking</div>';
+				div._start = Date.now();
 				messagesEl.appendChild(div);
 				autoScroll();
 				return div;
+			}
+
+			// Answer started: replace the indicator with a small "Thought for Ns" note
+			// (only when the wait was noticeable). Reasoning text is never shown.
+			function finishThinking(typing) {
+				var secs = Math.round((Date.now() - typing._start) / 1000);
+				if (secs < 2) { typing.remove(); return; }
+				var note = document.createElement("div");
+				note.className = "thought";
+				note.textContent = "Thought for " + secs + "s";
+				typing.replaceWith(note);
 			}
 
 			async function sendMessage() {
 				var text = chatInput.value.trim();
 				var file = pendingFile;
 				if ((!text && !file) || isStreaming) return;
+				stickToBottom = true;
 
 				// Build user message display
 				var userDiv = document.createElement("div");
@@ -1235,8 +1261,8 @@
 						throw new Error(err.error || "Request failed");
 					}
 
-					typing.remove();
-					var assistantDiv = addMessage("assistant", "");
+					// Keep the typing indicator until the first token arrives.
+					var assistantDiv = null;
 
 					var reader = res.body.getReader();
 					var decoder = new TextDecoder();
@@ -1256,8 +1282,10 @@
 							if (data === "[DONE]") continue;
 							try {
 								var json = JSON.parse(data);
-								var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
+								var d = (json.choices && json.choices[0] && json.choices[0].delta) || {};
+								var delta = d.content;
 								if (delta) {
+									if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
 									fullText += delta;
 									if (!katexLoading && /\$|\\[(\[]/.test(fullText)) { katexLoading = true; loadKatex(); }
 									assistantDiv.innerHTML = renderMd(fullText);
@@ -1267,8 +1295,8 @@
 						}
 					}
 
-					if (!fullText) assistantDiv.innerHTML = "(No response)";
-					assistantDiv.innerHTML = renderMd(fullText);
+					if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
+					assistantDiv.innerHTML = fullText ? renderMd(fullText) : "(No response)";
 					await highlightCode(assistantDiv);
 					autoScroll();
 					chatHistory.push({ role: "assistant", content: fullText });
@@ -1285,6 +1313,8 @@
 
 			sendBtn.addEventListener("click", sendMessage);
 			chatInput.addEventListener("keydown", function(e) {
+				// Enter while an IME (e.g. Chinese pinyin) is composing picks a candidate; don't send.
+				if (e.isComposing || e.keyCode === 229) return;
 				if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 			});
 			chatInput.addEventListener("input", function() {
