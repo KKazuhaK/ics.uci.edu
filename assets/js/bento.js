@@ -133,7 +133,8 @@
   // before bento.js runs (e.g., md-viewer points course notes at /notes/).
   function setActiveNav() {
     var override = document.body && document.body.dataset ? document.body.dataset.navPath : "";
-    var path = (override || location.pathname).replace(/\/index\.html$/, "/");
+    // Resolve relative overrides (md-viewer passes "../../notes/") to a pathname.
+    var path = (override ? new URL(override, location.href).pathname : location.pathname).replace(/\/index\.html$/, "/");
     var links = Array.prototype.slice.call(document.querySelectorAll(".nav-link"));
     // Find the nav link whose target pathname is the longest prefix of current path.
     var best = null, bestLen = 0;
