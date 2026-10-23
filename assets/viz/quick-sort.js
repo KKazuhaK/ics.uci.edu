@@ -209,7 +209,7 @@ export function steps(config) {
 
 const STYLE = `
 .vz-qs .vz-row { gap: 0.3rem; }
-.vz-qs .vz-col { flex: 1 1 2.6rem; }
+.vz-qs .vz-col { flex: 0 1 3.6rem; }
 .vz-qs .vz-cell { width: 100%; }
 .vz-cell.is-out, .viz-legend .vz-swatch.is-out { opacity: 0.4; border-style: dashed; }
 .vz-qs .vz-col.is-ghost .vz-cell { border-style: dashed; color: var(--vz-muted); font-size: 0.7rem; opacity: 0.6; }

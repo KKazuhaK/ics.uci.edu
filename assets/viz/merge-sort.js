@@ -54,7 +54,7 @@ export function validate(config) {
 }
 
 // The slide code, compacted to fit the panel (≤ 48 chars per line).
-export const code = {
+const CODE = {
 	cpp: [
 		"void sort(T* a, T* aux, int lo, int hi) {",
 		"    if (hi <= lo) return;",
@@ -79,12 +79,32 @@ export const code = {
 	]
 };
 
-export const legend = [
-	{ cls: "is-cmp", label: "Being compared · aux[i] vs aux[j]" },
-	{ cls: "is-swap", label: "Just written · a[k]" },
-	{ cls: "is-sorted", label: "Sorted subarray (merge result)" },
-	{ cls: "is-out", label: "Outside lo..hi" }
-];
+// Mode "merge" only runs merge(), so it shows just that function (lines 8–20,
+// renumbered 1–13 in steps()) to keep the demo short.
+const MERGE_FROM = 8;
+export function code(config) {
+	if ((config.mode || "sort") === "sort") return CODE;
+	return { cpp: CODE.cpp.slice(MERGE_FROM - 1) };
+}
+
+// Sort mode (recursion tree) and merge mode (aux + a rows) colour different things.
+export function legend(config) {
+	if ((config.mode || "sort") === "sort") {
+		return [
+			{ cls: "is-cur", label: "Current call" },
+			{ cls: "is-cmp", label: "Being compared · aux[i] vs aux[j]" },
+			{ cls: "is-swap", label: "Just written · a[k]" },
+			{ cls: "is-sorted", label: "Sorted (merge result)" },
+			{ cls: "is-used", label: "Already taken by the merge" }
+		];
+	}
+	return [
+		{ cls: "is-cmp", label: "Being compared · aux[i] vs aux[j]" },
+		{ cls: "is-swap", label: "Just written · a[k]" },
+		{ cls: "is-sorted", label: "Sorted subarray (merge result)" },
+		{ cls: "is-out", label: "Outside lo..hi" }
+	];
+}
 
 export const input = {
 	key: "items",
@@ -109,6 +129,7 @@ export function steps(config) {
 	let comparisons = 0;
 	let group = 0;
 	let sortedRanges = [];
+	const mergeOnly = (config.mode || "sort") === "merge";
 
 	function push(f) {
 		frames.push({
@@ -123,7 +144,7 @@ export function steps(config) {
 			msg: f.msg,
 			group: group,
 			vars: [
-				["call stack", stack.length ? stack.join(" › ") : "—"],
+				...(mergeOnly ? [] : [["call stack", stack.length ? stack.join(" › ") : "—"]]),
 				["lo, mid, hi", f.lo === undefined ? "—" : f.lo + ", " + (f.mid === undefined ? "?" : f.mid) + ", " + f.hi],
 				["i, j, k", f.i === undefined ? "—" : f.i + ", " + f.j + ", " + (f.k === undefined ? "—" : f.k)],
 				["comparisons", String(comparisons)]
@@ -160,7 +181,7 @@ export function steps(config) {
 					line = [16, 17]; why = "`aux[j] < aux[i]` (" + aux[j] + " < " + aux[i] + "): take " + show2(aux[j]) + " from the right, `j++`.";
 					a[k] = aux[j++];
 				} else {
-					line = [16, 18]; why = "`aux[j] < aux[i]` is false (" + aux[j] + " vs " + aux[i] + (aux[i] === aux[j] ? ", equal, so the left one wins: stable" : "") + "): take " + show2(aux[i]) + " from the left, `i++`.";
+					line = [18]; why = "`aux[j] < aux[i]` is false (" + aux[j] + " vs " + aux[i] + (aux[i] === aux[j] ? ", equal, so the left one wins: stable" : "") + "): take " + show2(aux[i]) + " from the left, `i++`.";
 					a[k] = aux[i++];
 				}
 			}
@@ -173,24 +194,102 @@ export function steps(config) {
 		group++;
 	}
 
-	function sort(lo, hi) {
+	// Sort mode draws the recursion tree: one node per sort(lo, hi) call,
+	// showing its values when called, then filled in slot by slot by merge().
+	const nodes = [];
+	const nodeAt = {};
+	(function build(lo, hi, d) {
+		const node = { lo: lo, hi: hi, d: d, state: "hidden", vals: null };
+		nodes.push(node);
+		nodeAt[lo + "-" + hi] = node;
+		if (hi > lo) {
+			const mid = lo + Math.floor((hi - lo) / 2);
+			build(lo, mid, d + 1);
+			build(mid + 1, hi, d + 1);
+		}
+	})(0, n - 1, 0);
+	let current = null;
+	let merging = null;
+
+	function pushTree(f) {
+		push(f);
+		frames[frames.length - 1].tree = {
+			n: n,
+			nodes: nodes.map(function(x) { return { lo: x.lo, hi: x.hi, d: x.d, state: x.state, vals: x.vals ? x.vals.slice() : null }; }),
+			cur: current,
+			merge: merging ? { lo: merging[0], mid: merging[1], hi: merging[2], i: f.i, j: f.j, k: f.k } : null,
+			cmp: f.cmp || null,
+			wrote: f.wrote === undefined ? null : f.wrote
+		};
+	}
+
+	function treeMerge(lo, mid, hi) {
+		const node = nodeAt[lo + "-" + hi];
+		for (let k = lo; k <= hi; k++) aux[k] = a[k];
+		merging = [lo, mid, hi];
+		node.state = "merge";
+		node.vals = new Array(hi - lo + 1).fill(null);
+		let i = lo, j = mid + 1;
+		pushTree({ lo: lo, mid: mid, hi: hi, i: i, j: j, lines: [6, 10, 11, 12],
+			msg: "Both halves of `sort(" + lo + "," + hi + ")` are sorted. `merge()` copies `a[" + lo + ".." + hi + "]` to `aux` (the two halves below) and refills `a[" + lo + ".." + hi + "]` from the front: `i = " + i + "` on the left half, `j = " + j + "` on the right." });
+		for (let k = lo; k <= hi; k++) {
+			let line, why;
+			let cmp = null;
+			if (i > mid) {
+				line = [14]; why = "left half used up: take `" + aux[j] + "` from the right";
+				a[k] = aux[j++];
+			} else if (j > hi) {
+				line = [15]; why = "right half used up: take `" + aux[i] + "` from the left";
+				a[k] = aux[i++];
+			} else {
+				comparisons++;
+				cmp = [i, j];
+				if (less(aux[j], aux[i])) {
+					line = [16, 17]; why = "`" + aux[j] + " < " + aux[i] + "`: take `" + aux[j] + "` from the right";
+					a[k] = aux[j++];
+				} else {
+					line = [18]; why = (aux[i] === aux[j] ? "`" + aux[i] + "` = `" + aux[j] + "`, the left one wins (stable)" : "`" + aux[i] + " ≤ " + aux[j] + "`") + ": take `" + aux[i] + "` from the left";
+					a[k] = aux[i++];
+				}
+			}
+			node.vals[k - lo] = a[k];
+			pushTree({ lo: lo, mid: mid, hi: hi, i: i, j: j, k: k, cmp: cmp, wrote: k, lines: line,
+				msg: "k = " + k + ": " + why + ", `a[" + k + "] = " + a[k] + "`." });
+		}
+		merging = null;
+		node.state = "done";
+		nodeAt[lo + "-" + mid].state = "used";
+		nodeAt[(mid + 1) + "-" + hi].state = "used";
+		addSorted(lo, hi);
+		pushTree({ lo: lo, mid: mid, hi: hi, lines: [20],
+			msg: "Merge done: `a[" + lo + ".." + hi + "]` = " + a.slice(lo, hi + 1).join(" ") + " is sorted." });
+		group++;
+	}
+
+	function sort(lo, hi, side) {
+		const node = nodeAt[lo + "-" + hi];
+		const where = side ? "The " + side + " half: " : "";
 		stack.push("sort(" + lo + "," + hi + ")");
-		push({ lo: lo, hi: hi, lines: [1], msg: "Call `sort(a, aux, " + lo + ", " + hi + ")`." });
+		current = lo + "-" + hi;
+		node.vals = a.slice(lo, hi + 1);
 		if (hi <= lo) {
+			node.state = "done";
 			addSorted(lo, lo);
-			push({ lo: lo, hi: hi, lines: [2], msg: "`hi <= lo`: one element is already sorted, return." });
+			pushTree({ lo: lo, hi: hi, lines: [1, 2], msg: where + "`sort(" + lo + "," + hi + ")` has one element (`" + a[lo] + "`): already sorted, return." });
 			stack.pop();
 			return;
 		}
+		node.state = "open";
 		const mid = lo + Math.floor((hi - lo) / 2);
-		push({ lo: lo, mid: mid, hi: hi, lines: [3], msg: "`mid = " + lo + " + (" + hi + " - " + lo + ") / 2 = " + mid + "`. Left half " + lo + ".." + mid + ", right half " + (mid + 1) + ".." + hi + "." });
-		push({ lo: lo, mid: mid, hi: hi, lines: [4], msg: "Recursively sort the left half: `sort(a, aux, " + lo + ", " + mid + ")`." });
-		sort(lo, mid);
-		push({ lo: lo, mid: mid, hi: hi, lines: [5], msg: "Back in `sort(" + lo + "," + hi + ")`. Recursively sort the right half: `sort(a, aux, " + (mid + 1) + ", " + hi + ")`." });
-		sort(mid + 1, hi);
-		push({ lo: lo, mid: mid, hi: hi, lines: [6], msg: "Back in `sort(" + lo + "," + hi + ")`: both halves are sorted, so merge them." });
-		merge(lo, mid, hi);
+		pushTree({ lo: lo, mid: mid, hi: hi, lines: [1, 3],
+			msg: where + "`sort(" + lo + "," + hi + ")`: `mid = " + mid + "`, split into " + lo + ".." + mid + " and " + (mid + 1) + ".." + hi + ", then sort each half." });
+		sort(lo, mid, "left");
+		current = lo + "-" + hi;
+		sort(mid + 1, hi, "right");
+		current = lo + "-" + hi;
+		treeMerge(lo, mid, hi);
 		stack.pop();
+		current = stack.length ? current : null;
 	}
 
 	if ((config.mode || "sort") === "merge") {
@@ -200,24 +299,39 @@ export function steps(config) {
 			msg: "Start: `a[0.." + config.mid + "]` and `a[" + (config.mid + 1) + ".." + (n - 1) + "]` are each sorted. `merge()` combines them into one sorted array." });
 		merge(0, config.mid, n - 1);
 		push({ lines: [], msg: "Done: " + a.join(" ") + ". " + comparisons + " comparisons for n = " + n + " (between n/2 and n − 1)." });
+		frames.forEach(function(f) { f.lines = f.lines.map(function(l) { return l - MERGE_FROM + 1; }); });
 	} else {
-		push({ lines: [], msg: "Start: `sort(a, n)` allocates `aux` (n = " + n + ", empty for now) and calls `sort(a, aux, 0, " + (n - 1) + ")`." });
-		sort(0, n - 1);
-		push({ lines: [], msg: "Done: " + a.join(" ") + ". Total comparisons: " + comparisons + "." });
+		sort(0, n - 1, null);
+		current = null;
+		pushTree({ lines: [], msg: "Done: " + a.join(" ") + ". " + comparisons + " comparisons; every level of the tree costs at most n, and there are lg n levels: ~n lg n." });
 	}
 	return frames;
 }
 
 const STYLE = `
 .vz-ms { display: flex; flex-direction: column; gap: 0.35rem; }
-.vz-ms .vz-ms-line { display: flex; align-items: flex-start; gap: 0.4rem; }
-.vz-ms .vz-ms-name { width: 2.2rem; flex: 0 0 auto; padding-top: 0.55rem; text-align: right; color: var(--vz-muted); font: 0.8rem "Consolas", "Menlo", monospace; }
-.vz-ms .vz-row { flex: 1 1 auto; gap: 0.3rem; }
-.vz-ms .vz-col { flex: 1 1 2.6rem; }
-.vz-ms .vz-cell { width: 100%; }
+.vz-ms .vz-ms-line { display: flex; justify-content: center; align-items: flex-start; gap: 0.4rem; }
+.vz-ms .vz-ms-line::after { content: ""; width: 2.2rem; flex: 0 1 auto; }
+.vz-ms .vz-ms-name { width: 2.2rem; flex: 0 0 auto; padding-top: 0.75rem; text-align: right; color: var(--vz-muted); font: 0.8rem "Consolas", "Menlo", monospace; }
+.vz-ms .vz-row { flex: 0 1 auto; min-width: 0; gap: 0.3rem; }
+.vz-ms .vz-col { flex: 0 1 auto; width: 3.2rem; }
+.vz-ms .vz-cell { width: 100%; aspect-ratio: auto; height: 2.5rem; font-size: 1.05rem; border-radius: 0.5rem; }
+.vz-ms .vz-idx { margin-top: 0.15rem; }
 .vz-cell.is-out, .viz-legend .vz-swatch.is-out { opacity: 0.4; border-style: dashed; }
 .vz-cell.is-empty { color: transparent; border-style: dashed; }
-.vz-ms .vz-ptrs { min-height: 1.3em; }
+.vz-ms .vz-ptrs { min-height: 1.3em; flex-direction: row; gap: 0.3rem; }
+.vz-mt { display: grid; gap: 0.55rem 0; justify-content: center; }
+.vz-mt-idx { text-align: center; color: var(--vz-muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+.vz-mt-node { display: flex; gap: 0.2rem; padding: 0.2rem; margin: 0 0.15rem; border: 1.5px solid transparent; border-radius: 0.7rem; transition: opacity 0.25s, border-color 0.25s; }
+.vz-mt-node.is-hidden { visibility: hidden; }
+.vz-mt-node.is-cur { border-color: var(--vz-min-bd); background: var(--vz-min-bg); }
+.vz-mt-node.is-faded { opacity: 0.45; }
+.vz-mt .vz-cell { flex: 1 1 0; min-width: 0; aspect-ratio: auto; height: 2.3rem; font-size: 1rem; border-radius: 0.5rem; }
+.vz-mt .vz-cell.is-used { opacity: 0.35; }
+.vz-mt .vz-cell[data-ptr]::after { content: attr(data-ptr); position: absolute; top: -0.55rem; right: -0.2rem; padding: 0 0.25rem; border-radius: 0.4rem; background: var(--vz-surface); color: var(--vz-blue); font: 600 0.68rem/1.3 "Consolas", "Menlo", monospace; }
+.viz-legend .vz-swatch.is-cur { background: var(--vz-min-bg); border-color: var(--vz-min-bd); }
+.viz-legend .vz-swatch.is-used { background: var(--vz-sorted-bg); border-color: var(--vz-sorted-bd); opacity: 0.35; }
+@media (max-width: 736px) { .vz-mt .vz-cell { height: 1.9rem; font-size: 0.85rem; } .vz-mt-node { gap: 0.12rem; padding: 0.12rem; margin: 0 0.08rem; } }
 `;
 
 function ensureStyle() {
@@ -242,8 +356,56 @@ function buildRow(name, n) {
 	return line;
 }
 
+function renderTree(stage, t) {
+	let box = stage.querySelector(".vz-mt");
+	if (!box || box.dataset.n !== String(t.n)) {
+		stage.textContent = "";
+		box = document.createElement("div");
+		box.className = "vz-mt";
+		box.dataset.n = String(t.n);
+		box.style.gridTemplateColumns = "repeat(" + t.n + ", minmax(0, 3.2rem))";
+		let html = "";
+		for (let k = 0; k < t.n; k++) html += '<div class="vz-mt-idx" style="grid-row:1;grid-column:' + (k + 1) + '">' + k + "</div>";
+		t.nodes.forEach(function(x) {
+			let cells = "";
+			for (let k = x.lo; k <= x.hi; k++) cells += '<div class="vz-cell"></div>';
+			html += '<div class="vz-mt-node" data-key="' + x.lo + "-" + x.hi + '" style="grid-row:' + (x.d + 2) + ";grid-column:" + (x.lo + 1) + " / " + (x.hi + 2) + '">' + cells + "</div>";
+		});
+		box.innerHTML = html;
+		stage.appendChild(box);
+	}
+	const m = t.merge;
+	t.nodes.forEach(function(x) {
+		const key = x.lo + "-" + x.hi;
+		const el = box.querySelector('[data-key="' + key + '"]');
+		el.classList.toggle("is-hidden", x.state === "hidden");
+		el.classList.toggle("is-cur", t.cur === key && x.state !== "done");
+		el.classList.toggle("is-faded", x.state === "used");
+		// Which half of the running merge this node is, if any.
+		const half = !m ? null : (x.lo === m.lo && x.hi === m.mid) ? "left" : (x.lo === m.mid + 1 && x.hi === m.hi) ? "right" : null;
+		Array.from(el.children).forEach(function(cell, t2) {
+			const k = x.lo + t2;
+			const v = x.vals ? x.vals[t2] : null;
+			cell.textContent = v === null || v === undefined ? "" : String(v);
+			const empty = x.state === "merge" && v === null;
+			const wrote = x.state === "merge" && t.wrote === k;
+			cell.classList.toggle("is-empty", empty);
+			cell.classList.toggle("is-swap", wrote);
+			cell.classList.toggle("is-sorted", !wrote && !empty && (x.state === "done" || x.state === "used" || x.state === "merge"));
+			let used = false, ptr = null;
+			if (half === "left") { used = m.i !== undefined && k < m.i; if (k === m.i) ptr = "i"; }
+			if (half === "right") { used = m.j !== undefined && k < m.j; if (k === m.j) ptr = "j"; }
+			if (x.state === "merge" && m && m.k !== undefined && k === m.k) ptr = "k";
+			cell.classList.toggle("is-used", used);
+			cell.classList.toggle("is-cmp", !!half && !!t.cmp && t.cmp.includes(k));
+			if (ptr) cell.dataset.ptr = ptr; else delete cell.dataset.ptr;
+		});
+	});
+}
+
 export function render(stage, frame) {
 	ensureStyle();
+	if (frame.tree) return renderTree(stage, frame.tree);
 	const n = frame.a.length;
 	let box = stage.querySelector(".vz-ms");
 	if (!box || box.dataset.n !== String(n)) {
