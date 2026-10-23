@@ -32,6 +32,8 @@ with the running line highlighted, variable watch, optional input bar).
 | `array-2d` | 2 | Row-major layout of a 2D/3D array, offset and address of one element. |
 | `doubling-test` | 2 | Doubling hypothesis: ratios, b = lg ratio, a = T/n^b, log-log plot. |
 | `insertion-sort` | 7 | Swap version: `arr[j]` swaps left while smaller than `arr[j-1]`, `else break`; comparisons, swaps (= inversions), best/worst counts. |
+| `merge-sort` | 8 | Top-down merge sort: recursive splits, merge() via aux with i/j/k; `mode: "merge"` shows one merge of two sorted halves. |
+| `quick-sort` | 8 | Quicksort with the slides' partition (i/j scans, swap, pivot into a[j]); `mode: "partition"` runs one partition. |
 | `recursion-tree` | 6 | Recursion-tree method for T(n) = aT(n/b) + f(n) or T(n-1) + f(n): levels revealed one at a time, per-call work, level totals, sum, and which Master Theorem case dominates. |
 | `web-demo` | IN4MATX 133 | Live HTML/CSS/JS in a sandboxed iframe (built lazily near the viewport) with a console. Source tabs: Shiki dark-plus, line numbers, line diff per step (gold = added, red rule = removed, hover the number), auto-scroll to the change, Copy; edits kept per step until Revert. Side by side on wide demos (draggable divider; layout and split remembered in `localStorage` `viz-web-demo-layout` / `viz-web-demo-split`); drag the preview's right edge to change the simulated viewport width. Preview sits in a browser-window frame (white page = real browser default). "Code Runner" hands the current code to `tools/code-runner/?from=viz` via `localStorage.cr-web-transfer`; Code Runner's Web mode imports `pageDocument()` from this file. Optional steps (cumulative CSS/JS, HTML replace, viewport width) and `libs` (bootstrap, mathjs, moment, vega-lite). |
 
