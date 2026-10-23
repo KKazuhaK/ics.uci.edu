@@ -157,7 +157,7 @@ html.viz-modal-open { overflow: hidden; }
 .vz-row { display: flex; justify-content: center; gap: 0.45rem; }
 .vz-col { flex: 0 1 3.6rem; min-width: 0; display: flex; flex-direction: column; align-items: center; }
 .vz-cell {
-	width: 100%; aspect-ratio: 1 / 1.05; display: grid; place-items: center;
+	position: relative; width: 100%; aspect-ratio: 1 / 1.05; display: grid; place-items: center;
 	border: 1.5px solid var(--vz-border); border-radius: 0.6rem; background: var(--vz-surface);
 	font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums;
 	transition: background-color 0.25s, border-color 0.25s, color 0.25s, box-shadow 0.25s;
@@ -204,6 +204,31 @@ function ensureStyle() {
 }
 
 // Replace `wrapper`'s contents with a red error box listing what's wrong.
+// frame.swap = [p, q] on an array component: the two cells (already showing
+// their new values) fly from each other's slot along opposite arcs, so the
+// exchange is visible. Only on a forward step; skipped for reduced motion.
+function animateSwap(stage, swap) {
+	if (!swap || swap[0] === swap[1] || !stage.animate) return;
+	if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	const row = stage.querySelector(".vz-row");
+	if (!row) return;
+	const a = row.children[swap[0]] && row.children[swap[0]].querySelector(".vz-cell");
+	const b = row.children[swap[1]] && row.children[swap[1]].querySelector(".vz-cell");
+	if (!a || !b) return;
+	const ra = a.getBoundingClientRect();
+	const rb = b.getBoundingClientRect();
+	const dx = rb.left - ra.left;
+	const lift = Math.min(ra.height * 0.75, 40);
+	const opts = { duration: 520, easing: "cubic-bezier(0.45, 0, 0.25, 1)" };
+	[[a, dx, -lift], [b, -dx, lift]].forEach(function(t) {
+		t[0].animate([
+			{ transform: "translate(" + t[1] + "px, 0)", zIndex: 2 },
+			{ transform: "translate(" + t[1] / 2 + "px, " + t[2] + "px) scale(1.08)", zIndex: 2, offset: 0.5 },
+			{ transform: "translate(0, 0)", zIndex: 2 }
+		], opts);
+	});
+}
+
 export function renderError(wrapper, messages, source) {
 	ensureStyle();
 	wrapper.className = "viz-block viz-error";
@@ -225,10 +250,13 @@ export function mount(wrapper, mod, rawConfig, source) {
 	let config = withDefaults(mod.meta.params, rawConfig);
 	let frames = mod.steps(config);
 	let idx = Math.min(config.start, frames.length) - 1;
+	let shown = -1; // last rendered step, to animate swaps only when stepping forward
 	let timer = null;
 	let speed = 3;
 	const groupLabel = mod.meta.groupLabel || "group";
-	const codeLines = (config.code && config.code !== "none" && mod.code && mod.code[config.code]) || null;
+	const legend = typeof mod.legend === "function" ? mod.legend(config) : mod.legend;
+	const codeSrc = typeof mod.code === "function" ? mod.code(config) : mod.code;
+	const codeLines = (config.code && config.code !== "none" && codeSrc && codeSrc[config.code]) || null;
 
 	wrapper.className = "viz-block";
 	wrapper.tabIndex = 0;
@@ -256,7 +284,7 @@ export function mount(wrapper, mod, rawConfig, source) {
 		"</div>" +
 		(msgTop ? '<div class="viz-msg is-top" aria-live="polite"></div>' : "") +
 		'<div class="viz-stage"></div>' +
-		(mod.legend && mod.legend.length ? '<div class="viz-legend">' + mod.legend.map(function(l) {
+		(legend && legend.length ? '<div class="viz-legend">' + legend.map(function(l) {
 			return '<span><i class="vz-swatch ' + l.cls + '"></i>' + escapeHtml(l.label) + "</span>";
 		}).join("") + "</div>" : "") +
 		(msgTop ? "" : '<div class="viz-msg" aria-live="polite"></div>') +
@@ -292,6 +320,8 @@ export function mount(wrapper, mod, rawConfig, source) {
 		wrapper.classList.toggle("is-static", frames.length < 2);
 		const prev = idx > 0 ? frames[idx - 1] : null;
 		mod.render(stage, frame, config);
+		if (idx === shown + 1) animateSwap(stage, frame.swap);
+		shown = idx;
 		msgEl.innerHTML = formatMessage(frame.msg || "");
 		stepEl.textContent = "Step " + (idx + 1) + " / " + frames.length;
 		lineEls.forEach(function(el, k) {
