@@ -186,7 +186,7 @@ Step 1b:
 - Whew!
 ```
 
-Step through all twelve of the slide's examples below, or type your own words. The table fills in each word after 1a and after 1b, and the code panel highlights the rule that fired:
+Step through all twelve of the slide's examples below, or type your own words. The table fills in each word after 1a and after 1b — a purple cell means *that* step changed the word, and the final stem is bold — and the code panel highlights the rule that fired:
 
 ```viz porter-step1
 {"title": "Porter Step 1a + 1b on the slide's examples (L13 p22)", "words": "stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping", "interactive": true}

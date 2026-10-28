@@ -16,6 +16,7 @@ export const meta = {
 		terms: { type: "string", required: true, desc: "One row per term: \"Brutus: 1 1 0 1 0 0; Caesar: 1 1 0 1 1 1\" (rows separated by ; or newlines)." },
 		docs: { type: "string", required: true, desc: "Document (column) names, comma-separated; as many as each row has bits." },
 		query: { type: "string", required: true, desc: "Terms joined by AND / OR, each optionally preceded by NOT, evaluated left to right: \"Brutus AND Caesar AND NOT Calpurnia\"." },
+		lang: { type: "enum", values: ["en", "zh"], default: "en", desc: "Language of the messages and legend." },
 		code: { type: "enum", values: ["python", "none"], default: "python", desc: "Python code beside the demo." }
 	},
 	example: {
@@ -111,11 +112,43 @@ export const code = {
 	]
 };
 
-export const legend = [
-	{ cls: "is-cmp", label: "Row being used" },
-	{ cls: "is-min", label: "Complemented (NOT)" },
-	{ cls: "is-sorted", label: "1 in the result" }
-];
+const TEXT = {
+	en: {
+		legend: ["Row being used", "Complemented (NOT)", "1 in the result"],
+		vars: ["query", "term", "row", "result"],
+		resultRow: "result",
+		intro: "Rows are terms, columns are documents: a 1 means the document contains the term. The query is answered with the rows alone — no document is read.",
+		row: function(first, term, v) { return (first ? "Start with " : "Next operand: ") + "the row for `" + term + "` = " + v + "."; },
+		not: function(term, v) { return "NOT flips every bit: NOT " + term + " = " + v + " (the documents that do *not* contain it)."; },
+		start: function(v) { return "That row is the running result: " + v + "."; },
+		combine: function(a, op, b, r) { return a + " " + op + " " + b + " = " + r + " — bitwise, column by column."; },
+		hits: function(v, n, list) { return "Result " + v + " → " + n + " document(s): " + list + "."; },
+		none: function(v) { return "Result " + v + " → no document matches."; }
+	},
+	zh: {
+		legend: ["正在使用的行", "取反（NOT）", "结果中的 1"],
+		vars: ["查询", "词项", "行", "结果"],
+		resultRow: "结果",
+		intro: "行是词项，列是文档：1 表示该文档包含这个词项。只用这些行就能回答查询——不需要读任何文档。",
+		row: function(first, term, v) { return (first ? "先取 " : "下一个操作数：") + "`" + term + "` 的行 = " + v + "。"; },
+		not: function(term, v) { return "NOT 把每一位取反：NOT " + term + " = " + v + "（*不*包含它的文档）。"; },
+		start: function(v) { return "这一行就是当前结果：" + v + "。"; },
+		combine: function(a, op, b, r) { return a + " " + op + " " + b + " = " + r + "——按位、逐列计算。"; },
+		hits: function(v, n, list) { return "结果 " + v + " → " + n + " 篇文档：" + list + "。"; },
+		none: function(v) { return "结果 " + v + " → 没有文档匹配。"; }
+	}
+};
+
+function T(config) { return TEXT[config && config.lang === "zh" ? "zh" : "en"]; }
+
+export function legend(config) {
+	const l = T(config).legend;
+	return [
+		{ cls: "is-cmp", label: l[0] },
+		{ cls: "is-min", label: l[1] },
+		{ cls: "is-sorted", label: l[2] }
+	];
+}
 
 export const input = {
 	key: "query",
@@ -141,6 +174,7 @@ export const input = {
 function vec(bits) { return bits.join(" "); }
 
 export function steps(config) {
+	const t = T(config);
 	const rows = parseTerms(config.terms).rows;
 	const docs = splitDocs(config.docs);
 	const ops = parseQuery(config.query).ops;
@@ -157,45 +191,47 @@ export function steps(config) {
 			lines: f.lines || [],
 			msg: f.msg,
 			vars: [
-				["query", config.query],
-				["term", f.term || "—"],
-				["row", f.operand ? vec(f.operand) : "—"],
-				["result", result ? vec(result) : "—"]
+				[t.vars[0], config.query],
+				[t.vars[1], f.term || "—"],
+				[t.vars[2], f.operand ? vec(f.operand) : "—"],
+				[t.vars[3], result ? vec(result) : "—"]
 			],
+			opLabel: f.term || "",
+			resultRow: t.resultRow,
 			rows: rows,
 			docs: docs
 		});
 	}
 
-	push({ group: 0, lines: [2], msg: "Rows are terms, columns are documents: a 1 means the document contains the term. The query is answered with the rows alone — no document is read." });
+	push({ group: 0, lines: [2], msg: t.intro });
 
 	ops.forEach(function(o, k) {
 		const row = findRow(rows, o.term);
 		const g = k + 1;
 		push({ group: g, active: row.term, term: row.term, operand: row.bits.slice(), lines: [3, 4],
-			msg: (k === 0 ? "Start with " : "Next operand: ") + "the row for `" + row.term + "` = " + vec(row.bits) + "." });
+			msg: t.row(k === 0, row.term, vec(row.bits)) });
 		let operand = row.bits.slice();
 		if (o.neg) {
 			operand = operand.map(function(b) { return 1 - b; });
 			push({ group: g, active: row.term, term: "NOT " + row.term, operand: operand, lines: [5, 6],
-				msg: "NOT flips every bit: NOT " + row.term + " = " + vec(operand) + " (the documents that do *not* contain it)." });
+				msg: t.not(row.term, vec(operand)) });
 		}
 		if (result === null) {
 			result = operand.slice();
 			push({ group: g, active: row.term, term: (o.neg ? "NOT " : "") + row.term, operand: operand, lines: [7, 8],
-				msg: "That row is the running result: " + vec(result) + "." });
+				msg: t.start(vec(result)) });
 		} else {
 			const before = result.slice();
 			result = result.map(function(a, i) { return o.op === "AND" ? (a & operand[i]) : (a | operand[i]); });
 			push({ group: g, active: row.term, term: o.op + " " + (o.neg ? "NOT " : "") + row.term, operand: operand,
 				lines: o.op === "AND" ? [9, 10, 11] : [12, 13, 14],
-				msg: vec(before) + " " + o.op + " " + vec(operand) + " = " + vec(result) + " — bitwise, column by column." });
+				msg: t.combine(vec(before), o.op, vec(operand), vec(result)) });
 		}
 	});
 
 	const hits = docs.filter(function(d, i) { return result[i]; });
 	push({ group: ops.length + 1, final: true, lines: [15, 16],
-		msg: hits.length ? "Result " + vec(result) + " → " + hits.length + " document(s): " + hits.join(", ") + "." : "Result " + vec(result) + " → no document matches." });
+		msg: hits.length ? t.hits(vec(result), hits.length, hits.join(", ")) : t.none(vec(result)) });
 	return frames;
 }
 
@@ -243,11 +279,11 @@ export function render(stage, frame) {
 	});
 	const n = frame.docs.length;
 	html += '<tr class="vz-im-gap"><th></th>' + "<td></td>".repeat(n) + "</tr>";
-	const opLabel = frame.vars[1][1];
+	const opLabel = frame.opLabel;
 	if (frame.operand && opLabel.indexOf("NOT") >= 0) {
 		html += '<tr class="vz-im-op"><th>' + esc(opLabel) + "</th>" + frame.operand.map(function(b) { return "<td>" + b + "</td>"; }).join("") + "</tr>";
 	}
-	html += '<tr class="vz-im-res"><th>result</th>' + (frame.result
+	html += '<tr class="vz-im-res"><th>' + esc(frame.resultRow) + '</th>' + (frame.result
 		? frame.result.map(function(b) { return '<td class="' + (b ? "is-one" : "") + '">' + b + "</td>"; }).join("")
 		: "<td>·</td>".repeat(n)) + "</tr>";
 	stage.innerHTML = html + "</tbody></table></div>";
