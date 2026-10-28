@@ -188,10 +188,10 @@ Step 1b:
 
 规则大意：Step 1a 处理复数 -s 结尾——sses 变 ss；ied/ies 前面多于一个字母时变 i，否则变 ie；以 us 或 ss 结尾不动；以 s 结尾时，如果 s 前面那个字母之前还有元音，就删掉 s。Step 1b 处理 -ed / -ing——eed/eedly 位于"第一个元音之后的第一个非元音"之后的部分时变 ee；ed/edly/ing/ingly 前面有元音就删掉，然后：以 at、bl、iz 结尾加 e，以 ll、ss、zz 以外的双写字母结尾去掉一个，短词加 e。
 
-下面可以逐步演示幻灯片的全部 12 个例子，也可以输入你自己的词。表格会依次填出每个词经过 1a、1b 后的结果，代码面板会高亮触发的规则：
+下面可以逐步演示幻灯片的全部 12 个例子，也可以输入你自己的词。表格会依次填出每个词经过 1a、1b 后的结果（紫色格子表示*这一步*改动了这个词，最终词干加粗），代码面板会高亮触发的规则：
 
 ```viz porter-step1
-{"title": "Porter 第 1a + 1b 步：幻灯片中的例子（L13 p22）", "words": "stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping", "interactive": true}
+{"title": "Porter 第 1a + 1b 步：幻灯片中的例子（L13 p22）", "words": "stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping", "lang": "zh", "interactive": true}
 ```
 
 所有例子的结果都和幻灯片一致：stress、gap、gas、tie、cri、agree、feed、fish、pirate、fall、drip、hope。注意 "cri"：是词干，不是词。
@@ -486,7 +486,7 @@ $I_t$ 是词项 $t$ 的行，$\wedge$ 是按位 AND，$\neg$ 把每一位取反�
 结果中的 1 在第 1 列和第 4 列：**Antony and Cleopatra** 和 **Hamlet**。下面可以逐步演示，也可以输入别的查询（对这些词项使用 AND / OR / NOT）：
 
 ```viz incidence-matrix
-{"title": "Brutus AND Caesar AND NOT Calpurnia（L14 p33–38）", "terms": "Antony: 1 1 0 0 0 1; Brutus: 1 1 0 1 0 0; Caesar: 1 1 0 1 1 1; Calpurnia: 0 1 0 0 0 0; Cleopatra: 1 0 0 0 0 0; mercy: 1 0 1 1 1 1; worser: 1 0 1 1 1 0", "docs": "Antony and Cleopatra, Julius Caesar, The Tempest, Hamlet, Othello, Macbeth", "query": "Brutus AND Caesar AND NOT Calpurnia", "interactive": true}
+{"title": "Brutus AND Caesar AND NOT Calpurnia（L14 p33–38）", "terms": "Antony: 1 1 0 0 0 1; Brutus: 1 1 0 1 0 0; Caesar: 1 1 0 1 1 1; Calpurnia: 0 1 0 0 0 0; Cleopatra: 1 0 0 0 0 0; mercy: 1 0 1 1 1 1; worser: 1 0 1 1 1 0", "docs": "Antony and Cleopatra, Julius Caesar, The Tempest, Hamlet, Othello, Macbeth", "query": "Brutus AND Caesar AND NOT Calpurnia", "lang": "zh", "interactive": true}
 ```
 
 原文中的答案（L14 p39）：
