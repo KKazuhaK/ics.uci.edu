@@ -873,7 +873,10 @@
 				background: var(--notes-table-header-bg);
 			}
 
-			.markdown-body tr:nth-child(even) td {
+			/* Zebra stripes for note tables only. :where() keeps the specificity at
+			   (0,0,1) and viz blocks are excluded, so a viz component's own cell
+			   colours (e.g. simhash's +/- cells) are never painted over on even rows. */
+			:where(.markdown-body tr:nth-child(even)) td:not(:where(.viz-block td)) {
 				background: var(--notes-table-stripe-bg);
 			}
 
@@ -1957,6 +1960,13 @@
 			// ```viz <component> blocks → interactive step-through demos. Each
 			// component lives in assets/viz/<component>.js (shared site-wide); the player is assets/viz/_player.js.
 			const VIZ_BASE = "../../assets/viz/";
+			// The note itself is fetched with cache: "no-store", but import() would happily
+			// reuse a stale component from the HTTP cache — a note using a newly added param
+			// then fails validation ("unknown parameter"). A query that changes every 10
+			// minutes makes the player and components refresh soon after an upload while
+			// still caching within a reading session. (_core.js is imported relatively by
+			// the modules, so it keeps one URL and stays cached.)
+			const VIZ_BUST = "?v=" + Math.floor(Date.now() / 600000);
 
 			async function applyVizRendering(container) {
 				const blocks = Array.from(container.querySelectorAll('pre[data-language="viz"]'));
@@ -1967,7 +1977,7 @@
 				let player = null;
 				let playerError = null;
 				try {
-					player = await import(new URL(VIZ_BASE + "_player.js", document.baseURI).href);
+					player = await import(new URL(VIZ_BASE + "_player.js" + VIZ_BUST, document.baseURI).href);
 				} catch (error) {
 					playerError = error;
 				}
@@ -1991,7 +2001,7 @@
 					let mod = null;
 					if (!problems.length) {
 						try {
-							mod = await import(new URL(VIZ_BASE + name + ".js", document.baseURI).href);
+							mod = await import(new URL(VIZ_BASE + name + ".js" + VIZ_BUST, document.baseURI).href);
 						} catch (error) {
 							problems.push('unknown component "' + name + '" (no assets/viz/' + name + ".js)");
 						}
