@@ -165,14 +165,14 @@ export function steps(config) {
 		if (o.kind === "enqueue") {
 			const wasEmpty = q.length === 0;
 			q.push(o.item);
-			push({ group: g, op: o.src, mark: "is-sorted", lines: wasEmpty ? [1, 2, 3, 5] : [1, 2, 4, 5],
+			push({ group: g, op: o.src, mark: "is-sorted", lines: wasEmpty ? [2, 3, 5] : [2, 4, 5],
 				msg: "enqueue " + o.item + ": " + (wasEmpty ? "the queue was empty, so `head` and `tail` both point at the new node." : "link it after the old tail and move `tail` to it.") + " O(1)." });
 		} else if (o.kind === "peek") {
 			push({ group: g, op: o.src, mark: "is-min", lines: [15], msg: "peek(): return the front item \"" + q[0] + "\" without removing it." });
 		} else {
 			const item = q.shift();
 			out.push(item);
-			push({ group: g, op: o.src, gone: item, lines: q.length ? [7, 8, 9, 11, 12, 13] : [7, 8, 9, 10, 11, 12, 13],
+			push({ group: g, op: o.src, gone: item, lines: q.length ? [8, 9, 11, 12, 13] : [8, 9, 10, 11, 12, 13],
 				msg: "dequeue(): the front \"" + item + "\" leaves first (first in, first out); `head` moves to the next node." +
 					(q.length ? "" : " The queue is now empty, so `tail = nullptr` too — forget that and `tail` dangles.") + " O(1)." });
 		}

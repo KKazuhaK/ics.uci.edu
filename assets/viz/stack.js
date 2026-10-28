@@ -160,13 +160,13 @@ export function steps(config) {
 	ops.forEach(function(o, g) {
 		if (o.kind === "push") {
 			st.push(o.item);
-			push({ group: g, op: o.src, mark: "is-sorted", lines: [1, 2, 3], msg: "push " + o.item + ": new node at the head; it is the new top. Nothing else moves — O(1)." });
+			push({ group: g, op: o.src, mark: "is-sorted", lines: [2, 3], msg: "push " + o.item + ": new node at the head; it is the new top. Nothing else moves — O(1)." });
 		} else if (o.kind === "peek") {
 			push({ group: g, op: o.src, mark: "is-min", lines: [12], msg: "peek(): return the top item \"" + st[st.length - 1] + "\" without removing it." });
 		} else {
 			const item = st.pop();
 			popped.push(item);
-			push({ group: g, op: o.src, gone: item, lines: [5, 6, 7, 8, 9, 10], msg: "pop(): the top \"" + item + "\" comes off (last in, first out); `head` moves to the node below. O(1)." });
+			push({ group: g, op: o.src, gone: item, lines: [6, 7, 8, 9, 10], msg: "pop(): the top \"" + item + "\" comes off (last in, first out); `head` moves to the node below. O(1)." });
 		}
 	});
 	push({ group: ops.length, msg: "Done. Left on the stack (top first): " + (st.length ? st.slice().reverse().join(", ") : "nothing") + ". Popped in order: " + (popped.join(" ") || "nothing") + "." });

@@ -256,7 +256,7 @@ export function steps(config) {
 			lastResult = "—";
 			const id = newNode(o.item, head);
 			const old = head;
-			snapshot(Object.assign({}, base, { loose: [id], ptr: { current: id }, marks: { [id]: "is-sorted" }, lines: [8, 9, 10, 11],
+			snapshot(Object.assign({}, base, { loose: [id], ptr: { current: id }, marks: { [id]: "is-sorted" }, lines: [9, 10],
 				msg: "`" + o.src + "`: index 0 — allocate a node for " + o.item + " whose `next` is the current head (" + itemOf(old) + "). No walking." }));
 			head = id;
 			if (tail === null) tail = id;
@@ -274,7 +274,7 @@ export function steps(config) {
 			const start = isGet ? [2] : o.kind === "add" ? [13, 14] : [25, 26];
 			const loop = isGet ? [3, 4] : o.kind === "add" ? [15, 16, 17] : [27, 28, 29];
 			if (o.kind === "remove") lastResult = "—";
-			snapshot(Object.assign({}, base, { index: index, ptr: ptr(), lines: (o.kind === "add" ? [8] : o.kind === "remove" ? [24] : [1]).concat(start),
+			snapshot(Object.assign({}, base, { index: index, ptr: ptr(), lines: start,
 				msg: "`" + o.src + "`" + (o.kind === "remove" && o.head ? " (= remove(0))" : "") + ": start the walk with " + (isGet ? "`finger = head`." : "`previous = nullptr`, `finger = head`.") }));
 			while (index > 0) {
 				previous = finger;
