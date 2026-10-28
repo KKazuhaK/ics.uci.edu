@@ -248,7 +248,7 @@ const STYLE = `
 .vz-im tr.vz-im-res th { background: var(--vz-surface); }
 .vz-im td.is-one { background: var(--vz-sorted-bg); color: var(--vz-sorted-fg); font-weight: 700; }
 .vz-im th.is-hit { color: var(--vz-sorted-fg); background: var(--vz-sorted-bg); }
-.vz-im tr.vz-im-gap td, .vz-im tr.vz-im-gap th { border: none; height: 0.35rem; padding: 0; }
+.vz-im tr.vz-im-sep td, .vz-im tr.vz-im-sep th { border-top: 2px solid var(--vz-ink); }
 `;
 
 function ensureStyle() {
@@ -278,12 +278,12 @@ export function render(stage, frame) {
 		html += '<tr class="' + cls + '"><th>' + esc(r.term) + "</th>" + r.bits.map(function(b) { return "<td>" + b + "</td>"; }).join("") + "</tr>";
 	});
 	const n = frame.docs.length;
-	html += '<tr class="vz-im-gap"><th></th>' + "<td></td>".repeat(n) + "</tr>";
 	const opLabel = frame.opLabel;
-	if (frame.operand && opLabel.indexOf("NOT") >= 0) {
-		html += '<tr class="vz-im-op"><th>' + esc(opLabel) + "</th>" + frame.operand.map(function(b) { return "<td>" + b + "</td>"; }).join("") + "</tr>";
+	const showNot = !!(frame.operand && opLabel.indexOf("NOT") >= 0);
+	if (showNot) {
+		html += '<tr class="vz-im-op vz-im-sep"><th>' + esc(opLabel) + "</th>" + frame.operand.map(function(b) { return "<td>" + b + "</td>"; }).join("") + "</tr>";
 	}
-	html += '<tr class="vz-im-res"><th>' + esc(frame.resultRow) + '</th>' + (frame.result
+	html += '<tr class="vz-im-res' + (showNot ? "" : " vz-im-sep") + '"><th>' + esc(frame.resultRow) + '</th>' + (frame.result
 		? frame.result.map(function(b) { return '<td class="' + (b ? "is-one" : "") + '">' + b + "</td>"; }).join("")
 		: "<td>·</td>".repeat(n)) + "</tr>";
 	stage.innerHTML = html + "</tbody></table></div>";
