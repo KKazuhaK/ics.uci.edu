@@ -356,7 +356,7 @@ for n in (1, 2, 3):
 n-gram 带来了什么（L14 p14–15）：
 
 - **高频的 n-gram 更可能是有意义的短语。**
-- n-gram 服从 **Zipf 分布**——比单个词拟合得更好（Zipf 定律见[第 4 周](?kind=course_notes&course=CS-121&lang=zh-CN&note=CS121_Week04_Notes_zh-CN.md)）。
+- n-gram 服从 **Zipf 分布**——比单个词拟合得更好（Zipf 定律见[第 4 周第 11 节](?kind=course_notes&course=CS-121&lang=zh-CN&note=CS121_Week04_Notes_zh-CN.md#11-文本统计与-zipf-定律)）。
 - 可以为指定长度以内的**所有 n-gram 建索引**。优点：**比词性标注快得多**。缺点：**占用大量存储**——一个 1,000 词的文档包含 **3,990** 个 2 ≤ n ≤ 5 的词 n-gram 实例。
 
 **Google n-gram**（L14 p16–17）：尽管存储开销大，**很多网络搜索引擎仍然会为 n-gram 建索引**。Google 的样本：
