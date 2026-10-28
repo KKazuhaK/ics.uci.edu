@@ -166,16 +166,16 @@ export function steps(config) {
 		const was = list.length;
 		if (o.kind === "addFirst") {
 			list.unshift(o.item); last = "—";
-			push({ group: g, op: o.src, mark: 0, lines: [1, 2, 3, 4, 5], msg: "addFirst(" + o.item + "): new node with `next = head`; " + (was ? "the old first node's `prev` points back at it; " : "the list was empty, so `tail` points at it too; ") + "`head` moves to it. O(1)." });
+			push({ group: g, op: o.src, mark: 0, lines: [2, was ? 4 : 3, 5], msg: "addFirst(" + o.item + "): new node with `next = head`; " + (was ? "the old first node's `prev` points back at it; " : "the list was empty, so `tail` points at it too; ") + "`head` moves to it. O(1)." });
 		} else if (o.kind === "addLast") {
 			list.push(o.item); last = "—";
-			push({ group: g, op: o.src, mark: list.length - 1, lines: [7, 8, 9, 10, 11], msg: "addLast(" + o.item + "): new node with `prev = tail`; " + (was ? "the old last node's `next` points at it; " : "the list was empty, so `head` points at it too; ") + "`tail` moves to it. O(1)." });
+			push({ group: g, op: o.src, mark: list.length - 1, lines: [8, was ? 10 : 9, 11], msg: "addLast(" + o.item + "): new node with `prev = tail`; " + (was ? "the old last node's `next` points at it; " : "the list was empty, so `head` points at it too; ") + "`tail` moves to it. O(1)." });
 		} else if (o.kind === "removeFirst") {
 			const item = list.shift(); last = "\"" + item + "\"";
-			push({ group: g, op: o.src, gone: item, lines: [13, 14, 15, 16, 17, 18], msg: "removeFirst(): `head` moves to the second node and its `prev` is cleared" + (list.length ? "" : " — now empty, so `tail = nullptr` too") + ". Returns \"" + item + "\". O(1)." });
+			push({ group: g, op: o.src, gone: item, lines: [14, list.length ? 16 : 15, 17, 18], msg: "removeFirst(): `head` moves to the second node and its `prev` is cleared" + (list.length ? "" : " — now empty, so `tail = nullptr` too") + ". Returns \"" + item + "\". O(1)." });
 		} else {
 			const item = list.pop(); last = "\"" + item + "\"";
-			push({ group: g, op: o.src, gone: item, lines: [20, 21, 22, 23, 24, 25], msg: "removeLast(): `tail = tail->prev` — the step a singly linked list can't do without walking — then the new last node's `next` is cleared" + (list.length ? "" : " (now empty: `head = nullptr`)") + ". Returns \"" + item + "\". O(1)." });
+			push({ group: g, op: o.src, gone: item, lines: [21, list.length ? 23 : 22, 24, 25], msg: "removeLast(): `tail = tail->prev` — the step a singly linked list can't do without walking — then the new last node's `next` is cleared" + (list.length ? "" : " (now empty: `head = nullptr`)") + ". Returns \"" + item + "\". O(1)." });
 		}
 	});
 	push({ group: pl.ops.length, msg: "Done: " + list.length + " node(s). Every operation here touched a constant number of pointers." });

@@ -133,7 +133,7 @@ export function steps(config) {
 			" characters, so it is " + (kept ? "emitted as token #" + tokens.length + "." : "dropped.");
 	}
 
-	push({ lines: [1, 2, 3], msg: "Start: read the text as a stream of " + chars.length + " characters with an empty buffer. Alphanumerics build a token; anything else ends it. Tokens shorter than " + minLen + " are thrown away." });
+	push({ lines: [2, 3], msg: "Start: read the text as a stream of " + chars.length + " characters with an empty buffer. Alphanumerics build a token; anything else ends it. Tokens shorter than " + minLen + " are thrown away." });
 
 	chars.forEach(function(ch, k) {
 		if (isAlnum(ch)) {

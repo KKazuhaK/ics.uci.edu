@@ -210,7 +210,7 @@ export function steps(config) {
 
 	function resize(newCap, g, op, why) {
 		const bigger = new Array(newCap).fill(null);
-		push({ group: g, op: op, newBuf: bigger, lines: why === "grow" ? [2, 17, 18] : [13, 14, 17, 18],
+		push({ group: g, op: op, newBuf: bigger, lines: why === "grow" ? [2, 18] : [13, 14, 18],
 			msg: (why === "grow" ? "Full (n_ == capacity_ == " + cap + "), so resize to " + newCap + (config.growth === "plus1" ? " (this demo grows by +1 instead of the code's 2 × capacity_)" : "") + ": allocate a new buffer." : "n_ = " + n + " ≤ capacity_/4 = " + Math.floor(cap / 4) + ", so shrink: allocate a buffer of capacity " + newCap + ".") });
 		for (let i = 0; i < n; i++) {
 			bigger[i] = data[i];
@@ -254,7 +254,7 @@ export function steps(config) {
 		const item = data[o.index];
 		lastResult = String(item);
 		const hr = {}; hr[o.index] = "is-min";
-		push({ group: g, op: o.src, hi: hr, lines: [8, 9], msg: "`" + o.src + "`: save `item = data_[" + o.index + "]` = " + item + "." });
+		push({ group: g, op: o.src, hi: hr, lines: [9], msg: "`" + o.src + "`: save `item = data_[" + o.index + "]` = " + item + "." });
 		for (let i = o.index; i + 1 < n; i++) {
 			data[i] = data[i + 1];
 			moves++;

@@ -230,7 +230,7 @@ export function steps(config) {
 		node.state = "merge";
 		node.vals = new Array(hi - lo + 1).fill(null);
 		let i = lo, j = mid + 1;
-		pushTree({ lo: lo, mid: mid, hi: hi, i: i, j: j, lines: [6, 10, 11, 12],
+		pushTree({ lo: lo, mid: mid, hi: hi, i: i, j: j, lines: [10, 11, 12],
 			msg: "Both halves of `sort(" + lo + "," + hi + ")` are sorted. `merge()` copies `a[" + lo + ".." + hi + "]` to `aux` (the two halves below) and refills `a[" + lo + ".." + hi + "]` from the front: `i = " + i + "` on the left half, `j = " + j + "` on the right." });
 		for (let k = lo; k <= hi; k++) {
 			let line, why;
@@ -275,13 +275,13 @@ export function steps(config) {
 		if (hi <= lo) {
 			node.state = "done";
 			addSorted(lo, lo);
-			pushTree({ lo: lo, hi: hi, lines: [1, 2], msg: where + "`sort(" + lo + "," + hi + ")` has one element (`" + a[lo] + "`): already sorted, return." });
+			pushTree({ lo: lo, hi: hi, lines: [2], msg: where + "`sort(" + lo + "," + hi + ")` has one element (`" + a[lo] + "`): already sorted, return." });
 			stack.pop();
 			return;
 		}
 		node.state = "open";
 		const mid = lo + Math.floor((hi - lo) / 2);
-		pushTree({ lo: lo, mid: mid, hi: hi, lines: [1, 3],
+		pushTree({ lo: lo, mid: mid, hi: hi, lines: [3],
 			msg: where + "`sort(" + lo + "," + hi + ")`: `mid = " + mid + "`, split into " + lo + ".." + mid + " and " + (mid + 1) + ".." + hi + ", then sort each half." });
 		sort(lo, mid, "left");
 		current = lo + "-" + hi;
