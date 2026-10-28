@@ -354,7 +354,7 @@ Run it below; the step counts the n-grams of a 1,000-word document:
 What n-grams buy you (L14 p14–15):
 
 - **Frequent n-grams are more likely to be meaningful phrases.**
-- N-grams form a **Zipf distribution** — a better fit than words alone (Zipf's law is from [Week 4](?kind=course_notes&course=CS-121&lang=en-US&note=CS121_Week04_Notes_en-US.md)).
+- N-grams form a **Zipf distribution** — a better fit than words alone (Zipf's law is in [Week 4 §11](?kind=course_notes&course=CS-121&lang=en-US&note=CS121_Week04_Notes_en-US.md#11-text-statistics-and-zipfs-law)).
 - You could **index all n-grams** up to a specified length. Advantage: **much faster than POS tagging**. Drawback: **uses a lot of storage** — a 1,000-word document contains **3,990** instances of word n-grams with 2 ≤ n ≤ 5.
 
 **Google n-grams** (L14 p16–17): even at that storage cost, **many web search engines do index n-grams**. Google's sample:
