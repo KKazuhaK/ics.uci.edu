@@ -8,16 +8,14 @@
 - [4. 在 M E R G E S R T 上追踪归并排序](#4-在-m-e-r-g-e-s-r-t-上追踪归并排序)
 - [5. 归并排序的分析](#5-归并排序的分析)
 - [6. 归并排序的性质与改进](#6-归并排序的性质与改进)
-- [7. 快速排序：思路](#7-快速排序思路)
-- [8. 快速排序代码与随机洗牌](#8-快速排序代码与随机洗牌)
-- [9. 划分](#9-划分)
-- [10. 追踪快速排序](#10-追踪快速排序)
-- [11. 完整实现](#11-完整实现)
-- [12. 课堂活动（附解答）](#12-课堂活动附解答)
-- [13. 速查与必记的 5 个要点](#13-速查与必记的-5-个要点)
+- [7. 快速排序：背景](#7-快速排序背景)
+- [8. 完整实现](#8-完整实现)
+- [9. 课堂活动（附解答）](#9-课堂活动附解答)
+- [10. 速查与必记的 5 个要点](#10-速查与必记的-5-个要点)
 
 > UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/22/26
-> 整理自 Lecture 8 幻灯片（p1–84）；补充材料：algs4 §2.2 Mergesort 与 §2.3 Quicksort，Thornton 的 "Comparison-Based Sorting"。按概念组织，而不是按资料来源组织。
+> 整理自 Lecture 8 幻灯片（p1–49）；补充材料：algs4 §2.2 Mergesort，Thornton 的 "Comparison-Based Sorting"。按概念组织，而不是按资料来源组织。
+> 幻灯片 p50–83（快速排序算法、代码、划分、追踪、活动 4）在 Lecture 9 的幻灯片中重复出现，因此放在 [Lecture 9 笔记](?kind=course_notes&course=ICS-46&lang=zh-CN&note=ICS46_Lec09_Notes_zh-CN.md)中讲解。
 > 本讲目标（幻灯片 p3）：归并排序及其分析，快速排序。归并部分（幻灯片 p4–20）同时也出现在 Lecture 7 的末尾，这里一并讲解。选择排序与插入排序见 [Lecture 7 笔记](?kind=course_notes&course=ICS-46&lang=zh-CN&note=ICS46_Lec07_Notes_zh-CN.md)；递推式与主定理见 [Lecture 6 笔记](?kind=course_notes&course=ICS-46&lang=zh-CN&note=ICS46_Lec06_Notes_zh-CN.md)。
 
 > 📅 **课程安排**（幻灯片 p2）：
@@ -106,7 +104,7 @@ void merge(T* a, T* aux, int lo, int mid, int hi)
 
 > ⚠️ **易错点**：`merge` 只有在两半都已排序时才正确。它从不回头检查，因此未排序的半段会以原来的顺序与另一半混合输出。
 
-> 📝 **练习**：[活动 1](#121-活动-1merge-中的比较次数幻灯片-20) 统计 `merge` 所做的比较次数。
+> 📝 **练习**：[活动 1](#91-活动-1merge-中的比较次数幻灯片-20) 统计 `merge` 所做的比较次数。
 
 ## 3. 递归的 sort 与包装函数
 
@@ -164,7 +162,7 @@ void sort(T* a, int length)
 {"title": "幻灯片 24–41：sort M E R G E S R T", "items": "M, E, R, G, E, S, R, T", "interactive": true}
 ```
 
-> 📝 **练习**：[活动 2](#122-活动-2子数组长度幻灯片-42) 询问当 n = 10 时会出现哪些子数组长度。
+> 📝 **练习**：[活动 2](#92-活动-2子数组长度幻灯片-42) 询问当 n = 10 时会出现哪些子数组长度。
 
 ## 5. 归并排序的分析
 
@@ -190,7 +188,7 @@ $$C(n) = 2\,C(n/2) + (n - 1), \qquad C(1) = 0$$
 
 > 📘 **课外补充**（algs4 §2.2）：algs4 §2.2 给出了完整范围：对于任意规模为 n 的输入，归并排序使用的比较次数介于 ½ n lg n 与 n lg n 之间。最好情况恰好是最坏情况的一半，因为一次归并至少需要 n/2 次比较（一半会先用完）。
 
-> 📝 **练习**：[活动 3](#123-活动-3最坏情况分析幻灯片-44) 就是这一推导。
+> 📝 **练习**：[活动 3](#93-活动-3最坏情况分析幻灯片-44) 就是这一推导。
 
 ## 6. 归并排序的性质与改进
 
@@ -218,160 +216,15 @@ $$C(n) = 2\,C(n/2) + (n - 1), \qquad C(1) = 0$$
 
 > ⚠️ **易错点**：如果把平局判断改为 `aux[j] <= aux[i]`，归并排序就不再稳定了（来自右侧的相等元素会跑到前面）。
 
-## 7. 快速排序：思路
+## 7. 快速排序：背景
 
 快速排序（quick sort，幻灯片 p49）同样是分治法，由 Tony Hoare（托尼·霍尔）于 1959 年发明。他想在字典中查单词之前先对单词排序，想出了快速排序，但当时不知道如何实现它；后来他学习了 Algol 60 和递归，才把它实现出来。他因此获得 1980 年的图灵奖（他还发明了 null，并对此深感后悔）。
 
-算法（幻灯片 p50）：
+> ➡️ **在 [Lecture 9](?kind=course_notes&course=ICS-46&lang=zh-CN&note=ICS46_Lec09_Notes_zh-CN.md) 中继续**：算法概要、快速排序代码与随机洗牌、划分、划分与完整排序的追踪，以及本讲的活动 4（即 Lecture 9 的活动 1）。幻灯片 p50–83 在 Lecture 9 幻灯片开头重复出现，因此放在那一讲讲解。
 
-1. **洗牌**：打乱数组。
-2. **划分**：使得对于某个枢轴下标 `j`：
-   - 元素 `a[j]` 已经就位（其最终排序位置），
-   - `j` 左侧不存在更大的元素，
-   - `j` 右侧不存在更小的元素。
-3. **递归排序**每个子数组。
-
-幻灯片 p50 的概览（枢轴为 K）：
-
-| 步骤 | 数组 |
-| --- | --- |
-| 输入 | Q U I C K S O R T E X A M P L E |
-| 洗牌 | K R A T E L E P U I M Q C X O S |
-| 划分 | E C A I E **K** L P U T M Q R X O S |
-| 排序左侧 | A C E E I **K** L P U T M Q R X O S |
-| 排序右侧 | A C E E I **K** L M O P Q R S T U X |
-
-（幻灯片中的视频片段来自《老友记》（*Friends*）的“Pivot!”场景。）
-
-> 💡 **关键洞见**：归并排序的划分非常简单，它的工作在递归调用**之后**完成（merge）。快速排序的工作则在递归调用**之前**完成（partition），并且不需要合并步骤：两侧都排好后，整个数组就已经有序了。
-
-## 8. 快速排序代码与随机洗牌
-
-幻灯片 p51：
+## 8. 完整实现
 
 ```cpp
-#include <random>
-#include <utility>
-
-// quicksort
-template <typename T>
-void sort(T* a, int lo, int hi)
-{
-    if (hi <= lo) return;
-    int j = partition(a, lo, hi);
-    sort(a, lo, j-1);
-    sort(a, j+1, hi);
-}
-
-template <typename T>
-void sort(T* a, int length) {
-    std::random_device device;                        // Random shuffle
-    std::default_random_engine engine{device()};
-    std::shuffle(std::begin(a), std::end(a), engine);
-
-    sort(a, 0, length-1);
-}
-```
-
-- 递归调用**跳过下标 `j`**：枢轴已经是最终位置。
-- 一侧可以是**空的**（例如枢轴恰好是最小值时的 `sort(a, 0, -1)`）。这就是基本情形写作 `hi <= lo` 而不是 `hi == lo` 的原因。
-- 包装函数用 `std::random_device` 生成种子，并用 `std::default_random_engine`（Lecture 1 中讲过的随机性）进行洗牌，然后对整个区间排序。
-
-幻灯片的错误（按原样无法编译）：`std::begin(a)` / `std::end(a)` 需要真正的数组，而 `a` 是 `T*`，应改用 `std::shuffle(a, a + length, engine);`。另外，`std::shuffle` 位于 `<algorithm>` 中，而幻灯片没有包含该头文件。
-
-> 📘 **课外补充**（algs4 §2.3）：为什么要洗牌。若枢轴取 `a[lo]`，已排序的输入会使每次划分都得到 0 | n − 1 的切分，需要约 n²/2 次比较。经过随机洗牌后，平均次数约为 2 n ln n ≈ 1.39 n lg n，而退化为二次方的情形几乎不会发生。
-
-## 9. 划分
-
-Yeh 使用的是 "Sedgewick's partition scheme"，它结合了 Hoare 与 Lomuto 两种划分方案（幻灯片中拼写为 "Sedgwick" 与 "Lumoto"）。目标（幻灯片 p52）：重新排列 `a[lo..hi]`，使得 `a[lo..j-1] <= a[j] <= a[j+1..hi]`。
-
-1. 枢轴 `v = a[lo]`，指针 `i` 位于 `lo`，指针 `j` 位于 `hi + 1`。
-2. 重复直到 `i` 与 `j` 交错：
-   - `i` 从左向右扫描，当 `a[i] < v` 时继续（停在一个 **≥ v** 的元素上），
-   - `j` 从右向左扫描，当 `v < a[j]` 时继续（停在一个 **≤ v** 的元素上），
-   - 交换 `a[i]` 与 `a[j]`（两者都在错误的一侧）。
-3. 交换 `a[lo]` 与 `a[j]`，返回 `j`。
-
-幻灯片 p53 的示意图：**划分前** `v | (unknown)`；**划分中** `v | ≤ v | (unknown) | ≥ v`，其中 `i` 与 `j` 位于未知部分的两端；**划分后** `≤ v | v | ≥ v`，`v` 位于下标 `j`。
-
-```cpp
-template <typename T>
-int partition(T* a, int lo, int hi) {
-    int i = lo;
-    int j = hi + 1;
-    T v = a[lo];
-    while (true) {
-        // Move i to the right for elements < v
-        while (i < hi && a[++i] < v) {
-            if (i == hi) break;
-        }
-        // Move j to the left for elements > v
-        while (v < a[--j]) {
-            if (j == lo) break;
-        }
-        if (i >= j) break;               // If pointers cross, stop
-        std::swap(a[i], a[j]);           // Swap elements at i and j
-    }
-    // Place the partitioning item in its correct position
-    std::swap(a[lo], a[j]);
-    return j;
-}
-```
-
-- `a[++i]` / `a[--j]` 是**先移动，再查看**。这就是 `j` 从 `hi + 1` 开始的原因：它第一次查看的是 `a[hi]`。`i` 第一次查看的是 `a[lo + 1]`，从而跳过枢轴。
-- `i < hi`、`i == hi` 与 `j == lo` 使扫描保持在区间之内，即使枢轴是最大或最小元素时也是如此。（`j` 的循环本身也会在 `a[lo] = v` 处停止，因为 `v < v` 为假。）
-- 为什么是把枢轴与 `a[j]` 交换，而不是与 `a[i]` 交换？循环结束时，`j` 位于“≤ v”一侧的**最后一个元素**上，把它移到前面可以保持左侧的正确性。`a[i]` 大于等于 v，交换它会破坏左侧。
-
-> 📘 **课外补充**（algs4 §2.3）：两个扫描都在与 v **相等**的键上停止（两个循环都使用严格的 `<`）。这会带来一些额外的交换，但当存在大量重复元素时，它能让切分保持在中间附近；如果不在相等处停止，全部相等的数组每次都会切分成 0 | n − 1，从而退化为二次方。
-
-## 10. 追踪快速排序
-
-**一次划分**（幻灯片 p54–80），对已洗牌的 `K R A T E L E P U I M Q C X O S` 执行 `partition(a, 0, 15)`，v = K：
-
-| 轮次 | i 停在 | j 停在 | 操作 | 数组 |
-| --- | --- | --- | --- | --- |
-| 1 | 1（R） | 12（C） | 交换 | K **C** A T E L E P U I M Q **R** X O S |
-| 2 | 3（T） | 9（I） | 交换 | K C A **I** E L E P U **T** M Q R X O S |
-| 3 | 5（L） | 6（E） | 交换 | K C A I E **E** **L** P U T M Q R X O S |
-| 4 | 6（L） | 5（E） | 交叉，跳出 | |
-| 结束 | | | 交换 a[0]、a[5] | E C A I E **K** L P U T M Q R X O S，返回 **5** |
-
-```viz quick-sort
-{"title": "幻灯片 54–80：partition(a, 0, 15)", "items": "K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S", "mode": "partition"}
-```
-
-**整个排序过程**（幻灯片 p81；粉色为 `sort(a, lo, j-1)`，蓝色为 `sort(a, j+1, hi)`，红色为枢轴）。每一行是一次 `partition` 调用；大小为 1 的子数组无需划分（lo = hi 的行）：
-
-| lo | j | hi | 划分后的数组 |
-| --- | --- | --- | --- |
-| 0 | 5 | 15 | E C A I E **K** L P U T M Q R X O S |
-| 0 | 3 | 4 | E C A **E** I K … |
-| 0 | 2 | 2 | A C **E** E I K … |
-| 0 | 0 | 1 | **A** C E E I K … |
-| 6 | 6 | 15 | … K **L** P U T M Q R X O S |
-| 7 | 9 | 15 | … L M O **P** T Q R X U S |
-| 7 | 7 | 8 | … L **M** O P … |
-| 10 | 13 | 15 | … P S Q R **T** U X |
-| 10 | 12 | 12 | … P R Q **S** T U X |
-| 10 | 11 | 11 | … P Q **R** S T U X |
-| 14 | 14 | 15 | … T **U** X |
-| 结果 | | | A C E E I K L M O P Q R S T U X |
-
-第一次划分之后，幻灯片对 `E C A I E` 调用 `sort(a, 0, 4)`（幻灯片 p82）。逐步演示整个递归过程（调用栈位于变量面板中）：
-
-```viz quick-sort
-{"title": "幻灯片 81–82：快速排序 K R A T E L E P U I M Q C X O S", "items": "K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S", "interactive": true}
-```
-
-> ⚠️ **易错点**：Visualgo 的快速排序（幻灯片 p83 的注释）是另一种实现。考试时，请按**本讲**的划分方式追踪：枢轴 `a[lo]`，i 停在 ≥ v 的元素上，j 停在 ≤ v 的元素上，最后与 `a[j]` 交换。
-
-> 📝 **练习**：[活动 4](#124-活动-4手工执行快速排序幻灯片-83) 手工对 `3 7 8 5 2 1 9 5 4` 排序。
-
-## 11. 完整实现
-
-```cpp
-#include <algorithm>   // std::shuffle (missing on slide 51)
-#include <random>
 #include <utility>
 
 namespace mergesort {
@@ -401,37 +254,6 @@ void sort(T* a, int length) {
     delete[] aux;
 }
 }
-
-namespace quicksort {
-template <typename T>
-int partition(T* a, int lo, int hi) {
-    int i = lo;
-    int j = hi + 1;
-    T v = a[lo];
-    while (true) {
-        while (i < hi && a[++i] < v) { if (i == hi) break; }
-        while (v < a[--j])           { if (j == lo) break; }
-        if (i >= j) break;
-        std::swap(a[i], a[j]);
-    }
-    std::swap(a[lo], a[j]);
-    return j;
-}
-template <typename T>
-void sort(T* a, int lo, int hi) {
-    if (hi <= lo) return;
-    int j = partition(a, lo, hi);
-    sort(a, lo, j-1);
-    sort(a, j+1, hi);
-}
-template <typename T>
-void sort(T* a, int length) {
-    std::random_device device;
-    std::default_random_engine engine{device()};
-    std::shuffle(a, a + length, engine);   // fixed: slide has std::begin(a), std::end(a)
-    sort(a, 0, length-1);
-}
-}
 ```
 
 使用 `g++ -std=c++17 -Wall -fsanitize=address,undefined` 测试（比较次数通过带计数功能的 `operator<` 统计）：
@@ -442,18 +264,12 @@ best 123|456 compares=3
 worst 135|246 compares=5
 MERGESRT -> EEGMRRST  compares=15
 worst n=8 compares=17 (n lg n - n + 1 = 17)
-partition: ECAIEKLPUTMQRXOS  j=5
-quicksort (no shuffle): ACEEIKLMOPQRSTUX
-Activity 4 first partition: 2 1 3 5 8 7 9 5 4
-j=2
-Activity 4 sorted: 1 2 3 4 5 5 7 8 9
-quicksort wrapper: 1 2 3 5 8 9
 mergesort wrapper: 1 2 3 5 8 9
 ```
 
-## 12. 课堂活动（附解答）
+## 9. 课堂活动（附解答）
 
-### 12.1 活动 1：merge 中的比较次数（幻灯片 20）
+### 9.1 活动 1：merge 中的比较次数（幻灯片 20）
 
 要把两个已排序的子数组（各长 n/2）合并为一个长度为 n 的有序数组，`merge()` 需要调用多少次 `<`？
 
@@ -475,7 +291,7 @@ E. 约 n 到 2n
 
 返回 [合并两个已排序的半段](#2-合并两个已排序的半段)。
 
-### 12.2 活动 2：子数组长度（幻灯片 42）
+### 9.2 活动 2：子数组长度（幻灯片 42）
 
 对长度为 10 的数组运行归并排序时，下列哪些子数组长度会出现？
 
@@ -489,7 +305,7 @@ E. { 1, 2, 3, 5, 10 }
 
 **解答：E。** 长度为 n 的区间会被分成 ⌈n/2⌉（左侧，包含 `mid`）与 ⌊n/2⌋：10 → 5 + 5，5 → 3 + 2，3 → 2 + 1，2 → 1 + 1。出现的长度为：10、5、3、2、1。A 多了 7；B 与 D 含有从不出现的偶数长度（B 还缺少 1，而每次递归都会到达 1）；C 缺少 3。返回 [追踪归并排序的过程](#4-在-m-e-r-g-e-s-r-t-上追踪归并排序)。
 
-### 12.3 活动 3：最坏情况分析（幻灯片 44）
+### 9.3 活动 3：最坏情况分析（幻灯片 44）
 
 **(a)** 分析归并排序的最坏情况时间复杂度（比较次数）。
 **(b)** 写出描述最坏情况时间复杂度的递推式。
@@ -499,50 +315,22 @@ E. { 1, 2, 3, 5, 10 }
 
 **解答。** **(a)** 所有比较都发生在 `merge` 中；归并 n 个元素最多需要 n − 1 次比较。**(b)** $C(n) = 2C(n/2) + (n - 1)$，$C(1) = 0$；若只关注增长阶，则为 $T(n) = 2T(n/2) + n$。**(c)** 递归树：log₂ n 层 × 每层 n = n log₂ n（精确值为 n log₂ n − n + 1）。主定理：a = 2，b = 2，d = 1，a = bᵈ → Θ(n log n)。返回 [归并排序的分析](#5-归并排序的分析)。
 
-### 12.4 活动 4：手工执行快速排序（幻灯片 83）
+## 10. 速查与必记的 5 个要点
 
-用快速排序对下列数组排序（假设枢轴取 lo）：
-
-`3 7 8 5 2 1 9 5 4`
-
-注意：Visualgo 的快速排序实现与本讲介绍的不同。
-
-> ✍️ **先自己试一试。** 提示：忽略洗牌；严格按照 §9 中的 `partition` 追踪。
-
-**解答。**
-
-| 调用 | 划分步骤 | 之后的数组 | j |
-| --- | --- | --- | --- |
-| sort(0,8)，v = 3 | i→7 (1)，j→1 (5)：交换；i→8 (2)，j→2 (4)：交换；i→5 (3)，j→2 (2)：交错；交换 a[0]、a[2] | 2 1 **3** 5 8 7 9 5 4 | 2 |
-| sort(0,1)，v = 2 | i 扫到 hi (1)；j→1：交错；交换 a[0]、a[1] | **1 2** 3 … | 1 |
-| sort(3,8)，v = 5 | i→8，j→4：交换；i→7，j→5（另一个 5）：交换；i→9，j→5：交错；交换 a[3]、a[5]（5 与 5） | 1 2 3 5 4 **5** 9 7 8 | 5 |
-| sort(3,4)，v = 5 | i 扫到 hi；j→4：交错；交换 | 1 2 3 **4 5** 5 9 7 8 | 4 |
-| sort(6,8)，v = 9 | i 扫到 hi (8)；j→8：交错；交换 a[6]、a[8] | … 8 7 **9** | 8 |
-| sort(6,7)，v = 8 | i 扫到 hi；j→7：交错；交换 | … **7 8** 9 | 7 |
-
-结果：**1 2 3 4 5 5 7 8 9**。注意 `sort(3,8)`：由于比较是严格的，两个扫描都停在第二个 5 上，因此相等的键被交换了。验证：
-
-```viz quick-sort
-{"title": "活动 4 检查", "items": "3, 7, 8, 5, 2, 1, 9, 5, 4"}
-```
-
-返回 [追踪快速排序](#10-追踪快速排序)。
-
-## 13. 速查与必记的 5 个要点
-
-| | 归并排序 | 快速排序（本讲版本） |
-| --- | --- | --- |
-| 切分 | 在中间下标（`mid`）处 | 在枢轴的最终下标（`j`）处 |
-| 工作何时完成 | 递归调用之后（`merge`） | 递归调用之前（`partition`） |
-| 比较发生在 | merge 中的 `aux[j] < aux[i]` | partition 中的 `a[++i] < v`、`v < a[--j]` |
-| 额外内存 | 大小为 n 的 `aux` | 除递归栈外没有 |
-| 稳定 | 是（平局时取左侧） | 否（长距离交换） |
-| 时间 | 最好/平均/最坏均为 Θ(n log n) | 见第 8 节中的 📘（随机洗牌保护平均情况） |
+| | 归并排序 |
+| --- | --- |
+| 切分 | 在中间下标（`mid`）处 |
+| 工作何时完成 | 递归调用之后（`merge`） |
+| 比较发生在 | merge 中的 `aux[j] < aux[i]` |
+| 额外内存 | 大小为 n 的 `aux`（非原地） |
+| 稳定 | 是（平局时取左侧） |
+| 时间 | 最好/平均/最坏均为 Θ(n log n) |
+| 合并两个长 n/2 的半段所需比较次数 | 约 n/2 到 n − 1 |
 
 **必记的 5 个要点**
 
 1. `merge` 只在两半都还有元素时比较 `aux[j] < aux[i]`；`i > mid` / `j > hi` 表示某一半已用完，平局时取左侧元素，这使归并排序保持稳定。
 2. 归并排序的递推式为 $C(n) = 2C(n/2) + (n - 1)$：log₂ n 层 × 每层 n = 在所有情况下都是 Θ(n log n)，代价是 O(n) 的 `aux` 数组（非原地）。
 3. 子数组长度来自于反复切分为 ⌈n/2⌉ 与 ⌊n/2⌋（n = 10 → 10、5、3、2、1）。
-4. 划分：i 停在 ≥ v 的元素上，j 停在 ≤ v 的元素上，若 `i < j` 则交换，两者交错时停止，然后将枢轴与 `a[j]` 交换（绝不与 `a[i]` 交换）。
-5. 划分之后，`a[j]` 已是最终位置；对 `lo..j-1` 与 `j+1..hi` 递归，这两段可能为空，因此基本情形必须写作 `hi <= lo`。
+4. 合并两个长 n/2 的有序半段，比较次数介于 n/2（某一半先用完）与 n − 1（两半交错）之间。
+5. 三项改进：小子数组改用插入排序；当 `a[mid] <= a[mid+1]` 时跳过 `merge`；交替使用 `a` 与 `aux` 以省去复制。
