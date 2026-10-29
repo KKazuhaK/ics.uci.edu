@@ -661,6 +661,68 @@
 				transform: rotate(180deg);
 			}
 
+			/* Hover-revealed copy button on code blocks (applyCodeCopy). */
+			.markdown-body .code-wrap {
+				position: relative;
+				margin: 0 0 0.65rem;
+			}
+
+			.markdown-body .code-wrap > pre {
+				margin: 0;
+			}
+
+			.markdown-body .code-copy-btn {
+				position: absolute;
+				top: 0.6rem;
+				right: 0.6rem;
+				z-index: 2;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.3rem;
+				height: 2rem;
+				min-width: 2rem;
+				padding: 0 0.5rem;
+				border: 1px solid rgba(255, 255, 255, 0.18);
+				border-radius: 0.5rem;
+				background: #2d2d2d;
+				color: #d4d4d4;
+				font-family: inherit;
+				font-size: 0.75rem;
+				font-weight: 600;
+				line-height: 1;
+				cursor: pointer;
+				opacity: 0;
+				transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+			}
+
+			.markdown-body .code-wrap:hover .code-copy-btn,
+			.markdown-body .code-collapse:hover .code-copy-btn,
+			.markdown-body .code-copy-btn:focus-visible,
+			.markdown-body .code-copy-btn.is-copied {
+				opacity: 1;
+			}
+
+			.markdown-body .code-copy-btn:hover {
+				background: #3a3a3a;
+				color: #fff;
+			}
+
+			.markdown-body .code-copy-btn.is-copied {
+				color: #4ec9b0;
+			}
+
+			.markdown-body .code-copy-btn svg {
+				width: 15px;
+				height: 15px;
+			}
+
+			@media (hover: none) {
+				.markdown-body .code-copy-btn {
+					opacity: 1;
+				}
+			}
+
 			.markdown-body .mermaid-block {
 				position: relative;
 				margin: 1.25rem 0;
@@ -1766,17 +1828,41 @@
 					indicator.textContent = Math.round(scale * 100) + "%";
 				}
 
-				function defaultView() {
+				function defaultScale() {
 					const stageW = stage.clientWidth || 1;
-					const stageH = stage.clientHeight || 1;
 					let initial = 1;
 					if (naturalW * initial > stageW * 0.95) {
 						initial = (stageW * 0.92) / naturalW;
 					}
-					scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, initial));
+					return Math.max(MIN_SCALE, Math.min(MAX_SCALE, initial));
+				}
+
+				function defaultView() {
+					const stageW = stage.clientWidth || 1;
+					const stageH = stage.clientHeight || 1;
+					scale = defaultScale();
 					tx = (stageW - naturalW * scale) / 2;
-					ty = Math.min(0, (stageH - naturalH * scale) / 2);
+					const spare = stageH - naturalH * scale;
+					ty = spare > 0 ? spare / 2 : Math.min(0, spare / 2);
 					apply();
+				}
+
+				// Shrink the block to the diagram's height at the default scale; the CSS
+				// height (30rem / 22rem mobile) stays the upper bound. Runs once, before any
+				// manual resize, so a short diagram doesn't sit in a mostly empty box.
+				const AUTO_FIT_PAD = 24;
+				const AUTO_FIT_MIN = 160;
+				function autoFitHeight() {
+					const cap = wrapper.offsetHeight;
+					const chrome = cap - stage.clientHeight; // resize-handle strip
+					const wanted = Math.ceil(naturalH * defaultScale() + AUTO_FIT_PAD * 2 + chrome);
+					const fitted = Math.max(AUTO_FIT_MIN, Math.min(cap, wanted));
+					if (fitted < cap) wrapper.style.height = fitted + "px";
+				}
+
+				function initView() {
+					autoFitHeight();
+					defaultView();
 				}
 
 				function zoomAt(factor, originX, originY) {
@@ -1869,7 +1955,7 @@
 				resizeHandle.addEventListener("pointermove", function(event) {
 					if (!resizing) return;
 					const delta = event.clientY - resizeStartY;
-					const minH = 240;
+					const minH = Math.min(240, resizeStartH);
 					const maxH = Math.max(minH + 60, window.innerHeight - 80);
 					const newH = Math.max(minH, Math.min(maxH, resizeStartH + delta));
 					wrapper.style.height = newH + "px";
@@ -1887,9 +1973,9 @@
 				resizeHandle.addEventListener("pointercancel", endResize);
 
 				if (stage.clientWidth > 0 && stage.clientHeight > 0) {
-					defaultView();
+					initView();
 				} else {
-					requestAnimationFrame(defaultView);
+					requestAnimationFrame(initView);
 				}
 			}
 
@@ -2106,6 +2192,67 @@
 						if (window._mvGotoContentChanged) window._mvGotoContentChanged();
 					});
 					label();
+				});
+			}
+
+			// Top-right copy button on every code block (not mermaid / viz widgets).
+			function applyCodeCopy(container) {
+				const zh = new URLSearchParams(location.search).get("lang") === "zh-CN";
+				const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+				const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+				const copyLabel = zh ? "复制代码" : "Copy code";
+				const copiedText = zh ? "已复制" : "Copied";
+
+				function writeClipboard(text) {
+					if (navigator.clipboard && window.isSecureContext) {
+						return navigator.clipboard.writeText(text);
+					}
+					return new Promise(function(resolve, reject) {
+						const ta = document.createElement("textarea");
+						ta.value = text;
+						ta.setAttribute("readonly", "");
+						ta.style.position = "fixed";
+						ta.style.opacity = "0";
+						document.body.appendChild(ta);
+						ta.select();
+						const ok = document.execCommand("copy");
+						ta.remove();
+						ok ? resolve() : reject(new Error("execCommand copy failed"));
+					});
+				}
+
+				container.querySelectorAll("pre").forEach(function(pre) {
+					if (pre.closest(".viz-block, .mermaid-block")) return;
+					let host = pre.parentElement;
+					if (!host.classList.contains("code-collapse") && !host.classList.contains("code-wrap")) {
+						host = document.createElement("div");
+						host.className = "code-wrap";
+						pre.replaceWith(host);
+						host.appendChild(pre);
+					}
+					if (host.querySelector(":scope > .code-copy-btn")) return;
+					const btn = document.createElement("button");
+					btn.type = "button";
+					btn.className = "code-copy-btn";
+					btn.title = copyLabel;
+					btn.setAttribute("aria-label", copyLabel);
+					btn.innerHTML = copyIcon;
+					let resetTimer = null;
+					btn.addEventListener("click", function() {
+						const text = (pre.textContent || "").replace(/\n$/, "");
+						writeClipboard(text).then(function() {
+							btn.classList.add("is-copied");
+							btn.innerHTML = checkIcon + "<span>" + copiedText + "</span>";
+							clearTimeout(resetTimer);
+							resetTimer = setTimeout(function() {
+								btn.classList.remove("is-copied");
+								btn.innerHTML = copyIcon;
+							}, 1600);
+						}).catch(function(error) {
+							console.warn("Copy failed.", error);
+						});
+					});
+					host.appendChild(btn);
 				});
 			}
 
@@ -2735,6 +2882,7 @@
 					})
 					.then(function() {
 						applyCodeCollapse(contentEl);
+						applyCodeCopy(contentEl);
 						if (window._mvGotoContentChanged) window._mvGotoContentChanged();
 					});
 
