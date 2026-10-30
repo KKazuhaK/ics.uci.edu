@@ -43,6 +43,8 @@ The slides contrast two kinds of front end:
 | Data / UI | Data is dynamic, UI fairly static | Repeated UI components (status updates); different content and links for each person |
 | Computation | A lot behind each page, but each page is self-contained | — |
 
+![Slide 4: the "small" client — the A2 Runkeeper report page ("One week of #RunKeeper Tweets", About the data)](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/small-client-a2.png)
+
 *How do we develop large client applications?* (slide 6) With a **framework**, which:
 
 - adds structure and organization,
@@ -72,6 +74,8 @@ ng serve                      # run it; add --open to open the browser too
 
 The app runs on **localhost:4200** by default, and reloads whenever you change a source file. The `-g` matters: as in [Lecture 6](lec-06.en-US.md), a global install is what makes the `ng` command available on the command line.
 
+![Slide 10: the app ng new creates, running at localhost:4200 — "Hello, test" with the Angular logo and links to the docs](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/ng-new-default-app.png)
+
 > 🧪 **Demo files**: [w5l2-example/README.md](https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/README.md) · [package.json](https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/package.json)
 
 ## 3. Model-View-Controller
@@ -93,13 +97,7 @@ The app runs on **localhost:4200** by default, and reloads whenever you change a
 
 The slides' diagram is a loop:
 
-```mermaid
-flowchart LR
-  user(["USER"]) -- "uses" --> controller["CONTROLLER"]
-  controller -- "manipulates" --> model["MODEL"]
-  model -- "updates" --> view["VIEW"]
-  view -- "sees" --> user
-```
+![Slides 12–15: the MVC loop — the user uses the controller, the controller manipulates the model, the model updates the view, the user sees the view](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-diagram.png)
 
 > ⚠️ **Pitfall**: The controller never draws anything itself. It changes the model, and the model's change is what updates the view.
 
@@ -114,6 +112,8 @@ How Angular maps MVC onto files (slide 16):
 | View | HTML and CSS |
 | Model & Controller | TypeScript |
 | The glue between the three | Angular itself |
+
+![Slides 16–17: MVC in Angular — the view (HTML, CSS) and the model are joined to Angular by two-way data binding; the controller (JavaScript, services) talks to servers; users interact with the view](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-in-angular.png)
 
 The key term is **binding** (slide 17):
 
@@ -184,6 +184,8 @@ The slide's title calls it `onInit()`, but the interface is `OnInit` and the met
 ## 6. The root template and root component
 
 Slide 23 ("Hello Angular") shows the running demo app: the tomato cat image, **"Hello, INF 133"**, "Congratulations! Your app is running. 🎉", and on the right three link pills (INF 133 Canvas, INF 133 Slack, Angular tutorials) plus GitHub / X / YouTube icons.
+
+![Slide 23: the running demo app — the tomato cat, "Hello, INF 133", "Congratulations! Your app is running.", and the Canvas / Slack / Angular tutorials pills](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/hello-angular.png)
 
 ### 6.1 Root template: app.html
 
@@ -321,6 +323,8 @@ export class App {
 
 `{{title}}` → `title`, `[src]` → `tomatoCatUrl`, `(click)` → `clickExample()`. Clicking the button logs `clicked button!`. (The slide's code uses curly quotes throughout; the code above is the repo's.)
 
+![Slide 33: arrows from {{title}}, [src]="tomatoCatUrl" and (click)="clickExample()" in app.html to title, tomatoCatUrl and clickExample() in app.ts](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/one-way-binding-arrows.png)
+
 Try it below: the same page, with the model / view / controller wiring written out by hand. Step through, or edit and press Run:
 
 ```viz web-demo
@@ -414,6 +418,8 @@ isHalloween () {
 
 On lecture day (10/29) the page shows "Just another regular ole day..." (slide 40's screenshot).
 
+![Slide 40: the @if / @else template next to its output, "Just another regular ole day..."](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/if-example.png)
+
 ### 9.2 @for
 
 Repeat an item for every element of an array:
@@ -447,6 +453,8 @@ days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 ```
 
 The first renders Sunday … Saturday; the second renders "1: Sunday" … "7: Saturday". It's the template version of a Python `for i, day in enumerate(days)`. The repo's `app.html` also loops over an inline array of objects with `track item.title` to build the three link pills on the right of the page.
+
+![Slide 41: the two @for templates and their output — Sunday … Saturday, then 1: Sunday … 7: Saturday](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/for-example.png)
 
 > 🔗 **Go deeper**: [angular.love: Diving into the new Angular control flow](https://angular.love/diving-into-the-new-angular-control-flow-internals) · [Angular: @if](https://angular.dev/api/core/@if) · [Angular: @for](https://angular.dev/api/core/@for)
 
@@ -498,6 +506,8 @@ export class Week {
 </ul>
 ```
 
+![Slide 43: week.ts with @Input() today (labelled Input) and week.html where today is referenced in @if(day == today)](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input.png)
+
 `@Input()` marks `today` as an input; the template uses it like any other field. The parent passes it (slide 44):
 
 - **as a property binding** if it's dynamic: `<app-week [today]="dayOfWeek()"></app-week>` — `dayOfWeek()` is a function in `App`;
@@ -512,6 +522,8 @@ dayOfWeek():string {
 ```
 
 Both render the seven days with **Today!** after the matching one. (Slide 44's bugs: it closes `<app-week>` with `</app-day>`, and its labels say "Sets day property" — the input is named `today`.)
+
+![Slide 44: passing the input — today="Friday" sets a static value; [today]="dayOfWeek()" binds it to App's function](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input-passing.png)
 
 Try it — the Week component as a plain JS function whose parameter plays the role of `@Input() today`:
 
@@ -588,6 +600,8 @@ So D is wrong because of B. The repo's `app.html` uses form C for its link pills
 ### 11.3 Demo: Rolling Dice (slide 48 · dice.ts → diceFinished.txt)
 
 **Task**: inside the demo app, make a `Dice` component that shows two dice and a button; clicking it rolls both dice and shows the total. Slide 48 shows the result: "Hello!", a "Click to roll the dice!" button, two dice images and "Total: 8".
+
+![Slide 48: the finished Dice component — "Hello!", the roll button, two dice (5 and 6) and "Total: 8"](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/rolling-dice.png)
 
 Starter (`src/app/dice/`, generated by `ng generate component dice`): `dice.html` is `<p>TODO: this!</p>` and the class is empty:
 
