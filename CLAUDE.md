@@ -9,6 +9,17 @@
 
 ## Workflow
 
+**Publishing = pushing to GitHub `main`.** No server step is needed:
+
+1. Push to `KKazuhaK/ics.uci.edu` `main` (from here, Claude Code on the web, or claude.ai).
+2. GitHub Actions (`.github/workflows/site.yml`) runs `astro check`, the renderer parity test and the build on every push. A failing build stops here and the live site stays as it was (see the Actions tab for the error).
+3. On `main`, the build is force-pushed to the `deploy` branch (one commit, the latest build only).
+4. Cron on circinus-19 runs `scripts/pull-deploy.sh` every 5 minutes: if `deploy` moved, it syncs that build into `~/public_html` via `deploy.sh` (log: `~/.cache/site-pull-deploy.log`; it also fast-forwards `~/site`). `scripts/pull-deploy.sh --force` redeploys now.
+
+Cron entry (per openlab node; re-add if the job lives on another node): `*/5 * * * * $HOME/site/scripts/pull-deploy.sh >> $HOME/.cache/site-pull-deploy.log 2>&1`
+
+Local commands (still work; a local `npm run deploy` is replaced by the next CI build):
+
 ```bash
 npm run dev           # local dev server
 npm run check         # astro check (types + content schemas)
@@ -17,12 +28,12 @@ npm run deploy        # check → build with base /~kazuhak     → rsync to ~/p
 npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note (kept as a regression test)
 ```
 
-- `scripts/deploy.sh` refuses to sync a `dist/` built for the other base, and refuses `prod` while `~/public_html/.git` exists. rsync runs with `--delete --chmod=D755,F644` (so the old umask/403 problem is gone) and **excludes** what isn't built from this repo: `resources/`, `remote_profiles/`, `temp/`, `.venv/`, `.claude/`, `.codex`, `CLAUDE.md`, `next/`, `assets/config/*.local.json`. Anything else put straight into `~/public_html/` is deleted by the next deploy.
+- `scripts/deploy.sh` refuses to sync a build made for the other base, and refuses `prod` while `~/public_html/.git` exists. rsync runs with `--delete --chmod=D755,F644` (so the old umask/403 problem is gone) and **excludes** what isn't built from this repo: `resources/`, `remote_profiles/`, `temp/`, `.venv/`, `.claude/`, `.codex`, `CLAUDE.md`, `next/`, `assets/config/*.local.json`. Anything else put straight into `~/public_html/` is deleted by the next deploy.
 - Base path: `SITE_BASE` env (default `/~kazuhak`). In code always build links with `url()` / `courseUrl()` / `noteUrl()` from `src/lib/urls.ts`; never hard-code `/~kazuhak/`.
 - `build.format: "preserve"`: `about.astro` → `about.html`, `x/index.astro` → `x/index.html`, so legacy URLs keep working.
 - Before committing: Opus adversarial review of the diff (see the global CLAUDE.md).
 - Commits and PRs are authored solely by Kazuha: no `Co-Authored-By`, no Claude author/committer, no "Generated with" lines, no AI credit in code or docs.
-- GitHub `KKazuhaK/ics.uci.edu` `main` is the source of truth; on the server: `cd ~/site && git pull && npm run deploy`.
+- GitHub `KKazuhaK/ics.uci.edu` `main` is the source of truth; pull before working locally. Don't commit to the `deploy` branch (CI overwrites it).
 
 ---
 
@@ -32,7 +43,9 @@ npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note
 ~/site/
 ├── astro.config.mjs              # base, preserve format, legacy-redirects integration
 ├── integrations/legacy-redirects.ts  # appends 301s for pre-Astro URLs to dist/.htaccess
-├── scripts/deploy.sh             # staging / prod rsync with guards
+├── .github/workflows/site.yml    # CI: check + build every push; main → deploy branch
+├── scripts/deploy.sh             # staging / prod rsync with guards (SRC=<dir> for another build)
+├── scripts/pull-deploy.sh        # cron: deploy branch → ~/public_html
 ├── scripts/migrate/              # one-off migration scripts (kept for reference) + parity.ts
 ├── .lastmod-ignore-revs          # commits that don't count as "last edited" (bulk moves)
 ├── public/                       # copied verbatim: .htaccess, assets/{css,js,viz,config}, images, favicon,
