@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import { DEMO_COURSES, visibleWeeks } from "../../../../data/demos";
+import { url } from "../../../../lib/urls";
+
+export const getStaticPaths = (() => DEMO_COURSES.map((course) => ({ params: { course: course.code }, props: { course } }))) satisfies GetStaticPaths;
+
+const { course } = Astro.props;
+---
+
+<BaseLayout title={`${course.name} Demos`} description={course.metaDesc}>
+  <main class="page course-hub-page">
+    <div class="page-head card">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={url("notes/")} class="crumb">Notes</a>
+        <span class="crumb-sep">›</span>
+        <a href={url("notes/demo_notes/")} class="crumb">Demo Notes</a>
+        <span class="crumb-sep">›</span>
+        <span class="crumb crumb-current">{course.name}</span>
+      </nav>
+      <h1 class="page-title">{course.heading}</h1>
+      <p class="page-sub">{course.intro}</p>
+    </div>
+
+    <div class="week-grid" id="demos-grid">
+      {visibleWeeks(course).map((w) => (
+        <a href={url(`notes/demo_notes/${course.code}/${w.file}`)} class="card interactive week-card">
+          <span class="week-badge">Week {w.week}</span>
+          <h3>{w.title}</h3>
+          <p class="week-summary">{w.summary}</p>
+          <div class="week-meta-row">
+            <span class="note-state ready">{w.labs} demos</span>
+            <span class="btn-open">Open week →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </main>
+</BaseLayout>

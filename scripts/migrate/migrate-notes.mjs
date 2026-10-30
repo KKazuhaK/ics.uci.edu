@@ -20,7 +20,7 @@ const CARDS = {
 
 // courseProfiles from the legacy md-viewer.
 function readProfiles() {
-  const html = readFileSync(`${root}public/tools/md-viewer/index.html`, "utf8");
+  const html = readFileSync(`${root}scripts/migrate/fixtures/legacy-md-viewer.html`, "utf8");
   const start = html.indexOf("const courseProfiles = ");
   let i = html.indexOf("{", start), depth = 0, j = i;
   for (; j < html.length; j++) {

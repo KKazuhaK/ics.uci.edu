@@ -10,7 +10,8 @@ export default defineConfig({
   site: "https://ics.uci.edu",
   base,
   trailingSlash: "ignore",
-  build: { format: "directory" },
+  // "preserve": about.astro -> about.html, x/index.astro -> x/index.html, so legacy URLs keep working.
+  build: { format: "preserve" },
   integrations: [legacyRedirects()],
   // mermaid is one big lazy-loaded chunk, only fetched on notes with diagrams.
   vite: { build: { chunkSizeWarningLimit: 3000 } },

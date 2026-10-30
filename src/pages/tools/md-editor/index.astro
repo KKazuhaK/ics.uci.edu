@@ -1,0 +1,24 @@
+---
+import "katex/dist/katex.min.css";
+import LegacyPage from "../../../components/LegacyPage.astro";
+import head from "../../../legacy/md-editor/head.html?raw";
+import main from "../../../legacy/md-editor/main.html?raw";
+import after from "../../../legacy/md-editor/after.html?raw";
+
+// The editor's inline script runs before this page's module script, so it
+// waits on window.kzhMarkdownReady for the shared renderer.
+const ready = `<script>window.kzhMarkdownReady = new Promise(function (r) { window.__kzhMarkdownResolve = r; });</script>`;
+---
+
+<LegacyPage title="Markdown Editor" head={ready + head} main={main} after={after} />
+
+<script>
+  import { renderMarkdown } from "../../../lib/markdown/render";
+
+  declare global {
+    interface Window {
+      __kzhMarkdownResolve?: (api: { renderMarkdown: typeof renderMarkdown }) => void;
+    }
+  }
+  window.__kzhMarkdownResolve?.({ renderMarkdown });
+</script>

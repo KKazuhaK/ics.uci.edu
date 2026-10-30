@@ -1,0 +1,110 @@
+---
+// Markdown Viewer: render a local / pasted / transferred Markdown file with the
+// same renderer and reading UI as the course note pages.
+import "../../../styles/reader.css";
+import "katex/dist/katex.min.css";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Icon from "../../../components/Icon.astro";
+import { url } from "../../../lib/urls";
+---
+
+<BaseLayout title="Markdown Viewer" description="Render a Markdown file in the browser: Shiki code highlighting, KaTeX math, Mermaid diagrams and a table of contents. Nothing is uploaded.">
+  <main id="main" class="alt" data-md-viewer data-viz-base={url("assets/viz/")} data-viz-version={String(Math.floor(Date.now() / 1000))} data-editor-url={url("tools/md-editor/")}>
+    <section id="one">
+      <div class="inner notes-shell">
+        <div class="upload-intro" id="upload-intro">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href={url("tools/")} class="crumb">Tools</a>
+            <span class="crumb-sep">›</span>
+            <span class="crumb crumb-current" id="page-title">Markdown Viewer</span>
+            <div class="intro-actions">
+              <button type="button" class="intro-pill pill-red" id="open-another" hidden><Icon name="refresh" />Open another file</button>
+              <button type="button" class="viewer-goto-btn" id="goto-heading-viewer-upload" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6h6"></path><path d="M15 12h6"></path><path d="M15 18h6"></path><circle cx="6" cy="9" r="3"></circle><path d="m11 14-2.5-2.5"></path></svg><span>Headings</span>
+              </button>
+              <button type="button" class="intro-pill pill-green" id="edit-in-editor-upload"><Icon name="pencil" /><span>Open Editor</span></button>
+            </div>
+          </nav>
+        </div>
+
+        <div class="upload-panel" id="upload-prompt">
+          <p>Select, drag, or <strong>paste</strong> a Markdown document to render it here.</p>
+          <label class="upload-zone" id="upload-zone">
+            <input type="file" id="file-input" accept=".md,.markdown,text/markdown,text/plain" />
+            <span class="upload-zone-icon">📄</span>
+            <span class="upload-zone-label">Drop file here or click to browse</span>
+            <span class="upload-zone-hint">.md / .markdown / .txt</span>
+          </label>
+          <div class="upload-paste-row">
+            <button type="button" class="upload-paste-btn" id="paste-clipboard-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M9 14h6"></path><path d="M9 18h4"></path></svg>
+              Paste from clipboard
+            </button>
+            <span class="upload-paste-hint">or hit <kbd>⌘V</kbd> / <kbd>Ctrl+V</kbd> anywhere on the page</span>
+          </div>
+        </div>
+
+        <div class="viewer-card" id="viewer-card" hidden>
+          <article class="markdown-body" id="content"></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toc-sidebar" hidden>
+    <div class="toc-marks" id="toc-marks">
+      <div class="toc-marks-icon" title="目录 · Table of Contents">≡</div>
+      <div class="toc-marks-track" id="toc-marks-track"></div>
+    </div>
+    <div class="toc-panel" id="toc-panel"></div>
+  </div>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    Top
+  </button>
+</BaseLayout>
+
+<script>
+  import { initMdViewer } from "../../../scripts/md-viewer";
+  initMdViewer();
+</script>
+
+<style>
+  .intro-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .intro-pill {
+    cursor: pointer;
+    display: inline-flex;
+    gap: 0.35em;
+    align-items: center;
+    padding: 0.38rem 0.8rem;
+    border: 0;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .intro-pill[hidden] { display: none; }
+  .intro-pill :global(svg) { width: 1em; height: 1em; }
+  .pill-green {
+    background: rgba(39, 174, 96, 0.1);
+    box-shadow: inset 0 0 0 1.5px rgba(39, 174, 96, 0.35);
+    color: #27ae60;
+  }
+  .pill-green:hover { background: rgba(39, 174, 96, 0.17); }
+  .pill-red {
+    background: rgba(192, 57, 43, 0.1);
+    box-shadow: inset 0 0 0 1.5px rgba(192, 57, 43, 0.35);
+    color: #c0392b;
+  }
+  .pill-red:hover { background: rgba(192, 57, 43, 0.17); }
+  @media screen and (max-width: 736px) {
+    .intro-actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  }
+</style>

@@ -1,0 +1,1570 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2/dist/easymde.min.css" />
+		<style>
+			#main > * > .inner { max-width: none; width: calc(100% - 8em); }
+
+			:root {
+				--me-blue: #244f8f;
+				--me-blue-bg: rgba(36, 79, 143, 0.10);
+				--me-blue-border: rgba(36, 79, 143, 0.22);
+				--me-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--me-blue-hover: #183b73;
+				--me-border: rgba(42, 79, 133, 0.16);
+				--me-border-soft: rgba(42, 79, 133, 0.12);
+				--me-ink: #23324a;
+				--me-muted: #516074;
+				--me-card-bg: rgba(255, 255, 255, 0.98);
+				--me-card-bg-soft:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				--me-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--me-card-shadow-lg: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--me-editor-bg: #ffffff;
+				--me-toolbar-bg: #f8f9fb;
+				--me-preview-bg: #fafbfd;
+				--me-chip-current-text: #ffffff;
+				--me-crumb-sep: #97a7bb;
+				--me-gutter-text: #aab3c0;
+				--me-hr-muted: #aab3c0;
+				--me-code-dark-bg: #1e1e1e;
+
+				/* CodeMirror / preview pane height. JS overrides this with a
+				 * pixel value computed from the actual card top + viewport so
+				 * the editor fills the available viewport height. The fallback
+				 * matches the historical fixed value in case JS hasn't run yet. */
+				--me-editor-h: calc(100vh - 20rem);
+
+				/* CodeMirror syntax tokens (light) */
+				--me-cm-header: #244f8f;
+				--me-cm-strong: #1a1a2e;
+				--me-cm-em: #8b5a18;
+				--me-cm-strike: #999;
+				--me-cm-link: #0c8a5f;
+				--me-cm-url: #2d5b95;
+				--me-cm-comment: #6a737d;
+				--me-cm-quote: #42526b;
+				--me-cm-tag: #808080;
+				--me-cm-string: #c7254e;
+				--me-cm-keyword: #244f8f;
+				--me-cm-variable: #2d5b95;
+				--me-cm-toolbar-btn: #555;
+
+				/* Preview (mirrors md-viewer styling) */
+				--me-h2-border: #2d5b95;
+				--me-h3: #334155;
+				--me-inline-code-bg: rgba(33, 82, 164, 0.08);
+				--me-inline-code-text: #293e6a;
+				--me-blockquote-bg: rgba(33, 82, 164, 0.05);
+				--me-blockquote-border: rgba(33, 82, 164, 0.45);
+				--me-blockquote-text: #42526b;
+				--me-hr: rgba(144, 163, 191, 0.35);
+				--me-table-header-bg: rgba(33, 82, 164, 0.06);
+				--me-a-underline: rgba(36, 79, 143, 0.28);
+				--me-a-underline-hover: rgba(24, 59, 115, 0.52);
+			}
+
+			html[data-theme="dark"] {
+				--me-blue: #6aa3f5;
+				--me-blue-bg: rgba(106, 163, 245, 0.15);
+				--me-blue-border: rgba(106, 163, 245, 0.32);
+				--me-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--me-blue-hover: #a8c9ff;
+				--me-border: rgba(255, 255, 255, 0.1);
+				--me-border-soft: rgba(255, 255, 255, 0.07);
+				--me-ink: #dde4f0;
+				--me-muted: #8c9cb5;
+				--me-card-bg: #14181f;
+				--me-card-bg-soft:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--me-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--me-card-shadow-lg: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--me-editor-bg: #0f1319;
+				--me-toolbar-bg: #181d26;
+				--me-preview-bg: #12161d;
+				--me-chip-current-text: #0a0d12;
+				--me-crumb-sep: #54627a;
+				--me-gutter-text: #54627a;
+				--me-hr-muted: #54627a;
+
+				--me-cm-header: #6aa3f5;
+				--me-cm-strong: #e2eaf5;
+				--me-cm-em: #ecb86a;
+				--me-cm-strike: #5c6579;
+				--me-cm-link: #4ec9a9;
+				--me-cm-url: #7ab5ff;
+				--me-cm-comment: #7a8696;
+				--me-cm-quote: #b4c0d4;
+				--me-cm-tag: #8892a6;
+				--me-cm-string: #e08ea7;
+				--me-cm-keyword: #6aa3f5;
+				--me-cm-variable: #a8c9ff;
+				--me-cm-toolbar-btn: #b4c0d4;
+
+				--me-h2-border: #6aa3f5;
+				--me-h3: #b4c0d4;
+				--me-inline-code-bg: rgba(106, 163, 245, 0.13);
+				--me-inline-code-text: #b8d0ff;
+				--me-blockquote-bg: rgba(106, 163, 245, 0.08);
+				--me-blockquote-border: rgba(106, 163, 245, 0.5);
+				--me-blockquote-text: #b4c0d4;
+				--me-hr: rgba(255, 255, 255, 0.12);
+				--me-table-header-bg: rgba(106, 163, 245, 0.09);
+				--me-a-underline: rgba(106, 163, 245, 0.35);
+				--me-a-underline-hover: rgba(168, 201, 255, 0.6);
+			}
+
+			/* Shell */
+			.me-shell {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--me-card-shadow-lg);
+				overflow: hidden;
+			}
+
+			.me-shell > header.major {
+				display: none;
+			}
+
+			/* Intro / Breadcrumb */
+			.me-intro {
+				padding: 0.75rem 1.5rem;
+				border-bottom: 1px solid var(--me-border);
+				background: var(--me-card-bg-soft);
+			}
+			.me-intro .crumbs { margin-bottom: 0; }
+
+			.me-shell > :last-child { border-bottom: 0 !important; }
+
+			.me-breadcrumb {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+				align-items: center;
+			}
+
+			.me-chip {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				text-decoration: none;
+				border-bottom: 0 !important;
+				background: var(--me-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--me-blue-border);
+				color: var(--me-blue) !important;
+				transition: background 0.2s ease, transform 0.2s ease;
+			}
+
+			.me-chip:hover {
+				background: var(--me-blue-bg-strong);
+				transform: translateY(-1px);
+				color: var(--me-blue-hover) !important;
+			}
+
+			.me-chip-current {
+				background: var(--me-blue);
+				box-shadow: none;
+				color: var(--me-chip-current-text) !important;
+				cursor: default;
+			}
+
+			.me-chip-current:hover {
+				background: var(--me-blue);
+				transform: none;
+				color: var(--me-chip-current-text) !important;
+			}
+
+			.me-sep {
+				font-size: 1.18rem;
+				font-weight: 700;
+				color: var(--me-crumb-sep);
+				user-select: none;
+				line-height: 1;
+			}
+
+			/* ── Editor card ───────────────────────────── */
+			.me-editor-card {
+				position: relative;
+				display: flex;
+				background: var(--me-card-bg);
+				overflow: hidden;
+				padding: 0;
+			}
+
+			/* Mobile layout (toggled by JS via .me-mobile class so the layout
+			 * also flips when a desktop window is resized below 736px, not
+			 * just on touch devices): single column, hide the side-by-side
+			 * preview and outline rail, drop the row-flex so the toolbar
+			 * can fill width and wrap naturally. */
+			.me-editor-card.me-mobile { display: block !important; }
+			.me-editor-card.me-mobile .EasyMDEContainer {
+				width: 100% !important;
+				max-width: 100% !important;
+				flex-basis: auto !important;
+			}
+			.me-editor-card.me-mobile .me-outline-panel,
+			.me-editor-card.me-mobile .me-pane-gutter,
+			.me-editor-card.me-mobile .editor-preview-active-side {
+				display: none !important;
+			}
+			.me-editor-card.me-mobile .CodeMirror,
+			.me-editor-card.me-mobile .CodeMirror.CodeMirror-sided {
+				width: 100% !important;
+				max-width: 100% !important;
+				height: 55vh !important;
+				min-height: 300px !important;
+			}
+
+			/* ── EasyMDE theme overrides ───────────────── */
+
+			/* Container — flex column so toolbar/CM/statusbar stack and CM
+			 * can flex-fill remaining height (works the same in fullscreen). */
+			.me-editor-card .EasyMDEContainer {
+				margin: 0;
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				flex: 1 1 auto;
+				flex-basis: 100%;
+				max-width: 100%;
+				min-width: 0;
+				min-height: 0;
+				transition: flex-basis 0.22s ease, max-width 0.22s ease;
+			}
+
+			/* When CM is in EasyMDE's "fullscreen" state, take over the WHOLE
+			 * editor card (overlay viewport) — but reset CM/toolbar/preview
+			 * to normal flow so the existing flex layout keeps working. */
+			body:has(.CodeMirror-fullscreen) {
+				overflow: hidden;
+			}
+			body:has(.CodeMirror-fullscreen) .me-editor-card {
+				position: fixed !important;
+				inset: 0 !important;
+				z-index: 9999 !important;
+				max-width: none !important;
+				width: 100% !important;
+				margin: 0 !important;
+				border-radius: 0 !important;
+				border: 0 !important;
+			}
+			.me-editor-card .CodeMirror.CodeMirror-fullscreen,
+			.me-editor-card .editor-toolbar.fullscreen {
+				position: relative !important;
+				top: auto !important;
+				left: auto !important;
+				right: auto !important;
+				bottom: auto !important;
+				width: auto !important;
+				height: auto !important;
+				z-index: auto !important;
+			}
+
+			.me-editor-card .editor-toolbar {
+				border-top: none;
+				border-left: none;
+				border-right: none;
+				border-bottom: 1px solid var(--me-border-soft);
+				background: var(--me-toolbar-bg);
+				padding: 6px 10px;
+				border-radius: 0;
+				opacity: 1;
+				display: flex !important;
+				align-items: center !important;
+				flex-wrap: wrap;
+				gap: 1px;
+			}
+
+			.me-editor-card .editor-toolbar:not(.fullscreen) {
+				position: relative;
+				z-index: 3;
+			}
+
+			.me-editor-card .editor-toolbar::before,
+			.me-editor-card .editor-toolbar::after {
+				display: none;
+			}
+
+			.me-editor-card .editor-toolbar button {
+				-webkit-appearance: none !important;
+				-moz-appearance: none !important;
+				appearance: none !important;
+				display: inline-flex !important;
+				align-items: center !important;
+				justify-content: center !important;
+				width: 30px !important;
+				height: 30px !important;
+				min-height: 0 !important;
+				padding: 0 !important;
+				margin: 1px 2px !important;
+				border: 1px solid transparent !important;
+				border-radius: 4px !important;
+				background: transparent !important;
+				color: var(--me-cm-toolbar-btn) !important;
+				text-align: center !important;
+				cursor: pointer !important;
+				box-shadow: none !important;
+				text-decoration: none !important;
+				text-transform: none !important;
+				letter-spacing: 0 !important;
+				font-weight: normal !important;
+				font-size: 1rem !important;
+				transition: background 0.15s, border-color 0.15s !important;
+			}
+
+			.me-editor-card .editor-toolbar button:hover {
+				background: var(--me-blue-bg) !important;
+				border-color: var(--me-blue-border) !important;
+				color: var(--me-blue) !important;
+				transform: none !important;
+			}
+
+			.me-editor-card .editor-toolbar button.active,
+			.me-editor-card .editor-toolbar button.active:hover {
+				background: var(--me-blue-bg-strong) !important;
+				border-color: var(--me-blue-border) !important;
+				color: var(--me-blue) !important;
+			}
+
+			.me-editor-card .editor-toolbar button.me-export-btn {
+				background: var(--me-blue-bg) !important;
+				border-color: var(--me-blue-border) !important;
+				color: var(--me-blue) !important;
+				width: auto !important;
+				padding: 0 10px !important;
+				font-size: 0.78rem !important;
+				font-weight: 700 !important;
+				font-family: 'Source Sans Pro', -apple-system, sans-serif !important;
+			}
+
+			.me-editor-card .editor-toolbar button.me-export-btn:hover {
+				background: var(--me-blue) !important;
+				color: var(--me-chip-current-text) !important;
+			}
+
+			/* Normalize heading button sizes */
+			.me-editor-card .editor-toolbar button.heading-1,
+			.me-editor-card .editor-toolbar button.heading-2,
+			.me-editor-card .editor-toolbar button.heading-3 {
+				font-size: 1rem !important;
+			}
+
+			.me-editor-card .editor-toolbar i.separator {
+				border-left: 1px solid var(--me-border) !important;
+				border-right: none !important;
+				margin: 0 4px !important;
+				align-self: center !important;
+				height: 20px !important;
+			}
+
+			/* ── CodeMirror — light theme ──────────────── */
+			.me-editor-card .CodeMirror {
+				border: none;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+				/* Normal mode: explicit height so CM's internal scrollbars handle
+				 * long documents and the page itself doesn't grow forever.
+				 * --me-editor-h is set by JS to fill the viewport. */
+				height: var(--me-editor-h) !important;
+				min-height: 380px !important;
+				font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+				font-size: 0.9rem;
+				line-height: 1.65;
+				padding: 12px 16px;
+				color: var(--me-ink);
+				background: var(--me-editor-bg);
+			}
+
+			/* Fullscreen: card overlay = 100vh; let CM flex-fill the remaining
+			 * height inside EasyMDEContainer (toolbar at top, statusbar at
+			 * bottom, CM in between). Preview also stretches via top+bottom. */
+			body:has(.CodeMirror-fullscreen) .me-editor-card .CodeMirror {
+				flex: 1 1 auto;
+				height: auto !important;
+				min-height: 0 !important;
+			}
+			body:has(.CodeMirror-fullscreen) .me-editor-card .editor-preview-side {
+				height: auto !important;
+				min-height: 0 !important;
+			}
+
+			.me-editor-card .CodeMirror-cursor {
+				border-left-color: var(--me-ink);
+			}
+
+			.me-editor-card .CodeMirror-selected {
+				background: var(--me-blue-bg) !important;
+			}
+
+			.me-editor-card .CodeMirror-focused .CodeMirror-selected {
+				background: var(--me-blue-bg-strong) !important;
+			}
+
+			/* Light syntax tokens */
+			.me-editor-card .cm-header      { color: var(--me-cm-header); font-weight: 700; }
+			.me-editor-card .cm-header-1     { font-size: 1.4em; }
+			.me-editor-card .cm-header-2     { font-size: 1.2em; }
+			.me-editor-card .cm-header-3     { font-size: 1.08em; }
+			.me-editor-card .cm-strong       { color: var(--me-cm-strong); font-weight: 700; }
+			.me-editor-card .cm-em           { color: var(--me-cm-em); font-style: italic; }
+			.me-editor-card .cm-strikethrough { color: var(--me-cm-strike); text-decoration: line-through; }
+			.me-editor-card .cm-link         { color: var(--me-cm-link); text-decoration: none; }
+			.me-editor-card .cm-url          { color: var(--me-cm-url); text-decoration: underline; }
+			.me-editor-card .cm-comment      { color: var(--me-cm-comment); }
+			.me-editor-card .cm-quote        { color: var(--me-cm-quote); font-style: italic; }
+			.me-editor-card .cm-tag          { color: var(--me-cm-tag); }
+			.me-editor-card .cm-string       { color: var(--me-cm-string); }
+			.me-editor-card .cm-keyword      { color: var(--me-cm-keyword); }
+			.me-editor-card .cm-variable-2   { color: var(--me-cm-variable); }
+			.me-editor-card .cm-hr           { color: var(--me-gutter-text); }
+			.me-editor-card .cm-formatting   { color: var(--me-gutter-text); }
+
+			/* Gutters */
+			.me-editor-card .CodeMirror-gutters {
+				background: var(--me-toolbar-bg);
+				border-right: 1px solid var(--me-border-soft);
+			}
+
+			.me-editor-card .CodeMirror-linenumber {
+				color: var(--me-gutter-text);
+			}
+
+			/* ── Drafts (snapshots) modal ──────────────────────── */
+			.me-drafts-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 12vh;
+				z-index: 99999;
+			}
+			.me-drafts-overlay[hidden] { display: none !important; }
+			.me-drafts-modal {
+				width: min(560px, 92vw);
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				overflow: hidden;
+				color: var(--me-ink);
+				display: flex;
+				flex-direction: column;
+				max-height: 75vh;
+			}
+			.me-drafts-head {
+				padding: 0.85rem 1rem 0.6rem;
+				border-bottom: 1px solid var(--me-border);
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
+			}
+			.me-drafts-head h3 {
+				font: 700 0.98rem/1.3 "Inter", sans-serif;
+				color: var(--me-blue);
+				margin: 0;
+				flex: 1 1 auto;
+			}
+			/* Shared sizing for the two action buttons in the drafts modal head
+			 * so they line up at the same pixel height regardless of border /
+			 * background variant (filled vs outline). */
+			.me-drafts-head-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.35rem;
+				height: 30px;
+				padding: 0 0.7rem;
+				border-radius: 0.4rem;
+				font: 600 0.78rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				border: 1px solid transparent;
+				background: transparent;
+				color: inherit;
+				transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+				box-sizing: border-box;
+			}
+			.me-drafts-head-btn svg {
+				width: 14px;
+				height: 14px;
+				flex-shrink: 0;
+			}
+			.me-drafts-snap-btn {
+				border-color: var(--me-blue);
+				background: var(--me-blue);
+				color: var(--me-chip-current-text);
+			}
+			.me-drafts-snap-btn:hover {
+				background: var(--me-blue-hover);
+				border-color: var(--me-blue-hover);
+			}
+			.me-drafts-clear-btn {
+				border-color: var(--me-border);
+				color: var(--me-muted);
+			}
+			.me-drafts-clear-btn:hover {
+				background: rgba(220, 60, 60, 0.12);
+				border-color: rgba(220, 60, 60, 0.35);
+				color: rgb(196, 47, 47);
+			}
+			html[data-theme="dark"] .me-drafts-clear-btn:hover {
+				background: rgba(255, 105, 105, 0.16);
+				color: rgb(255, 142, 142);
+			}
+			.me-drafts-clear-btn:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+			}
+			.me-drafts-clear-btn:disabled:hover {
+				background: transparent;
+				color: var(--me-muted);
+				border-color: var(--me-border);
+			}
+			.me-drafts-list {
+				overflow-y: auto;
+				padding: 0.4rem 0.4rem 0.7rem;
+			}
+			.me-drafts-empty {
+				padding: 1.5rem 1rem;
+				text-align: center;
+				color: var(--me-muted);
+				font-style: italic;
+				font-size: 0.86rem;
+			}
+			.me-draft-row {
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
+				padding: 0.55rem 0.7rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				transition: background 0.15s ease;
+			}
+			.me-draft-row:hover { background: var(--me-blue-bg); }
+			.me-draft-info { flex: 1 1 auto; min-width: 0; }
+			.me-draft-title {
+				font: 600 0.88rem/1.3 "Inter", "PingFang SC", sans-serif;
+				color: var(--me-ink);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.me-draft-meta {
+				font: 500 0.75rem/1.3 "Inter", sans-serif;
+				color: var(--me-muted);
+				margin-top: 0.1rem;
+			}
+			.me-draft-del {
+				flex-shrink: 0;
+				border: 1px solid var(--me-border);
+				background: transparent;
+				color: var(--me-muted);
+				border-radius: 0.35rem;
+				padding: 0.28rem 0.55rem;
+				font: 600 0.74rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+			}
+			.me-draft-del:hover {
+				background: rgba(220, 60, 60, 0.12);
+				border-color: rgba(220, 60, 60, 0.35);
+				color: rgb(196, 47, 47);
+			}
+			html[data-theme="dark"] .me-draft-del:hover {
+				background: rgba(255, 105, 105, 0.16);
+				color: rgb(255, 142, 142);
+			}
+
+			/* ── Find & Replace bar (custom, uses cm.getSearchCursor) ── */
+			.me-search-bar {
+				position: absolute;
+				top: 8px;
+				right: 8px;
+				z-index: 12;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.55rem;
+				box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+				padding: 0.4rem 0.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.35rem;
+				min-width: 320px;
+				font: 500 0.86rem/1.4 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+
+			.me-search-bar[hidden] { display: none !important; }
+
+			.me-search-row {
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+			}
+
+			.me-search-row[hidden] { display: none !important; }
+
+			.me-search-input,
+			.me-replace-input {
+				flex: 1 1 auto;
+				min-width: 0;
+				background: var(--me-card-bg-soft);
+				border: 1px solid var(--me-border);
+				border-radius: 0.35rem;
+				color: var(--me-ink);
+				padding: 0.32rem 0.5rem;
+				font: 500 0.84rem/1 "Menlo", "Consolas", monospace;
+				outline: none;
+				transition: border-color 0.15s ease;
+			}
+
+			.me-search-input:focus,
+			.me-replace-input:focus { border-color: var(--me-blue); }
+
+			.me-search-count {
+				font-size: 0.76rem;
+				color: var(--me-muted);
+				min-width: 64px;
+				text-align: right;
+				white-space: nowrap;
+			}
+
+			.me-search-bar button {
+				background: transparent;
+				border: 1px solid transparent;
+				border-radius: 0.3rem;
+				color: var(--me-muted);
+				width: 26px;
+				height: 26px;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				font: 600 0.76rem/1 inherit;
+				flex-shrink: 0;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+
+			.me-search-bar button:hover {
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+			}
+
+			.me-search-bar button.me-search-action {
+				width: auto;
+				padding: 0 0.55rem;
+				color: var(--me-blue);
+				background: var(--me-blue-bg);
+				border-color: var(--me-blue-border);
+			}
+
+			.me-search-bar button.me-search-action:hover {
+				background: var(--me-blue-bg-strong);
+			}
+
+			.me-search-bar button svg {
+				width: 14px;
+				height: 14px;
+				stroke: currentColor;
+				fill: none;
+				stroke-width: 2;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			.me-search-mark {
+				background: rgba(245, 200, 60, 0.32);
+				border-radius: 2px;
+			}
+
+			.me-search-mark-current {
+				background: rgba(245, 160, 30, 0.55);
+				outline: 1px solid rgba(245, 160, 30, 0.85);
+				border-radius: 2px;
+			}
+
+			html[data-theme="dark"] .me-search-mark { background: rgba(245, 200, 60, 0.24); }
+			html[data-theme="dark"] .me-search-mark-current {
+				background: rgba(255, 180, 50, 0.40);
+				outline-color: rgba(255, 180, 50, 0.85);
+			}
+
+			/* ── Side-by-side / Preview pane ───────────── */
+			.me-editor-card .editor-preview-side,
+			.me-editor-card .editor-preview {
+				background: var(--me-preview-bg);
+				border: none;
+				border-left: 1px solid var(--me-border-soft);
+				/* Top padding matches CodeMirror's 12px so the first heading
+				 * lines up with the editor's first source line. */
+				padding: 12px 2rem 1.5rem;
+				color: var(--me-ink);
+				font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+				font-size: 1rem;
+				line-height: 1.7;
+			}
+
+			.me-editor-card .editor-preview-active-side {
+				display: block;
+			}
+
+			/* Constrain preview height to match editor, enable independent scroll.
+			 * Stop above the statusbar so it doesn't sit on top of "Draft saved…". */
+			.me-editor-card .editor-preview-side {
+				/* Anchor preview to EasyMDEContainer (not viewport) so the
+				 * outline panel can claim its own column without overlap. */
+				position: absolute !important;
+				top: var(--me-toolbar-h, 50px) !important;
+				right: 0 !important;
+				bottom: var(--me-statusbar-h, 30px) !important;
+				width: 50% !important;
+				height: var(--me-editor-h) !important;
+				min-height: 380px !important;
+				overflow-y: auto !important;
+			}
+
+			/* Outline open: explicitly cap EasyMDEContainer width so flex
+			 * shrinkage is deterministic. Preview width is now driven by
+			 * --me-split below, no fixed override. */
+			.me-editor-card:has(.me-outline-panel:not(.collapsed)) .EasyMDEContainer {
+				flex-basis: calc(100% - 240px);
+				max-width: calc(100% - 240px);
+			}
+
+			/* Side-by-side: CM occupies the left fraction defined by --me-split;
+			 * preview takes the rest. A draggable gutter sits at the seam. */
+			.me-editor-card { --me-split: 50%; }
+			.me-editor-card .CodeMirror.CodeMirror-sided {
+				width: var(--me-split) !important;
+				max-width: var(--me-split) !important;
+				box-sizing: border-box !important;
+			}
+			.me-editor-card .editor-preview-active-side {
+				width: calc(100% - var(--me-split)) !important;
+			}
+			/* Fullscreen no longer needs special CM/preview/gutter width rules:
+			 * the editor card itself becomes position:fixed inset:0, and the
+			 * regular flex/percentage layout above just scales to viewport. */
+
+			/* Draggable gutter at the split seam. Only shown when side-by-side
+			 * is active (CM has the .CodeMirror-sided class). */
+			.me-pane-gutter {
+				display: none;
+				position: absolute;
+				top: var(--me-toolbar-h, 50px);
+				bottom: var(--me-statusbar-h, 30px);
+				left: var(--me-split);
+				width: 12px;
+				margin-left: -6px;
+				cursor: col-resize;
+				z-index: 11;
+				background: transparent;
+				transition: background 0.15s ease;
+			}
+			.me-pane-gutter::before {
+				content: "";
+				position: absolute;
+				top: 0; bottom: 0;
+				left: 50%;
+				width: 1px;
+				background: var(--me-border);
+				transform: translateX(-0.5px);
+				transition: background 0.15s ease, width 0.15s ease;
+			}
+			.me-pane-gutter:hover::before,
+			.me-pane-gutter.dragging::before {
+				background: var(--me-blue);
+				width: 2px;
+			}
+			.me-editor-card:has(.CodeMirror-sided) .me-pane-gutter { display: block; }
+			body.me-pane-dragging,
+			body.me-pane-dragging * { user-select: none !important; cursor: col-resize !important; }
+
+			/* ── Preview content (match md-viewer) ─────── */
+
+			.me-editor-card .editor-preview h1,
+			.me-editor-card .editor-preview-side h1 {
+				font-size: 1.75em;
+				padding-bottom: 0.5rem;
+				border-bottom: 3px solid var(--me-border);
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview h1:first-child,
+			.me-editor-card .editor-preview-side h1:first-child { margin-top: 0; }
+
+			.me-editor-card .editor-preview h2,
+			.me-editor-card .editor-preview-side h2 {
+				font-size: 1.4em;
+				padding-left: 0.8rem;
+				border-left: 4px solid var(--me-h2-border);
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview h3,
+			.me-editor-card .editor-preview-side h3 {
+				font-size: 1.18em;
+				font-weight: 700;
+				line-height: 1.28;
+				margin: 1.4rem 0 0.5rem;
+				color: var(--me-h3);
+			}
+
+			.me-editor-card .editor-preview h4,
+			.me-editor-card .editor-preview-side h4 {
+				font-size: 1.05em;
+				font-weight: 700;
+				margin: 1.2rem 0 0.4rem;
+				color: var(--me-ink);
+			}
+
+			.me-editor-card .editor-preview p,
+			.me-editor-card .editor-preview-side p { margin: 0 0 0.65rem; }
+
+			.me-editor-card .editor-preview strong,
+			.me-editor-card .editor-preview-side strong {
+				color: var(--me-ink);
+				font-weight: 700;
+			}
+
+			.me-editor-card .editor-preview a,
+			.me-editor-card .editor-preview-side a {
+				color: var(--me-blue);
+				text-decoration: underline;
+				text-decoration-color: var(--me-a-underline);
+				text-decoration-thickness: 0.08em;
+				text-underline-offset: 0.16em;
+				border-bottom: none;
+			}
+
+			.me-editor-card .editor-preview a:hover,
+			.me-editor-card .editor-preview-side a:hover {
+				color: var(--me-blue-hover);
+				text-decoration-color: var(--me-a-underline-hover);
+			}
+
+			.me-editor-card .editor-preview code,
+			.me-editor-card .editor-preview-side code {
+				padding: 0.12rem 0.4rem;
+				border-radius: 0.35rem;
+				background: var(--me-inline-code-bg);
+				color: var(--me-inline-code-text);
+				font: 0.92em/1.4 "Fira Code", "Cascadia Code", "Menlo", monospace;
+			}
+
+			.me-editor-card .editor-preview pre,
+			.me-editor-card .editor-preview-side pre {
+				padding: 1rem 1.15rem;
+				border-radius: 1rem;
+				overflow-x: auto;
+				background: #1e1e1e;
+				color: #d4d4d4;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				font: 0.88em/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview pre code,
+			.me-editor-card .editor-preview-side pre code {
+				display: block;
+				padding: 0;
+				background: transparent;
+				color: inherit;
+				border-radius: 0;
+				font-size: inherit;
+				line-height: inherit;
+			}
+
+.me-editor-card .editor-preview blockquote,
+			.me-editor-card .editor-preview-side blockquote {
+				padding: 0.9rem 1rem;
+				background: var(--me-blockquote-bg);
+				border-left: 4px solid var(--me-blockquote-border);
+				border-radius: 0 0.9rem 0.9rem 0;
+				color: var(--me-blockquote-text);
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview blockquote p:last-child,
+			.me-editor-card .editor-preview-side blockquote p:last-child { margin-bottom: 0; }
+
+			.me-editor-card .editor-preview ul,
+			.me-editor-card .editor-preview ol,
+			.me-editor-card .editor-preview-side ul,
+			.me-editor-card .editor-preview-side ol {
+				padding-left: 1.5rem;
+				margin: 0 0 0.65rem;
+			}
+
+			.me-editor-card .editor-preview li + li,
+			.me-editor-card .editor-preview-side li + li { margin-top: 0.18rem; }
+
+			.me-editor-card .editor-preview hr,
+			.me-editor-card .editor-preview-side hr {
+				border: 0;
+				border-top: 1px solid var(--me-hr);
+				margin: 1.2rem 0;
+			}
+
+			.me-editor-card .editor-preview table,
+			.me-editor-card .editor-preview-side table {
+				width: 100%;
+				border-collapse: collapse;
+				border: 1px solid var(--me-hr);
+				margin: 0 0 0.65rem;
+				font-size: 0.95em;
+			}
+
+			.me-editor-card .editor-preview th,
+			.me-editor-card .editor-preview td,
+			.me-editor-card .editor-preview-side th,
+			.me-editor-card .editor-preview-side td {
+				padding: 0.75rem 0.85rem !important;
+				border: 1px solid var(--me-hr) !important;
+				text-align: left !important;
+				vertical-align: top !important;
+				color: var(--me-ink) !important;
+				background: transparent !important;
+			}
+
+			.me-editor-card .editor-preview th,
+			.me-editor-card .editor-preview-side th {
+				background: var(--me-table-header-bg) !important;
+				font-weight: 700 !important;
+				color: var(--me-ink) !important;
+			}
+
+			.me-editor-card .editor-preview tr:nth-child(even) td,
+			.me-editor-card .editor-preview-side tr:nth-child(even) td {
+				background: var(--me-blue-bg) !important;
+			}
+
+			.me-editor-card .editor-preview img,
+			.me-editor-card .editor-preview-side img { max-width: 100%; border-radius: .5rem; }
+
+			/* Math (KaTeX) */
+			.math-block {
+				overflow-x: hidden;
+				text-align: center;
+				margin: 1rem 0;
+			}
+
+			.math-block .katex-display { margin: 0; }
+
+			.math-block .katex-display > .katex {
+				max-width: 100%;
+				overflow-x: auto;
+				overflow-y: hidden;
+				padding: 2px 0;
+			}
+
+			/* Status bar */
+			.me-editor-card .editor-statusbar {
+				border-top: 1px solid var(--me-border-soft);
+				padding: 6px 14px;
+				color: var(--me-muted);
+				font-size: 0.8rem;
+				background: var(--me-toolbar-bg);
+				text-align: left !important;
+			}
+			.me-editor-card .editor-statusbar .autosave {
+				font-size: 0.8rem;
+			}
+
+			.me-editor-card .editor-statusbar .me-reading-time,
+			.me-editor-card .editor-statusbar .me-word-goal {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				font-size: 0.8rem;
+				padding: 0 0.2rem;
+			}
+			.me-editor-card .editor-statusbar .me-word-goal:hover .me-goal-empty,
+			.me-editor-card .editor-statusbar .me-word-goal:hover .me-goal-text {
+				color: var(--me-blue);
+			}
+			.me-editor-card .editor-statusbar .me-goal-empty {
+				font-style: italic;
+				opacity: 0.7;
+			}
+			.me-editor-card .editor-statusbar .me-goal-bar {
+				display: inline-block;
+				width: 56px;
+				height: 6px;
+				background: var(--me-border);
+				border-radius: 3px;
+				overflow: hidden;
+				vertical-align: middle;
+			}
+			.me-editor-card .editor-statusbar .me-goal-fill {
+				display: block;
+				height: 100%;
+				background: var(--me-blue);
+				transition: width 0.18s ease;
+			}
+
+			/* ── Fullscreen fix (z-index above header + preview full height) */
+			.me-editor-card .editor-toolbar.fullscreen {
+				z-index: 10010 !important;
+			}
+
+			/* (Old fullscreen z-index hacks removed — no longer needed since
+			 * CM/preview are reset to normal flow in fullscreen-overlay mode) */
+
+			/* ── Mobile ────────────────────────────────── */
+			@media screen and (max-width: 736px) {
+				#main > * > .inner {
+					width: 100% !important;
+					max-width: 100vw !important;
+					box-sizing: border-box !important;
+					padding: 0.75rem 0 1rem 0 !important;
+				}
+
+				.me-shell {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+				}
+
+				.me-shell > header.major {
+					padding: 0 1rem;
+					margin-bottom: 0;
+				}
+
+				.me-intro { padding: 0.5rem 1rem; }
+
+				/* (Mobile-specific overrides also live in the .me-mobile rules
+				 * below — JS toggles that class so the layout changes even if
+				 * a desktop window is dragged narrow.) */
+
+				.me-editor-card .editor-preview-side,
+				.me-editor-card .editor-preview {
+					padding: 1rem;
+				}
+
+				.me-editor-card .editor-preview-side {
+					height: 55vh !important;
+					min-height: 300px !important;
+				}
+
+				.me-editor-card .editor-toolbar {
+					padding: 4px 6px;
+				}
+
+				.me-editor-card .editor-toolbar button {
+					width: 26px !important;
+					height: 26px !important;
+					line-height: 26px !important;
+					font-size: 0.85rem !important;
+				}
+			}
+
+			/* ── Outline panel (right-side, toggleable column) ──
+			 * Cap height so a long heading list scrolls inside the panel
+			 * instead of stretching the editor card (and the page) downward.
+			 * In fullscreen the cap is lifted (see body:has rule below). */
+			.me-outline-panel {
+				flex: 0 0 240px;
+				align-self: flex-start;
+				height: calc(var(--me-toolbar-h, 50px) + max(380px, var(--me-editor-h)) + var(--me-statusbar-h, 30px));
+				max-height: calc(var(--me-toolbar-h, 50px) + max(380px, var(--me-editor-h)) + var(--me-statusbar-h, 30px));
+				min-height: 0;
+				background: var(--me-toolbar-bg);
+				border-left: 1px solid var(--me-border);
+				overflow-y: auto;
+				overscroll-behavior: contain;
+				padding: 0.7rem 0.45rem 0.7rem 0.5rem;
+				box-sizing: border-box;
+				transition: flex-basis 0.22s ease, padding 0.22s ease, opacity 0.18s ease, border-left-color 0.22s ease;
+			}
+			.me-outline-panel.collapsed {
+				flex-basis: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				border-left-color: transparent;
+				overflow: hidden;
+				pointer-events: none;
+			}
+
+			/* In fullscreen, the editor card is position:fixed inset:0 — let
+			 * the outline fill its full height instead of being capped. */
+			body:has(.CodeMirror-fullscreen) .me-outline-panel {
+				align-self: stretch;
+				height: auto;
+				max-height: none;
+			}
+			/* Outline panel has no internal header anymore — toolbar's
+			 * panel-right (toggle) and search-list (goto-heading) own those
+			 * actions, so the outline pane just shows the heading list. */
+			.me-outline-list { display: flex; flex-direction: column; gap: 1px; }
+			.me-outline-item {
+				cursor: pointer;
+				padding: 0.32rem 0.55rem;
+				border-radius: 0.3rem;
+				font: 500 0.82rem/1.4 "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+				color: var(--me-muted);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				/* Match md-viewer's 0.2s ease and include border-left-color so
+				 * the left indicator bar transitions in sync with the
+				 * background/text instead of snapping. */
+				transition: background 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+				border-left: 2px solid transparent;
+			}
+			.me-outline-item:hover { background: var(--me-blue-bg); color: var(--me-ink); }
+			.me-outline-item.active {
+				background: var(--me-blue-bg-strong);
+				color: var(--me-blue);
+				border-left-color: var(--me-blue);
+				font-weight: 700;
+			}
+			.me-outline-item.h2 { padding-left: 1.1rem; font-size: 0.8rem; }
+			.me-outline-item.h3 { padding-left: 1.7rem; font-size: 0.76rem; opacity: 0.86; }
+			.me-outline-item.h4 { padding-left: 2.3rem; font-size: 0.74rem; opacity: 0.78; }
+			.me-outline-empty {
+				color: var(--me-muted);
+				font-size: 0.78rem;
+				padding: 0.4rem 0.55rem;
+				font-style: italic;
+			}
+
+			@media screen and (max-width: 768px) {
+				.me-outline-panel { display: none !important; }
+			}
+
+			/* (Outline panel in fullscreen now uses the same flex layout as
+			 * non-fullscreen — the card itself is position:fixed inset:0, so
+			 * the regular flex-row layout (EasyMDEContainer + outline) just
+			 * scales to viewport. No special positioning needed.) */
+
+			/* ── Goto-symbol command palette (Cmd/Ctrl+Shift+O) ── */
+			.me-palette-overlay {
+				position: fixed !important;
+				inset: 0 !important;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex !important;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 12vh;
+				z-index: 99999 !important;
+			}
+			.me-palette-overlay[hidden] { display: none !important; }
+			.me-palette {
+				width: min(560px, 90vw);
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				overflow: hidden;
+				color: var(--me-ink);
+			}
+			.me-palette-input {
+				width: 100%;
+				border: 0;
+				border-bottom: 1px solid var(--me-border);
+				background: transparent;
+				padding: 0.85rem 1rem;
+				font: 500 0.95rem/1.3 "Inter", sans-serif;
+				color: var(--me-ink);
+				outline: none;
+				box-sizing: border-box;
+			}
+			.me-palette-list {
+				max-height: 50vh;
+				overflow-y: auto;
+				padding: 0.35rem;
+			}
+			.me-palette-item {
+				padding: 0.5rem 0.7rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				color: var(--me-ink);
+				font: 500 0.86rem/1.4 "Inter", "PingFang SC", sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				white-space: nowrap;
+				overflow: hidden;
+			}
+			.me-palette-item .me-palette-badge {
+				font: 600 0.66rem/1 "Menlo", "Consolas", monospace;
+				color: var(--me-muted);
+				background: var(--me-blue-bg);
+				padding: 0.18rem 0.4rem;
+				border-radius: 0.25rem;
+				flex-shrink: 0;
+			}
+			.me-palette-item .me-palette-text {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				flex: 1 1 auto;
+			}
+			.me-palette-item.h2 { padding-left: 1.2rem; }
+			.me-palette-item.h3 { padding-left: 1.9rem; opacity: 0.88; }
+			.me-palette-item.h4 { padding-left: 2.4rem; opacity: 0.78; }
+			.me-palette-item.active { background: var(--me-blue-bg-strong); color: var(--me-blue); }
+			.me-palette-empty {
+				color: var(--me-muted);
+				padding: 0.6rem 0.7rem;
+				font-size: 0.84rem;
+				font-style: italic;
+			}
+
+			/* ── Slash command menu (Notion-style, anchored at cursor) ── */
+			.me-slash-menu {
+				position: fixed;
+				z-index: 99999;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.5rem;
+				box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+				overflow: hidden;
+				width: 250px;
+				color: var(--me-ink);
+				display: flex;
+				flex-direction: column;
+			}
+			.me-slash-menu[hidden] { display: none; }
+			.me-slash-list {
+				max-height: 280px;
+				overflow-y: auto;
+				padding: 0.2rem;
+			}
+			.me-slash-item {
+				padding: 0.22rem 0.5rem;
+				border-radius: 0.3rem;
+				cursor: pointer;
+				font: 500 0.82rem/1.2 "Inter", sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 0.45rem;
+				color: var(--me-ink);
+			}
+			.me-slash-item .me-slash-hint {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 22px;
+				height: 20px;
+				flex-shrink: 0;
+				color: var(--me-muted);
+			}
+			.me-slash-item .me-slash-hint svg {
+				width: 15px;
+				height: 15px;
+			}
+			.me-slash-item.active { background: var(--me-blue-bg-strong); color: var(--me-blue); }
+			.me-slash-item:hover { background: var(--me-blue-bg); }
+			.me-slash-item.active .me-slash-hint,
+			.me-slash-item:hover .me-slash-hint { color: var(--me-blue); }
+			.me-slash-empty {
+				color: var(--me-muted);
+				padding: 0.5rem 0.6rem;
+				font-style: italic;
+				font-size: 0.82rem;
+			}
+
+			/* ── Export dropdown menu (positioned via JS, attached to body) ── */
+			.me-export-menu {
+				position: fixed !important;
+				min-width: 290px;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-blue-border);
+				border-radius: 0.6rem;
+				box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+				padding: 0.35rem;
+				/* Above all editor chrome (CM-fullscreen z:9, search bar z:12,
+				 * outline panel z:10) */
+				z-index: 99999 !important;
+				display: flex !important;
+				flex-direction: column;
+				gap: 1px;
+				color: var(--me-ink);
+				font: 500 0.84rem/1.4 "Inter", sans-serif;
+			}
+			.me-export-menu[hidden] { display: none !important; }
+
+			.me-export-item {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.65rem;
+				padding: 0.55rem 0.65rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				transition: background 0.12s ease;
+			}
+			.me-export-item:hover { background: var(--me-blue-bg); }
+			.me-export-item .me-export-icon {
+				flex-shrink: 0;
+				width: 30px; height: 30px;
+				border-radius: 0.4rem;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+			}
+			.me-export-item .me-export-icon svg {
+				width: 15px; height: 15px;
+				stroke: currentColor; fill: none;
+				stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+			}
+			.me-export-item .me-export-body {
+				display: flex;
+				flex-direction: column;
+				gap: 0.15rem;
+				min-width: 0;
+			}
+			.me-export-item .me-export-label {
+				font: 600 0.86rem/1.2 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+			.me-export-item .me-export-desc {
+				font-size: 0.74rem;
+				line-height: 1.35;
+				color: var(--me-muted);
+			}
+			/* PDF render root: keep it near the document origin so html2canvas does not crop it */
+			.me-pdf-stage {
+				position: absolute !important;
+				left: 0 !important;
+				top: 0 !important;
+				width: 800px;
+				overflow: visible;
+				background: #ffffff;
+				z-index: -1;
+				pointer-events: none;
+			}
+			.me-pdf-render {
+				width: 800px;
+				min-height: 1px;
+				background: #ffffff !important;
+				color: #1d2939 !important;
+				font: 400 14pt/1.7 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif !important;
+				padding: 30px 136px 30px 24px !important;
+				box-sizing: border-box;
+			}
+			.me-pdf-render h1, .me-pdf-render h2, .me-pdf-render h3, .me-pdf-render h4 {
+				color: #244f8f; font-weight: 700;
+			}
+			.me-pdf-render h1 { font-size: 1.75em; padding-bottom: 0.4rem; border-bottom: 3px solid rgba(42,79,133,0.16); margin: 1.4rem 0 0.6rem; }
+			.me-pdf-render h1:first-child { margin-top: 0; }
+			.me-pdf-render h2 { font-size: 1.4em; padding-left: 0.7rem; border-left: 4px solid #244f8f; line-height: 1.4; margin: 1.3rem 0 0.5rem; }
+			.me-pdf-render h3 { font-size: 1.18em; margin: 1.1rem 0 0.45rem; }
+			.me-pdf-render p { margin: 0 0 0.8rem; }
+			.me-pdf-render code:not(pre code) {
+				background: rgba(36,79,143,0.10);
+				color: #244f8f;
+				padding: 0.1rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.86em/1 "Menlo","Consolas",monospace;
+			}
+			.me-pdf-render pre {
+				background: #1e1e1e !important;
+				color: #d4d4d4 !important;
+				padding: 1rem;
+				border-radius: 0.5rem;
+				overflow: hidden;
+				font: 400 0.86em/1.55 "Menlo","Consolas",monospace;
+			}
+			.me-pdf-render pre code { background: transparent !important; color: inherit !important; padding: 0; }
+			.me-pdf-render pre.shiki code .line { display: block; min-height: 1.55em; }
+			.me-pdf-render blockquote {
+				border-left: 4px solid #244f8f;
+				background: rgba(36,79,143,0.08);
+				padding: 0.6rem 1rem;
+				margin: 0.9rem 0;
+				border-radius: 0 0.4rem 0.4rem 0;
+				color: #516074;
+			}
+			.me-pdf-render table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; }
+			.me-pdf-render th, .me-pdf-render td { border: 1px solid rgba(42,79,133,0.16); padding: 0.45rem 0.7rem; text-align: left; }
+			.me-pdf-render th { background: rgba(36,79,143,0.07); font-weight: 700; color: #1d2939; }
+			.me-pdf-render ul, .me-pdf-render ol { padding-left: 1.5rem; margin: 0.45rem 0 0.85rem; }
+			.me-pdf-render li { margin: 0.15rem 0; }
+			.me-pdf-render a { color: #244f8f; text-decoration: underline; }
+
+			/* Print: hide the editor UI, show only the rendered preview */
+			@media print {
+				body * { visibility: hidden; }
+				.me-print-target, .me-print-target * { visibility: visible; }
+				.me-print-target {
+					position: absolute !important;
+					inset: 0 !important;
+					width: 100% !important;
+					height: auto !important;
+					padding: 1.2cm 1.5cm !important;
+					margin: 0 !important;
+					background: #fff !important;
+					color: #000 !important;
+					overflow: visible !important;
+					font: 400 11pt/1.65 'Source Sans Pro',-apple-system,sans-serif !important;
+				}
+				.me-print-target h1, .me-print-target h2, .me-print-target h3 { color: #244f8f !important; page-break-after: avoid; }
+				.me-print-target pre { background: #f4f6f9 !important; color: #1d2939 !important; page-break-inside: avoid; }
+				.me-print-target pre code { background: transparent !important; color: inherit !important; }
+				.me-print-target code:not(pre code) { background: #eef3fb !important; color: #244f8f !important; }
+				.me-print-target table { page-break-inside: avoid; }
+				@page { size: Letter; margin: 0; }
+			}
+
+			/* ── Help breadcrumb pill (theme-aware blue) ── */
+			.me-help-pill {
+				cursor: pointer;
+				display: inline-flex;
+				gap: 0.35em;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				background: var(--me-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--me-blue-border);
+				color: var(--me-blue) !important;
+				text-decoration: none;
+				border-bottom: 0 !important;
+				transition: background 0.2s ease;
+			}
+			.me-help-pill:hover {
+				background: var(--me-blue-bg-strong);
+			}
+
+			/* ── Help modal ────────────────────────────── */
+			.me-help-overlay {
+				position: fixed !important;
+				inset: 0 !important;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex !important;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 8vh;
+				z-index: 99999 !important;
+				opacity: 0;
+				transition: opacity 0.18s ease;
+			}
+			.me-help-overlay[hidden] { display: none !important; }
+			.me-help-overlay.open { opacity: 1; }
+			.me-help-card {
+				width: min(640px, 92vw);
+				max-height: 80vh;
+				background: var(--me-card-bg);
+				border: 1px solid var(--me-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				display: flex;
+				flex-direction: column;
+				color: var(--me-ink);
+				overflow: hidden;
+				transform: translateY(12px) scale(0.96);
+				opacity: 0;
+				transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+			}
+			.me-help-overlay.open .me-help-card {
+				transform: none;
+				opacity: 1;
+			}
+			.me-help-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0.85rem 1.1rem;
+				border-bottom: 1px solid var(--me-border);
+			}
+			.me-help-header h3 {
+				margin: 0;
+				font: 700 0.98rem/1 "Inter", sans-serif;
+				color: var(--me-ink);
+			}
+			.me-help-close {
+				width: 28px; height: 28px;
+				border: 0;
+				border-radius: 0.35rem;
+				background: transparent;
+				color: var(--me-muted);
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+			.me-help-close:hover { background: var(--me-blue-bg); color: var(--me-blue); }
+			.me-help-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+			.me-help-body {
+				padding: 0.85rem 1.1rem 1.2rem;
+				overflow-y: auto;
+				font: 400 0.88rem/1.55 "Inter", "PingFang SC", sans-serif;
+			}
+			.me-help-section {
+				margin-top: 1.1rem;
+			}
+			.me-help-section:first-child { margin-top: 0; }
+			.me-help-section h4 {
+				margin: 0 0 0.5rem;
+				font: 700 0.72rem/1 "Inter", sans-serif;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--me-blue);
+			}
+			.me-help-table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+			.me-help-table td {
+				padding: 0.32rem 0.4rem 0.32rem 0;
+				vertical-align: middle;
+			}
+			.me-help-table td:first-child {
+				width: 44%;
+				white-space: nowrap;
+				color: var(--me-muted);
+			}
+			.me-help-table td:last-child {
+				color: var(--me-ink);
+			}
+			.me-help-tip {
+				color: var(--me-muted);
+				font-size: 0.84rem;
+				margin: 0.18rem 0;
+				padding-left: 0.9rem;
+				position: relative;
+			}
+			.me-help-tip::before {
+				content: "•";
+				position: absolute;
+				left: 0;
+				color: var(--me-blue);
+			}
+			.me-help-tip code {
+				background: var(--me-blue-bg);
+				color: var(--me-blue);
+				padding: 0.05rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.84em/1 "Menlo", monospace;
+			}
+			kbd.me-kbd {
+				display: inline-block;
+				padding: 0.12rem 0.45rem;
+				margin: 0 0.1rem;
+				border: 1px solid var(--me-border);
+				border-bottom-width: 2px;
+				border-radius: 0.3rem;
+				background: var(--me-card-bg-soft);
+				font: 600 0.78rem/1.2 "Menlo", "Consolas", monospace;
+				color: var(--me-ink);
+				white-space: nowrap;
+			}
+		</style>

@@ -18,6 +18,8 @@ export interface RenderOptions {
   highlight?: boolean;
   /** Typeset $…$ / $$…$$ with KaTeX (default true). */
   math?: boolean;
+  /** Wrap code blocks with copy / collapse buttons (default true; off for editor preview and export). */
+  codeUi?: boolean;
   /** Rewrite link targets (e.g. `lec-04.en-US.md#x` → the note's URL). null keeps the
    *  link as written; false drops the link and keeps its text. */
   resolveLink?: (href: string) => string | null | false;
@@ -39,7 +41,7 @@ export interface RenderResult {
 }
 
 interface RenderState {
-  opts: Required<Pick<RenderOptions, "lang" | "highlight" | "math">> & {
+  opts: Required<Pick<RenderOptions, "lang" | "highlight" | "math" | "codeUi">> & {
     baseUrl: RenderOptions["baseUrl"] | undefined;
     resolveLink: RenderOptions["resolveLink"] | undefined;
   };
@@ -194,7 +196,7 @@ parser.use({
       let pre: string | null = null;
       if (s.highlighter && language && language !== "text") pre = highlightCode(s.highlighter, token.text, language);
       pre ??= "<pre" + (language ? ' data-language="' + language + '"' : "") + "><code" + (language ? ' class="language-' + language + '"' : "") + ">" + escapeHtml(token.text) + "</code></pre>";
-      return codeBlockUi(pre, token.text, s.opts.lang);
+      return s.opts.codeUi ? codeBlockUi(pre, token.text, s.opts.lang) : pre + "\n";
     },
     heading(token) {
       const s = current();
@@ -245,7 +247,7 @@ function fenceLanguages(markdown: string): string[] {
 }
 
 export async function renderMarkdown(markdown: string, options: RenderOptions): Promise<RenderResult> {
-  const opts = { lang: options.lang, baseUrl: options.baseUrl, resolveLink: options.resolveLink, highlight: options.highlight ?? true, math: options.math ?? true };
+  const opts = { lang: options.lang, baseUrl: options.baseUrl, resolveLink: options.resolveLink, highlight: options.highlight ?? true, math: options.math ?? true, codeUi: options.codeUi ?? true };
   const source = escapeTablePipesInCode(markdown.replace(/\r\n/g, "\n"));
   const highlighter = opts.highlight ? await getHighlighter(fenceLanguages(source)) : null;
   if (opts.math) await loadMath();

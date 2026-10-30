@@ -1,0 +1,624 @@
+<script>
+		(function() {
+			var WORKER_URL = "https://ics-uci-edu-chat-ai.kazuhahub.workers.dev";
+			var PW_STORAGE_KEY = "kazuha_chat_pw";
+			var TOKEN_STORAGE_KEY = "kazuha_chat_token";
+			var KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
+			var KATEX_JS  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
+			var KATEX_AR  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js";
+
+			var gate = document.getElementById("password-gate");
+			var chatArea = document.getElementById("chat-area");
+			var pwInput = document.getElementById("password-input");
+			var pwBtn = document.getElementById("password-btn");
+			var pwError = document.getElementById("password-error");
+			var ssoLoginBtn = document.getElementById("sso-login-btn");
+			var pwToggle = document.getElementById("pw-toggle");
+			var pwSection = document.getElementById("pw-section");
+			var logoutBtn = document.getElementById("logout-btn");
+			var messagesEl = document.getElementById("messages");
+			var chatInput = document.getElementById("chat-input");
+			var sendBtn = document.getElementById("send-btn");
+			var newChatBtn = document.getElementById("new-chat-btn");
+
+			var fileUploadBtn = document.getElementById("file-upload-btn");
+			var fileInput = document.getElementById("file-input");
+			var filePreviewBar = document.getElementById("file-preview-bar");
+			var filePreviewVisual = document.getElementById("file-preview-visual");
+			var filePreviewName = document.getElementById("file-preview-name");
+			var fileRemoveBtn = document.getElementById("file-remove");
+
+			// Auth state: either password or JWT token
+			var authPassword = "";
+			var authToken = "";
+			var chatHistory = [];
+			var isStreaming = false;
+			// pendingFile: { type:"image"|"pdf"|"text", dataUrl?:string, textContent?:string, name:string, ext:string }
+			var pendingFile = null;
+
+			// --- Auto-scroll (only if user is near bottom) ---
+			// Follow the stream only while pinned to the bottom. A distance check alone
+			// can't be escaped (each new chunk lands before the user scrolls far enough),
+			// so scrolling up by wheel/touch unpins and returning to the bottom re-pins.
+			var stickToBottom = true;
+			messagesEl.addEventListener("wheel", function(e) { if (e.deltaY < 0) stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("touchmove", function() { stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("scroll", function() {
+				if (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 24) stickToBottom = true;
+			});
+			function autoScroll() {
+				if (stickToBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+			}
+
+			// --- Shiki (async, same as md-viewer: dark-plus theme) ---
+			var SHIKI_URL = "https://esm.sh/shiki@3.0.0";
+			var SHIKI_THEME = "dark-plus";
+			var shikiCodeToHtml = null;
+
+			// Preload Shiki
+			import(SHIKI_URL).then(function(m) { shikiCodeToHtml = m.codeToHtml; }).catch(function() {});
+
+			var langAliases = {
+				"c++":"cpp",cc:"cpp",cxx:"cpp",hpp:"cpp",py:"python",
+				sh:"bash",shell:"bash",zsh:"bash",js:"javascript",
+				mjs:"javascript",ts:"typescript",mts:"typescript",
+				yml:"yaml",md:"markdown",plain:"text",plaintext:"text",txt:"text"
+			};
+			function normLang(s) { var l = (s||"").trim().toLowerCase(); return langAliases[l] || l; }
+
+			async function highlightCode(el) {
+				if (!shikiCodeToHtml) return;
+				var pres = el.querySelectorAll("pre.md-code[data-lang]");
+				for (var i = 0; i < pres.length; i++) {
+					if (pres[i].getAttribute("data-highlighted")) continue;
+					var lang = normLang(pres[i].getAttribute("data-lang"));
+					if (!lang || lang === "text") continue;
+					try {
+						var code = pres[i].textContent || "";
+						var html = await shikiCodeToHtml(code, { lang: lang, theme: SHIKI_THEME });
+						// Replace inner content with Shiki output
+						var tpl = document.createElement("div");
+						tpl.innerHTML = html;
+						var shikiPre = tpl.querySelector("pre");
+						if (shikiPre) {
+							pres[i].innerHTML = shikiPre.innerHTML;
+							pres[i].style.background = shikiPre.style.background || "";
+							pres[i].style.color = shikiPre.style.color || "";
+							pres[i].setAttribute("data-highlighted", "1");
+						}
+					} catch(e) { /* unsupported lang */ }
+				}
+			}
+
+			// --- KaTeX on-demand ---
+			var katexReady = null;
+			function loadKatex() {
+				if (!katexReady) {
+					katexReady = new Promise(function(resolve) {
+						var link = document.createElement("link");
+						link.rel = "stylesheet"; link.href = KATEX_CSS; link.crossOrigin = "anonymous";
+						document.head.appendChild(link);
+						var s1 = document.createElement("script");
+						s1.src = KATEX_JS; s1.crossOrigin = "anonymous";
+						s1.onload = function() {
+							var s2 = document.createElement("script");
+							s2.src = KATEX_AR; s2.crossOrigin = "anonymous";
+							s2.onload = resolve;
+							document.head.appendChild(s2);
+						};
+						document.head.appendChild(s1);
+					});
+				}
+				return katexReady;
+			}
+
+			function tryRenderMath(latex, displayMode) {
+				if (typeof katex === "undefined") return null;
+				try { return katex.renderToString(latex, { displayMode: displayMode, throwOnError: false }); }
+				catch(e) { return null; }
+			}
+
+			// --- Markdown renderer (marked.js) + Shiki code cache ---
+			var codeCache = {}; // key: "lang\ncode" → highlighted HTML
+			var codePending = {}; // keys being processed by Shiki
+
+			var markedReady = false;
+			(function() {
+				var s = document.createElement("script");
+				s.src = "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js";
+				s.onload = function() {
+					marked.setOptions({ breaks: true, gfm: true });
+							var renderer = new marked.Renderer();
+					renderer.code = function(token) {
+						var lang = (token.lang || "").trim();
+						var nLang = normLang(lang);
+						var key = nLang + "\n" + token.text;
+						// Use cached highlighted version if available
+						if (codeCache[key]) return codeCache[key];
+						var escaped = token.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+						var plain = '<pre class="md-code"' + (lang ? ' data-lang="' + lang + '"' : '') + '><code>' + escaped + '</code></pre>';
+						// Queue Shiki highlighting (once per unique block)
+						if (shikiCodeToHtml && nLang && nLang !== "text" && !codePending[key]) {
+							codePending[key] = true;
+							shikiCodeToHtml(token.text, { lang: nLang, theme: SHIKI_THEME }).then(function(html) {
+								// Wrap Shiki output in our md-code container
+								codeCache[key] = '<pre class="md-code" data-lang="' + nLang + '">' + html + '</pre>';
+							}).catch(function() {});
+						}
+						return plain;
+					};
+					renderer.codespan = function(token) {
+						return '<code class="md-inline-code">' + token.text + '</code>';
+					};
+					marked.use({ renderer: renderer });
+					markedReady = true;
+				};
+				document.head.appendChild(s);
+			})();
+
+			function renderMd(text) {
+				// Stash math before markdown parsing
+				var mathSlots = [];
+				function stashMath(match, latex, display) {
+					var r = tryRenderMath(latex, display);
+					if (r) { mathSlots.push(r); return "\x00MATH" + (mathSlots.length - 1) + "\x00"; }
+					mathSlots.push(match);
+					return "\x00MATH" + (mathSlots.length - 1) + "\x00";
+				}
+				text = text.replace(/\$\$([\s\S]+?)\$\$/g, function(m, l) { return stashMath(m, l, true); });
+				text = text.replace(/\\\[([\s\S]+?)\\\]/g, function(m, l) { return stashMath(m, l, true); });
+				text = text.replace(/(?<!\$)\$(?!\$)(.+?)\$(?!\$)/g, function(m, l) { return stashMath(m, l, false); });
+				text = text.replace(/\\\((.+?)\\\)/g, function(m, l) { return stashMath(m, l, false); });
+
+				// Parse with marked.js or fallback
+				var s;
+				if (markedReady) {
+					s = marked.parse(text);
+				} else {
+					s = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+				}
+
+				// Restore math
+				s = s.replace(/\x00MATH(\d+)\x00/g, function(_, i) { return mathSlots[parseInt(i)]; });
+				return s;
+			}
+
+			// --- File upload ---
+			var MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
+			var TEXT_EXTS = ["txt","md","csv","json","js","ts","tsx","jsx","py","java","c","cpp","h","html","css","xml","yaml","yml","log","sh","bat","sql","r","go","rs"];
+
+			function getFileExt(name) { return (name.split(".").pop() || "").toLowerCase(); }
+			function isTextFile(file) { return file.type.startsWith("text/") || TEXT_EXTS.indexOf(getFileExt(file.name)) !== -1; }
+			function isImageFile(file) { return file.type.startsWith("image/"); }
+			function isPdfFile(file) { return file.type === "application/pdf" || getFileExt(file.name) === "pdf"; }
+
+			function clearPendingFile() {
+				pendingFile = null;
+				filePreviewBar.classList.remove("active");
+				filePreviewVisual.innerHTML = "";
+				filePreviewName.textContent = "";
+			}
+
+			function showFilePreview(pf) {
+				pendingFile = pf;
+				filePreviewName.textContent = pf.name;
+				if (pf.type === "image") {
+					filePreviewVisual.innerHTML = '<img src="' + pf.dataUrl + '" alt="preview" />';
+				} else {
+					filePreviewVisual.innerHTML = '<div class="file-icon">' + pf.ext.toUpperCase() + '</div>';
+				}
+				filePreviewBar.classList.add("active");
+				chatInput.focus();
+			}
+
+			function handleFile(file) {
+				if (!file) return;
+				if (file.size > MAX_FILE_SIZE) { alert("File too large (max 8MB)"); return; }
+				var ext = getFileExt(file.name);
+
+				if (isImageFile(file) || isPdfFile(file)) {
+					var reader = new FileReader();
+					reader.onload = function(e) {
+						showFilePreview({
+							type: isImageFile(file) ? "image" : "pdf",
+							dataUrl: e.target.result,
+							name: file.name,
+							ext: ext
+						});
+					};
+					reader.readAsDataURL(file);
+				} else if (isTextFile(file)) {
+					var reader = new FileReader();
+					reader.onload = function(e) {
+						var content = e.target.result;
+						if (content.length > 30000) content = content.slice(0, 30000) + "\n...(truncated)";
+						showFilePreview({
+							type: "text",
+							textContent: content,
+							name: file.name,
+							ext: ext
+						});
+					};
+					reader.readAsText(file);
+				} else {
+					alert("Unsupported file type: " + ext);
+				}
+			}
+
+			fileUploadBtn.addEventListener("click", function() { fileInput.click(); });
+
+			fileInput.addEventListener("change", function() {
+				handleFile(this.files && this.files[0]);
+				this.value = "";
+			});
+
+			fileRemoveBtn.addEventListener("click", clearPendingFile);
+
+			// Support paste image from clipboard
+			document.addEventListener("paste", function(e) {
+				if (!chatArea.classList.contains("active")) return;
+				var items = e.clipboardData && e.clipboardData.items;
+				if (!items) return;
+				for (var i = 0; i < items.length; i++) {
+					if (items[i].type.indexOf("image") !== -1) {
+						var file = items[i].getAsFile();
+						if (!file || file.size > MAX_FILE_SIZE) continue;
+						e.preventDefault();
+						var reader = new FileReader();
+						reader.onload = function(ev) {
+							showFilePreview({ type: "image", dataUrl: ev.target.result, name: "pasted-image.png", ext: "png" });
+						};
+						reader.readAsDataURL(file);
+						break;
+					}
+				}
+			});
+
+			// --- Auth ---
+			function unlock() {
+				gate.style.display = "none";
+				document.querySelector(".chat-card").classList.remove("login-mode");
+				chatArea.classList.add("active");
+				logoutBtn.classList.add("active");
+				newChatBtn.classList.add("active");
+				chatInput.focus();
+			}
+
+			function getAuthBody() {
+				// Returns auth fields to include in API requests
+				if (authToken) return { token: authToken };
+				if (authPassword) return { password: authPassword };
+				return {};
+			}
+
+			// 1. Check for JWT token in URL (from OAuth callback)
+			(function() {
+				var params = new URLSearchParams(window.location.search);
+				var token = params.get("token");
+				if (token) {
+					authToken = token;
+					localStorage.setItem(TOKEN_STORAGE_KEY, token);
+					// Clean URL
+					window.history.replaceState({}, "", window.location.pathname);
+					unlock();
+					return;
+				}
+				// 2. Check stored JWT
+				var storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+				if (storedToken) {
+					// Check if expired (decode payload without verification)
+					try {
+						var payload = JSON.parse(atob(storedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+						if (payload.exp && payload.exp > Date.now() / 1000) {
+							authToken = storedToken;
+							unlock();
+							return;
+						} else {
+							localStorage.removeItem(TOKEN_STORAGE_KEY);
+						}
+					} catch(e) { localStorage.removeItem(TOKEN_STORAGE_KEY); }
+				}
+				// 3. Check stored password
+				var storedPw = localStorage.getItem(PW_STORAGE_KEY);
+				if (storedPw) { authPassword = storedPw; unlock(); }
+			})();
+
+			// Hits a dedicated /auth/verify endpoint that just checks the password
+			// (no AI round-trip) and returns one of:
+			//   { ok: true }                                       → success
+			//   401 + { error, attemptsLeft }                      → wrong code, attempts remaining
+			//   429 + { error, retryAfter } (+ Retry-After header) → locked out, seconds until unlock
+			async function verifyPassword(pw) {
+				try {
+					var res = await fetch(WORKER_URL + "/auth/verify", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ password: pw })
+					});
+					var data = null;
+					try { data = await res.json(); } catch(e) {}
+					if (res.ok) return { ok: true };
+					if (res.status === 429) {
+						var retryAfter = (data && data.retryAfter) || parseInt(res.headers.get("Retry-After") || "0", 10) || 60;
+						return { ok: false, lockedFor: retryAfter };
+					}
+					return { ok: false, attemptsLeft: data && data.attemptsLeft };
+				} catch(e) { return { ok: false }; }
+			}
+
+			// Lockout countdown state
+			var pwCooldownTimer = null;
+			function fmtCooldown(sec) {
+				var m = Math.floor(sec / 60);
+				var s = sec % 60;
+				return m + ":" + (s < 10 ? "0" : "") + s;
+			}
+			function startPwCooldown(seconds) {
+				if (pwCooldownTimer) clearInterval(pwCooldownTimer);
+				var remaining = seconds;
+				pwInput.disabled = true;
+				pwBtn.disabled = true;
+				pwBtn.textContent = "Locked";
+				function tick() {
+					if (remaining <= 0) {
+						clearInterval(pwCooldownTimer);
+						pwCooldownTimer = null;
+						pwInput.disabled = false;
+						pwBtn.disabled = false;
+						pwBtn.textContent = "Enter";
+						pwError.textContent = "";
+						pwInput.focus();
+						return;
+					}
+					pwError.textContent = "Too many failed attempts. Try again in " + fmtCooldown(remaining) + ".";
+					remaining--;
+				}
+				tick();
+				pwCooldownTimer = setInterval(tick, 1000);
+			}
+
+			// SSO login
+			ssoLoginBtn.addEventListener("click", function() {
+				window.location.href = WORKER_URL + "/auth/login";
+			});
+
+			// Toggle password section
+			pwToggle.addEventListener("click", function() {
+				pwSection.classList.toggle("active");
+				if (pwSection.classList.contains("active")) {
+					pwToggle.textContent = "Hide Access Code Login";
+					pwInput.focus();
+				} else {
+					pwToggle.textContent = "Use Access Code";
+				}
+			});
+
+			// Logout
+			logoutBtn.addEventListener("click", function() {
+				localStorage.removeItem(TOKEN_STORAGE_KEY);
+				localStorage.removeItem(PW_STORAGE_KEY);
+				window.location.reload();
+			});
+
+			// Password login
+			pwBtn.addEventListener("click", async function() {
+				if (pwCooldownTimer) return; // ignore clicks during lockout
+				var pw = pwInput.value.trim();
+				if (!pw) return;
+				pwBtn.disabled = true;
+				pwBtn.textContent = "Verifying...";
+				pwError.textContent = "";
+				var result = await verifyPassword(pw);
+				if (result.ok) {
+					authPassword = pw;
+					localStorage.setItem(PW_STORAGE_KEY, pw);
+					unlock();
+					return;
+				}
+				if (result.lockedFor) {
+					startPwCooldown(result.lockedFor);
+					return;
+				}
+				if (typeof result.attemptsLeft === "number") {
+					pwError.textContent = result.attemptsLeft > 0
+						? "Invalid access code. " + result.attemptsLeft + " attempt" + (result.attemptsLeft === 1 ? "" : "s") + " left before lockout."
+						: "Invalid access code.";
+				} else {
+					pwError.textContent = "Invalid access code. Try again.";
+				}
+				pwBtn.disabled = false;
+				pwBtn.textContent = "Enter";
+			});
+
+			pwInput.addEventListener("keydown", function(e) {
+				if (e.key === "Enter") { e.preventDefault(); pwBtn.click(); }
+			});
+
+			// --- Chat ---
+			function addMessage(role, text) {
+				var div = document.createElement("div");
+				div.className = "msg " + role;
+				if (text) {
+					if (role === "assistant") { div.innerHTML = renderMd(text); }
+					else { div.textContent = text; }
+				}
+				messagesEl.appendChild(div);
+				autoScroll();
+				return div;
+			}
+
+			function showTyping() {
+				var div = document.createElement("div");
+				div.className = "msg assistant think";
+				div.innerHTML = '<div class="think-label">Thinking</div>';
+				div._start = Date.now();
+				messagesEl.appendChild(div);
+				autoScroll();
+				return div;
+			}
+
+			// Answer started: replace the indicator with a small "Thought for Ns" note
+			// (only when the wait was noticeable). Reasoning text is never shown.
+			function finishThinking(typing) {
+				var secs = Math.round((Date.now() - typing._start) / 1000);
+				if (secs < 2) { typing.remove(); return; }
+				var note = document.createElement("div");
+				note.className = "thought";
+				note.textContent = "Thought for " + secs + "s";
+				typing.replaceWith(note);
+			}
+
+			async function sendMessage() {
+				var text = chatInput.value.trim();
+				var file = pendingFile;
+				if ((!text && !file) || isStreaming) return;
+				stickToBottom = true;
+
+				// Build user message display
+				var userDiv = document.createElement("div");
+				userDiv.className = "msg user";
+				if (text) {
+					var textSpan = document.createElement("div");
+					textSpan.textContent = text;
+					userDiv.appendChild(textSpan);
+				}
+				if (file) {
+					if (file.type === "image") {
+						var img = document.createElement("img");
+						img.src = file.dataUrl;
+						img.alt = file.name;
+						userDiv.appendChild(img);
+					} else {
+						var badge = document.createElement("div");
+						badge.className = "file-badge";
+						var shortName = file.name.length > 20 ? file.name.slice(0, 10) + "..." + file.name.slice(-8) : file.name;
+						badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> <span>' + shortName + '</span>';
+						badge.title = file.name;
+						userDiv.appendChild(badge);
+					}
+				}
+				messagesEl.appendChild(userDiv);
+				autoScroll();
+
+				// Build content for API
+				var msgContent;
+				if (file) {
+					msgContent = [];
+					if (file.type === "text") {
+						// Inject text file content as text
+						var fileText = "--- FILE: " + file.name + " ---\n" + file.textContent + "\n--- END FILE ---";
+						msgContent.push({ type: "text", text: (text ? text + "\n\n" : "") + fileText });
+					} else {
+						if (text) msgContent.push({ type: "text", text: text });
+						if (file.type === "image") {
+							msgContent.push({ type: "image_url", image_url: { url: file.dataUrl } });
+						} else if (file.type === "pdf") {
+							msgContent.push({ type: "document_url", document_url: file.dataUrl });
+						}
+					}
+				} else {
+					msgContent = text;
+				}
+				chatHistory.push({ role: "user", content: msgContent });
+
+				// Clear input & file
+				chatInput.value = "";
+				chatInput.style.height = "auto";
+				clearPendingFile();
+
+				isStreaming = true;
+				sendBtn.disabled = true;
+
+				var typing = showTyping();
+				var fullText = "";
+				var katexLoading = false;
+
+				try {
+					var res = await fetch(WORKER_URL, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(Object.assign({ mode: "chat", messages: chatHistory }, getAuthBody()))
+					});
+
+					if (res.status === 401) {
+						localStorage.removeItem(TOKEN_STORAGE_KEY);
+						localStorage.removeItem(PW_STORAGE_KEY);
+						throw new Error("Session expired. Please refresh and sign in again.");
+					}
+					if (!res.ok) {
+						var err = await res.json().catch(function() { return { error: res.statusText }; });
+						throw new Error(err.error || "Request failed");
+					}
+
+					// Keep the typing indicator until the first token arrives.
+					var assistantDiv = null;
+
+					var reader = res.body.getReader();
+					var decoder = new TextDecoder();
+					var buffer = "";
+
+					while (true) {
+						var result = await reader.read();
+						if (result.done) break;
+						buffer += decoder.decode(result.value, { stream: true });
+						var lines = buffer.split("\n");
+						buffer = lines.pop() || "";
+
+						for (var i = 0; i < lines.length; i++) {
+							var line = lines[i].trim();
+							if (!line.startsWith("data: ")) continue;
+							var data = line.slice(6);
+							if (data === "[DONE]") continue;
+							try {
+								var json = JSON.parse(data);
+								var d = (json.choices && json.choices[0] && json.choices[0].delta) || {};
+								var delta = d.content;
+								if (delta) {
+									if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
+									fullText += delta;
+									if (!katexLoading && /\$|\\[(\[]/.test(fullText)) { katexLoading = true; loadKatex(); }
+									assistantDiv.innerHTML = renderMd(fullText);
+									autoScroll();
+								}
+							} catch(e) { /* skip */ }
+						}
+					}
+
+					if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
+					assistantDiv.innerHTML = fullText ? renderMd(fullText) : "(No response)";
+					await highlightCode(assistantDiv);
+					autoScroll();
+					chatHistory.push({ role: "assistant", content: fullText });
+
+				} catch(e) {
+					typing.remove();
+					addMessage("error", "Error: " + e.message);
+				}
+
+				isStreaming = false;
+				sendBtn.disabled = false;
+				chatInput.focus();
+			}
+
+			sendBtn.addEventListener("click", sendMessage);
+			chatInput.addEventListener("keydown", function(e) {
+				// Enter while an IME (e.g. Chinese pinyin) is composing picks a candidate; don't send.
+				if (e.isComposing || e.keyCode === 229) return;
+				if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+			});
+			chatInput.addEventListener("input", function() {
+				this.style.height = "auto";
+				this.style.height = Math.min(this.scrollHeight, 120) + "px";
+			});
+
+			// New chat
+			newChatBtn.addEventListener("click", function() {
+				chatHistory = [];
+				codeCache = {};
+				codePending = {};
+				clearPendingFile();
+				messagesEl.innerHTML = '<div class="msg system">AI can make mistakes. Please double-check responses.</div>';
+				chatInput.focus();
+			});
+		})();
+		</script>

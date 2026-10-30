@@ -5,7 +5,8 @@ import { Marked, Renderer } from "marked";
 import markedFootnote from "marked-footnote";
 import { renderMarkdown } from "../../src/lib/markdown/render";
 
-const html = readFileSync("public/tools/md-viewer/index.html", "utf8");
+// Saved copy of the last hand-written md-viewer (commit d1aa991).
+const html = readFileSync("scripts/migrate/fixtures/legacy-md-viewer.html", "utf8");
 const a = html.indexOf("\t\t\tfunction escapeHtml(text)");
 const b = html.indexOf("\t\t\tfunction formatLastModified");
 const legacySrc = html.slice(a, b);

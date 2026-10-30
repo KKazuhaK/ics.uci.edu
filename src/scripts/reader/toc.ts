@@ -4,11 +4,28 @@ import { escapeHtml } from "../../lib/markdown/code";
 
 export const HEADING_SELECTOR = ":is(h1, h2, h3, h4):not(.footnotes *)";
 
+// Listeners of the current TOC; md-viewer re-renders, so each build replaces the last.
+let active: AbortController | null = null;
+
+export function resetToc(): void {
+  active?.abort();
+  active = null;
+  const sidebar = document.getElementById("toc-sidebar");
+  if (sidebar) sidebar.hidden = true;
+  for (const id of ["toc-marks-track", "toc-panel"]) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+  }
+}
+
 export function buildToc(contentEl: HTMLElement): void {
+  resetToc();
   const sidebar = document.getElementById("toc-sidebar");
   const panelEl = document.getElementById("toc-panel");
   const trackEl = document.getElementById("toc-marks-track");
   if (!sidebar || !panelEl || !trackEl) return;
+  active = new AbortController();
+  const { signal } = active;
   const headings = Array.from(contentEl.querySelectorAll<HTMLElement>(HEADING_SELECTOR));
   if (headings.length < 4) return;
 
@@ -61,7 +78,7 @@ export function buildToc(contentEl: HTMLElement): void {
     }
   }
 
-  window.addEventListener("scroll", updateActive, { passive: true });
+  window.addEventListener("scroll", updateActive, { passive: true, signal });
   updateActive();
 
   panelEl.addEventListener("click", (e) => {
@@ -77,5 +94,5 @@ export function buildToc(contentEl: HTMLElement): void {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       history.pushState(null, "", href);
     }
-  });
+  }, { signal });
 }

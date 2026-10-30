@@ -1,0 +1,538 @@
+<script>
+			/* ── Prevent page jump when step content changes height ── */
+			function keepScroll(fn) {
+				var y = window.scrollY;
+				fn();
+				window.scrollTo(0, y);
+			}
+
+			/* ══════════════════════════════════════ */
+			/*  Lab tab switching                     */
+			/* ══════════════════════════════════════ */
+			/*
+			 * To hide a lab: add  hidden: true
+			 * e.g. { id: '2_24', lab: 'Lab 2.24', title: 'Midfix of 3', hidden: true }
+			 */
+			var labs = [
+				{ id: '2_20', lab: 'Lab 2.20', title: 'Social Security' },
+				{ id: '2_24', lab: 'Lab 2.24', title: 'Midfix of 3' },
+				{ id: '2_25', lab: 'Lab 2.25', title: 'Pizza Party Planner' },
+				{ id: '2_27', lab: 'Lab 2.27', title: 'Contact List' }
+			];
+
+			var visibleLabs = labs.filter(function (l) { return !l.hidden; });
+			var activeLab = visibleLabs[0].id;
+
+			function renderLabTabs() {
+				var el = document.getElementById('lab-tabs');
+				var html = '';
+				for (var i = 0; i < visibleLabs.length; i++) {
+					var l = visibleLabs[i];
+					var isActive = l.id === activeLab;
+					html += '<button class="lab-tab' + (isActive ? ' active' : '') + '" onclick="switchLab(\'' + l.id + '\')">';
+					html += '<span class="tab-lab">' + l.lab + '</span><span class="tab-title">' + l.title + '</span>';
+					html += '</button>';
+				}
+				el.innerHTML = html;
+			}
+
+			function switchLab(id, updateHash) {
+				activeLab = id;
+				renderLabTabs();
+				var panels = document.querySelectorAll('.lab-panel');
+				for (var i = 0; i < panels.length; i++) {
+					panels[i].classList.remove('active');
+				}
+				document.getElementById('panel-' + id).classList.add('active');
+				if (updateHash !== false) {
+					history.replaceState(null, '', '#lab-' + id);
+				}
+			}
+
+			/* ── Read hash to auto-select lab ── */
+			function labFromHash() {
+				var h = location.hash.replace('#lab-', '');
+				for (var i = 0; i < visibleLabs.length; i++) {
+					if (visibleLabs[i].id === h) return h;
+				}
+				return visibleLabs[0].id;
+			}
+
+			renderLabTabs();
+			switchLab(labFromHash(), false);
+
+			window.addEventListener('hashchange', function () {
+				switchLab(labFromHash(), false);
+			});
+
+			/* ══════════════════════════════════════ */
+			/*  Lab 2.20: SSN Demo                    */
+			/* ══════════════════════════════════════ */
+			var ssnCur = 0;
+			var ssnDigits = [1,2,3,4,5,6,7,8,9];
+
+			var ssnSteps = [
+				{
+					active: [5,6,7,8],
+					color: 'var(--demo-serial)',
+					bg: 'var(--demo-serial-bg)',
+					title: 'Step 1 \u2014 Get the last 4 digits (Serial)',
+					code: 'serial = ssn % 10000  # serial = 6789',
+					note: '<code>%</code> gives the remainder. <code>123456789 % 10000</code> = <strong>6789</strong> \u2014 exactly the last 4 digits.<br>Pattern: <code>% 10</code> gets 1 digit, <code>% 100</code> gets 2 digits, <code>% 10000</code> gets 4 digits.'
+				},
+				{
+					active: [0,1,2,3,4],
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)',
+					title: 'Step 2 \u2014 Remove the last 4 digits',
+					code: 'remaining = ssn // 10000  # remaining = 12345',
+					note: '<code>//</code> is floor division \u2014 it drops the remainder. The last 4 digits are gone.<br>We still need to split these 5 digits into Area and Group.'
+				},
+				{
+					active: [3,4],
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)',
+					title: 'Step 3 \u2014 Get the last 2 digits (Group)',
+					code: 'group = remaining % 100  # group = 45',
+					note: 'Same trick! <code>12345 % 100</code> = <strong>45</strong> \u2014 the last 2 digits are the Group Number.'
+				},
+				{
+					active: [0,1,2],
+					color: 'var(--demo-area)',
+					bg: 'var(--demo-area-bg)',
+					title: 'Step 4 \u2014 The rest is the Area',
+					code: 'area = remaining // 100  # area = 123',
+					note: '<code>12345 // 100</code> = <strong>123</strong> \u2014 the first 3 digits are the Area Number.<br><strong>Takeaway:</strong> <code>%</code> extracts from the right, <code>//</code> removes from the right.'
+				}
+			];
+
+			function ssnGo(n) {
+				if (n < 0 || n > 3) return;
+				keepScroll(function () { _ssnGo(n); });
+			}
+			function _ssnGo(n) {
+				ssnCur = n;
+				var s = ssnSteps[n];
+
+				for (var i = 0; i < 4; i++) {
+					var b = document.getElementById('ssn-b' + i);
+					if (i === n) {
+						b.style.border = '1px solid ' + s.color;
+						b.style.background = s.bg;
+						b.style.color = s.color;
+						b.style.fontWeight = '500';
+					} else {
+						b.style.border = '1px solid #ccc';
+						b.style.background = 'var(--demo-btn-bg)';
+						b.style.color = 'var(--demo-muted)';
+						b.style.fontWeight = '400';
+					}
+				}
+
+				var html = '';
+				for (var i = 0; i < 9; i++) {
+					var isActive = s.active.indexOf(i) !== -1;
+					var bg = isActive ? s.bg : 'var(--demo-char-bg)';
+					var border = isActive ? '2px solid ' + s.color : '1px solid #ddd';
+					var color = isActive ? s.color : 'var(--demo-char-text)';
+					html += '<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:40px;border-radius:7px;font-size:18px;font-weight:600;background:' + bg + ';border:' + border + ';color:' + color + '">' + ssnDigits[i] + '</span>';
+				}
+				document.getElementById('ssn-digits').innerHTML = html;
+
+				document.getElementById('ssn-info').innerHTML =
+					'<p style="font-size:1.05em;font-weight:600;margin:0 0 10px;color:var(--color-text-primary)">' + s.title + '</p>' +
+					'<div style="font-family:\'JetBrains Mono\',Consolas,\'Courier New\',monospace;font-size:0.88em;background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:12px 16px;margin-bottom:12px;line-height:1.6">' + highlightPy(s.code) + '</div>' +
+					'<p style="font-size:0.95em;color:var(--color-text-secondary);margin:0;line-height:1.65">' + s.note + '</p>';
+
+				document.getElementById('ssn-counter').textContent = (n + 1) + ' / 4';
+				document.getElementById('ssn-prev').className = n === 0 ? 'disabled' : '';
+				document.getElementById('ssn-next').className = n === 3 ? 'disabled' : '';
+			}
+
+			/* ── Python syntax highlighter (VS Code Dark+ theme) ── */
+			function highlightPy(code) {
+				var tokens = [];
+				var i = 0;
+				var src = code;
+				var keywords = ['if','else','elif','for','while','def','return','import','from','as','class','try','except','finally','with','in','not','and','or','is','True','False','None','pass','break','continue','lambda','del','global','nonlocal','yield','assert','raise'];
+				var builtins = ['print','len','find','int','str','float','range','input','type','list','dict','set','tuple','abs','max','min','sum','sorted','enumerate','zip','map','filter','open','round','format','isinstance','hasattr','getattr','setattr'];
+
+				while (i < src.length) {
+					// Comments
+					if (src[i] === '#') {
+						var end = src.indexOf('\n', i);
+						if (end === -1) end = src.length;
+						tokens.push('<span style="color:#6A9955">' + escHtml(src.slice(i, end)) + '</span>');
+						i = end;
+						continue;
+					}
+					// Strings
+					if (src[i] === '"' || src[i] === "'") {
+						var q = src[i];
+						var j = i + 1;
+						while (j < src.length && src[j] !== q) {
+							if (src[j] === '\\') j++;
+							j++;
+						}
+						j = Math.min(j + 1, src.length);
+						tokens.push('<span style="color:#CE9178">' + escHtml(src.slice(i, j)) + '</span>');
+						i = j;
+						continue;
+					}
+					// Numbers
+					if (/[0-9]/.test(src[i]) && (i === 0 || /[\s=+\-*/%<>!,([\]:]/.test(src[i-1]))) {
+						var j = i;
+						while (j < src.length && /[0-9.]/.test(src[j])) j++;
+						tokens.push('<span style="color:#B5CEA8">' + escHtml(src.slice(i, j)) + '</span>');
+						i = j;
+						continue;
+					}
+					// Identifiers / keywords / builtins
+					if (/[a-zA-Z_]/.test(src[i])) {
+						var j = i;
+						while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;
+						var word = src.slice(i, j);
+						if (keywords.indexOf(word) !== -1) {
+							tokens.push('<span style="color:#C586C0">' + escHtml(word) + '</span>');
+						} else if (builtins.indexOf(word) !== -1 && j < src.length && src[j] === '(') {
+							tokens.push('<span style="color:#DCDCAA">' + escHtml(word) + '</span>');
+						} else if (i > 0 && src[i-1] === '.') {
+							// method call
+							if (j < src.length && src[j] === '(') {
+								tokens.push('<span style="color:#DCDCAA">' + escHtml(word) + '</span>');
+							} else {
+								tokens.push('<span style="color:#9CDCFE">' + escHtml(word) + '</span>');
+							}
+						} else {
+							tokens.push('<span style="color:#9CDCFE">' + escHtml(word) + '</span>');
+						}
+						i = j;
+						continue;
+					}
+					// Operators
+					if ('=!<>+-*/%'.indexOf(src[i]) !== -1) {
+						var op = src[i];
+						if (i + 1 < src.length && (src.slice(i, i+2) === '//' || src.slice(i, i+2) === '==' || src.slice(i, i+2) === '!=' || src.slice(i, i+2) === '<=' || src.slice(i, i+2) === '>=')) {
+							op = src.slice(i, i+2);
+						}
+						tokens.push('<span style="color:#D4D4D4">' + escHtml(op) + '</span>');
+						i += op.length;
+						continue;
+					}
+					// Punctuation / whitespace / rest
+					if (src[i] === '\n') {
+						tokens.push('<br>');
+						i++;
+					} else if (src[i] === ' ') {
+						// preserve indentation
+						var j = i;
+						while (j < src.length && src[j] === ' ') j++;
+						tokens.push(new Array(j - i + 1).join('&nbsp;'));
+						i = j;
+					} else {
+						tokens.push('<span style="color:#D4D4D4">' + escHtml(src[i]) + '</span>');
+						i++;
+					}
+				}
+				return tokens.join('');
+			}
+
+			function escHtml(s) {
+				return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			}
+
+			ssnGo(0);
+
+			/* ══════════════════════════════════════ */
+			/*  Lab 2.24: Midfix of 3 Demo            */
+			/* ══════════════════════════════════════ */
+			var mfCur = 0;
+			var mfWord = '+++toy+++';
+			var mfChars = mfWord.split('');
+
+			var mfSteps = [
+				{
+					highlight: { from: 0, to: 8 },
+					color: 'var(--demo-area)',
+					bg: 'var(--demo-area-bg)',
+					title: 'Step 1 \u2014 Get the length and find the middle',
+					code: 'length = len(word)    # length = 9\nmiddle = length // 2  # 9 // 2 = 4',
+					note: '<code>len()</code> returns 9. Floor division <code>// 2</code> gives us the center index.<br>For odd-length strings, this is always the exact middle character.'
+				},
+				{
+					highlight: { from: 3, to: 5 },
+					pointer: 4,
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)',
+					title: 'Step 2 \u2014 Slice the middle 3 characters',
+					code: 'midfix = word[middle - 1 : middle + 2]  # word[3:6]',
+					note: 'We need 3 characters centered on index 4. Go 1 left: <code>4 - 1 = 3</code>. Go 2 right: <code>4 + 2 = 6</code>.<br>Remember: the end index in slicing is <strong>exclusive</strong>, so <code>[3:6]</code> gives indices 3, 4, 5.'
+				},
+				{
+					highlight: { from: 3, to: 5 },
+					color: 'var(--demo-serial)',
+					bg: 'var(--demo-serial-bg)',
+					title: 'Step 3 \u2014 Result',
+					code: 'print(f\'Midfix of 3 is: {midfix}\')  # "toy"',
+					note: '<code>word[3:6]</code> = <strong>"toy"</strong> \u2014 the middle 3 characters of "+++toy+++".'
+				}
+			];
+
+			function mfGo(n) {
+				if (n < 0 || n >= mfSteps.length) return;
+				keepScroll(function () { _mfGo(n); });
+			}
+			function _mfGo(n) {
+				mfCur = n;
+				var s = mfSteps[n];
+
+				for (var i = 0; i < mfSteps.length; i++) {
+					var b = document.getElementById('mf-b' + i);
+					if (i === n) {
+						b.style.border = '1px solid ' + s.color;
+						b.style.background = s.bg;
+						b.style.color = s.color;
+						b.style.fontWeight = '500';
+					} else {
+						b.style.border = '1px solid #ccc';
+						b.style.background = 'var(--demo-btn-bg)';
+						b.style.color = 'var(--demo-muted)';
+						b.style.fontWeight = '400';
+					}
+				}
+
+				var html = '';
+				for (var i = 0; i < mfChars.length; i++) {
+					var isActive = (i >= s.highlight.from && i <= s.highlight.to);
+					var bgC = isActive ? s.bg : 'var(--demo-char-bg)';
+					var borderC = isActive ? '2px solid ' + s.color : '1px solid #ddd';
+					var colorC = isActive ? s.color : 'var(--demo-char-text)';
+
+					html += '<span class="ch' + (isActive ? ' active' : '') + '" style="background:' + bgC + ';border:' + borderC + ';color:' + colorC + '">';
+					html += mfChars[i];
+					if (i === 0 || i === s.highlight.from || i === s.highlight.to || (s.pointer !== undefined && i === s.pointer) || i === mfChars.length - 1) {
+						html += '<span class="idx">' + i + '</span>';
+					}
+					html += '</span>';
+				}
+				document.getElementById('mf-chars').innerHTML = html;
+
+				document.getElementById('mf-info').innerHTML =
+					'<p style="font-size:1.05em;font-weight:600;margin:0 0 10px;color:var(--color-text-primary)">' + s.title + '</p>' +
+					'<div style="font-family:\'JetBrains Mono\',Consolas,\'Courier New\',monospace;font-size:0.88em;background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:12px 16px;margin-bottom:12px;line-height:1.6">' + highlightPy(s.code) + '</div>' +
+					'<p style="font-size:0.95em;color:var(--color-text-secondary);margin:0;line-height:1.65">' + s.note + '</p>';
+
+				document.getElementById('mf-counter').textContent = (n + 1) + ' / ' + mfSteps.length;
+				document.getElementById('mf-prev').className = n === 0 ? 'disabled' : '';
+				document.getElementById('mf-next').className = n === mfSteps.length - 1 ? 'disabled' : '';
+			}
+
+			mfGo(0);
+
+			/* ══════════════════════════════════════ */
+			/*  Lab 2.25: Pizza Party Planner Demo    */
+			/* ══════════════════════════════════════ */
+			var ppCur = 0;
+
+			var ppSteps = [
+				{
+					title: 'Step 1 \u2014 How many slices do we need?',
+					code: 'slices_needed = people * 2  # 7 * 2 = 14',
+					note: 'Each person eats 2 slices on average. 7 people \u00d7 2 = <strong>14 slices</strong> total.',
+					vars: [
+						{ name: 'people', val: '7' },
+						{ name: 'hunger_level', val: '2' },
+						{ name: 'slices_needed', val: '14', highlight: true }
+					],
+					color: 'var(--demo-area)',
+					bg: 'var(--demo-area-bg)'
+				},
+				{
+					title: 'Step 2 \u2014 How many pizzas to order?',
+					code: 'pizzas = math.ceil(slices_needed / 12)  # ceil(1.17) = 2',
+					note: '14 \u00f7 12 = 1.17 \u2014 but you can\u2019t order 1.17 pizzas! <code>math.ceil()</code> rounds <strong>up</strong> to the next whole number.<br>Why not <code>round()</code>? Because <code>round(1.17)</code> = 1, which isn\u2019t enough pizza.',
+					vars: [
+						{ name: 'people', val: '7' },
+						{ name: 'hunger_level', val: '2' },
+						{ name: 'slices_needed', val: '14' },
+						{ name: 'pizzas', val: '2', highlight: true }
+					],
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)'
+				},
+				{
+					title: 'Step 3 \u2014 What radius do we use for sauce?',
+					code: 'radius = 5 * hunger_level  # 5 * 2 = 10',
+					note: 'Base radius is 5 inches per pizza. Hunger level <strong>scales the radius</strong>, not the number of slices.<br>Higher hunger \u2192 bigger pizza \u2192 more sauce per pizza.',
+					vars: [
+						{ name: 'people', val: '7' },
+						{ name: 'hunger_level', val: '2' },
+						{ name: 'slices_needed', val: '14' },
+						{ name: 'pizzas', val: '2' },
+						{ name: 'radius', val: '10', highlight: true }
+					],
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)'
+				},
+				{
+					title: 'Step 4 \u2014 Calculate total sauce',
+					code: 'sauce = math.pi * radius ** 2 * pizzas  # \u03c0 \u00d7 100 \u00d7 2\nsauce = round(sauce, 1)                  # 628.3',
+					note: 'Sauce per pizza = area of circle = \u03c0r\u00b2 = \u03c0 \u00d7 10\u00b2 = 314.159...<br>Total = 314.159 \u00d7 2 = 628.318... \u2192 <code>round(, 1)</code> \u2192 <strong>628.3</strong>',
+					vars: [
+						{ name: 'people', val: '7' },
+						{ name: 'hunger_level', val: '2' },
+						{ name: 'slices_needed', val: '14' },
+						{ name: 'pizzas', val: '2' },
+						{ name: 'radius', val: '10' },
+						{ name: 'sauce', val: '628.3', highlight: true }
+					],
+					color: 'var(--demo-serial)',
+					bg: 'var(--demo-serial-bg)'
+				}
+			];
+
+			function ppGo(n) {
+				if (n < 0 || n >= ppSteps.length) return;
+				keepScroll(function () { _ppGo(n); });
+			}
+			function _ppGo(n) {
+				ppCur = n;
+				var s = ppSteps[n];
+
+				for (var i = 0; i < ppSteps.length; i++) {
+					var b = document.getElementById('pp-b' + i);
+					if (i === n) {
+						b.style.border = '1px solid ' + s.color;
+						b.style.background = s.bg;
+						b.style.color = s.color;
+						b.style.fontWeight = '500';
+					} else {
+						b.style.border = '1px solid #ccc';
+						b.style.background = 'var(--demo-btn-bg)';
+						b.style.color = 'var(--demo-muted)';
+						b.style.fontWeight = '400';
+					}
+				}
+
+				// Render variable watch
+				var vhtml = '<div class="vw-header">Variables</div>';
+				for (var i = 0; i < s.vars.length; i++) {
+					var v = s.vars[i];
+					var cls = 'vw-row';
+					if (v.highlight) cls += ' highlight';
+					else cls += ' active';
+					vhtml += '<div class="' + cls + '">';
+					vhtml += '<span class="vw-name">' + v.name + '</span>';
+					vhtml += '<span class="vw-eq">=</span>';
+					vhtml += '<span class="vw-val">' + v.val + '</span>';
+					vhtml += '</div>';
+				}
+				document.getElementById('pp-vars').innerHTML = vhtml;
+
+				document.getElementById('pp-info').innerHTML =
+					'<p style="font-size:1.05em;font-weight:600;margin:0 0 10px;color:var(--color-text-primary)">' + s.title + '</p>' +
+					'<div style="font-family:\'JetBrains Mono\',Consolas,\'Courier New\',monospace;font-size:0.88em;background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:12px 16px;margin-bottom:12px;line-height:1.6">' + highlightPy(s.code) + '</div>' +
+					'<p style="font-size:0.95em;color:var(--color-text-secondary);margin:0;line-height:1.65">' + s.note + '</p>';
+
+				document.getElementById('pp-counter').textContent = (n + 1) + ' / ' + ppSteps.length;
+				document.getElementById('pp-prev').className = n === 0 ? 'disabled' : '';
+				document.getElementById('pp-next').className = n === ppSteps.length - 1 ? 'disabled' : '';
+			}
+
+			ppGo(0);
+
+			/* ══════════════════════════════════════ */
+			/*  Lab 2.27: Contact List Demo           */
+			/* ══════════════════════════════════════ */
+			var clCur = 0;
+			var contactStr = 'Joe,123-5432 Linda,983-4123 Frank,867-5309';
+			var clChars = contactStr.split('');
+
+			var clSteps = [
+				{
+					highlight: { from: 28, to: 32 },
+					color: 'var(--demo-area)',
+					bg: 'var(--demo-area-bg)',
+					title: 'Step 1 \u2014 Find the name',
+					code: 'start = contacts.find(search)  # start = 28',
+					note: '<code>find()</code> scans left to right and returns the index where the match starts.<br><code>"Frank"</code> starts at index <strong>28</strong>.'
+				},
+				{
+					highlight: { from: 28, to: 33 },
+					pointer: 34,
+					color: 'var(--demo-group)',
+					bg: 'var(--demo-group-bg)',
+					title: 'Step 2 \u2014 Jump to the phone number',
+					code: 'start = start + len(search) + 1  # 28 + 5 + 1 = 34',
+					note: 'The phone number comes after the name and a comma.<br>Skip forward by: <code>len("Frank")</code> = 5, plus 1 for the comma.'
+				},
+				{
+					highlight: { from: 34, to: 41 },
+					color: 'var(--demo-serial)',
+					bg: 'var(--demo-serial-bg)',
+					title: 'Step 3 \u2014 Find where the number ends',
+					code: 'end = contacts.find(" ", start)  # end = -1',
+					note: 'Contacts are separated by spaces, so find the next space after position 34.<br><code>find()</code> returns <strong>-1</strong> \u2014 Frank is the last contact, no space after it.'
+				},
+				{
+					highlight: { from: 34, to: 41 },
+					color: 'var(--demo-serial)',
+					bg: 'var(--demo-serial-bg)',
+					title: 'Step 4 \u2014 Slice out the number',
+					code: 'if end == -1:\n    print(contacts[start:])\nelse:\n    print(contacts[start:end])',
+					note: 'Use <code>[start:end]</code> to extract the phone number.<br>If <code>end == -1</code> (last contact), use <code>[start:]</code> to grab everything to the end of the string.'
+				}
+			];
+
+			function clGo(n) {
+				if (n < 0 || n >= clSteps.length) return;
+				keepScroll(function () { _clGo(n); });
+			}
+			function _clGo(n) {
+				clCur = n;
+				var s = clSteps[n];
+
+				for (var i = 0; i < clSteps.length; i++) {
+					var b = document.getElementById('cl-b' + i);
+					if (i === n) {
+						b.style.border = '1px solid ' + s.color;
+						b.style.background = s.bg;
+						b.style.color = s.color;
+						b.style.fontWeight = '500';
+					} else {
+						b.style.border = '1px solid #ccc';
+						b.style.background = 'var(--demo-btn-bg)';
+						b.style.color = 'var(--demo-muted)';
+						b.style.fontWeight = '400';
+					}
+				}
+
+				var html = '';
+				for (var i = 0; i < clChars.length; i++) {
+					var isActive = (i >= s.highlight.from && i <= s.highlight.to);
+					var bgC = isActive ? s.bg : 'var(--demo-char-bg)';
+					var borderC = isActive ? '2px solid ' + s.color : '1px solid #ddd';
+					var colorC = isActive ? s.color : 'var(--demo-char-text)';
+					var display = clChars[i] === ' ' ? '\u00B7' : clChars[i];
+
+					html += '<span class="ch' + (isActive ? ' active' : '') + '" style="background:' + bgC + ';border:' + borderC + ';color:' + colorC + '">';
+					html += display;
+					if (i === 0 || i === s.highlight.from || i === s.highlight.to || (s.pointer !== undefined && i === s.pointer) || i === clChars.length - 1) {
+						html += '<span class="idx">' + i + '</span>';
+					}
+					html += '</span>';
+				}
+				document.getElementById('cl-chars').innerHTML = html;
+
+				document.getElementById('cl-info').innerHTML =
+					'<p style="font-size:1.05em;font-weight:600;margin:0 0 10px;color:var(--color-text-primary)">' + s.title + '</p>' +
+					'<div style="font-family:\'JetBrains Mono\',Consolas,\'Courier New\',monospace;font-size:0.88em;background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:12px 16px;margin-bottom:12px;line-height:1.6">' + highlightPy(s.code) + '</div>' +
+					'<p style="font-size:0.95em;color:var(--color-text-secondary);margin:0;line-height:1.65">' + s.note + '</p>';
+
+				document.getElementById('cl-counter').textContent = (n + 1) + ' / ' + clSteps.length;
+				document.getElementById('cl-prev').className = n === 0 ? 'disabled' : '';
+				document.getElementById('cl-next').className = n === clSteps.length - 1 ? 'disabled' : '';
+			}
+
+			clGo(0);
+		</script>

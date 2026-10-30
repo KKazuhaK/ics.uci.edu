@@ -1,0 +1,26 @@
+---
+// Shared Bento shell around a page whose inner markup and scripts are still the
+// hand-written originals (src/legacy/<page>/*.html, inserted verbatim). Lets the
+// big interactive tools share nav/footer/theme without rewriting them.
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  navPath?: string;
+  chatWidget?: boolean;
+  /** Extra <head> markup: page styles, CDN links, early scripts. */
+  head: string;
+  /** Everything between the nav and the footer. */
+  main: string;
+  /** Markup and scripts that followed the .app container. */
+  after: string;
+}
+const { head, main, after, ...layout } = Astro.props;
+---
+
+<BaseLayout {...layout}>
+  <Fragment slot="head" set:html={head} />
+  <Fragment set:html={main} />
+  <Fragment set:html={after} />
+</BaseLayout>
