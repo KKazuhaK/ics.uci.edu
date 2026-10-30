@@ -38,6 +38,8 @@
 | 数据 / UI | 数据是动态的，UI 相对静态 | 重复出现的 UI 组件（状态更新）；每个人看到的内容和链接都不同 |
 | 计算 | 每个页面背后有大量计算，但每个页面都是独立的 | — |
 
+![幻灯片 4：“小型”客户端——A2 的 Runkeeper 报告页面（“One week of #RunKeeper Tweets”、About the data）](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/small-client-a2.png)
+
 *大型客户端应用该如何开发？*（幻灯片 6）借助**框架**，框架可以：
 
 - 添加结构与组织，
@@ -67,6 +69,8 @@ ng serve                      # run it; add --open to open the browser too
 
 应用默认运行在 **localhost:4200** 上，并且在你修改源文件时会自动重新加载。`-g` 很重要：与 [Lecture 6](?kind=course_notes&course=IN4MATX-133&lang=zh-CN&note=IN4MATX133_Lec06_Notes_zh-CN.md) 中一样，全局安装才能让 `ng` 命令在命令行中可用。
 
+![幻灯片 10：ng new 生成的应用运行在 localhost:4200——带 Angular 标志的 “Hello, test” 和文档链接](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/ng-new-default-app.png)
+
 > 🧪 **演示文件**：[w5l2-example/README.md](https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/README.md) · [package.json](https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/package.json)
 
 ## 3. Model-View-Controller（模型-视图-控制器）
@@ -88,13 +92,7 @@ ng serve                      # run it; add --open to open the browser too
 
 幻灯片中的图是一个循环：
 
-```mermaid
-flowchart LR
-  user(["USER"]) -- "uses" --> controller["CONTROLLER"]
-  controller -- "manipulates" --> model["MODEL"]
-  model -- "updates" --> view["VIEW"]
-  view -- "sees" --> user
-```
+![幻灯片 12–15：MVC 循环——用户使用控制器，控制器操作模型，模型更新视图，用户看到视图](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-diagram.png)
 
 > ⚠️ **易错点**：控制器自己从不绘制任何东西。它改变模型，而模型的变化才会更新视图。
 
@@ -109,6 +107,8 @@ Angular 如何把 MVC 映射到文件上（幻灯片 16）：
 | 视图 | HTML 和 CSS |
 | 模型与控制器 | TypeScript |
 | 三者之间的粘合剂 | Angular 本身 |
+
+![幻灯片 16–17：Angular 中的 MVC——视图（HTML、CSS）和模型通过双向数据绑定与 Angular 相连；控制器（JavaScript、服务）与服务器通信；用户与视图交互](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-in-angular.png)
 
 关键术语是**绑定（binding）**（幻灯片 17）：
 
@@ -179,6 +179,8 @@ export class HelloComponent implements OnInit {
 ## 6. 根模板与根组件
 
 幻灯片 23（“Hello Angular”）展示了正在运行的演示应用：番茄猫图片、**"Hello, INF 133"**、“Congratulations! Your app is running. 🎉”，右侧是三个链接胶囊（INF 133 Canvas、INF 133 Slack、Angular tutorials），以及 GitHub / X / YouTube 图标。
+
+![幻灯片 23：运行中的演示应用——番茄猫、“Hello, INF 133”、“Congratulations! Your app is running.”，以及 Canvas / Slack / Angular tutorials 链接](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/hello-angular.png)
 
 ### 6.1 根模板：app.html
 
@@ -316,6 +318,8 @@ export class App {
 
 `{{title}}` → `title`，`[src]` → `tomatoCatUrl`，`(click)` → `clickExample()`。点击按钮会记录 `clicked button!`。（幻灯片的代码全程使用弯引号；上面的代码是仓库中的版本。）
 
+![幻灯片 33：箭头把 app.html 中的 {{title}}、[src]="tomatoCatUrl"、(click)="clickExample()" 分别连到 app.ts 中的 title、tomatoCatUrl、clickExample()](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/one-way-binding-arrows.png)
+
 下面试一下：同一个页面，模型 / 视图 / 控制器的接线全部手写出来。可以逐步查看，或编辑后点击 Run：
 
 ```viz web-demo
@@ -409,6 +413,8 @@ isHalloween () {
 
 在上课当天（10/29），页面显示 “Just another regular ole day...”（幻灯片 40 的截图）。
 
+![幻灯片 40：@if / @else 模板及其输出 “Just another regular ole day...”](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/if-example.png)
+
 ### 9.2 @for
 
 为数组中的每个元素重复渲染一次：
@@ -442,6 +448,8 @@ days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 ```
 
 第一个渲染 Sunday … Saturday；第二个渲染 “1: Sunday” … “7: Saturday”。它就是 Python 中 `for i, day in enumerate(days)` 的模板版本。仓库的 `app.html` 还循环遍历一个内联的对象数组，并使用 `track item.title` 来生成页面右侧的三个链接胶囊。
+
+![幻灯片 41：两个 @for 模板及其输出——Sunday … Saturday，以及 1: Sunday … 7: Saturday](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/for-example.png)
 
 > 🔗 **延伸阅读**：[angular.love: Diving into the new Angular control flow](https://angular.love/diving-into-the-new-angular-control-flow-internals) · [Angular: @if](https://angular.dev/api/core/@if) · [Angular: @for](https://angular.dev/api/core/@for)
 
@@ -493,6 +501,8 @@ export class Week {
 </ul>
 ```
 
+![幻灯片 43：week.ts 中的 @Input() today（标注为 Input），以及 week.html 中在 @if(day == today) 里引用 today](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input.png)
+
 `@Input()` 把 `today` 标记为输入；模板像使用其他字段一样使用它。父组件传入它（幻灯片 44）：
 
 - **如果是动态的，使用属性绑定**：`<app-week [today]="dayOfWeek()"></app-week>` —— `dayOfWeek()` 是 `App` 中的函数；
@@ -507,6 +517,8 @@ dayOfWeek():string {
 ```
 
 两者都会渲染七天，并在匹配的那一天后面显示 **Today!**。（幻灯片 44 的错误：它用 `</app-day>` 关闭 `<app-week>`，且其标签写的是 “Sets day property”——输入实际名为 `today`。）
+
+![幻灯片 44：传入输入——today="Friday" 设置静态值；[today]="dayOfWeek()" 绑定到 App 的函数](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input-passing.png)
 
 试一下——把 Week 组件写成一个普通 JS 函数，其参数扮演 `@Input() today` 的角色：
 
@@ -583,6 +595,8 @@ clickMessage() {
 ### 11.3 演示：掷骰子（幻灯片 48 · dice.ts → diceFinished.txt）
 
 **任务**：在演示应用中制作一个 `Dice` 组件，显示两个骰子和一个按钮；点击按钮会同时掷两个骰子并显示总和。幻灯片 48 展示了结果：“Hello!”、一个 “Click to roll the dice!” 按钮、两张骰子图片，以及 “Total: 8”。
+
+![幻灯片 48：完成后的 Dice 组件——“Hello!”、掷骰按钮、两个骰子（5 和 6）以及 “Total: 8”](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/rolling-dice.png)
 
 起始代码（`src/app/dice/`，由 `ng generate component dice` 生成）：`dice.html` 是 `<p>TODO: this!</p>`，类是空的：
 
