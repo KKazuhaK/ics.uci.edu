@@ -109,7 +109,7 @@ summary: "Hoare partitioning, full traces, worst/best/average analysis, …"
 - `<lang>`: `en-US` / `zh-CN` (BCP 47). The other language is optional; hubs show "Other language only" when missing.
 - Bad file names, missing title/summary, or notes for a course without `src/content/courses/<COURSE>.json` fail the build.
 - **Links between notes** are relative links to the source file: `[Lecture 4](lec-04.en-US.md#2-the-stack-adt)`, other course `[Week 1](../CS-121/week-01.en-US.md)`. They render as note URLs. A link to a note that doesn't exist yet renders as plain text with a build warning and becomes a link once the note exists. Don't write `?kind=course_notes…` links (legacy).
-- Images: prefer the jsDelivr assets CDN (current notes do). Relative image paths resolve against `/notes/<course>/`.
+- Images: only slide figures hosted in the `KKazuhaK/assets` repo via jsDelivr, `![alt](https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/<course>/<slug>/<name>.png)`; the notes skills' `check_md.py` rejects any other image source. Otherwise draw it (viz, Mermaid, table).
 - "Last edited" = last git commit touching the file (follows renames, skips `.lastmod-ignore-revs`), uncommitted files use mtime. Irvine time zone.
 - Chinese note headings use Arabic numerals (`## 1.`), same numbering as the English version — language switching keeps the reader's position by heading index, and falls back to scroll fraction when counts differ.
 
