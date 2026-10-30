@@ -52,8 +52,8 @@ const hubUrl = courseUrl(group.courseSlug);
 const VIZ_VERSION = String(Math.floor(Date.now() / 1000));
 
 const S = zh
-  ? { prev: "上一篇", next: "下一篇", headings: "目录", edit: "在编辑器中打开", switchTo: "切换到", toc: "目录", top: "顶部", hub: "课程主页", shortcuts: "快捷键", lang: "切换语言" }
-  : { prev: "Previous", next: "Next", headings: "Headings", edit: "Open in Editor", switchTo: "Switch to", toc: "Table of Contents", top: "Top", hub: "Course hub", shortcuts: "Shortcuts", lang: "Switch language" };
+  ? { prev: "上一篇", next: "下一篇", headings: "目录", edit: "在编辑器中打开", switchTo: "切换到", toc: "目录", top: "顶部", backToTop: "回到顶部", hub: "课程主页", shortcuts: "快捷键", lang: "切换语言" }
+  : { prev: "Previous", next: "Next", headings: "Headings", edit: "Open in Editor", switchTo: "Switch to", toc: "Table of Contents", top: "Top", backToTop: "Back to top", hub: "Course hub", shortcuts: "Shortcuts", lang: "Switch language" };
 ---
 
 <main
@@ -137,9 +137,9 @@ const S = zh
         <Icon name="chevron-left" /><span class="rb-text">{prevLink.label}</span>
       </a>
     ) : <span class="rb-btn rb-disabled" aria-hidden="true"><Icon name="chevron-left" /></span>}
-    <a class="rb-title" href={hubUrl} title={S.hub}>
+    <button type="button" class="rb-title" data-scroll-top title={S.backToTop}>
       <span class="rb-course">{course.data.name}</span><span class="rb-dot">·</span><span class="rb-label">{label}</span>
-    </a>
+    </button>
     {altUrl && (
       <a class="rb-btn rb-lang" href={altUrl} data-lang-switch hreflang={alt} lang={alt} title={`${S.switchTo} ${LANG_LABEL[alt]} (L)`}>
         <Icon name="languages" /><span>{LANG_SHORT[alt]}</span>
@@ -293,8 +293,7 @@ const S = zh
     transition: transform 0.25s ease, opacity 0.25s ease;
   }
   .reading-bar[hidden] { display: flex !important; }
-  .reading-bar[hidden],
-  .reading-bar.is-tucked {
+  .reading-bar[hidden] {
     opacity: 0;
     pointer-events: none;
     transform: translate(-50%, -140%);
@@ -322,7 +321,15 @@ const S = zh
   :global(html[data-theme="dark"]) .rb-btn:hover,
   :global(html[data-theme="dark"]) .rb-title:hover { color: #58a6ff; }
   .rb-disabled { opacity: 0.3; pointer-events: none; }
-  .rb-title { color: var(--ink); min-width: 0; overflow: hidden; }
+  .rb-title {
+    color: var(--ink);
+    min-width: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+  }
   .rb-course { font-weight: 700; }
   .rb-dot { opacity: 0.4; margin: 0 2px; }
   .rb-label { overflow: hidden; text-overflow: ellipsis; }

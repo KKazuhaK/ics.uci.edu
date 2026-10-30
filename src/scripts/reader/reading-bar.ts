@@ -1,7 +1,7 @@
 // Floating reading bar + keyboard shortcuts + keeping your place when switching language.
 //   [ / ]  previous / next note      L  switch language
-// Shown once the intro card has scrolled away; tucks up while scrolling down
-// and returns on scroll up.
+// Shown (and kept) once the intro card has scrolled away; its middle button
+// scrolls back to the top.
 import { HEADING_SELECTOR } from "./toc";
 
 const RESUME_KEY = "kzh-lang-switch-resume";
@@ -98,14 +98,12 @@ export function setupReadingBar(opts: {
   });
 
   // Visibility: after the intro card leaves the viewport.
-  let pastIntro = false;
   new IntersectionObserver(([entry]) => {
-    pastIntro = !entry!.isIntersecting;
-    bar.hidden = !pastIntro;
-    if (!pastIntro) bar.classList.remove("is-tucked");
+    bar.hidden = entry!.isIntersecting;
   }).observe(intro);
 
-  let lastY = window.scrollY;
+  bar.querySelector("[data-scroll-top]")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
   let ticking = false;
   window.addEventListener("scroll", () => {
     if (ticking) return;
@@ -113,10 +111,6 @@ export function setupReadingBar(opts: {
     requestAnimationFrame(() => {
       ticking = false;
       const y = window.scrollY;
-      if (Math.abs(y - lastY) > 6) {
-        if (pastIntro) bar.classList.toggle("is-tucked", y > lastY && y > 400);
-        lastY = y;
-      }
       if (progress) {
         const top = docTop(content);
         const p = (y + window.innerHeight * 0.3 - top) / Math.max(1, content.offsetHeight);
