@@ -16,6 +16,8 @@
 3. On `main`, the build is force-pushed to the `deploy` branch (one commit, the latest build only).
 4. Cron on circinus-19 runs `scripts/pull-deploy.sh` every 5 minutes: if `deploy` moved, it syncs that build into `~/public_html` via `deploy.sh` (log: `~/.cache/site-pull-deploy.log`; it also fast-forwards `~/site`). `scripts/pull-deploy.sh --force` redeploys now.
 
+To update right away instead of waiting for cron: `~/update_site.sh` (symlink to `~/site/update_site.sh`): pulls `~/site`, waits for CI on the latest `main` commit, stops if it failed, otherwise publishes that build (`--force` republishes).
+
 Cron entry (per openlab node; re-add if the job lives on another node): `*/5 * * * * $HOME/site/scripts/pull-deploy.sh >> $HOME/.cache/site-pull-deploy.log 2>&1`
 
 Local commands (still work; a local `npm run deploy` is replaced by the next CI build):
