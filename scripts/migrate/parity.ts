@@ -33,3 +33,4 @@ for (const course of readdirSync("src/content/notes")) {
   }
 }
 console.log(`${total - bad}/${total} identical`);
+if (bad) process.exitCode = 1;

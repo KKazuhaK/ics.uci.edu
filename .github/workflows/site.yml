@@ -1,0 +1,52 @@
+# Build and check every push; on main, publish the build to the `deploy` branch.
+# The ICS server picks it up within 5 minutes (scripts/pull-deploy.sh via cron).
+name: site
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: note "last edited" dates come from git log.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.22"
+          cache: npm
+
+      - run: npm ci
+      - name: Type and content check
+        run: npx astro check
+      - name: Renderer matches the legacy md-viewer on every note
+        run: npx tsx scripts/migrate/parity.ts
+      - name: Build (viz configs and note links are validated here)
+        run: npx astro build
+        env:
+          SITE_BASE: /~kazuhak
+          TZ: America/Los_Angeles
+
+      - name: Publish to the deploy branch
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        working-directory: dist
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          git init -q -b deploy
+          git add -A
+          git -c user.name="Kazuha Mo" -c user.email="kazuhak@uci.edu" \
+            commit -q -m "Build ${GITHUB_SHA::7}: ${MSG%%$'\n'*}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy

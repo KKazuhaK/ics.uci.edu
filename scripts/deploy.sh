@@ -2,6 +2,7 @@
 # Copy the Astro build (dist/) into ~/public_html.
 #   next  -> ~/public_html/next/ (staging; safe to wipe)
 #   prod  -> ~/public_html/ itself
+# SRC=<dir> deploys another build (scripts/pull-deploy.sh passes the CI build).
 # Files Apache serves that are not built from this repo (resources/,
 # remote_profiles/, deployment-local config, ...) are excluded so --delete never touches them.
 set -euo pipefail
@@ -9,7 +10,8 @@ cd "$(dirname "$0")/.."
 
 target="${1:-}"
 web="$HOME/public_html"
-[ -d dist ] || { echo "dist/ missing; run astro build first" >&2; exit 1; }
+src="${SRC:-dist}"
+[ -f "$src/index.html" ] || { echo "$src/ has no build; run astro build first" >&2; exit 1; }
 
 # dist/ must have been built for this target's base, or every link points at the wrong place.
 case "$target" in
@@ -17,14 +19,14 @@ case "$target" in
   prod) want="/~kazuhak/" ;;
   *) want="" ;;
 esac
-if [ -n "$want" ] && ! grep -q "href=\"${want}notes/\"" dist/index.html; then
-  echo "dist/ was not built for base ${want}; run the matching npm script (deploy / deploy:next)" >&2
+if [ -n "$want" ] && ! grep -q "href=\"${want}notes/\"" "$src/index.html"; then
+  echo "$src/ was not built for base ${want}; run the matching npm script (deploy / deploy:next)" >&2
   exit 1
 fi
 
 case "$target" in
   next)
-    rsync -a --delete --chmod=D755,F644 dist/ "$web/next/"
+    rsync -a --delete --chmod=D755,F644 --exclude=/.git/ "$src/" "$web/next/"
     echo "Staged: https://ics.uci.edu/~kazuhak/next/"
     ;;
   prod)
@@ -36,11 +38,11 @@ case "$target" in
       exit 1
     fi
     rsync -a --delete --chmod=D755,F644 \
-      --exclude=/next/ \
+      --exclude=/.git/ --exclude=/next/ \
       --exclude=/resources/ --exclude=/remote_profiles/ \
       --exclude=/temp/ --exclude=/.venv/ --exclude=/.claude/ --exclude=/.codex \
       --exclude=/CLAUDE.md --exclude='/assets/config/*.local.json' \
-      dist/ "$web/"
+      "$src/" "$web/"
     echo "Deployed: https://ics.uci.edu/~kazuhak/"
     ;;
   *)
