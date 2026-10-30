@@ -1,0 +1,36 @@
+---
+// English / 中文 toggle for pages that render both languages (see LangBoot).
+import { LANGS, LANG_LABEL } from "../lib/i18n";
+---
+
+<div class="lang-switch" role="group" aria-label="Language">
+  {LANGS.map((l) => <button type="button" data-language={l} lang={l}>{LANG_LABEL[l]}</button>)}
+</div>
+
+<script>
+  import { isLang } from "../lib/i18n";
+  import { setLangPref } from "../scripts/lang-pref";
+
+  const buttons = document.querySelectorAll<HTMLButtonElement>(".lang-switch [data-language]");
+  function sync() {
+    const current = document.documentElement.dataset["notesLang"];
+    buttons.forEach((b) => {
+      b.classList.toggle("active", b.dataset["language"] === current);
+      b.setAttribute("aria-pressed", String(b.dataset["language"] === current));
+    });
+  }
+  buttons.forEach((b) =>
+    b.addEventListener("click", () => {
+      const lang = b.dataset["language"];
+      if (!isLang(lang)) return;
+      document.documentElement.dataset["notesLang"] = lang;
+      document.documentElement.lang = lang;
+      setLangPref(lang);
+      const u = new URL(location.href);
+      u.searchParams.set("lang", lang);
+      history.replaceState(null, "", u);
+      sync();
+    }),
+  );
+  sync();
+</script>

@@ -1,0 +1,329 @@
+---
+// Reading view for one course note: breadcrumb + intro card, the rendered
+// note, prev/next pager, TOC sidebar, and the floating reading bar.
+import "../styles/reader.css";
+import "katex/dist/katex.min.css";
+import { renderMarkdown } from "../lib/markdown/render";
+import { validateViz } from "../lib/viz-validate";
+import { noteLinkResolver } from "../lib/note-links";
+import { formatLastModified, lastModified } from "../lib/git";
+import { otherLang, LANG_LABEL, LANG_SHORT, type Lang } from "../lib/i18n";
+import { pickVersion, unitLabel, type CourseEntry, type NoteGroup } from "../lib/notes";
+import { courseUrl, noteSourceUrl, noteUrl, url } from "../lib/urls";
+import Icon from "./Icon.astro";
+
+interface Props {
+  course: CourseEntry;
+  group: NoteGroup;
+  lang: Lang;
+  prev: NoteGroup | null;
+  next: NoteGroup | null;
+}
+
+const { course, group, lang, prev, next } = Astro.props;
+const note = group.versions[lang]!;
+const zh = lang === "zh-CN";
+
+const rendered = await renderMarkdown(note.body ?? "", {
+  lang,
+  baseUrl: courseUrl(group.courseSlug),
+  resolveLink: await noteLinkResolver(note.id),
+});
+await validateViz(rendered.viz, note.filePath ?? note.id);
+
+const label = unitLabel(group, lang);
+const copy = course.data.copy[lang];
+const heading = group.unit === "special" ? copy.readerHeading : `${label} · ${copy.readerHeading}`;
+const description = copy.readerDescription.replace("{course}", course.data.name).replace("{weekPhrase}", " " + label);
+const edited = formatLastModified(lastModified(note.filePath!), lang);
+
+const alt = otherLang(lang);
+const altUrl = group.versions[alt] ? noteUrl(group.courseSlug, group.slug, alt) : null;
+
+function pagerLink(target: NoteGroup | null) {
+  if (!target) return null;
+  const { lang: l, note: n } = pickVersion(target, lang);
+  return { href: noteUrl(target.courseSlug, target.slug, l), label: unitLabel(target, lang), title: n.data.title };
+}
+const prevLink = pagerLink(prev);
+const nextLink = pagerLink(next);
+const hubUrl = courseUrl(group.courseSlug);
+// Changes every build, so viz components are re-fetched after each deploy.
+const VIZ_VERSION = String(Math.floor(Date.now() / 1000));
+
+const S = zh
+  ? { prev: "上一篇", next: "下一篇", headings: "目录", edit: "在编辑器中打开", switchTo: "切换到", toc: "目录", top: "顶部", hub: "课程主页", shortcuts: "快捷键：[ 上一篇 · ] 下一篇 · L 切换语言" }
+  : { prev: "Previous", next: "Next", headings: "Headings", edit: "Open in Editor", switchTo: "Switch to", toc: "Table of Contents", top: "Top", hub: "Course hub", shortcuts: "Shortcuts: [ previous · ] next · L switch language" };
+---
+
+<main
+  id="main"
+  class="alt"
+  data-note-reader
+  data-lang={lang}
+  data-viz-base={url("assets/viz/")}
+  data-viz-version={VIZ_VERSION}
+  data-source-url={noteSourceUrl(group.courseSlug, group.slug, lang)}
+  data-editor-url={url("tools/md-editor/")}
+  data-alt-url={altUrl}
+  data-prev-url={prevLink?.href}
+  data-next-url={nextLink?.href}
+>
+  <section id="one">
+    <div class="inner notes-shell">
+      <div class="notes-intro" id="notes-intro">
+        <nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb">
+          <a href={url("notes/")} class="crumb">Notes</a>
+          <span class="crumb-sep">›</span>
+          <a href={hubUrl} class="crumb" data-hub-link>{course.data.name}</a>
+          <span class="crumb-sep">›</span>
+          <span class="crumb crumb-current">{label}</span>
+          <div class="intro-actions">
+            {altUrl && (
+              <a class="intro-pill pill-blue" href={altUrl} data-lang-switch hreflang={alt} lang={alt} title={`${S.switchTo} ${LANG_LABEL[alt]} (L)`}>
+                <Icon name="languages" />{LANG_LABEL[alt]}
+              </a>
+            )}
+            <button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6h6"></path><path d="M15 12h6"></path><path d="M15 18h6"></path><circle cx="6" cy="9" r="3"></circle><path d="m11 14-2.5-2.5"></path></svg><span>{S.headings}</span>
+            </button>
+            <button type="button" class="intro-pill pill-green" data-open-editor>
+              <Icon name="pencil" />{S.edit}
+            </button>
+          </div>
+        </nav>
+        <h2 id="reader-heading">{heading}</h2>
+        <p id="reader-description">{description}</p>
+        <p class="notes-date" id="notes-date">{edited}</p>
+      </div>
+
+      <div class="viewer-card" id="viewer-card">
+        <article class="markdown-body" id="content" set:html={rendered.html} />
+      </div>
+
+      <nav class="note-pager" aria-label={zh ? "笔记翻页" : "Note navigation"}>
+        {prevLink ? (
+          <a class="card interactive pager-card pager-prev" href={prevLink.href} rel="prev">
+            <span class="pager-dir"><Icon name="chevron-left" />{S.prev} · {prevLink.label}</span>
+            <span class="pager-title">{prevLink.title}</span>
+          </a>
+        ) : <span />}
+        {nextLink ? (
+          <a class="card interactive pager-card pager-next" href={nextLink.href} rel="next">
+            <span class="pager-dir">{nextLink.label} · {S.next}<Icon name="chevron-right" /></span>
+            <span class="pager-title">{nextLink.title}</span>
+          </a>
+        ) : (
+          <a class="card interactive pager-card pager-next" href={hubUrl}>
+            <span class="pager-dir">{S.hub}<Icon name="chevron-right" /></span>
+            <span class="pager-title">{course.data.name} · {course.data.fullTitle}</span>
+          </a>
+        )}
+      </nav>
+      <p class="pager-hint">{S.shortcuts}</p>
+    </div>
+  </section>
+</main>
+
+<Fragment>
+  <div class="reading-bar" data-reading-bar hidden>
+    {prevLink ? (
+      <a class="rb-btn rb-prev" href={prevLink.href} title={`${S.prev}: ${prevLink.title} ([)`} aria-label={`${S.prev}: ${prevLink.label}`}>
+        <Icon name="chevron-left" /><span class="rb-text">{prevLink.label}</span>
+      </a>
+    ) : <span class="rb-btn rb-disabled" aria-hidden="true"><Icon name="chevron-left" /></span>}
+    <a class="rb-title" href={hubUrl} title={S.hub}>
+      <span class="rb-course">{course.data.name}</span><span class="rb-dot">·</span><span class="rb-label">{label}</span>
+    </a>
+    {altUrl && (
+      <a class="rb-btn rb-lang" href={altUrl} data-lang-switch hreflang={alt} lang={alt} title={`${S.switchTo} ${LANG_LABEL[alt]} (L)`}>
+        <Icon name="languages" /><span>{LANG_SHORT[alt]}</span>
+      </a>
+    )}
+    {nextLink ? (
+      <a class="rb-btn rb-next" href={nextLink.href} title={`${S.next}: ${nextLink.title} (])`} aria-label={`${S.next}: ${nextLink.label}`}>
+        <span class="rb-text">{nextLink.label}</span><Icon name="chevron-right" />
+      </a>
+    ) : <span class="rb-btn rb-disabled" aria-hidden="true"><Icon name="chevron-right" /></span>}
+    <span class="rb-progress" data-reading-progress></span>
+  </div>
+
+  <div id="toc-sidebar" hidden>
+    <div class="toc-marks" id="toc-marks">
+      <div class="toc-marks-icon" title={S.toc}>≡</div>
+      <div class="toc-marks-track" id="toc-marks-track"></div>
+    </div>
+    <div class="toc-panel" id="toc-panel"></div>
+  </div>
+
+  <button id="back-to-top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    {S.top}
+  </button>
+</Fragment>
+
+<script>
+  import { initNoteReader } from "../scripts/reader/note-page";
+  initNoteReader();
+</script>
+
+<style>
+  .intro-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .intro-pill {
+    cursor: pointer;
+    display: inline-flex;
+    gap: 0.35em;
+    align-items: center;
+    padding: 0.38rem 0.8rem;
+    border: 0;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 0 !important;
+    transition: background 0.2s;
+  }
+  .intro-pill :global(svg) { width: 1em; height: 1em; }
+  .pill-blue {
+    background: var(--notes-blue-bg);
+    box-shadow: inset 0 0 0 1.5px var(--notes-blue-border);
+    color: var(--notes-blue) !important;
+  }
+  .pill-blue:hover { background: var(--notes-blue-bg-strong); }
+  .pill-green {
+    background: rgba(39, 174, 96, 0.1);
+    box-shadow: inset 0 0 0 1.5px rgba(39, 174, 96, 0.35);
+    color: #27ae60 !important;
+  }
+  .pill-green:hover { background: rgba(39, 174, 96, 0.17); }
+
+  /* ── Prev / next pager ── */
+  .note-pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 clamp(1.1rem, 3vw, 2.4rem);
+  }
+  .pager-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 20px;
+    text-decoration: none;
+    border-bottom: 0 !important;
+    color: inherit;
+    min-width: 0;
+  }
+  .pager-next { text-align: right; align-items: flex-end; }
+  .pager-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--uci-blue);
+  }
+  :global(html[data-theme="dark"]) .pager-dir { color: #58a6ff; }
+  .pager-dir :global(svg) { width: 14px; height: 14px; }
+  .pager-title {
+    font-weight: 600;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .pager-hint {
+    margin: 0;
+    padding: 10px 0 1.2rem;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--notes-muted);
+  }
+  @media (hover: none) { .pager-hint { display: none; } }
+
+  /* ── Floating reading bar (appears once the intro card scrolls away) ── */
+  .reading-bar {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: calc(100vw - 32px);
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--card);
+    box-shadow: 0 6px 24px rgba(15, 23, 42, 0.1), 0 0 0 1px var(--hairline);
+    overflow: hidden;
+    transform: translate(-50%, 0);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .reading-bar[hidden] { display: flex !important; }
+  .reading-bar[hidden],
+  .reading-bar.is-tucked {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -140%);
+  }
+  :global(html[data-theme="dark"]) .reading-bar { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--hairline); }
+  .rb-btn,
+  .rb-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 0 !important;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .rb-btn :global(svg) { width: 16px; height: 16px; flex-shrink: 0; }
+  .rb-btn:hover,
+  .rb-title:hover { background: var(--uci-blue-soft); color: var(--uci-blue); }
+  :global(html[data-theme="dark"]) .rb-btn:hover,
+  :global(html[data-theme="dark"]) .rb-title:hover { color: #58a6ff; }
+  .rb-disabled { opacity: 0.3; pointer-events: none; }
+  .rb-title { color: var(--ink); min-width: 0; overflow: hidden; }
+  .rb-course { font-weight: 700; }
+  .rb-dot { opacity: 0.4; margin: 0 2px; }
+  .rb-label { overflow: hidden; text-overflow: ellipsis; }
+  .rb-lang {
+    color: var(--uci-blue);
+    background: var(--uci-blue-soft);
+    font-weight: 700;
+  }
+  :global(html[data-theme="dark"]) .rb-lang { color: #58a6ff; }
+  .rb-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--uci-blue);
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+  }
+
+  @media screen and (max-width: 736px) {
+    .intro-actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
+    .note-pager { grid-template-columns: 1fr; }
+    .pager-next { text-align: left; align-items: flex-start; }
+    .rb-text { display: none; }
+    .rb-btn { padding: 0 10px; }
+  }
+</style>

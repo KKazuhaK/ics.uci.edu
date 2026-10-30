@@ -1,0 +1,32 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../../../layouts/BaseLayout.astro";
+import NoteReader from "../../../../../components/NoteReader.astro";
+import { getCourses, getNoteGroups } from "../../../../../lib/notes";
+import type { Lang } from "../../../../../lib/i18n";
+import { noteUrl } from "../../../../../lib/urls";
+
+export const getStaticPaths = (async () => {
+  const courses = await getCourses();
+  const groups = await getNoteGroups();
+  return courses.flatMap((course) => {
+    const list = groups.get(course.data.code) ?? [];
+    return list.flatMap((group, index) =>
+      Object.keys(group.versions).map((lang) => ({
+        params: { course: group.courseSlug, entry: group.slug, lang },
+        props: { course, group, lang: lang as Lang, prev: list[index - 1] ?? null, next: list[index + 1] ?? null },
+      })),
+    );
+  });
+}) satisfies GetStaticPaths;
+
+const props = Astro.props;
+const note = props.group.versions[props.lang]!;
+---
+
+<BaseLayout title={`${props.course.data.name} ${note.data.title}`} description={note.data.summary} lang={props.lang} navPath="notes/">
+  {Object.keys(props.group.versions).map((l) => (
+    <link slot="head" rel="alternate" hreflang={l} href={new URL(noteUrl(props.group.courseSlug, props.group.slug, l as Lang), Astro.site).href} />
+  ))}
+  <NoteReader {...props} />
+</BaseLayout>

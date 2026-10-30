@@ -1,0 +1,81 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import LangBoot from "../../../components/LangBoot.astro";
+import LangSwitch from "../../../components/LangSwitch.astro";
+import { formatLastModified, lastModified } from "../../../lib/git";
+import { LANGS, otherLang, type Lang } from "../../../lib/i18n";
+import { courseSlug, getCourses, getNoteGroups, unitLabel } from "../../../lib/notes";
+import { noteUrl, url } from "../../../lib/urls";
+
+export const getStaticPaths = (async () => {
+  const groups = await getNoteGroups();
+  return (await getCourses()).map((course) => ({
+    params: { course: courseSlug(course.data.code) },
+    props: { course, groups: groups.get(course.data.code) ?? [] },
+  }));
+}) satisfies GetStaticPaths;
+
+const { course, groups } = Astro.props;
+const c = course.data;
+const unitWord = groups[0]?.unit === "lecture" ? "Lecture-by-lecture" : "Week-by-week";
+
+const S = {
+  "en-US": { ready: "Available", other: "Other language only", open: "Open →", openOther: "Open other lang →" },
+  "zh-CN": { ready: "已就绪", other: "仅另一语言可用", open: "打开 →", openOther: "打开现有版本 →" },
+} satisfies Record<Lang, unknown>;
+
+function card(group: (typeof groups)[number], lang: Lang) {
+  const own = group.versions[lang];
+  const shownLang = own ? lang : otherLang(lang);
+  const note = (own ?? group.versions[shownLang])!;
+  return {
+    label: unitLabel(group, "en-US"),
+    title: note.data.title,
+    summary: note.data.summary,
+    date: formatLastModified(lastModified(note.filePath!), lang),
+    href: noteUrl(group.courseSlug, group.slug, shownLang),
+    own: !!own,
+  };
+}
+---
+
+<BaseLayout title={`${c.name} Notes`} description={`${unitWord} notes for UC Irvine ${c.name} (${c.fullTitle}). Bilingual EN / 中文.`} navPath="notes/">
+  <LangBoot slot="head" />
+  <main class="page course-hub-page">
+    <div class="page-head card course-hero-head">
+      <div>
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href={url("notes/")} class="crumb">Notes</a>
+          <span class="crumb-sep">›</span>
+          <span class="crumb crumb-current">{c.name}</span>
+        </nav>
+        <h1 class="page-title">{c.name}</h1>
+        {LANGS.map((l) => (
+          <div data-pane={l} lang={l}>
+            <p class="page-sub">{c.copy[l].heroPrimary}</p>
+            <p class="page-sub" style="margin-top:10px;">{c.copy[l].heroSecondary}</p>
+          </div>
+        ))}
+      </div>
+      <LangSwitch />
+    </div>
+
+    {LANGS.map((l) => (
+      <div class="week-grid" data-pane={l} lang={l}>
+        {[...groups].map((g) => card(g, l)).map((n) => (
+          <article class="card week-card">
+            <span class="week-badge">{n.label}</span>
+            <h3>{n.title}</h3>
+            <p class="week-summary">{n.summary}</p>
+            <p class="week-date">{n.date}</p>
+            <div class="week-meta-row">
+              <span class={n.own ? "note-state ready" : "note-state"}>{n.own ? S[l].ready : S[l].other}</span>
+              <a href={n.href} class="btn-open">{n.own ? S[l].open : S[l].openOther}</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    ))}
+  </main>
+</BaseLayout>

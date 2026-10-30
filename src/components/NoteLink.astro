@@ -1,0 +1,24 @@
+---
+// <a> to a note that follows the reader's language preference (scripts/lang-links.ts).
+import type { HTMLAttributes } from "astro/types";
+import { LANGS, DEFAULT_LANG } from "../lib/i18n";
+import type { NoteGroup } from "../lib/notes";
+import { pickVersion } from "../lib/notes";
+import { noteUrl } from "../lib/urls";
+
+interface Props extends HTMLAttributes<"a"> {
+  group: NoteGroup;
+}
+const { group, ...attrs } = Astro.props;
+const hrefs = Object.fromEntries(
+  LANGS.filter((l) => group.versions[l]).map((l) => [`data-href-${l}`, noteUrl(group.courseSlug, group.slug, l)]),
+);
+const fallback = pickVersion(group, DEFAULT_LANG);
+---
+
+<a href={noteUrl(group.courseSlug, group.slug, fallback.lang)} data-lang-links {...hrefs} {...attrs}><slot /></a>
+
+<script>
+  import { applyLangLinks } from "../scripts/lang-links";
+  applyLangLinks();
+</script>

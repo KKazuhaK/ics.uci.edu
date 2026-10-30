@@ -1,0 +1,83 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import NoteLink from "../../components/NoteLink.astro";
+import { courseSlug, getCourses, getNoteGroups, unitLabel } from "../../lib/notes";
+import { courseUrl, url } from "../../lib/urls";
+
+const courses = await getCourses();
+const groups = await getNoteGroups();
+const all = [...groups.values()].flat();
+const files = all.reduce((n, g) => n + Object.keys(g.versions).length, 0);
+const RECENT = 3;
+
+const toneClass = { blue: "", navy: "navy", gold: "gold" } as const;
+const unitPlural = (list: typeof all) => (list.every((g) => g.unit !== "week") ? "lectures" : "weeks");
+---
+
+<BaseLayout title="Notes" description="Course notes and LA/TA demo notes from UC Irvine — bilingual EN / 中文 where helpful.">
+  <main class="page notes-page">
+    <div class="page-head card">
+      <div class="eyebrow">Notes</div>
+      <h1 class="page-title">Course notes, demos, and write-ups.</h1>
+      <p class="page-sub">Organized by course. Bilingual where bilingual helps — most notes have an English and 中文 version.</p>
+      <div class="page-stats">
+        <div><div class="stat-n">{courses.length}</div><div class="stat-l">Courses</div></div>
+        <div><div class="stat-n">{all.length}</div><div class="stat-l">Notes</div></div>
+        <div><div class="stat-n">{files}</div><div class="stat-l">Bilingual files</div></div>
+        <div><div class="stat-n">1</div><div class="stat-l">Demo track</div></div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="eyebrow">Course notes</div>
+      <span class="section-meta">{courses.length} courses</span>
+    </div>
+
+    <div class="notes-grid">
+      {courses.map((course) => {
+        const c = course.data;
+        const list = groups.get(c.code) ?? [];
+        const numbered = list.filter((g) => g.unit !== "special");
+        const recent = [...list].reverse().slice(0, RECENT);
+        return (
+          <div class="card course-full">
+            <div class="course-head">
+              <div>
+                <span class={`eyebrow-pill ${toneClass[c.tone]}`}>{c.dept}</span>
+                <div class="card-title" style="margin-top:10px;">{c.name}</div>
+                <div class="card-desc">{c.fullTitle} · {c.tagline}</div>
+              </div>
+            </div>
+            <div class="eyebrow weeks-eyebrow">Recent · {recent.length} of {list.length} {unitPlural(numbered)}</div>
+            <div class="weeks-list">
+              {recent.map((g) => (
+                <NoteLink group={g} class="week-row-item">
+                  <div class="week-row-n">{unitLabel(g, "en-US")}</div>
+                  <span class="week-row-arrow">Open →</span>
+                </NoteLink>
+              ))}
+            </div>
+            <a href={courseUrl(courseSlug(c.code))} class="btn btn-ghost course-open">Open course hub →</a>
+          </div>
+        );
+      })}
+    </div>
+
+    <div class="section-head">
+      <div class="eyebrow">LA / TA demos</div>
+      <span class="section-meta">Teaching materials</span>
+    </div>
+    <div class="notes-grid demo-grid">
+      <a href={url("notes/demo_notes/ICS-31/")} class="card interactive">
+        <span class="eyebrow-pill">Demo</span>
+        <div class="card-title" style="margin-top:10px;">ICS 31</div>
+        <div class="card-desc">Intro to Programming · LA demo notebooks</div>
+        <div class="card-meta" style="margin-top:12px;">2 walkthroughs →</div>
+      </a>
+      <div class="card muted-card">
+        <div class="eyebrow">More soon</div>
+        <div class="card-desc" style="margin-top:10px;">More subjects and demo tracks will appear here.</div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

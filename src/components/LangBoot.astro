@@ -1,0 +1,23 @@
+---
+// Picks the page language before first paint: ?lang= → saved preference → default.
+// Pages render every language; CSS shows only [data-pane] matching html[data-notes-lang].
+import { DEFAULT_LANG, LANG_PREF_KEY, LANGS } from "../lib/i18n";
+---
+
+<script is:inline define:vars={{ LANGS, LANG_PREF_KEY, DEFAULT_LANG }}>
+  (function () {
+    var lang = new URLSearchParams(location.search).get("lang");
+    if (LANGS.indexOf(lang) < 0) {
+      try { lang = localStorage.getItem(LANG_PREF_KEY); } catch (e) {}
+    }
+    if (LANGS.indexOf(lang) < 0) lang = DEFAULT_LANG;
+    document.documentElement.setAttribute("data-notes-lang", lang);
+    document.documentElement.lang = lang;
+  })();
+</script>
+<style is:global>
+  html[data-notes-lang="en-US"] [data-pane]:not([data-pane="en-US"]),
+  html[data-notes-lang="zh-CN"] [data-pane]:not([data-pane="zh-CN"]) {
+    display: none !important;
+  }
+</style>
