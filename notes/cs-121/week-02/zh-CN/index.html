@@ -1,0 +1,1146 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>CS 121 网络语料、搜索引擎优化与网络爬虫 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="语料与分词、网络图、网络用户与查询、广告商业模式、SEO 与垃圾信息、URL，以及走向爬虫的第一步。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413979" data-source-url="/~kazuhak/notes/cs-121/week-02/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-02/en-US/" data-prev-url="/~kazuhak/notes/cs-121/week-01/zh-CN/" data-next-url="/~kazuhak/notes/cs-121/week-03/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 2 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-02/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 2 周 · 信息检索课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 CS 121 第 2 周 的课程笔记，适合按周复习文本处理、网络图、SEO、网络爬虫，以及搜索引擎如何索引网页并为其排序。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 22 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-2网页语料搜索引擎优化与网页爬取">CS 121: Information Retrieval — Week 2：网页语料、搜索引擎优化与网页爬取</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E8%AF%AD%E6%96%99%E4%B8%8E%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86">1. 语料与文本处理</a></li>
+<li><a href="#2-%E5%88%86%E8%AF%8D">2. 分词</a></li>
+<li><a href="#3-%E7%BD%91%E9%A1%B5%E5%9B%BE%E5%8F%8A%E5%85%B6%E7%89%B9%E5%BE%81">3. 网页图及其特征</a></li>
+<li><a href="#4-%E7%BD%91%E9%A1%B5%E7%9A%84%E6%BC%94%E5%8C%96%E4%B8%8E%E7%BD%91%E9%A1%B5%E6%90%9C%E7%B4%A2%E7%9A%84%E6%A0%B7%E5%AD%90">4. 网页的演化与网页搜索的样子</a></li>
+<li><a href="#5-%E7%BD%91%E9%A1%B5%E7%94%A8%E6%88%B7%E9%9C%80%E6%B1%82%E6%9F%A5%E8%AF%A2%E4%B8%8E%E8%A1%8C%E4%B8%BA">5. 网页用户：需求、查询与行为</a></li>
+<li><a href="#6-%E7%94%A8%E6%88%B7%E5%A6%82%E4%BD%95%E8%AF%84%E4%BB%B7%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E">6. 用户如何评价搜索引擎</a></li>
+<li><a href="#7-%E5%95%86%E4%B8%9A%E6%A8%A1%E5%BC%8F%E6%90%9C%E7%B4%A2%E5%B9%BF%E5%91%8A">7. 商业模式：搜索广告</a></li>
+<li><a href="#8-%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E4%BC%98%E5%8C%96seo">8. 搜索引擎优化（SEO）</a></li>
+<li><a href="#9-%E4%BD%9C%E5%BC%8A%E6%89%8B%E6%B3%95%E4%B8%8E%E5%9E%83%E5%9C%BE%E4%BF%A1%E6%81%AF">9. 作弊手法与垃圾信息</a></li>
+<li><a href="#10-%E5%9E%83%E5%9C%BE%E4%BF%A1%E6%81%AF%E4%B9%8B%E6%88%98%E4%B8%8E-seo-%E6%8A%80%E5%B7%A7%E7%9A%84%E7%9F%AD%E5%91%BD">10. 垃圾信息之战与 SEO 技巧的短命</a></li>
+<li><a href="#11-%E6%8E%92%E5%90%8D%E5%88%B0%E5%BA%95%E7%94%A8%E4%BA%86%E4%BB%80%E4%B9%88yandex-%E6%B3%84%E9%9C%B2">11. 排名到底用了什么：Yandex 泄露</a></li>
+<li><a href="#12-uriurl-%E4%B8%8E-urn">12. URI、URL 与 URN</a></li>
+<li><a href="#13-%E7%BD%91%E9%A1%B5%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F">13. 网页数据采集的几种方式</a></li>
+<li><a href="#14-%E8%BF%88%E5%90%91%E7%BD%91%E9%A1%B5%E7%88%AC%E5%8F%96%E4%BB%80%E4%B9%88%E6%98%AF%E7%AE%97%E6%B3%95">14. 迈向网页爬取：什么是算法</a></li>
+<li><a href="#15-%E8%AF%BE%E5%A0%82%E7%AC%94%E8%AE%B0%E4%B8%8E%E4%BD%9C%E4%B8%9A%E6%8F%90%E7%A4%BA">15. 课堂笔记与作业提示</a></li>
+<li><a href="#16-%E5%B8%A6%E8%A7%A3%E7%AD%94%E7%9A%84%E4%BE%8B%E9%A2%98">16. 带解答的例题</a></li>
+<li><a href="#17-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E6%9D%A1%E8%A6%81%E7%82%B9">17. 速查与必记的 5 条要点</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 7<br>根据第 3.5、4、5、6 讲的幻灯片整理（课堂讲授内容；YuJa 视频未包含）。按概念组织，而不是按讲次组织。<br>幻灯片致谢 C. Lopes、A. Krone-Martins、C. Manning、P. Nayak、H. Schütze 等教授，以及 Addison Wesley 出版社。<br>📖 本周阅读：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., <em>Search Engines: IR in Practice</em>，第 3 章 Crawls and Feeds</a> · <a href="https://canvas.eee.uci.edu/courses/87165/files/37013257">Yandex 泄露的因子文件（Canvas，“如果你感兴趣”）</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：<strong>作业 1（从零实现分词器）截止于周五，10 月 9 日。</strong><br>如需答疑，请提前预约时段；教授若有必要可以另找时间（L4 p48）。<br>本周在 YuJa 上有三段视频（周一、周三、周五）；周三的课程会复习这些视频，然后进入 A1 答疑和作业讨论（L3.5 p3、p30）。</p>
+</blockquote>
+<hr>
+<h2 id="1-语料与文本处理">1. 语料与文本处理</h2>
+<p>本周从架构图中的<strong>文本转换/处理</strong>模块开始（L4 p3–4，高亮）。整张架构图在<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#10-%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84">第 1 周第 10 节</a>中有说明。</p>
+<ul>
+<li><strong>语料</strong>（corpus，L4 p5–6）：可供搜索的全部文档的集合。在网页搜索中，它就是搜索引擎会考虑的全部网页，也就是文本获取（Text Acquisition）放入本地文档库（Local Document Store）的内容。</li>
+<li><strong>文本处理</strong>（text processing，L4 p7）：在搜索引擎使用语料中的文档之前，对它们进行加工的阶段。它<strong>发生在建立索引之前</strong>，目的是提高效率和性能。</li>
+<li>它通常包含<strong>两个主要步骤</strong>（L4 p8）：<ol>
+<li><strong>分词</strong>（tokenization，又称词法分析）：把文本切分成词元（token）。</li>
+<li><strong>语言学预处理</strong>（linguistic pre-processing）：对词元应用规则，以提高索引的效率（第 1 周提到了其中两种：停用词过滤（stopping）与词干提取（stemming））。</li>
+</ol>
+</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.1 Deciding What to Search（书中第 31 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="2-分词">2. 分词</h2>
+<h3 id="21-分词器做什么">2.1 分词器做什么</h3>
+<p>分词会<strong>把输入切分成有简单含义的单元</strong>（L4 p9–10）。词元可以是一个单词，也可以不是，这取决于你选择如何创建词元。分词器（tokenizer）也称为<strong>词法分析器</strong>（lexer）或<strong>扫描器</strong>（scanner），它把<strong>字符流转换为词元流</strong>。同一种机制会出现在两个地方：</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>分词器的输出交给谁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编译器前端</td>
+<td>语法分析器（parser）</td>
+</tr>
+<tr>
+<td>信息检索的预处理器</td>
+<td>检索系统</td>
+</tr>
+</tbody></table>
+<h3 id="22-什么是词元视情况而定">2.2 什么是词元？视情况而定</h3>
+<p>&quot;按空白切分，再丢掉标点？&quot;（L4 p11–12）幻灯片列出了这条简单规则必须做出选择的情况：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>幻灯片中的例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>撇号</td>
+<td>O&#39;Neill, Aren&#39;t</td>
+</tr>
+<tr>
+<td>连字符</td>
+<td>clear-headed 与 clearheaded；mother-in-law</td>
+</tr>
+<tr>
+<td>多个词算一个词元？</td>
+<td>San Francisco；white space；New York University 与 York University</td>
+</tr>
+<tr>
+<td>不是单词的词元</td>
+<td><code>info@uci.edu</code>、<code>http://www.ics.uci.edu/</code>、<code>192.168.0.1</code></td>
+</tr>
+</tbody></table>
+<p>没有普遍正确的答案：每种选择都决定了哪些查询能够匹配（如果把 New York University 切成三个词元，那么查询 &quot;York University&quot; 也会匹配到它）。</p>
+<h3 id="23-早期的分词方法">2.3 早期的分词方法</h3>
+<p>早期的 IR 系统使用一条非常简单的规则（L4 p13–15）：</p>
+<ul>
+<li>词元是<strong>由 3 个或以上字母数字字符组成的序列</strong>。</li>
+<li><strong>空格或特殊字符</strong>会结束一个词元。</li>
+<li>所有字符都转换为<strong>小写</strong>。</li>
+</ul>
+<p>对幻灯片中的句子，它得到的结果是：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">&quot;Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.&quot;
+        ↓
+&quot;bigcorp 2007 annual report showed profits rose&quot;</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>s</code>、<code>bi</code> 和 <code>10</code> 都不足 3 个字符，因此被丢弃了。幻灯片的结论是：<strong>过于粗糙，丢失了大量信息</strong>（幻灯片原文：&quot;To generic&quot;）。</p>
+<p>逐字符演示这条规则，也可以输入你自己的文本：</p>
+<pre data-language="viz" data-viz="tokenize"><code>{&quot;title&quot;: &quot;早期分词方法（L4 p13–15）&quot;, &quot;text&quot;: &quot;Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：这是幻灯片批评的<em>历史</em>规则，而不是作业 1（A1）的规则。A1 的规则来自 A1 题目说明：请阅读题目，不要照搬本演示的选择。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#161-bigcorp-%E5%8F%A5%E5%AD%90%E7%9A%84%E6%97%A9%E6%9C%9F%E5%88%86%E8%AF%8Dl4-p1315">例题 16.1</a> · <a href="#162-%E6%A3%98%E6%89%8B%E7%9A%84%E8%AF%8D%E5%85%83%E4%BC%9A%E6%80%8E%E6%A0%B7l4-p1112">例题 16.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.2 Tokenizing（书中第 87 页；后续阅读）</a></p>
+</blockquote>
+<hr>
+<h2 id="3-网页图及其特征">3. 网页图及其特征</h2>
+<p>&quot;再谈网页&quot;（L4 p19）。第 1 周中用户侧的搜索流程提出了一个问题：<strong>为什么这个蜘蛛能够爬取网页？</strong>（L4 p20）因为网页构成了一张图（L4 p21–22）：</p>
+<ul>
+<li><strong>页面是节点。</strong></li>
+<li><strong>超链接是有向边。</strong> 从 A 指向 B 的链接让你能从 A 到达 B，但不能反过来。</li>
+</ul>
+<p><strong>爬虫</strong>（crawler）沿着这些边从一个页面走到另一个页面。这张图是什么样子的？（L4 p23–30）</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>幻灯片的说法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>大量重复</strong></td>
+<td>某些研究中有 30%–40% 的页面重复 [Brod97, Shiv99]；谷歌 2013 年给出的数字是 25%–30%；copyscape.com 能找到某个页面的副本</td>
+</tr>
+<tr>
+<td><strong>高度链接</strong></td>
+<td>每页超过 8 个链接</td>
+</tr>
+<tr>
+<td><strong>规模巨大</strong></td>
+<td>主机数为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(10^9)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>；页面数为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mo stretchy="false">?</mo><mo stretchy="false">?</mo><mo stretchy="false">?</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(???)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mclose">???)</span></span></span></span> —— 幻灯片没有给出答案</td>
+</tr>
+<tr>
+<td><strong>垃圾、误导与虚假信息</strong></td>
+<td>其中有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><msup><mn>0</mn><mrow><mn>8</mn><mtext>–</mtext><mn>9</mn></mrow></msup><mo stretchy="false">?</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(10^{8\text{–}9}?)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">8</span><span class="mord text mtight"><span class="mord mtight">–</span></span><span class="mord mtight">9</span></span></span></span></span></span></span></span></span><span class="mclose">?)</span></span></span></span> 个页面</td>
+</tr>
+<tr>
+<td><strong>变化频繁</strong></td>
+<td>见下面的三项研究</td>
+</tr>
+</tbody></table>
+<p><strong>规模</strong>——Netcraft 的调查（L4 p24，2020 年图表；课堂上更新过，L3.5 p5）。在对数刻度上，网站数从 1995 年的约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">10^4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span></span></span></span> 增长到 2018 年 2 月约 18 亿的峰值，之后在 2024 年 3 月降至<strong>约 11 亿</strong>。2026 年 2 月：<strong>1,419,977,535 个主机名</strong>，其中只有 <strong>208,200,947 个活跃网站</strong>（约 14.7%）。</p>
+<p><strong>变化速率</strong>（L4 p27–30；幻灯片先让你猜一猜）：</p>
+<table>
+<thead>
+<tr>
+<th>研究</th>
+<th>样本</th>
+<th>发现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[Cho00]</td>
+<td>1999 年对 270 个热门网站的 720k 个页面进行了为期 5 个月的每日采样</td>
+<td><strong>40% 每周变化，23% 每天变化</strong></td>
+</tr>
+<tr>
+<td>[Fett02]</td>
+<td>检查了 151M 个页面，历时数月</td>
+<td>显著变化：每周 7%；一些变化：每周 25%</td>
+</tr>
+<tr>
+<td>[Ntul04]</td>
+<td>每周从头重新爬取 154 个<strong>大型</strong>网站</td>
+<td>8% 每周都有新页面；8% 消失；5% 有新内容；25% 有新链接</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：每一行都对应爬虫/索引的一个问题：重复浪费空间，规模大意味着无法全部抓取，垃圾信息意味着抓取到的内容不可信，而变化会让每一份副本都过时。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.youtube.com/watch?v=mQZY7EmjbMA">谷歌 2013 年重复率数字的来源（YouTube）</a> · <a href="https://www.copyscape.com">Copyscape</a> · <a href="https://news.netcraft.com/archives/2020/09/23/september-2020-web-server-survey.html">Netcraft 网站服务器调查（2020 年 9 月）</a> · <a href="https://www.netcraft.com/blog/march-2026-web-server-survey/">Netcraft 网站服务器调查（2026 年 3 月）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2 Crawling the Web（书中第 32 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates（书中第 60 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="4-网页的演化与网页搜索的样子">4. 网页的演化与网页搜索的样子</h2>
+<p><strong>演化</strong>（L4 p31–32），分为五个阶段：</p>
+<ol>
+<li>静态内容（文档）</li>
+<li>动态内容（应用；幻灯片展示的是日历和天气应用）</li>
+<li>用户生成内容（社交，如 Wikipedia、LinkedIn、Facebook）</li>
+<li>移动端</li>
+<li>??? AR？VR？脑机接口？</li>
+</ol>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：贯穿每个阶段，有一种需求始终不变：<strong>找到信息</strong>。当今的解决方案是用于<strong>搜索与排序</strong>的 IR 系统（L4 p32）。</p>
+</blockquote>
+<p><strong>网页搜索的特点</strong>（L4 p33）：<strong>热门的宽泛查询很少，而罕见的具体查询很多</strong>。幻灯片的例子是所有与癌症相关的搜索，它是一张饼图：只有少数几块可见（&quot;cancer&quot;、&quot;breast cancer&quot;、&quot;skin cancer&quot;、&quot;prostate cancer&quot;、&quot;lung cancer&quot;、&quot;colon cancer&quot;、&quot;leukemia&quot;、&quot;lymphoma&quot;），其余是数百个很小的切片。</p>
+<p><strong>热门搜索</strong>（L4 p34）：可以在 Google Trends 上查看词语的关注度，搜索引擎会<strong>利用趋势信息</strong>来：</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>趋势如何帮助</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自动补全</td>
+<td>改善用户体验；纠正拼写错误</td>
+</tr>
+<tr>
+<td>优化搜索结果</td>
+<td>&quot;你附近&quot;正在流行的内容可以帮助相关性打分</td>
+</tr>
+<tr>
+<td>智能缓存搜索结果</td>
+<td>如果某个搜索正在流行，就把它的结果保留在缓存中</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.google.com/trends/">Google Trends</a></p>
+</blockquote>
+<hr>
+<h2 id="5-网页用户需求查询与行为">5. 网页用户：需求、查询与行为</h2>
+<p><strong>人们为什么搜索</strong>[Jansen et al. 2008]（L4 p35）：</p>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>占比</th>
+<th>用户想要……</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>信息型</td>
+<td>约 80%</td>
+<td>了解某件事</td>
+</tr>
+<tr>
+<td>导航型</td>
+<td>约 10%</td>
+<td>去往某个页面（饼图称之为 &quot;URL Search&quot;）</td>
+</tr>
+<tr>
+<td>交易型</td>
+<td>约 10%</td>
+<td>做某件事</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>（较少）</td>
+<td>探索、社交等</td>
+</tr>
+</tbody></table>
+<p><strong>他们如何书写查询</strong>（L4 p36–39）：大多数查询都是<strong>定义不清的</strong>：</p>
+<ul>
+<li><strong>很短</strong>：80% 的查询少于 3 个词</li>
+<li><strong>用词不精确</strong></li>
+<li><strong>不使用逻辑运算符</strong></li>
+<li><strong>投入很少</strong>：有拼写错误</li>
+</ul>
+<p><strong>他们是谁</strong>（L4 p40–44）：他们在<strong>需求、期望、知识和带宽</strong>方面差异很大（&quot;如果你认真对待这些要点，你的搜索引擎会更好&quot;）。<strong>行为方面</strong>：</p>
+<ul>
+<li><strong>85% 的人只看一屏结果</strong>（!!!）</li>
+<li>78% 的查询没有被修改</li>
+<li>他们会顺着链接走——&quot;信息的气味&quot;（the scent of information）</li>
+</ul>
+<p><strong>人们会看多远？</strong>（L4 p49，一项 iProspect 调查：&quot;如果你没有找到想要的内容，你会在什么时候转向另一个搜索引擎，或在同一搜索引擎中换一个搜索？&quot;）</p>
+<table>
+<thead>
+<tr>
+<th>用户转向的时机</th>
+<th>占比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>看完前几条之后</td>
+<td>22.6%</td>
+</tr>
+<tr>
+<td>看完第一页之后</td>
+<td>18.6%</td>
+</tr>
+<tr>
+<td>看完前两页之后</td>
+<td>25.8%</td>
+</tr>
+<tr>
+<td>看完前三页之后</td>
+<td>14.7%</td>
+</tr>
+<tr>
+<td>超过三页之后</td>
+<td>10.8%</td>
+</tr>
+<tr>
+<td>看完整个列表（除非有几十页）</td>
+<td>7.4%</td>
+</tr>
+</tbody></table>
+<p>所以，41.2% 的人在第一页结束时放弃，67.0% 的人在第二页结束时放弃（由于四舍五入，各项相加为 99.9%）。</p>
+<p><strong>信息需求链条</strong>（L4 p45）：查询是这条链条的最后一环，每一步都会损失一部分含义。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>幻灯片中的例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>任务</td>
+<td>制止庭院里嘈杂的风扇</td>
+</tr>
+<tr>
+<td>信息需求</td>
+<td>关于 EPA 法规的信息</td>
+</tr>
+<tr>
+<td>口头表达</td>
+<td>EPA 关于噪声污染的规定是什么？</td>
+</tr>
+<tr>
+<td>查询</td>
+<td>EPA Sound Pollution</td>
+</tr>
+</tbody></table>
+<p><strong>回应查询背后的需求</strong>（L4 p46–47）。查询往往只是用户真正想要什么的一个<strong>不精确的指示</strong>。我们能做什么？</p>
+<ul>
+<li>设计检索模型，以及<strong>相关性分数</strong>的数学定义，它们通用，但未必对每个具体主题都理想（相关性与检索模型：<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#6-%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98%E7%9B%B8%E5%85%B3%E6%80%A7%E4%B8%8E%E6%A3%80%E7%B4%A2%E6%A8%A1%E5%9E%8B">第 1 周第 6 节</a>）</li>
+<li>利用<strong>用户上下文</strong>：谁、在哪里、做什么</li>
+<li><strong>猜测用户想要的信息类型</strong>（图片、地图、数学，等等）</li>
+<li><strong>纠正和/或扩展</strong>查询</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：两个不同的 80%：约 80% 的搜索是<em>信息型</em>的；80% 的查询<em>少于 3 个词</em>。85% 指一屏结果；78% 指查询未被修改。</p>
+</blockquote>
+<hr>
+<h2 id="6-用户如何评价搜索引擎">6. 用户如何评价搜索引擎</h2>
+<p><strong>最主要的标准是返回页面的质量</strong>（L5 p2–5）。在经典 IR 中，这就是相关性 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span>；真实搜索引擎的相关性是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo separator="true">,</mo><mo>…</mo><mtext> </mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D, \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span></span></span></span>——查询、文档<em>以及更多</em>——而它究竟如何定义，正是各家引擎的机密之一。对用户同样重要的还有：</p>
+<ul>
+<li>可信度</li>
+<li>去重（并提供&quot;显示相似结果&quot;选项）</li>
+<li>可读性</li>
+<li>快速访问</li>
+<li>没有弹窗</li>
+</ul>
+<h3 id="61-精确率与召回率">6.1 精确率与召回率</h3>
+<p>（L5 p6–11 · L3.5 p7–14，课堂上作为一次投票提出）</p>
+<ul>
+<li><strong>精确率</strong>（precision）：<em>最前面几条</em>结果的相关程度如何？</li>
+<li><strong>召回率</strong>（recall）：相关结果中有<em>多少</em>被展示出来？</li>
+</ul>
+<p><strong>对网页搜索而言，精确率比召回率更重要。</strong> 尼尔森诺曼集团（Nielsen Norman Group）的眼动热力图（L5 p9）在&quot;关于我们&quot;页、产品页和搜索结果页上都显示出 <strong>F 形</strong>：先横扫顶部，再横扫一次，然后沿左边缘向下。</p>
+<p><strong>何时召回率重要？当需要完整性时</strong>（L5 p11）：此时是<strong>承诺式阅读模式</strong>（整页都会被读完）——信源事先就被信任，用户动机强。例如：<strong>法律和科学</strong>领域的搜索引擎。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#163-%E7%B2%BE%E7%A1%AE%E7%8E%87%E8%BF%98%E6%98%AF%E5%8F%AC%E5%9B%9E%E7%8E%87l5-p611--l35-p714">例题 16.3</a></p>
+</blockquote>
+<h3 id="62-界面与工具">6.2 界面与工具</h3>
+<p><strong>好的界面：简洁，没有杂乱</strong>（L5 p12–15；展示了 Google、DuckDuckGo、Bing、Yandex、Baidu 和 Yahoo! 的截图）。此外还有<strong>前处理和后处理工具</strong>（L5 p16）：</p>
+<ul>
+<li>拼写检查 / 自动纠正</li>
+<li>推荐的替代搜索</li>
+<li>指向资源的链接（地图、图片等）</li>
+<li>处理句法线索，例如搜索框中输入的 URL，或数学公式</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.nngroup.com">尼尔森诺曼集团（眼动研究，见 L5 p9、p11）</a></p>
+</blockquote>
+<hr>
+<h2 id="7-商业模式搜索广告">7. 商业模式：搜索广告</h2>
+<p>第 1 周说明了搜索是网络广告收入中占比最大的部分（<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%BD%91%E7%BB%9C%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E9%87%8D%E8%A6%81">第 1 周第 4 节</a>）。本周讲的是它的历史与机制（L5 p17–21）：</p>
+<ol>
+<li><strong>早期的协同</strong>：基于关键词的搜索引擎——Altavista（1995–1997）、Excite、InfoSeek、Inktomi——以及<strong>付费排名</strong>（paid placement ranking），即广告基于<strong>关键词拍卖</strong>投放（Goto.com → Overture.com → Yahoo! → Google）。</li>
+<li><strong>基于链接的排名</strong>，由 Google 开创（1998 年起）：链接为相关性增加了<strong>权威性</strong>，大幅超越了只看关键词的搜索引擎。用户体验很好，但还没有商业模式——与此同时，Goto/Overture 的年收入接近 10 亿美元。</li>
+<li><strong>Google 加入了付费广告</strong>，并与搜索结果明确区分。<strong>Yahoo!</strong> 收购 Inktomi 以获取搜索技术（几亿美元），收购 Overture 以获取付费排名技术（16 亿美元，2003 年）：赞助链接与客观结果并列展示。Google 则授权使用了 Yahoo! 的付费排名技术，多年来它一直是 Google 的广告引擎（现在是否仍然如此，无人确知）。</li>
+<li><strong>今天</strong>：各引擎宣称广告<strong>不会</strong>影响广告主的排名（无人能完全确定）。广告投放是<strong>全自动</strong>的，<strong>在竞价价格与相关性之间取得平衡</strong>，并且是<strong>定向</strong>的。</li>
+</ol>
+<h3 id="71-企业如何付费">7.1 企业如何付费</h3>
+<p>（L5 p22）</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>广告主付费……</th>
+<th>适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CPM</strong>——千次展示成本（Cost Per Mil）</td>
+<td>每 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> 次展示（曝光）时付费</td>
+<td>品牌推广活动</td>
+</tr>
+<tr>
+<td><strong>CPC</strong>——点击成本（Cost Per Click）</td>
+<td>用户点击广告时付费</td>
+<td>销售类活动</td>
+</tr>
+<tr>
+<td><strong>CPA</strong>——行动成本（Cost Per Action/Acquisition）</td>
+<td>只有点击触发了某个行为时才付费（例如 DuckDuckGo + Amazon）</td>
+<td>为结果付费</td>
+</tr>
+</tbody></table>
+<p><strong>这对业务为何说得通</strong>（L3.5 p16–17）：在搜索引擎的示意图中，爬取、索引和自然结果<strong>更有意思，但经济价值更低</strong>；广告索引<strong>没那么有意思，但价值约高 10 倍</strong>。</p>
+<h3 id="72-点击欺诈">7.2 点击欺诈</h3>
+<p>（L5 p23）</p>
+<ul>
+<li><strong>2016 至 2018 年间损失了 72 亿美元</strong>（《卫报》）。</li>
+<li>Google 称之为<strong>&quot;无效点击&quot;</strong>（invalid clicks）。</li>
+<li>搜索引擎有复杂的工具来检测欺诈。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：CPM 中的 M 是 <em>mil(le)</em>——即一千次展示，而不是一百万次。点击欺诈会损害按点击计费的定价：每一次虚假点击都会被计费。</p>
+</blockquote>
+<hr>
+<h2 id="8-搜索引擎优化seo">8. 搜索引擎优化（SEO）</h2>
+<p><strong>付费广告投放要花钱。于是……</strong>（L5 p24–26）——<strong>SEO</strong> 是<strong>为了在特定查询的搜索结果中获得高排名而对网页/网站/应用进行的调优</strong>。它是付费广告投放的替代方案，并附带一个好处：<strong>通过排名获得的可见度 = 更高的信任</strong>。简而言之，<strong>它就是营销</strong>：让你的内容抵达你的受众。</p>
+<table>
+<thead>
+<tr>
+<th>问题（L5 p27–28）</th>
+<th>答案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>动机</td>
+<td>商业、政治、宗教、游说</td>
+</tr>
+<tr>
+<td>谁来做</td>
+<td>内部：网站管理员、写作者。商业化：公司、顾问。托管服务。流行 CMS 的插件</td>
+</tr>
+</tbody></table>
+<p>SEO 本质上是一个<strong>营销与技术的交叉领域</strong>（L5 p29）。如何做：Google 的站长指南、WebmasterWorld 的 SEO 工具，以及许多书籍（幻灯片展示的是 Enge、Spencer 和 Stricchiola 合著、O&#39;Reilly 出版的 <em>The Art of SEO</em>）。</p>
+<p><strong>合乎道德与不合乎道德的做法</strong>（L5 p30–31）：</p>
+<table>
+<thead>
+<tr>
+<th>合法</th>
+<th>不道德（即 &quot;spam&quot;）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面的收录时间（越早越好）</td>
+<td>虚假页面</td>
+</tr>
+<tr>
+<td>优质的入链</td>
+<td>指向你网站的虚假网站</td>
+</tr>
+<tr>
+<td>优质内容：写得好、组织得好、保持更新</td>
+<td>虚假评论 / 互动（机器人！）</td>
+</tr>
+<tr>
+<td>良好地使用网络标准与实践</td>
+<td>简而言之：&quot;替代事实&quot;，即谎言</td>
+</tr>
+<tr>
+<td>快速的服务器（响应迅速）</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>有时合法与非法之间的界线很难划清——存在一个<strong>很大的灰色地带</strong>。</p>
+<p><strong>地点也很重要</strong>（L5 p32）：结果还取决于查询由<strong>哪个数据中心</strong>接收。google.com、google.fr 和 google.pt 对同一个查询（例如 &quot;Paris&quot;）会显示不同的结果，因此可以针对每个国家考虑不同的 SEO 策略。</p>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://support.google.com/webmasters/answer/40349?hl=en">Google 站长指南（答案 40349）</a> · <a href="http://freetools.webmasterworld.com/category/seo-tools">WebmasterWorld SEO 工具</a></p>
+</blockquote>
+<hr>
+<h2 id="9-作弊手法与垃圾信息">9. 作弊手法与垃圾信息</h2>
+<h3 id="91-作弊技术">9.1 作弊技术</h3>
+<p>（L6 p2–7 · L3.5 p19–22）</p>
+<p><strong>关键词堆砌。</strong> 第一代搜索引擎严重依赖文本内容和词频，于是 SEO 在关键词上做文章（L6 p3–4）：</p>
+<ul>
+<li><strong>误导性元标签</strong>：幻灯片展示了一个旅游网站的 <code>&lt;head&gt;</code>，其中的 <code>&lt;meta name=&quot;keywords&quot;&gt;</code> 标签列出了 &quot;Expedia, Travel, Cheap Airfare, Car, Hotels, Vacations, Airfare, Car Rental, Cruises, …&quot;，描述标签也以同样的方式堆砌关键词</li>
+<li><strong>反复重复词语</strong></li>
+<li><strong>在颜色上做文章</strong>（白字写在白底上）：爬虫和索引器能看到，但用户看不到</li>
+</ul>
+<p><strong>伪装</strong>（cloaking，L6 p5）：向爬虫提供与向浏览器提供的不同内容。服务器会检查请求者是谁：</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  r[&quot;URL 请求&quot;] --&gt; q{&quot;请求来自爬虫？&quot;}
+  q -- &quot;是&quot; --&gt; s[&quot;面向搜索引擎的页面（Spam!）&quot;]
+  q -- &quot;否&quot; --&gt; u[&quot;面向用户的页面&quot;]</code></pre><p>幻灯片的说明：这种架构与<strong>动态内容引擎</strong>相同，它可以针对不同的搜索引擎做出调整。</p>
+<p><strong>过渡页</strong>（doorway page）：与伪装类似，但使用的是<strong>重定向（302）</strong>（L6 p6）。HTTP 302 表示&quot;所请求的资源<strong>暂时</strong>位于另一个 URI 下。由于重定向可能会偶尔改变，客户端应继续使用 Request-URI 发起后续请求&quot;。最初的页面针对爬虫进行了优化；随后一个即时重定向把用户带到真正的内容，因此<strong>用户看到的是最终页面</strong>。</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  r[&quot;URL 请求&quot;] --&gt; d[&quot;面向搜索引擎的页面（Spam!）&quot;]
+  d -- &quot;即时重定向（302）&quot; --&gt; u[&quot;面向用户的页面&quot;]</code></pre><p><strong>链接交换</strong>（L6 p7）：&quot;我链接你，你链接我&quot;；&quot;翻译版本&quot;；以及<strong>大学和教授是被针对的目标</strong>——本质上是因为在链接分析层面，<strong>信任的转移</strong>至关重要。</p>
+<h3 id="92-垃圾信息">9.2 垃圾信息</h3>
+<p>（L6 p8–11）</p>
+<table>
+<thead>
+<tr>
+<th>两大主要类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>链接垃圾</strong>（link spamming）</td>
+<td>自动程序搜索博客并留下带链接的评论</td>
+</tr>
+<tr>
+<td><strong>点击机器人</strong>（clicker bots）</td>
+<td>自动程序发出查询，并&quot;点击&quot;针对性查询的结果</td>
+</tr>
+</tbody></table>
+<p>整个<strong>垃圾信息产业</strong>都存在（L6 p10：有的网站售卖 “First Page of Google GUARANTEED”（保证上 Google 首页）、“How To Get On The First Page of Google In 24 hours”（如何在 24 小时内上 Google 首页）等服务），网络比赛也会被灌水（L6 p11）。</p>
+<h3 id="93-伪造-user-agent">9.3 伪造 User-Agent</h3>
+<p>（L3.5 p23–24）最重要的一类是 <code>urllib.request.Request()</code>：通过设置 <strong>User-Agent</strong> 请求头，一个简单的 Python 脚本可以让服务器以为它是 iPhone 上的 Chrome。这就是<strong>&quot;伪造&quot;（spoofing）</strong>，它被广泛用于访问那些拒绝脚本或爬虫的网站——<strong>但要小心！</strong> 幻灯片中的 <code>print_url_3.py</code>：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">#</span></span>
+<span class="line"><span style="color:#6A9955"># Example 3 of urllib.request.open()</span></span>
+<span class="line"><span style="color:#6A9955">#</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> sys</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> urllib.request</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> print_data_url</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url_name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">str</span><span style="color:#D4D4D4">) -> </span><span style="color:#569CD6">None</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#6A9955">    # First we spoof an user agent</span></span>
+<span class="line"><span style="color:#D4D4D4">    headers = {</span><span style="color:#CE9178">'User-Agent'</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Mac OS X) AppleWebKit/605.1.15 (KHTML, like "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Gecko) CriOS/110.0.5481.83 Mobile/15E148 "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Safari/604.1"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">    request = urllib.request.Request(url_name, </span><span style="color:#9CDCFE">headers</span><span style="color:#D4D4D4">=headers)</span></span>
+<span class="line"><span style="color:#6A9955">    # Now we can retrieve data</span></span>
+<span class="line"><span style="color:#D4D4D4">    response = urllib.request.urlopen(request)</span></span>
+<span class="line"><span style="color:#D4D4D4">    response_data = response.read()</span></span>
+<span class="line"><span style="color:#D4D4D4">    response_data = response_data.decode(</span><span style="color:#9CDCFE">encoding</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'utf-8'</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    response.close()</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(response_data)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#9CDCFE"> __name__</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"__main__"</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#D4D4D4">    print_data_url(sys.argv[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">])</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片上，一个&quot;我的 user agent 是什么&quot;的页面会报告那个 iPhone 字符串：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">$</span><span style="color:#CE9178"> python3</span><span style="color:#CE9178"> print_url_3.py</span><span style="color:#CE9178"> https://www.whatismybrowser.com/detect/what-is-my-user-agent/</span><span style="color:#D4D4D4"> | </span><span style="color:#DCDCAA">grep</span><span style="color:#569CD6"> -i</span><span style="color:#CE9178"> "Mozilla"</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>用一个会回显请求头的本地服务器检验：脚本发出的请求带的是上面的 iPhone 字符串；而普通的 <code>urlopen(url)</code> 带的是 <code>Python-urllib/3.x</code>，这正是伪装服务器或机器人拦截器所查找的默认值。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：伪装和过渡页都向引擎展示了用户看不到的东西；区别在于机制。伪装 = <strong>服务器根据请求者是谁来分支</strong>。过渡页 = <strong>对所有人是同一个页面，然后用 302 重定向</strong>，只有浏览器会跟随这个重定向到真正的内容。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.wholewhale.com/tips/how-to-win-or-cheat-any-online-voting-contest/">如何赢得（或作弊赢得）任何网络投票比赛</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.5.3 Link Quality（书中第 111 页；后续阅读）</a></p>
+</blockquote>
+<hr>
+<h2 id="10-垃圾信息之战与-seo-技巧的短命">10. 垃圾信息之战与 SEO 技巧的短命</h2>
+<p><strong>搜索引擎如何反击</strong>（L6 p12–15）：</p>
+<table>
+<thead>
+<tr>
+<th>武器</th>
+<th>细节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>质量指标</td>
+<td>对链接做统计分析；对投票做统计分析</td>
+</tr>
+<tr>
+<td>使用指标</td>
+<td>分析数据</td>
+</tr>
+<tr>
+<td>反机器人机制</td>
+<td>验证码（幻灯片展示的是 reCAPTCHA &quot;输入这两个词&quot;）</td>
+</tr>
+<tr>
+<td>对元关键词的限制</td>
+<td></td>
+</tr>
+<tr>
+<td>适合家庭的过滤器</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>稳健的链接分析</strong></td>
+<td>忽略统计上不可能的链接（例如，来自葡萄牙的葡萄牙语页面链接到来自中国的中文页面）；检测环路；用链接分析来识别垃圾信息发布者，一条非常简单的规则：<strong>&quot;因关联而有罪&quot;</strong>（guilt by association）</td>
+</tr>
+<tr>
+<td>人工编辑干预</td>
+<td>黑名单，以及为监督式机器学习创建训练集</td>
+</tr>
+<tr>
+<td>机器学习识别垃圾信息</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>站长指南</strong>（L6 p16）：搜索引擎会发布 SEO 政策，说明哪些做法被允许，哪些不被允许。它们<strong>不可忽视</strong>：一旦网站被搜索引擎列入黑名单，它实际上就会<strong>从网络上消失</strong>。</p>
+<p><strong>SEO &quot;技巧&quot;容易失效</strong>（L6 p17–19），因为它们依赖于引擎的工作方式，而这些方法一直在变：</p>
+<table>
+<thead>
+<tr>
+<th>时代</th>
+<th>Google 的方法</th>
+<th>它们关注的内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1996 年 – ?</td>
+<td>PageRank；随后是 Panda（2011）、Penguin（2012）、Hummingbird（2013）、Pigeon（2014），……</td>
+<td><strong>词语与链接</strong></td>
+</tr>
+<tr>
+<td>2016 年起</td>
+<td>RankBrain，基于机器学习</td>
+<td><strong>概念</strong></td>
+</tr>
+<tr>
+<td>2019 年 10 月起</td>
+<td>BERT，自然语言处理与机器学习</td>
+<td></td>
+</tr>
+<tr>
+<td>现在</td>
+<td>RankBrain + BERT + …… ，<strong>超过 200 种方法与信号</strong>（!）</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>能为 BERT 做优化吗？Google 说不能（但现在下结论还为时过早）。</p>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：幻灯片给出的解答（L6 p20 · L3.5 p25）：<strong>为用户优化，就必然会为优秀的搜索引擎优化。</strong> 各种技巧利用的是引擎所测量的东西与用户真正想要的东西之间的缝隙；而这些缝隙也在不断被填补。</p>
+</blockquote>
+<hr>
+<h2 id="11-排名到底用了什么yandex-泄露">11. 排名到底用了什么：Yandex 泄露</h2>
+<p>（L3.5 p37–43，仅限课堂）</p>
+<p><strong>Yandex</strong> 是俄罗斯和前苏联国家中最大的互联网与技术公司。它成立于 1997 年，比 Google（1998 年）早一年，现在可能是俄罗斯最大的搜索引擎；战争之前，它在俄罗斯的市场份额约为 42%。在全球范围内，它排名第 4（搜索引擎市场份额，2023 年 3 月）：</p>
+<table>
+<thead>
+<tr>
+<th>引擎</th>
+<th>Google</th>
+<th>Bing</th>
+<th>Yahoo!</th>
+<th><strong>Yandex</strong></th>
+<th>DuckDuckGo</th>
+<th>Baidu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>份额</td>
+<td>93.18%</td>
+<td>2.87%</td>
+<td>1.12%</td>
+<td><strong>1.02%</strong></td>
+<td>0.52%</td>
+<td>0.42%</td>
+</tr>
+</tbody></table>
+<p><strong>泄露事件</strong>（L3.5 p41）：Yandex 自 1993 年起就在开发搜索技术。2023 年 1 月 25 日，一名（现已离职的）员工泄露了软件信息：44 GB 的数据，可通过 torrent 获取，内容不仅涵盖搜索，还包括地图、邮件和云服务。</p>
+<p><strong>三大类因子</strong>（L3.5 p42）：</p>
+<table>
+<thead>
+<tr>
+<th>因子类型</th>
+<th>取决于</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>静态</strong></td>
+<td>只取决于网站本身</td>
+<td>链接、标题、广告比例</td>
+</tr>
+<tr>
+<td><strong>动态</strong></td>
+<td>网站 + 查询</td>
+<td>文本相关性，tf-idf 排名</td>
+</tr>
+<tr>
+<td><strong>用户搜索</strong></td>
+<td>只取决于用户</td>
+<td>用户位置，查询语言</td>
+</tr>
+</tbody></table>
+<p><strong>排名中使用的信号</strong>（L3.5 p43）：</p>
+<ul>
+<li>MatrixNet + Palekh + Korolyov + CatBoost（机器学习排名模型）</li>
+<li>PageRank</li>
+<li>tf-idf</li>
+<li>页面质量评分</li>
+<li>权威性的链接继承</li>
+<li>历史服务器响应质量</li>
+<li>页面年龄、新鲜度、更新频率</li>
+<li><strong>爬取层级</strong>：更看重那些直接从第一页链接到达的页面</li>
+<li><strong>点击历史</strong>：页面出现在结果列表中时，用户点击它的频率，并经过滤除机器人！</li>
+<li>医疗、法律、金融（以及可能的政治）话题的专门因子</li>
+<li><strong>URL 字符串</strong>：数字、结尾斜杠、大写字母，全都是负面因素！</li>
+<li>用户之间的相似性</li>
+<li>字体大小（是否适合移动端？）</li>
+<li>……</li>
+</ul>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：这次泄露与本周内容相互印证：&quot;快速服务器&quot;（第 8 节）= <em>历史服务器响应质量</em>；经过机器人过滤的点击历史 = 对点击机器人的防御（第 9 节）；静态、动态、用户因子 = 把 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo separator="true">,</mo><mo>…</mo><mtext> </mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D, \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span></span></span></span> 具体展开。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://canvas.eee.uci.edu/courses/87165/files/37013257">Yandex 泄露的因子文件（Canvas，选读）</a></p>
+</blockquote>
+<hr>
+<h2 id="12-uriurl-与-urn">12. URI、URL 与 URN</h2>
+<p>&quot;从网络获取数据&quot;（L6 p21）：架构图现在圈出了<strong>网页 + 文本获取</strong>（L6 p22），也就是爬取的起点。</p>
+<blockquote>
+<p>🗣️ <strong>课堂上</strong>：&quot;注意 URI、URN 和 URL 之间的区别&quot;（L3.5 p3–26）。</p>
+</blockquote>
+<h3 id="121-定义">12.1 定义</h3>
+<p>（L6 p23–24 · L3.5 p27–29）</p>
+<p><strong>URI</strong> 是用来标识资源的字符串。（幻灯片把它展开为 &quot;Universal Resource Identifier&quot;；标准名称是 <strong>Uniform</strong> Resource Identifier。）</p>
+<table>
+<thead>
+<tr>
+<th>示例 URI</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://www.ics.uci.edu</code></td>
+<td>URL</td>
+</tr>
+<tr>
+<td>ISBN 0-486-27777-3</td>
+<td>URN</td>
+</tr>
+<tr>
+<td><code>ftp://ftp.ics.uci.edu</code></td>
+<td>URL</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>URL（定位符）</strong>：必须指明资源<strong>在哪里</strong>。</li>
+<li><strong>URN（名称）</strong>：只说明资源<strong>是什么</strong>。</li>
+<li>课程关注的是 URL，但 &quot;URI&quot; 可能会被当作同义词使用。</li>
+</ul>
+<h3 id="122-url-的组成">12.2 URL 的组成</h3>
+<p>（L6 p25–28）</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">scheme://domain:port/path?query_string#fragment_id
+         \_________/
+          authority</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>scheme://domain</code> 是<strong>必需的</strong>；<code>:port/path?query_string#fragment_id</code> 是<strong>可选的</strong>。域名与端口合起来构成<strong>授权部分</strong>（authority）。完整情况稍微复杂一些（参见完整规范）。</p>
+<p>幻灯片对两个 URL 做了标注：</p>
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th>组成部分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://www.ics.uci.edu/~lopes</code></td>
+<td><code>http</code> = 位于 Web 服务器上 · <code>www.ics.uci.edu</code> = 没有端口，只有域名 · <code>~lopes</code> = 路径</td>
+</tr>
+<tr>
+<td><code>http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code></td>
+<td>域名 <code>calendar.ics.uci.edu</code> · 路径 <code>calendar.php</code> · 查询 <code>type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code></td>
+</tr>
+</tbody></table>
+<p><strong>域名与子域名</strong>：在 <code>calendar.ics.uci.edu</code> 中，<strong>域名</strong>是 <code>uci.edu</code>；<code>ics</code> 和 <code>calendar</code> 是子域名。</p>
+<p><strong>绝对 URL 与相对 URL，对 A2 很重要！</strong>（L3.5 p29）：<code>&lt;a href=&quot;http://www.ics.uci.edu/~algol/somesite.html&quot;&gt;</code> 是绝对 URL；<code>&lt;a href=&quot;/somesite.html&quot;&gt;</code> 是相对 URL，必须相对于它所在的页面来解析。</p>
+<p>动手试一试：逐步查看解析过程、查询参数和相对路径的解析（编辑 URL 后点击运行）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;URL 的组成（L6 p25–28 · L3.5 p29）&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;const urls = [\n  \&quot;http://www.ics.uci.edu/~lopes\&quot;,\n  \&quot;http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013\&quot;\n];\nfor (const s of urls) {\n  const u = new URL(s);\n  console.log(s);\n  console.log({ scheme: u.protocol, host: u.hostname, port: u.port, path: u.pathname, query: u.search, fragment: u.hash });\n}&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;The query string is a list of name=value pairs; category is present but empty.&quot;, &quot;js&quot;: &quot;\nconst q = new URL(urls[1]).searchParams;\nfor (const [name, value] of q) console.log(name, \&quot;=\&quot;, JSON.stringify(value));&quot;}, {&quot;note&quot;: &quot;Relative links are resolved against the page they appear on: a leading / restarts at the domain.&quot;, &quot;js&quot;: &quot;\nconst page = \&quot;http://www.ics.uci.edu/~algol/somesite.html\&quot;;\nconsole.log(new URL(\&quot;/somesite.html\&quot;, page).href);\nconsole.log(new URL(\&quot;somesite.html\&quot;, page).href);&quot;}, {&quot;note&quot;: &quot;Every optional part filled in (illustrative URL): port, path, query, fragment.&quot;, &quot;js&quot;: &quot;\nconst full = new URL(\&quot;http://www.ics.uci.edu:8080/~lopes/index.html?lang=en#top\&quot;);\nconsole.log({ host: full.hostname, port: full.port, path: full.pathname, query: full.search, fragment: full.hash });&quot;}], &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>在 Python（本课程使用的语言）中，<code>urllib.parse</code> 给出相同的各个部分：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> urllib.parse </span><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> urlsplit, urljoin</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">p = urlsplit(</span><span style="color:#CE9178">"http://calendar.ics.uci.edu/calendar.php"</span></span>
+<span class="line"><span style="color:#CE9178">             "?type=month&#x26;calendar=1&#x26;category=&#x26;month=02&#x26;year=2013"</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(p.scheme, p.hostname, p.port, p.path)</span></span>
+<span class="line"><span style="color:#6A9955"># http calendar.ics.uci.edu None /calendar.php</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(p.query)</span></span>
+<span class="line"><span style="color:#6A9955"># type=month&#x26;calendar=1&#x26;category=&#x26;month=02&#x26;year=2013</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">page = </span><span style="color:#CE9178">"http://www.ics.uci.edu/~algol/somesite.html"</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(urljoin(page, </span><span style="color:#CE9178">"/somesite.html"</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#6A9955"># http://www.ics.uci.edu/somesite.html</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(urljoin(page, </span><span style="color:#CE9178">"somesite.html"</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#6A9955"># http://www.ics.uci.edu/~algol/somesite.html</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片上的两个链接<strong>并不是</strong>同一个页面。在 <code>http://www.ics.uci.edu/~algol/somesite.html</code> 上，<code>href=&quot;/somesite.html&quot;</code> 解析为 <code>http://www.ics.uci.edu/somesite.html</code>，开头的 <code>/</code> 去掉了 <code>~algol/</code>。在加入队列之前，先对每个链接做解析（<code>urljoin</code>）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#164-%E6%8B%86%E8%A7%A3%E5%B9%BB%E7%81%AF%E7%89%87%E4%B8%AD%E7%9A%84-urll6-p2528">例题 16.4</a> · <a href="#165-uriurl-%E8%BF%98%E6%98%AF-urnl6-p2324--l35-p2728">例题 16.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="http://www.w3.org/Addressing/URL/url-spec.txt">W3C：URL 规范</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2.1 Retrieving Web Pages（书中第 33 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="13-网页数据采集的几种方式">13. 网页数据采集的几种方式</h2>
+<p>如何获取数据？有四种方式（L6 p29–34）：</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>工作原理</th>
+<th>幻灯片中的说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据转储</strong></td>
+<td>网站定期打包自己的数据，并以&quot;转储&quot;的形式提供</td>
+<td>维基百科（幻灯片建议用 torrent 下载）；arXiv 的批量全文访问</td>
+</tr>
+<tr>
+<td><strong>URL 下载</strong></td>
+<td>两步：（1）找出特定资源的 URL；（2）对这个列表运行下载器</td>
+<td>例如从 SourceForge / GitHub&quot;爬取&quot;（!）源代码，或论文、网页等。一些网站使用规则的 URL：<code>http://link.springer.com/chapter/10.1007/978-3-642-34213-4_1</code>、<code>…_2</code>，…；Google Code 的 <code>http://code.google.com/p/python-for-android/downloads/list</code></td>
+</tr>
+<tr>
+<td><strong>Web API</strong></td>
+<td>网站提供（REST）接口来获取数据</td>
+<td>通常是<strong>更高层级的</strong>（无需解析 HTML），但通常<strong>限制较多</strong>（只提供部分数据）。Facebook Graph API、YouTube API、Twitter API、arXiv API，……</td>
+</tr>
+<tr>
+<td><strong>网页爬取</strong></td>
+<td>像人一样：获取 HTML 页面和其他文档，并在过程中<strong>发现新的 URL</strong></td>
+<td>适合<strong>不断变化</strong>的集合和<strong>未知</strong>的文档。网站管理员不喜欢爬虫：它们消耗了本应供人使用的资源（&quot;稍后详述……&quot;）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：只有在你事先不知道 URL 时，爬取才行得通；URL 下载需要可预测的模式，例如 <code>…34213-4_1</code>、<code>…_2</code>。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="http://en.wikipedia.org/wiki/Wikipedia:Database_download">Wikipedia：数据库下载</a> · <a href="https://arxiv.org/help/bulk_data_s3">arXiv 批量数据（S3）</a> · <a href="https://arxiv.org/help/api/index">arXiv API</a> · <a href="https://developers.facebook.com/docs/reference/api/">Facebook Graph API</a> · <a href="https://developers.facebook.com/docs/reference/api/examples/">Graph API 示例</a> · <a href="https://developers.google.com/youtube/">YouTube API</a><br>🔗 <strong>更多</strong>：<a href="https://dev.twitter.com/docs">Twitter API 文档</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.4 Document Feeds（书中第 47 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="14-迈向网页爬取什么是算法">14. 迈向网页爬取：什么是算法</h2>
+<p>第 6 讲结尾开启了下一个主题：<strong>基本爬取算法</strong>（L6 p35，一张标题幻灯片）。在写下它之前，幻灯片先问：&quot;算法？&quot;，使用的是<strong>Knuth 的定义</strong>（L6 p36）。一个过程若满足下列性质，就是算法：</p>
+<table>
+<thead>
+<tr>
+<th>性质</th>
+<th>要问的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>有限性</strong>（Finiteness）</td>
+<td>它是否会在有限步之后结束？</td>
+</tr>
+<tr>
+<td><strong>确定性</strong>（Definiteness）</td>
+<td>每一步是否被严格且无歧义地规定？</td>
+</tr>
+<tr>
+<td><strong>输入</strong>（Input）</td>
+<td>它是否有零个或多个输入？</td>
+</tr>
+<tr>
+<td><strong>输出</strong>（Output）</td>
+<td>它是否有一个或多个与输入相关的输出？</td>
+</tr>
+<tr>
+<td><strong>有效性</strong>（Effectiveness）</td>
+<td>操作是否基础到一个人只用纸和笔就能执行？</td>
+</tr>
+</tbody></table>
+<p>在设计爬取循环时请牢记这些性质：面对庞大且不断变化的网络（第 3 节），要考虑有限性。爬取算法本身（边界队列（frontier）、礼貌性（politeness）、robots.txt）在<a href="/~kazuhak/notes/cs-121/week-03/zh-CN/#1-%E5%9F%BA%E6%9C%AC%E7%88%AC%E5%8F%96%E7%AE%97%E6%B3%95">第 3 周第 1 节</a>中讲解。</p>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2.2 The Web Crawler（书中第 35 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="15-课堂笔记与作业提示">15. 课堂笔记与作业提示</h2>
+<p>课堂笔记以 <strong>&quot;期望：本季度结束时……&quot;</strong> 开头（L3.5 p2；其余内容为课堂讲授）。</p>
+<p><strong>作业 1（A1）：从零实现分词器</strong>（L4 p16–18 · L3.5 p31–36；周五 10 月 9 日截止）：</p>
+<ul>
+<li><strong>Python</strong>：L4 说 3.10+，课堂讲义说 3.6+；无论如何<strong>最好使用 3.10</strong>，这也是 <code>openlab.ics.uci.edu</code> 机器上的版本。</li>
+<li><strong>刻意留白</strong>：自己做出选择，并能为之辩护。<em>但这不意味着什么都可以接受</em>；请遵循题目要求！</li>
+<li><strong>必须能从命令行运行</strong>，例如 <code>python3 PartA.py /blabla/assignmentTestCase.txt</code>，文件名从命令行参数中获取（&quot;是的，你可以 <code>import sys</code>&quot;）。</li>
+<li><strong>充分注释</strong>：测试方法是让别人在<em>没有题目</em>的情况下阅读你的代码；注释必须体现你的理解，包括复杂度分析。</li>
+<li><strong>方法/函数签名是非正式的</strong>：你可以改名字，但不能改变它们的功能。</li>
+<li><strong>必须处理异常</strong>：你的代码不能因为非英文字符、不存在的文件等情况而崩溃。</li>
+<li><strong>非常重要：你不能 <code>import assignment1</code>……</strong></li>
+</ul>
+<p><strong>对于 A2</strong>：绝对 URL 与相对 URL（<a href="#12-uriurl-%E4%B8%8E-urn">第 12 节</a>）。</p>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#11-%E8%AF%BE%E5%A0%82%E7%AC%94%E8%AE%B0%E4%B8%8E%E4%BD%9C%E4%B8%9A%E6%8F%90%E7%A4%BA">第 1 周 A1 与 openlab 笔记</a></p>
+</blockquote>
+<hr>
+<h2 id="16-带解答的例题">16. 带解答的例题</h2>
+<h3 id="161-bigcorp-句子的早期分词l4-p1315">16.1 Bigcorp 句子的早期分词（L4 p13–15）</h3>
+<p>用早期方法（词元 = 连续 3 个或以上字母数字字符；任何空格或特殊字符都会结束一个词元；所有字符转为小写）处理下面的句子：</p>
+<p><code>Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.</code></p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 在每个非字母数字字符处切分（<code>&#39;</code>、空格、<code>-</code>、<code>%</code>、<code>.</code>），并转为小写：<code>bigcorp</code>、<code>s</code>、<code>2007</code>、<code>bi</code>、<code>annual</code>、<code>report</code>、<code>showed</code>、<code>profits</code>、<code>rose</code>、<code>10</code>。丢弃长度小于 3 的部分：<code>s</code>、<code>bi</code>、<code>10</code>。结果：<code>bigcorp 2007 annual report showed profits rose</code>，共 7 个词元，与幻灯片的答案一致。丢失的有：修饰 &quot;annual&quot; 的 &quot;bi&quot;，以及作为这条消息核心的 10%，即 &quot;too generic&quot;（过于粗糙）。返回<a href="#2-%E5%88%86%E8%AF%8D">第 2 节</a>。</p>
+<h3 id="162-棘手的词元会怎样l4-p1112">16.2 棘手的词元会怎样（L4 p11–12）</h3>
+<p>把幻灯片中的每个例子分别用 (a) &quot;按空白切分，再丢掉标点&quot; 和 (b) 早期方法处理。哪些会出错？错在哪里？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>(a) 按空白切分 + 丢弃标点</th>
+<th>(b) 早期方法（3 个以上字母数字）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>O&#39;Neill</td>
+<td><code>oneill</code></td>
+<td><code>neill</code>（<code>o</code> 被丢弃）</td>
+</tr>
+<tr>
+<td>Aren&#39;t</td>
+<td><code>arent</code></td>
+<td><code>aren</code>（<code>t</code> 被丢弃）</td>
+</tr>
+<tr>
+<td>clear-headed</td>
+<td><code>clearheaded</code></td>
+<td><code>clear</code>、<code>headed</code></td>
+</tr>
+<tr>
+<td>clearheaded</td>
+<td><code>clearheaded</code></td>
+<td><code>clearheaded</code></td>
+</tr>
+<tr>
+<td>mother-in-law</td>
+<td><code>motherinlaw</code></td>
+<td><code>mother</code>、<code>law</code>（<code>in</code> 被丢弃）</td>
+</tr>
+<tr>
+<td>San Francisco</td>
+<td><code>san</code>、<code>francisco</code></td>
+<td><code>san</code>、<code>francisco</code></td>
+</tr>
+<tr>
+<td>New York University</td>
+<td><code>new</code>、<code>york</code>、<code>university</code></td>
+<td><code>new</code>、<code>york</code>、<code>university</code></td>
+</tr>
+<tr>
+<td><code>info@uci.edu</code></td>
+<td><code>infouciedu</code></td>
+<td><code>info</code>、<code>uci</code>、<code>edu</code></td>
+</tr>
+<tr>
+<td><code>http://www.ics.uci.edu/</code></td>
+<td><code>httpwwwicsuciedu</code></td>
+<td><code>http</code>、<code>www</code>、<code>ics</code>、<code>uci</code>、<code>edu</code></td>
+</tr>
+<tr>
+<td><code>192.168.0.1</code></td>
+<td><code>19216801</code></td>
+<td><code>192</code>、<code>168</code>（<code>0</code>、<code>1</code> 被丢弃）</td>
+</tr>
+</tbody></table>
+<p>规则 (a) 让 clear-headed 能匹配 clearheaded，但会把电子邮件、URL 和 IP 粘成没有意义的字符串；规则 (b) 把它们切碎，还丢掉了较短的部分。<strong>两者都</strong>无法把 O&#39;Neill、&quot;San Francisco&quot; 或 &quot;New York University&quot; 保持为一个整体。每一种修补都是设计决策：&quot;什么是词元？视情况而定……&quot;。请检查 (b) 这一列：</p>
+<pre data-language="viz" data-viz="tokenize"><code>{&quot;title&quot;: &quot;棘手词元在早期方法下的表现（L4 p11）&quot;, &quot;text&quot;: &quot;O&#39;Neill aren&#39;t clear-headed mother-in-law&quot;}</code></pre><p>返回<a href="#2-%E5%88%86%E8%AF%8D">第 2 节</a>。</p>
+<h3 id="163-精确率还是召回率l5-p611--l35-p714">16.3 精确率还是召回率？（L5 p6–11 · L3.5 p7–14）</h3>
+<p>课堂投票：对于网页搜索引擎，哪个更重要，精确率（前几条结果的相关程度如何？）还是召回率（展示了多少相关结果？）？以及什么时候召回率才是重要的？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 对于网页搜索，是<strong>精确率</strong>：用户以 F 形阅读，并且大多数人只看第一屏（85% 的人只看一屏结果；在 iProspect 调查中，41.2% 的人在第一页结束时放弃），因此<em>最靠前的</em>结果决定质量。<strong>召回率</strong>在<strong>需要完整性时</strong>重要：动机强的用户、可信的信源、承诺式阅读模式，即<strong>法律</strong>和<strong>科学</strong>领域的搜索引擎。返回<a href="#61-%E7%B2%BE%E7%A1%AE%E7%8E%87%E4%B8%8E%E5%8F%AC%E5%9B%9E%E7%8E%87">第 6 节</a>。</p>
+<h3 id="164-拆解幻灯片中的-urll6-p2528">16.4 拆解幻灯片中的 URL（L6 p25–28）</h3>
+<p>使用 <code>scheme://domain:port/path?query_string#fragment_id</code> 的结构，给出以下每个 URL 的各个部分：（a）<code>http://www.ics.uci.edu/~lopes</code> 和（b）<code>http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code>。（b）中的域名是什么？哪些部分是必需的？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>(a)</th>
+<th>(b)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>协议（scheme）</td>
+<td><code>http</code></td>
+<td><code>http</code></td>
+</tr>
+<tr>
+<td>域名（主机）</td>
+<td><code>www.ics.uci.edu</code></td>
+<td><code>calendar.ics.uci.edu</code></td>
+</tr>
+<tr>
+<td>端口</td>
+<td>未写出（&quot;no port! just domain&quot;）</td>
+<td>未写出</td>
+</tr>
+<tr>
+<td>路径</td>
+<td><code>/~lopes</code></td>
+<td><code>/calendar.php</code></td>
+</tr>
+<tr>
+<td>查询字符串</td>
+<td>无</td>
+<td><code>type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code>，共 5 对；<code>category</code> 为空</td>
+</tr>
+<tr>
+<td>片段（fragment）</td>
+<td>无</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<p>（b）中的域名：<code>uci.edu</code>（<code>ics</code>、<code>calendar</code> 是子域名）。只有 <code>scheme://domain</code> 是必需的。结果与 <code>urlsplit</code> 的输出以及<a href="#122-url-%E7%9A%84%E7%BB%84%E6%88%90">第 12.2 节</a>中的演示相同。</p>
+<h3 id="165-uriurl-还是-urnl6-p2324--l35-p2728">16.5 URI、URL 还是 URN？（L6 p23–24 · L3.5 p27–28）</h3>
+<p>判断 <code>http://www.ics.uci.edu</code>、ISBN 0-486-27777-3 和 <code>ftp://ftp.ics.uci.edu</code> 分别是哪一类。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 三者都是 <strong>URI</strong>。<code>http://www.ics.uci.edu</code> 和 <code>ftp://ftp.ics.uci.edu</code> 是 <strong>URL</strong>，它们说明资源<strong>在哪里</strong>。ISBN 是 <strong>URN</strong>，它命名的是这本书<strong>是什么</strong>，而不是某一本副本在哪里。返回<a href="#121-%E5%AE%9A%E4%B9%89">第 12.1 节</a>。</p>
+<hr>
+<h2 id="17-速查与必记的-5-条要点">17. 速查与必记的 5 条要点</h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语料</td>
+<td>可供搜索的全部文档</td>
+</tr>
+<tr>
+<td>分词器 / 词法分析器 / 扫描器</td>
+<td>字符流 → 词元流</td>
+</tr>
+<tr>
+<td>精确率 / 召回率</td>
+<td>前几条结果的相关性 / 展示了多少相关结果</td>
+</tr>
+<tr>
+<td>CPM / CPC / CPA</td>
+<td>每千次展示 / 每次点击 / 每次行动</td>
+</tr>
+<tr>
+<td>URI / URL / URN</td>
+<td>标识符 / 在哪里 / 是什么</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>网页事实</th>
+<th>数字</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>重复率</td>
+<td>30–40%（研究）、25–30%（Google，2013）</td>
+</tr>
+<tr>
+<td>每页链接数</td>
+<td>超过 8 个</td>
+</tr>
+<tr>
+<td>网站数</td>
+<td>约 1.8B 峰值（2018 年 2 月），约 1.1B（2024 年 3 月）；2026 年 2 月：1.42B 个主机名，208M 个活跃网站</td>
+</tr>
+<tr>
+<td>变化（Cho00）</td>
+<td>每周 40%，每天 23%</td>
+</tr>
+<tr>
+<td>需求（Jansen 2008）</td>
+<td>约 80% 信息型，约 10% 导航型，约 10% 交易型</td>
+</tr>
+<tr>
+<td>查询</td>
+<td>80% 少于 3 个词；78% 未被修改</td>
+</tr>
+<tr>
+<td>结果</td>
+<td>85% 只看一屏结果</td>
+</tr>
+<tr>
+<td>点击欺诈</td>
+<td>2016–2018 年损失 USD 7.2B</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>作弊技术</th>
+<th>如何欺骗引擎</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>关键词堆砌</td>
+<td>误导性元标签、重复词语、白底白字</td>
+</tr>
+<tr>
+<td>伪装</td>
+<td>服务器向爬虫发送的页面与浏览器看到的不同</td>
+</tr>
+<tr>
+<td>过渡页</td>
+<td>为爬虫优化的页面 + 对用户的即时 302 重定向</td>
+</tr>
+<tr>
+<td>链接交换 / 链接垃圾</td>
+<td>通过虚假链接与博客评论转移信任</td>
+</tr>
+<tr>
+<td>点击机器人</td>
+<td>对针对性结果发出虚假查询并点击</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>URL 组成部分</th>
+<th>是否必需？</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scheme://domain</code></td>
+<td>是</td>
+<td><code>http://calendar.ics.uci.edu</code></td>
+</tr>
+<tr>
+<td><code>:port</code></td>
+<td>否</td>
+<td>省略时使用默认端口</td>
+</tr>
+<tr>
+<td><code>/path</code></td>
+<td>否</td>
+<td><code>/calendar.php</code></td>
+</tr>
+<tr>
+<td><code>?query_string</code></td>
+<td>否</td>
+<td><code>?type=month&amp;…&amp;year=2013</code></td>
+</tr>
+<tr>
+<td><code>#fragment_id</code></td>
+<td>否</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 条要点</strong></p>
+<ol>
+<li>分词充满了选择；早期的&quot;3 个以上字母数字、转为小写&quot;规则会把 Bigcorp 句子变成 <code>bigcorp 2007 annual report showed profits rose</code>，并丢失信息。</li>
+<li>网络是一张有向图：规模庞大、重复率高（30–40%）、链接密集（每页 8 个以上）、充斥垃圾信息、变化迅速（每周 40%，Cho00）。</li>
+<li>对于网页搜索，<strong>精确率胜过召回率</strong>；只有在需要完整性时（法律、科学），召回率才重要。</li>
+<li>CPM = 每千次展示，CPC = 每次点击，CPA = 每次行动；伪装根据请求者来分支，而过渡页使用 302 重定向。</li>
+<li>URL 中只有 <code>scheme://domain</code> 是必需的；URL 说明<em>在哪里</em>，URN 说明<em>是什么</em>；像 <code>/somesite.html</code> 这样的相对链接要相对于它所在的页面来解析。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-01/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 1 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>课程介绍、信息检索与网络、搜索引擎架构</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/week-03/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 3 周 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>网络爬虫</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-01/zh-CN/" title="上一篇: 课程介绍、信息检索与网络、搜索引擎架构 ([)" aria-label="上一篇: 第 1 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 1 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 2 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-02/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/cs-121/week-03/zh-CN/" title="下一篇: 网络爬虫 (])" aria-label="下一篇: 第 3 周" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 周</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

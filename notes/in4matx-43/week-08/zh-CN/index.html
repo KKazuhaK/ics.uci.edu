@@ -1,0 +1,1391 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 43 测试用例的选取——黑盒、白盒与其他质量保证方法 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="我们究竟该如何挑选测试用例?黑盒(基于规格)测试中的等价类划分与边界值分析、组合测试、白盒(基于代码结构)测试中的控制流图与覆盖准则(语句/分支/条件/路径),以及检查与代码评审、形式化方法、静态分析,再加上 Quiz 7 复习提纲。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413994" data-source-url="/~kazuhak/notes/in4matx-43/week-08/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-08/en-US/" data-prev-url="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-43/week-09/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 8 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 8 周 · 软件工程课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 43 第 8 周 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 5 月 31 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--第八周课程笔记">Informatics 43 — 第八周课程笔记</h1>
+<blockquote>
+<p>涵盖 <strong>Lecture 15 与 Lecture 16</strong>：<em>&quot;我们怎么挑选测试用例？（第 3、4 部分）&quot;</em></p>
+</blockquote>
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#1-%E6%88%91%E4%BB%AC%E7%8E%B0%E5%9C%A8%E5%9C%A8%E5%93%AA--%E4%BB%8E%E4%B8%BA%E4%BB%80%E4%B9%88%E6%B5%8B%E5%88%B0%E6%B5%8B%E5%93%AA%E4%BA%9B">我们现在在哪 — 从&quot;为什么测&quot;到&quot;测哪些&quot;</a></li>
+<li><a href="#2-%E4%B8%A4%E7%A7%8D%E6%80%BB%E4%BD%93%E6%B5%8B%E8%AF%95%E6%80%9D%E8%B7%AF">两种总体测试思路</a></li>
+<li><a href="#3-%E9%BB%91%E7%9B%92--%E5%9F%BA%E4%BA%8E%E8%A7%84%E6%A0%BC%E7%9A%84%E6%B5%8B%E8%AF%95">黑盒 / 基于规格的测试</a></li>
+<li><a href="#4-%E7%AD%89%E4%BB%B7%E7%B1%BB%E5%88%92%E5%88%86">等价类划分</a></li>
+<li><a href="#5-%E8%BE%B9%E7%95%8C%E5%80%BC%E5%88%86%E6%9E%90">边界值分析</a></li>
+<li><a href="#6-%E7%B3%BB%E7%BB%9F%E5%8C%96%E7%9A%84-5-%E6%AD%A5%E6%B5%81%E7%A8%8B">系统化的 5 步流程</a></li>
+<li><a href="#7-%E5%AE%9E%E6%88%98%E4%BE%8B%E5%AD%90--%E8%AF%84%E5%88%86%E7%A8%8B%E5%BA%8F">实战例子 — 评分程序</a></li>
+<li><a href="#8-%E7%BB%84%E5%90%88%E6%B5%8B%E8%AF%95">组合测试</a></li>
+<li><a href="#9-%E7%99%BD%E7%9B%92--%E7%BB%93%E6%9E%84%E5%8C%96%E6%B5%8B%E8%AF%95">白盒 / 结构化测试</a></li>
+<li><a href="#10-%E6%8E%A7%E5%88%B6%E6%B5%81%E5%9B%BEcfg">控制流图（CFG）</a></li>
+<li><a href="#11-%E5%AE%9E%E6%88%98%E4%BE%8B%E5%AD%90-1--getsecondelement">实战例子 1 — <code>getSecondElement()</code></a></li>
+<li><a href="#12-%E8%AF%AD%E5%8F%A5%E8%8A%82%E7%82%B9%E8%A6%86%E7%9B%96">语句（节点）覆盖</a></li>
+<li><a href="#13-%E5%88%86%E6%94%AF%E8%BE%B9%E8%A6%86%E7%9B%96">分支（边）覆盖</a></li>
+<li><a href="#14-%E5%AE%9E%E6%88%98%E4%BE%8B%E5%AD%90-2--cfg-%E4%B8%8E%E8%A6%86%E7%9B%96%E8%AE%B2%E4%B9%89">实战例子 2 — CFG 与覆盖讲义</a></li>
+<li><a href="#15-%E5%85%B6%E4%BB%96%E8%A6%86%E7%9B%96%E5%87%86%E5%88%99">其他覆盖准则</a></li>
+<li><a href="#16-%E7%99%BD%E7%9B%92%E6%B5%8B%E8%AF%95%E7%9A%84%E6%8C%91%E6%88%98">白盒测试的挑战</a></li>
+<li><a href="#17-%E6%A3%80%E6%9F%A5%E4%B8%8E%E8%AF%84%E5%AE%A1">检查与评审</a></li>
+<li><a href="#18-%E5%BD%A2%E5%BC%8F%E5%8C%96%E6%96%B9%E6%B3%95">形式化方法</a></li>
+<li><a href="#19-%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90">静态分析</a></li>
+<li><a href="#20-%E6%9C%AC%E6%AC%A1%E6%B2%A1%E8%AE%B2%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%BB%E9%A2%98">本次没讲的测试主题</a></li>
+<li><a href="#21-quiz-7-%E5%A4%8D%E4%B9%A0%E6%8C%87%E5%8D%97">Quiz 7 复习指南</a></li>
+<li><a href="#22-%E6%80%BB%E7%BB%93%E4%B8%8E%E8%AE%B0%E5%BF%86%E6%A1%86%E6%9E%B6">总结与记忆框架</a></li>
+</ol>
+<hr>
+<h2 id="1-我们现在在哪--从为什么测到测哪些">1. 我们现在在哪 — 从&quot;为什么测&quot;到&quot;测哪些&quot;</h2>
+<p>第七周回答了我们<em>为什么</em>要测试。Lecture 13 把质量保证定义为 <strong>verification + validation</strong>，并点出四类 QA 方法（形式化方法、静态分析、评审、<strong>测试</strong>）；Lecture 14 引入了<strong>基本测试流程</strong>、三个<strong>层次</strong>（unit / integration / system）、<strong>测试预言（test oracle）</strong>，以及现实派的口号：<em>所有软件都有 bug。</em> 那节课收在三条断言上，而第八周正是把这三条作为起点：</p>
+<ul>
+<li><strong>测试永远做不到穷举。</strong></li>
+<li><strong>测试永远不能证明系统的正确性。</strong></li>
+<li><strong>所有软件都有 bug。</strong></li>
+</ul>
+<p>既然三条都成立，工程问题就变成了一个操作性问题：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Of</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">(essentially</mtext><mtext> </mtext><mtext mathvariant="bold">infinite)</mtext><mtext> </mtext><mtext mathvariant="bold">possible</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">inputs,</mtext><mtext> </mtext></mrow><mrow><mtext mathvariant="italic">which</mtext><mtext> </mtext><mtext mathvariant="italic">ones</mtext><mtext> </mtext><mtext mathvariant="italic">do</mtext><mtext> </mtext><mtext mathvariant="italic">we</mtext><mtext> </mtext><mtext mathvariant="italic">actually</mtext><mtext> </mtext><mtext mathvariant="italic">run?</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Of the (essentially infinite) possible test inputs, } \textit{which ones do we actually run?}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Of the (essentially infinite) possible test inputs, </span></span><span class="mord text"><span class="mord textit">which ones do we actually run?</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>第八周（Lecture 15 与 16）用三种具体策略回答这个问题 —— <strong>黑盒（基于规格）</strong>、<strong>组合</strong>、<strong>白盒（基于结构）</strong>测试 —— 然后再简短巡视另外三类 QA 方法（检查、形式化方法、静态分析），让整个测试单元在收尾时把完整的 QA 工具箱摆到台面上。Lecture 16 还顺便发布了 <strong>Quiz 7 复习指南</strong>。</p>
+<p>第七周反复出现的那个模式 —— <em>混合使用多种技术</em> —— 在这一层同样适用：<strong>没有任何单一的测试用例选取策略能抓到所有 fault</strong>；黑盒和白盒各有各的盲区，最好搭配使用。</p>
+<hr>
+<h2 id="2-两种总体测试思路">2. 两种总体测试思路</h2>
+<p>测试设计上第一个大区分是:<em>测试者依据什么来设计测试用例</em>。这一周后面的所有内容 —— 等价类划分、边界分析、语句覆盖、分支覆盖 —— 都归属在下面这两个标题之一之下。</p>
+<table>
+<thead>
+<tr>
+<th>思路</th>
+<th>同义词</th>
+<th>测试者看的是什么</th>
+<th>心智图像</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>黑盒测试（Black-box）</strong></td>
+<td>功能测试（Functional）、<strong>基于规格（Specification-based）</strong>的测试</td>
+<td>只看系统<em>应当</em>做什么的<strong>规格</strong>。实现是不透明的</td>
+<td>一个封闭的盒子:输入喂进去，观察输出，与 <strong>oracle</strong> 比较</td>
+</tr>
+<tr>
+<td><strong>白盒测试（White-box）</strong></td>
+<td>结构化测试（Structural）、<strong>基于代码（Code-based）</strong>的测试</td>
+<td><strong>源代码本身</strong>。测试者设计输入，让它走到指定的代码结构</td>
+<td>一个玻璃盒子:测试者看得见代码，把测试瞄向选定的语句 / 分支 / 路径，以一个<strong>覆盖准则</strong>作为停止规则</td>
+</tr>
+</tbody></table>
+<p>幻灯片用的那两张示意图让对比一目了然:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Black-box:
+    Input → [ System ] → Output → Oracle → Pass / Fail
+
+White-box:
+    Input → [ System ] → Output → Oracle       → Pass / Fail
+                       ↘ Coverage Criterion? → Stop (when met)</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/black-box-vs-white-box-pipeline.png" alt=""两种总体测试思路"幻灯片上叠放的两张管线图。上（黑盒 / 功能 / 基于规格）:Input → System（不透明黑色矩形） → Output → Oracle → Failure（红） / Success（绿）。下（白盒 / 结构化 / 基于代码）:System 方框是透明的，内部画出箭头和三角形；管线分叉成同一条 Oracle → Failure/Success 路径，以及第二条路径 Output → Coverage Criteria? → Stop（橙色）。"></p>
+<p>黑盒管线以 <strong>oracle</strong> 收尾:输出和规格说的对得上吗？白盒管线多了一个出口 —— <strong>覆盖准则</strong> —— 这条出口告诉白盒测试者:什么时候算把<em>代码结构</em>测得足够了。</p>
+<blockquote>
+<p>两种思路是互补的，不是对立的。黑盒测试能抓到 <strong>遗漏的功能</strong> 和 <strong>被误读的规格</strong>，这些是白盒看不到的（代码可能完全在做开发者<em>以为</em>它该做的事，但规格说的是另一回事）。白盒测试能抓到 <strong>死分支</strong>、<strong>不可达代码</strong> 和 <strong>实现层面的边界情况</strong>，这些是黑盒可能漏掉的（规格里没提 <code>null</code> 头指针的情况，但代码里有）。一个真正的测试计划两种都用。</p>
+</blockquote>
+<hr>
+<h2 id="3-黑盒--基于规格的测试">3. 黑盒 / 基于规格的测试</h2>
+<p>黑盒测试的定义性承诺:</p>
+<ul>
+<li><strong>用规格来推导测试用例。</strong> 不是代码 —— 而是规格。</li>
+<li><strong>挑选测试用例以保证<em>对输入域</em>的广泛覆盖</strong>，而不是对代码的覆盖。</li>
+</ul>
+<p>幻灯片列出黑盒测试套件应当覆盖的五种输入:</p>
+<table>
+<thead>
+<tr>
+<th>输入种类</th>
+<th>为什么要包括它</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>典型值（Typical values）</strong></td>
+<td>确认系统处理它被设计去应付的常见情形</td>
+</tr>
+<tr>
+<td><strong>边界值（Boundary values）</strong></td>
+<td>bug 喜欢聚在边缘 —— off-by-one、<code>&lt;</code> 与 <code>&lt;=</code> 之争、整数回绕</td>
+</tr>
+<tr>
+<td><strong>特殊情况（Special cases）</strong></td>
+<td>空字符串、零、<code>null</code>、单元素集合、闰日、时区跨越</td>
+</tr>
+<tr>
+<td><strong>非法输入（Invalid input values）</strong></td>
+<td>负年龄、错乱的 JSON、未来生日 —— 系统能否安全拒绝？</td>
+</tr>
+<tr>
+<td><strong>值的组合（Combinations of values）</strong></td>
+<td>多个参数互动时，bug 可能藏在组合里，而不在任何单一参数中（见 §8）</td>
+</tr>
+</tbody></table>
+<p>两个系统化的技术把这件事变成可重复的流程:<strong>等价类划分</strong>（§4） 和 <strong>边界值分析</strong>（§5）。它们配合工作 —— 划分给你类，边界分析告诉你在每一类内部挑哪些点。</p>
+<hr>
+<h2 id="4-等价类划分">4. 等价类划分</h2>
+<p>直觉:虽然输入空间巨大，但从程序的角度看，<strong>大多数输入的行为是一样的</strong>。我们不需要测 70 到 79 之间的每一个整数 —— 只需要测<em>其中一个</em>就够了，因为它们都映射到字母分 <code>C</code>。</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">An</mtext><mtext> </mtext><mtext mathvariant="bold">equivalence</mtext><mtext> </mtext><mtext mathvariant="bold">class</mtext><mtext> </mtext><mtext mathvariant="bold">is</mtext><mtext> </mtext><mtext mathvariant="bold">a</mtext><mtext> </mtext><mtext mathvariant="bold">set</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">inputs</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">program</mtext><mtext> </mtext><mtext mathvariant="bold">is</mtext><mtext> </mtext><mtext mathvariant="bold">expected</mtext><mtext> </mtext><mtext mathvariant="bold">to</mtext><mtext> </mtext><mtext mathvariant="bold">treat</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">same</mtext><mtext> </mtext><mtext mathvariant="bold">way</mtext><mtext> </mtext><mtext mathvariant="bold">for</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">purpose</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">finding</mtext><mtext> </mtext><mtext mathvariant="bold">bugs.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{An equivalence class is a set of inputs the program is expected to treat the same way for the purpose of finding bugs.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">An equivalence class is a set of inputs the program is expected to treat the same way for the purpose of finding bugs.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>所以如果程序对其中一个成员通过了，它<em>大概率</em>会对所有成员都通过；如果对其中一个失败了，它<em>大概率</em>会对所有成员都失败。<strong>每类挑一个代表</strong>，你就覆盖了这一类。</p>
+<h3 id="类是怎么确定的">类是怎么确定的</h3>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>需求规格</strong></td>
+<td>&quot;分数 ≥ 90 映射到 A&quot; —— 规格直接命名了一个类</td>
+</tr>
+<tr>
+<td><strong>测试者的直觉</strong></td>
+<td>规格没提 <code>null</code>，但测试者知道 null 输入是一个值得怀疑的麻烦类</td>
+</tr>
+</tbody></table>
+<h3 id="类必须满足的两条性质">类必须满足的两条性质</h3>
+<table>
+<thead>
+<tr>
+<th>性质</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>覆盖整个输入域</strong></td>
+<td>否则，会有些输入彻底没被测到</td>
+</tr>
+<tr>
+<td><strong>不互相重叠</strong></td>
+<td>否则，你会在同一个行为上反复浪费测试</td>
+</tr>
+</tbody></table>
+<p>合起来:等价类<strong>划分（partition）</strong>了输入域 —— 每个输入恰好属于一个类。</p>
+<blockquote>
+<p>等价划分把一个无穷（或巨大的）输入空间压缩成一个小的有限<em>代表性</em>输入集合。压缩比就是关键:一个 100 值的整数域（下面评分例子里的 0..100）塌缩到 5 个类，测试预算压缩了 20 倍。</p>
+</blockquote>
+<hr>
+<h2 id="5-边界值分析">5. 边界值分析</h2>
+<p>一个基于同样划分的互补技术。它背后的观察是经验性的，也是众所周知的:</p>
+<blockquote>
+<p><em>许多错误发生在&quot;边界&quot;上，而不是在正常情况下</em> —— 比如 <code>&lt;</code> 与 <code>&lt;=</code> 之间的混淆、循环边界上的 off-by-one、<code>INT_MAX</code> 处的整数溢出。</p>
+</blockquote>
+<p>边界值分析使用<strong>和划分相同的等价类</strong>，但不是从类的内部随便挑代表，而是挑类的<strong>边界值</strong> —— 最小值、最大值，以及（如适用）边界两侧<em>刚好越界</em>的值。</p>
+<table>
+<thead>
+<tr>
+<th>等价划分</th>
+<th>边界值分析</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>在一个类内部挑<em>任意</em>代表</td>
+<td>挑每个类<em>边缘上</em>的值</td>
+</tr>
+<tr>
+<td>抓&quot;整个类都坏了&quot;的 bug</td>
+<td>抓 off-by-one 与边界情况的 bug</td>
+</tr>
+<tr>
+<td>每类用很少几个测试</td>
+<td>每类用两到四个测试（就是这些边界本身）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>实践中两者总是<strong>配合</strong>使用:把输入域划分成类，然后对每一类挑<em>一个典型的内部值</em>（划分）<strong>加上边界值</strong>（边界分析）。§7 的评分例子展示了实际操作长什么样。</p>
+</blockquote>
+<hr>
+<h2 id="6-系统化的-5-步流程">6. 系统化的 5 步流程</h2>
+<p>Lecture 15 把这两种技术整合成一个统一的菜谱:</p>
+<ol>
+<li><strong>识别所有可能输入的集合（&quot;域&quot;）</strong> —— 这个程序到底应当接受什么？</li>
+<li><strong>找一个划分输入集合的依据。</strong> 可能的依据包括:<ul>
+<li><strong>大小 / 量级</strong> —— 小、中、大</li>
+<li><strong>结构</strong> —— 空集合 vs 单元素 vs 多元素集合</li>
+<li><strong>正确性</strong> —— 合法 vs 非法输入</li>
+<li><strong>测试者的创造性思考 / 直觉</strong></li>
+</ul>
+</li>
+<li><strong>用这个依据把所有可能输入的集合分成若干类 / 子域。</strong></li>
+<li><strong>从每个子域中选出一个（或多个）代表作为测试用例输入。</strong> 一类通常一个测试用例就够。</li>
+<li><strong>对每个子域分别测试:</strong><ul>
+<li>&quot;正常&quot;或&quot;代表性&quot;的值（子域内部的任意值）</li>
+<li><strong>边界或边缘输入值</strong>（边界值分析）</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>第 2 步里的依据并不互斥。一个真正的测试设计经常<strong>同时使用多个依据</strong> —— 比如同时按<em>正确性</em>（合法 vs 非法）和<em>量级</em>（小、中、大）划分。所得到的划分是各个单依据划分的<em>交集</em>:&quot;小-合法&quot;、&quot;小-非法&quot;、&quot;中-合法&quot;，依此类推。</p>
+</blockquote>
+<hr>
+<h2 id="7-实战例子--评分程序">7. 实战例子 — 评分程序</h2>
+<p>幻灯片的例子:</p>
+<blockquote>
+<p>一个程序接收一个 <strong>0 到 100</strong> 的整数格式作业分数，返回标准评分下的字母分（90 多是 A，80 多是 B，70 多是 C，60 多是 D，50 及以下是 F —— 没有加减号）。</p>
+</blockquote>
+<h3 id="71-第-1-步--域">7.1 第 1 步 — 域</h3>
+<p>原则上:所有整数。规格上:<strong>[0, 100]</strong> 的整数。规格还隐含定义了<em>第二个</em>类:<strong>[0, 100]</strong> 之外的整数是 <strong>非法</strong> 输入。</p>
+<h3 id="72-第-23-步--依据与划分">7.2 第 2–3 步 — 依据与划分</h3>
+<p>这里自然的依据就是<em>规格里说输出应该是什么</em>。这给出六个类:</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>分数范围</th>
+<th>期望输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F</td>
+<td>0–59</td>
+<td><code>F</code></td>
+</tr>
+<tr>
+<td>D</td>
+<td>60–69</td>
+<td><code>D</code></td>
+</tr>
+<tr>
+<td>C</td>
+<td>70–79</td>
+<td><code>C</code></td>
+</tr>
+<tr>
+<td>B</td>
+<td>80–89</td>
+<td><code>B</code></td>
+</tr>
+<tr>
+<td>A</td>
+<td>90–100</td>
+<td><code>A</code></td>
+</tr>
+<tr>
+<td>Invalid</td>
+<td>&lt; 0 或 &gt; 100</td>
+<td>error / 拒绝</td>
+</tr>
+</tbody></table>
+<h3 id="73-第-45-步--每类的代表--边界值">7.3 第 4–5 步 — 每类的代表 + 边界值</h3>
+<p>对每一类，列出<strong>边界</strong>（类内部最小的、最大的合法值）。边界值分析说这些值是最可能暴露出 bug 的。</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>下边界</th>
+<th>上边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F</td>
+<td>0</td>
+<td>59</td>
+</tr>
+<tr>
+<td>D</td>
+<td>60</td>
+<td>69</td>
+</tr>
+<tr>
+<td>C</td>
+<td>70</td>
+<td>79</td>
+</tr>
+<tr>
+<td>B</td>
+<td>80</td>
+<td>89</td>
+</tr>
+<tr>
+<td>A</td>
+<td>90</td>
+<td>100</td>
+</tr>
+<tr>
+<td>Invalid（过低）</td>
+<td>（任意 &lt; 0 的值）</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Invalid（过高）</td>
+<td>101</td>
+<td>（任意 &gt; 100 的值）</td>
+</tr>
+</tbody></table>
+<h3 id="74-最终的测试套件输入期望输出">7.4 最终的测试套件（输入，期望输出）</h3>
+<p>幻灯片要求的格式是 <code>&quot;输入, 期望输出&quot;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>期望输出</th>
+<th>这个测试的存在意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td><code>F</code></td>
+<td>边界 —— F 的下沿（也是合法域的下沿）</td>
+</tr>
+<tr>
+<td><code>59</code></td>
+<td><code>F</code></td>
+<td>边界 —— F 的上沿</td>
+</tr>
+<tr>
+<td><code>60</code></td>
+<td><code>D</code></td>
+<td>边界 —— D 的下沿（对 59 的 off-by-one 候选）</td>
+</tr>
+<tr>
+<td><code>69</code></td>
+<td><code>D</code></td>
+<td>边界 —— D 的上沿</td>
+</tr>
+<tr>
+<td><code>70</code></td>
+<td><code>C</code></td>
+<td>边界 —— C 的下沿</td>
+</tr>
+<tr>
+<td><code>79</code></td>
+<td><code>C</code></td>
+<td>边界 —— C 的上沿</td>
+</tr>
+<tr>
+<td><code>80</code></td>
+<td><code>B</code></td>
+<td>边界 —— B 的下沿</td>
+</tr>
+<tr>
+<td><code>89</code></td>
+<td><code>B</code></td>
+<td>边界 —— B 的上沿</td>
+</tr>
+<tr>
+<td><code>90</code></td>
+<td><code>A</code></td>
+<td>边界 —— A 的下沿</td>
+</tr>
+<tr>
+<td><code>100</code></td>
+<td><code>A</code></td>
+<td>边界 —— A 的上沿（也是合法域的上沿）</td>
+</tr>
+<tr>
+<td><code>-1</code></td>
+<td>error</td>
+<td>非法 —— 刚好低于下沿</td>
+</tr>
+<tr>
+<td><code>101</code></td>
+<td>error</td>
+<td>非法 —— 刚好高于上沿</td>
+</tr>
+</tbody></table>
+<p>对一个输入域只有 101 个合法整数的函数来说，这就是 12 个测试用例 —— 约 8 倍压缩，同时打中了所有可能藏着 off-by-one 的边界。</p>
+<blockquote>
+<p>注意这套测试套件<em>擅长</em>什么、<em>不擅长</em>什么。<strong>擅长</strong>:抓 <code>&lt; 90</code> vs <code>&lt;= 90</code> 的混淆（F-vs-A bug）、抓漏掉的非法输入处理、抓每个切分点上的 off-by-one 错误。<strong>不擅长</strong>:抓不到像&quot;当输入恰好是 85 时函数返回 <code>B</code>&quot;这种细微 bug —— 因为我们根本没测 85。这就是为什么它要配 §16:黑盒测试留下的盲点正是白盒测试要填补的。</p>
+</blockquote>
+<hr>
+<h2 id="8-组合测试">8. 组合测试</h2>
+<p>到目前为止，每个例子都只有<em>一个</em>输入参数。真实函数会有很多。<strong>当有多个参数时，等价类划分会怎样？</strong></p>
+<p>幻灯片给的答案是机械但有纪律的:</p>
+<ol>
+<li><strong>对每个参数独立地</strong>确定它的等价划分和代表（可以是边界）值 —— 完全按 §4–§7 的做法。</li>
+<li><strong>然后设计这些每参数值的组合</strong>，形成测试输入。</li>
+</ol>
+<p>&quot;设计组合&quot;这一步是工程判断真正登场的地方，因为完整的笛卡尔积爆炸得很快。如果三个参数各有 5 个代表值，完整组合就是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>5</mn><mo>×</mo><mn>5</mn><mo>=</mo><mn>125</mn></mrow><annotation encoding="application/x-tex">5 \times 5 \times 5 = 125</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">125</span></span></span></span> 个测试 —— 而现实函数（比如十个参数，每个五个值）的完整乘积是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>5</mn><mn>10</mn></msup><mo>≈</mo><mn>977</mn></mrow><annotation encoding="application/x-tex">5^{10} \approx 977</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">5</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">977</span></span></span></span> 万。</p>
+<table>
+<thead>
+<tr>
+<th>组合策略</th>
+<th>它覆盖什么</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>完整笛卡尔积（Full Cartesian product）</strong></td>
+<td>每个参数每个值的每一种组合</td>
+<td>在参数数上是指数级 —— 过了几个参数就不可行</td>
+</tr>
+<tr>
+<td><strong>All-pairs（pairwise，两两组合）</strong></td>
+<td>每一对 （参数 i 的值， 参数 j 的值） 至少出现一次</td>
+<td>小得多；经验上能抓到大多数多参数 bug</td>
+</tr>
+<tr>
+<td><strong>手挑组合（Hand-picked）</strong></td>
+<td>测试者觉得有意思的情形</td>
+<td>便宜但不系统</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>all-pairs</strong> 的经验依据相当醒目:对真实 bug 数据库的研究表明，大多数多参数 bug 是由<strong>仅仅两个</strong>参数的交互触发的。所以测试每一对（而不是每一个完整元组）能以一小部分代价捕获大多数组合价值。INF 43 不深入，但 &quot;pairwise testing&quot; / &quot;all-pairs testing&quot; 这个术语值得知道。</p>
+</blockquote>
+<hr>
+<h2 id="9-白盒--结构化测试">9. 白盒 / 结构化测试</h2>
+<p>从黑盒到白盒的转折。它的定义性承诺:</p>
+<ul>
+<li><strong>用源代码来推导测试用例</strong>（不是规格）。</li>
+<li><strong>建一个系统的图模型</strong>（<strong>控制流图</strong>，§10）。</li>
+<li><strong>以图覆盖的形式陈述测试用例</strong> —— 挑选输入，让其执行访问到选定的图元素。</li>
+</ul>
+<p>黑盒不需要而这里需要的新成分是 <strong>覆盖准则（coverage criterion）</strong> —— 一条精确规则，说<em>哪些</em>图元素必须被访问，测试才算&quot;完成&quot;。幻灯片列出六类，大致按严格度递增:</p>
+<table>
+<thead>
+<tr>
+<th>覆盖准则</th>
+<th>必须访问什么</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>语句（节点）覆盖</strong></td>
+<td>每个节点</td>
+<td>§12</td>
+</tr>
+<tr>
+<td><strong>分支（边）覆盖</strong></td>
+<td>每条边</td>
+<td>§13</td>
+</tr>
+<tr>
+<td><strong>条件覆盖</strong></td>
+<td>每个布尔表达式里的每个子条件，都要取到 <code>T</code> 和 <code>F</code></td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>方法覆盖</strong></td>
+<td>每个方法至少被调用一次</td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>方法调用覆盖</strong></td>
+<td>每个调用点都能到达每个可能的方法（包括所有多态目标）</td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>路径覆盖</strong></td>
+<td>从入口到出口的每条不同路径</td>
+<td>§15</td>
+</tr>
+</tbody></table>
+<p>更强的准则<em>蕴含</em>更弱的:完全分支覆盖蕴含完全语句覆盖（访问每条边强制访问每个节点），完全路径覆盖蕴含完全分支覆盖。<strong>路径覆盖最强</strong> —— 但正如 §15 所讲，<strong>经常不可行</strong>。</p>
+<hr>
+<h2 id="10-控制流图cfg">10. 控制流图（CFG）</h2>
+<p>白盒测试所操作的图模型。幻灯片上的规则:</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>规则</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>入口节点（Entry node）</strong></td>
+<td>每个 CFG 都有一个 —— 代表所有进入函数的控制流</td>
+</tr>
+<tr>
+<td><strong>出口节点（Exit node）</strong></td>
+<td>每个 CFG 都有一个 —— 代表所有离开函数的控制流</td>
+</tr>
+<tr>
+<td><strong>节点（Nodes）</strong></td>
+<td>每个节点对应一条<strong>原子指令</strong>，一般是一行代码</td>
+</tr>
+<tr>
+<td><strong>边（Edges）</strong></td>
+<td>每条边都是<strong>有向的</strong>（从源到目标的箭头），代表可能的控制流</td>
+</tr>
+<tr>
+<td><strong>分支（Branches）</strong></td>
+<td>任何有<strong>两条或更多出边</strong>的节点。这些边必须<strong>带标签</strong>，标注选中它的条件（谓词用 <code>T</code>/<code>F</code>，<code>switch</code> 用 case 值）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>关于 CFG 有两个事实值得现在就记住，后面会反复用到:<strong>（1） 循环在 CFG 里是环</strong> —— 一个 <code>while</code> 或 <code>for</code> 语句是一个节点，有一条出边最终循环回到循环头。<strong>（2） 每个 CFG 按构造都只有单一入口和单一出口</strong> —— 即使函数有多条 <code>return</code> 语句，也会有一个单一的虚拟出口节点，所有 return 都流向它。</p>
+</blockquote>
+<hr>
+<h2 id="11-实战例子-1--getsecondelement">11. 实战例子 1 — <code>getSecondElement()</code></h2>
+<p>幻灯片的运行例子是这个 Python 函数:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> getSecondElement</span><span style="color:#D4D4D4">():</span></span>
+<span class="line"><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">   head = getHead()</span></span>
+<span class="line"><span style="color:#B5CEA8">2</span><span style="color:#C586C0">   if</span><span style="color:#D4D4D4"> head == null:</span></span>
+<span class="line"><span style="color:#B5CEA8">3</span><span style="color:#C586C0">       return</span><span style="color:#D4D4D4"> null</span></span>
+<span class="line"><span style="color:#B5CEA8">4</span><span style="color:#C586C0">   if</span><span style="color:#D4D4D4"> head.next == null:</span></span>
+<span class="line"><span style="color:#B5CEA8">5</span><span style="color:#C586C0">       return</span><span style="color:#D4D4D4"> null</span></span>
+<span class="line"><span style="color:#B5CEA8">6</span><span style="color:#C586C0">   return</span><span style="color:#D4D4D4"> head.next.node</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="控制流图">控制流图</h3>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TD
+    entry((entry)) --&gt; n1[1: head = getHead]
+    n1 --&gt; n2{2: head == null?}
+    n2 -- T --&gt; n3[3: return null]
+    n2 -- F --&gt; n4{4: head.next == null?}
+    n4 -- T --&gt; n5[5: return null]
+    n4 -- F --&gt; n6[6: return head.next.node]
+    n3 --&gt; ex((exit))
+    n5 --&gt; ex
+    n6 --&gt; ex</code></pre><p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/getsecondelement-cfg.png" alt="幻灯片"Example 1: Building the control-flow graph"，左边是六行 `def getSecondElement()` 源代码，右边是对应的 CFG，以竖直链状画成紫色描边的椭圆:entry → 1 → 2，从 2 出发 T 分支到 3、F 分支到 4，4 再 T 分支到 5、F 分支到 6；节点 3、5、6 都汇入底部的单一 exit 椭圆。"></p>
+<p>这张图通过函数体共有三条端到端路径:</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>条件</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 → 2 → 3 → exit</td>
+<td><code>head == null</code> (2T)</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>1 → 2 → 4 → 5 → exit</td>
+<td><code>head != null</code> (2F), <code>head.next == null</code> (4T)</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>1 → 2 → 4 → 6 → exit</td>
+<td><code>head != null</code> (2F), <code>head.next != null</code> (4F)</td>
+<td><code>head.next.node</code></td>
+</tr>
+</tbody></table>
+<p>这三条路径就是经典的三种场景 —— 各自对应一<em>种</em>输入链表（空 / 单元素 / 多元素）。§12 和 §13 会在不同的覆盖规则下设计测试输入去命中它们。</p>
+<hr>
+<h2 id="12-语句节点覆盖">12. 语句（节点）覆盖</h2>
+<p>第一个、也是最弱的覆盖准则。</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Statement</mtext><mtext> </mtext><mtext mathvariant="bold">coverage:</mtext><mtext> </mtext><mtext mathvariant="bold">every</mtext><mtext> </mtext><mtext mathvariant="bold">node</mtext><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">CFG</mtext><mtext> </mtext><mtext mathvariant="bold">must</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">visited</mtext><mtext> </mtext><mtext mathvariant="bold">by</mtext><mtext> </mtext><mtext mathvariant="bold">at</mtext><mtext> </mtext><mtext mathvariant="bold">least</mtext><mtext> </mtext><mtext mathvariant="bold">one</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">case.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Statement coverage: every node in the CFG must be visited by at least one test case.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Statement coverage: every node in the CFG must be visited by at least one test case.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>也叫<strong>节点覆盖（node coverage）</strong>。对 <code>getSecondElement</code> 的 CFG 来说，必须被访问的节点是 <code>{1, 2, 3, 4, 5, 6}</code>。</p>
+<h3 id="为完全语句覆盖设计测试用例">为完全语句覆盖设计测试用例</h3>
+<p>我们需要若干链表输入，合在一起能把节点 1–6 都走到。幻灯片给的示例测试输入（记法:列表字面量，用 <code>null</code> 表示空）:</p>
+<table>
+<thead>
+<tr>
+<th>测试输入</th>
+<th>走的路径</th>
+<th>命中的节点</th>
+<th>新增覆盖</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{null, 2, 4}</code>（head 指针 = <code>null</code>）</td>
+<td>1 → 2 → 3</td>
+<td><code>1, 2, 3</code></td>
+<td>首次命中 1、2、3</td>
+</tr>
+<tr>
+<td><code>{5, null, 8, 7}</code>（单元素列表 —— <code>head.next == null</code>）</td>
+<td>1 → 2 → 4 → 5</td>
+<td><code>1, 2, 4, 5</code></td>
+<td>加上 4、5</td>
+</tr>
+<tr>
+<td><code>{9, 2}</code>（两元素列表）</td>
+<td>1 → 2 → 4 → 6</td>
+<td><code>1, 2, 4, 6</code></td>
+<td>加上 6</td>
+</tr>
+</tbody></table>
+<p>三个测试跑完后:命中的节点 = <code>{1, 2, 3, 4, 5, 6}</code> → <strong>完全语句覆盖</strong>。</p>
+<blockquote>
+<p>幻灯片里的 {null, 2, 4} 记法是&quot;一个第一个元素是 <code>null</code> 的列表&quot;的简写 —— 也就是一个空列表，<code>getHead()</code> 返回 <code>null</code>。其它元素函数根本不用。同理，第二个测试传入一个 head 的 <code>.next</code> 是 <code>null</code> 的列表。这个记法看着别扭，是因为被测函数只看 <code>head</code> 和 <code>head.next</code>。</p>
+</blockquote>
+<hr>
+<h2 id="13-分支边覆盖">13. 分支（边）覆盖</h2>
+<p>一个更严格的准则。</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Branch</mtext><mtext> </mtext><mtext mathvariant="bold">coverage:</mtext><mtext> </mtext><mtext mathvariant="bold">every</mtext><mtext> </mtext></mrow><mtext mathvariant="italic">edge</mtext><mrow><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">CFG</mtext><mtext> </mtext><mtext mathvariant="bold">must</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">visited</mtext><mtext> </mtext><mtext mathvariant="bold">by</mtext><mtext> </mtext><mtext mathvariant="bold">at</mtext><mtext> </mtext><mtext mathvariant="bold">least</mtext><mtext> </mtext><mtext mathvariant="bold">one</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">case.</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Branch coverage: every } \textit{edge} \textbf{ in the CFG must be visited by at least one test case.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Branch coverage: every </span></span><span class="mord text"><span class="mord textit">edge</span></span><span class="mord text"><span class="mord textbf"> in the CFG must be visited by at least one test case.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>也叫<strong>边覆盖（edge coverage）</strong>。对 <code>getSecondElement</code>，边是:</p>
+<p><code>entry→1</code>、<code>1→2</code>、<code>2→3 (T)</code>、<code>2→4 (F)</code>、<code>4→5 (T)</code>、<code>4→6 (F)</code>、<code>3→exit</code>、<code>5→exit</code>、<code>6→exit</code>。</p>
+<p>分支点是节点 2 和 4。要完全分支覆盖，我们要在<em>每个</em>分支点上同时走 <code>T</code> 和 <code>F</code> 出边 —— 所以我们需要一个走 <code>2T</code> 的测试、一个走 <code>2F+4T</code> 的测试、一个走 <code>2F+4F</code> 的测试。</p>
+<table>
+<thead>
+<tr>
+<th>测试输入</th>
+<th><code>2T/F</code></th>
+<th><code>4T/F</code></th>
+<th>新增边</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{null, 2, 4}</code></td>
+<td>2T</td>
+<td>（未到达）</td>
+<td><code>2→3</code></td>
+</tr>
+<tr>
+<td><code>{5, null, 8, 7}</code></td>
+<td>2F</td>
+<td>4T</td>
+<td><code>2→4</code>、<code>4→5</code></td>
+</tr>
+<tr>
+<td><code>{9, 2}</code></td>
+<td>2F</td>
+<td>4F</td>
+<td><code>4→6</code></td>
+</tr>
+</tbody></table>
+<p>三个测试跑完后:每条边都命中了 → <strong>完全分支覆盖</strong>。</p>
+<blockquote>
+<p>这个例子里，同样这三个测试用例同时满足语句覆盖和分支覆盖 —— 它们恰好就是函数的<strong>三条端到端路径</strong>。这是小例子的巧合；一般来说，分支覆盖需要<em>比</em>语句覆盖更多的测试。<strong>分支覆盖更彻底</strong>，因为它能抓到语句覆盖会漏掉的逻辑错误 —— 比如一个 <code>else</code> 从未走过的分支，从 <code>if</code> 那一侧也可以把全部语句覆盖到，但分支覆盖强制两个方向都走。</p>
+</blockquote>
+<hr>
+<h2 id="14-实战例子-2--cfg-与覆盖讲义">14. 实战例子 2 — CFG 与覆盖讲义</h2>
+<p>那份讲义（<code>int m(int i)</code>）是一个更大的 CFG，顶层 <code>if/else</code> 两边都有嵌套的 <code>if</code>。把它完整做一遍，正是这块材料的经典练习。</p>
+<h3 id="141-代码">14.1 代码</h3>
+<div class="code-wrap"><pre data-language="c" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> m</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 1</span><span style="color:#D4D4D4">    r = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 2</span><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 3</span><span style="color:#D4D4D4">        r = r * </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 4</span><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 5</span><span style="color:#D4D4D4">            r = r * </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">          }</span></span>
+<span class="line"><span style="color:#D4D4D4">      } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 6</span><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 7</span><span style="color:#D4D4D4">            r = r * </span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 8</span><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 9</span><span style="color:#D4D4D4">                r = r * </span><span style="color:#B5CEA8">11</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">              }</span></span>
+<span class="line"><span style="color:#D4D4D4">          }</span></span>
+<span class="line"><span style="color:#D4D4D4">      }</span></span>
+<span class="line"><span style="color:#B5CEA8">10</span><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> r;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/example2-int-m-source.png" alt="幻灯片的"Example 2":`int m(int i)` 源代码以 VS Code 暗色主题截图的形式渲染，左侧有 10 行编号；代码块右侧有一行说明 "See 'CFG and coverage handout' in Canvas" —— 幻灯片本身没有画 CFG。"></p>
+<h3 id="142-控制流图">14.2 控制流图</h3>
+<p>分支点在节点 2、4、6、8。图:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TD
+    entry((entry)) --&gt; n1[1: r = 1]
+    n1 --&gt; n2{2: i%2 == 0?}
+    n2 -- T --&gt; n3[3: r = r*3]
+    n3 --&gt; n4{4: i%4 == 0?}
+    n4 -- T --&gt; n5[5: r = r*5]
+    n4 -- F --&gt; n10[10: return r]
+    n5 --&gt; n10
+    n2 -- F --&gt; n6{6: i%3 == 0?}
+    n6 -- T --&gt; n7[7: r = r*7]
+    n7 --&gt; n8{8: i%9 == 0?}
+    n8 -- T --&gt; n9[9: r = r*11]
+    n8 -- F --&gt; n10
+    n9 --&gt; n10
+    n6 -- F --&gt; n10
+    n10 --&gt; ex((exit))</code></pre><h3 id="143-追踪几个输入">14.3 追踪几个输入</h3>
+<p>设计测试用例之前，手工追踪每个输入会做什么。函数的逻辑用人话:<em>从 <code>r=1</code> 开始；如果 <code>i</code> 是偶数，乘 3，若同时被 4 整除再乘 5；否则若 <code>i</code> 被 3 整除，乘 7，若同时被 9 整除再乘 11；返回 <code>r</code>。</em></p>
+<table>
+<thead>
+<tr>
+<th><code>i</code></th>
+<th>经过 CFG 的路径</th>
+<th>访问的语句</th>
+<th>走的分支</th>
+<th>返回的 <code>r</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>1→2→6→10</td>
+<td>1, 2, 6, 10</td>
+<td>2F, 6F</td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>1→2→3→4→10</td>
+<td>1, 2, 3, 4, 10</td>
+<td>2T, 4F</td>
+<td><code>3</code></td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>1→2→6→7→8→10</td>
+<td>1, 2, 6, 7, 8, 10</td>
+<td>2F, 6T, 8F</td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td>1→2→3→4→5→10</td>
+<td>1, 2, 3, 4, 5, 10</td>
+<td>2T, 4T</td>
+<td><code>15</code></td>
+</tr>
+<tr>
+<td><code>9</code></td>
+<td>1→2→6→7→8→9→10</td>
+<td>1, 2, 6, 7, 8, 9, 10</td>
+<td>2F, 6T, 8T</td>
+<td><code>77</code></td>
+</tr>
+</tbody></table>
+<h3 id="144-语句覆盖的最小测试集s1s10">14.4 <strong>语句覆盖</strong>的最小测试集（S1–S10）</h3>
+<p>我们要让 <code>S1, S2, ..., S10</code> 都至少被访问一次。从上表看:</p>
+<table>
+<thead>
+<tr>
+<th>测试输入</th>
+<th>新覆盖的语句</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i = 4</code></td>
+<td><code>S1, S2, S3, S4, S5, S10</code></td>
+</tr>
+<tr>
+<td><code>i = 9</code></td>
+<td>加上 <code>S6, S7, S8, S9</code></td>
+</tr>
+</tbody></table>
+<p>两个测试用例 —— <code>i = 4</code> 和 <code>i = 9</code> —— 覆盖了全部 10 条语句。</p>
+<table>
+<thead>
+<tr>
+<th>测试输入 →</th>
+<th><code>i=4</code></th>
+<th><code>i=9</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>期望输出</td>
+<td><code>15</code></td>
+<td><code>77</code></td>
+</tr>
+<tr>
+<td>S1</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S4</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S5</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S6</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S7</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S8</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S9</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<h3 id="145-分支覆盖的最小测试集8-个分支">14.5 <strong>分支覆盖</strong>的最小测试集（8 个分支）</h3>
+<p>要覆盖的八个分支是 <code>2T, 2F, 4T, 4F, 6T, 6F, 8T, 8F</code>。两个测试用例不够了 —— 每个输入在它到达的每个分支点上只能走一个方向，而我们需要在所有四个分支点上同时走两个方向。</p>
+<table>
+<thead>
+<tr>
+<th>测试输入</th>
+<th>覆盖的分支</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i = 4</code></td>
+<td><code>2T, 4T</code></td>
+</tr>
+<tr>
+<td><code>i = 2</code></td>
+<td><code>2T, 4F</code></td>
+</tr>
+<tr>
+<td><code>i = 9</code></td>
+<td><code>2F, 6T, 8T</code></td>
+</tr>
+<tr>
+<td><code>i = 3</code></td>
+<td><code>2F, 6T, 8F</code></td>
+</tr>
+<tr>
+<td><code>i = 1</code></td>
+<td><code>2F, 6F</code></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>测试输入 →</th>
+<th><code>i=4</code></th>
+<th><code>i=2</code></th>
+<th><code>i=9</code></th>
+<th><code>i=3</code></th>
+<th><code>i=1</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>期望输出</td>
+<td><code>15</code></td>
+<td><code>3</code></td>
+<td><code>77</code></td>
+<td><code>7</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td>2T</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2F</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>4T</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4F</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6T</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>6F</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>8T</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>8F</td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>五个测试用例给出了<strong>完全分支覆盖</strong>。注意它们顺带也给出了完全语句覆盖（每条分支上的每条语句都被路过） —— 这就印证了 <strong>分支覆盖蕴含语句覆盖</strong>。</p>
+<blockquote>
+<p>上表里有个小细节:这套测试里没有任何一个测试同时覆盖了 <code>8T</code> 和 <code>4T</code>，因为它们在顶层 <code>if/else</code> 的对立两边。这不是缺陷 —— 它们在这个程序里本来就是互斥的，没有任何输入能同时命中两个。<strong>某些覆盖目标在组合上是不可达的；完全分支覆盖要求的是每个分支至少被命中一次，而不是和其它每个分支的每种组合都被命中一次。</strong> §16 在 <strong>infeasibility（不可达）</strong> 标题下还会回到这个想法。</p>
+</blockquote>
+<hr>
+<h2 id="15-其他覆盖准则">15. 其他覆盖准则</h2>
+<p>除了语句覆盖和分支覆盖，幻灯片还提到四个 —— 列出来是为了让词汇完整，但并没有反复钻研。</p>
+<table>
+<thead>
+<tr>
+<th>准则</th>
+<th>它要求什么</th>
+<th>它在分支覆盖之上加了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>条件覆盖</strong></td>
+<td>在像 <code>if (a &gt; b || c &gt; d)</code> 这样的复合布尔表达式里，<em>每个子条件</em>（<code>a &gt; b</code>、<code>c &gt; d</code>）都必须被求值到 <code>T</code> 和 <code>F</code></td>
+<td>抓&quot;复合条件错了但顶层分支方向相同&quot;这种 bug</td>
+</tr>
+<tr>
+<td><strong>方法覆盖</strong></td>
+<td>系统中每个方法都被某个测试调用过</td>
+<td>便宜的清醒检查 —— 找出根本没人在测的方法</td>
+</tr>
+<tr>
+<td><strong>方法调用覆盖</strong></td>
+<td>每个方法调用点都对每个可能的目标方法都执行过（考虑多态 —— 虚函数 / 被覆盖的方法）</td>
+<td>对 OO 代码很关键:一个调用 <code>shape.draw()</code> 可能分派到 <code>Circle.draw</code>、<code>Square.draw</code>、<code>Triangle.draw</code>；方法调用覆盖要求从那个调用点到达所有这些目标</td>
+</tr>
+<tr>
+<td><strong>数据流覆盖</strong></td>
+<td>每个变量赋值都到达它所有可到达的使用（def-use 对）</td>
+<td>抓&quot;值被设定了但从未使用&quot;或&quot;在被设定前就使用&quot;的 bug</td>
+</tr>
+<tr>
+<td><strong>路径覆盖</strong></td>
+<td><strong>每一条从入口到出口的不同路径</strong>都被执行</td>
+<td>最严格 —— 但一般不可行（见下）</td>
+</tr>
+</tbody></table>
+<h3 id="为什么路径覆盖几乎不可达成">为什么路径覆盖几乎不可达成</h3>
+<p>路径数随分支数<strong>乘性增长</strong>，随循环<strong>指数级增长</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>结构</th>
+<th>加上的路径数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一个 <code>if/else</code></td>
+<td>× 2</td>
+</tr>
+<tr>
+<td>两个嵌套 <code>if/else</code></td>
+<td>× 4</td>
+</tr>
+<tr>
+<td>一个迭代 0..N 次的循环</td>
+<td>× (N+1)</td>
+</tr>
+<tr>
+<td>一个迭代 0..∞ 次的循环</td>
+<td>无限条路径</td>
+</tr>
+</tbody></table>
+<p>对循环，幻灯片的实用妥协是:测试<strong>0 次迭代</strong>、<strong>1 次迭代</strong>、<strong>某个平均次数的迭代</strong>，以及<strong>最大次数的迭代</strong>。这能抓到最常见的循环 bug（入口的 off-by-one、出口的 off-by-one、累加器溢出），但并不号称穷举每条路径。</p>
+<blockquote>
+<p>这个权衡是普适的:更强的准则发现更多 bug，但代价是更多测试，而到某个点代价就变无穷。实际推荐是:把 <strong>分支覆盖</strong> 作为大多数代码的工作标准，在安全攸关的复合表达式上加 <strong>条件覆盖</strong>，把 <strong>路径覆盖</strong> 留给路径数可控的小型、关键片段。</p>
+</blockquote>
+<hr>
+<h2 id="16-白盒测试的挑战">16. 白盒测试的挑战</h2>
+<p>白盒测试很强，但有三个被命名的局限，都值得记住:</p>
+<table>
+<thead>
+<tr>
+<th>挑战</th>
+<th>它的意思</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>能用来识别程序中未被测到的部分</strong></td>
+<td>覆盖工具告诉你<em>什么从来没被跑到过</em></td>
+<td>一个清晰、可行动的信号 —— 去给未覆盖的代码行写测试</td>
+</tr>
+<tr>
+<td><strong>覆盖所有节点或边并不意味着发现明显的 fault</strong></td>
+<td>100% 分支覆盖<strong>不</strong>等于无 bug</td>
+<td>覆盖是必要的，但不是充分的 —— 你可以跑过每一行而没有触发到那个 buggy 的输入<em>组合</em></td>
+</tr>
+<tr>
+<td><strong>某些节点、边或循环组合可能不可达</strong></td>
+<td>逻辑上不可达的代码（防御性的 <code>else</code> 分支、&quot;这种情况永远不会发生&quot;的断言）无论你输入什么都覆盖不到</td>
+<td>不要不惜代价追求 100% 覆盖率 —— 有时 &lt;100% 才是正确的停止点</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>三条里最深刻的是第二条。覆盖率是<em>测试执行</em>的属性，不是<em>发现的 bug</em> 的属性。一个跑过每一行却从不<em>检查</em>输出的测试套件，是一个 100% 覆盖率的废套件。正确的口号:<strong>覆盖率是必要的，但不是充分的 —— 要把它和强的 oracle 搭配使用</strong>。</p>
+</blockquote>
+<h3 id="延伸阅读幻灯片上的">延伸阅读（幻灯片上的）</h3>
+<p>讲师推荐的两篇教程式文章:</p>
+<ul>
+<li><em>Path Testing: The Theory</em> — <a href="http://testerstories.com/2014/06/path-testing-the-theory/">http://testerstories.com/2014/06/path-testing-the-theory/</a></li>
+<li><em>Path Testing: The Coverage</em> — <a href="http://testerstories.com/2014/06/path-testing-the-coverage/">http://testerstories.com/2014/06/path-testing-the-coverage/</a></li>
+</ul>
+<hr>
+<h2 id="17-检查与评审">17. 检查与评审</h2>
+<p>两节课讲了可执行的测试之后，Lecture 16 回到 Lecture 13 提到的<strong>另外三类 QA 方法</strong> —— 从评审讲起。这一节的口号简短而出人意料:</p>
+<blockquote>
+<p><strong>Humans read documents and look for defects. Surprisingly effective.</strong><br><em>（人读文档，找缺陷。出乎意料地有效。）</em></p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/inspections-hands-magnifier.png" alt=""Inspections and Reviews"幻灯片的扁平风格矢量插画:几只手指着一台显示着代码的笔记本电脑屏幕，屏幕上方悬着一个巨大的放大镜，放大显示源代码 —— 象征多位评审者一起细看代码。"></p>
+<p>为什么出人意料？因为直觉上，让一位昂贵的专家<em>坐下来读代码</em>听起来比跑成千上万个自动测试要慢、要弱。经验性的发现是，评审能抓到<em>另一类</em> bug —— 测试根本想不到要为它写用例的那一类。</p>
+<h3 id="好处出自-bacchelli--bird-code-reviewing-in-the-trenches-ieee-software-2018">好处（出自 Bacchelli &amp; Bird, <em>&quot;Code Reviewing in the Trenches,&quot;</em> IEEE Software 2018）</h3>
+<table>
+<thead>
+<tr>
+<th>好处</th>
+<th>一句话描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>改善代码质量</strong></td>
+<td>评审者会反对偷懒的写法和丑陋的模式</td>
+</tr>
+<tr>
+<td><strong>改善代码可理解性</strong></td>
+<td>强迫自己把代码讲给评审者听，会暴露不清晰的地方</td>
+</tr>
+<tr>
+<td><strong>发现缺陷</strong></td>
+<td>最初的目的；现在仍然有效</td>
+</tr>
+<tr>
+<td><strong>传递知识</strong></td>
+<td>评审者会熟悉他们评审过的那部分代码库</td>
+</tr>
+<tr>
+<td><strong>探索替代方案</strong></td>
+<td>&quot;你有没有考虑过用 X 来做这件事？&quot;</td>
+</tr>
+<tr>
+<td><strong>改进开发流程</strong></td>
+<td>评审意见的模式会暴露流程的漏洞</td>
+</tr>
+<tr>
+<td><strong>避免打坏构建</strong></td>
+<td>在错误进 CI 之前抓到明显的疏忽</td>
+</tr>
+<tr>
+<td><strong>提升团队认知</strong></td>
+<td>每个人都看得到别人在做什么</td>
+</tr>
+<tr>
+<td><strong>共享代码所有权</strong></td>
+<td>多人都了解代码的每一部分</td>
+</tr>
+<tr>
+<td><strong>团队评估</strong></td>
+<td>管理者能看到谁在评审，谁被评审</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>现代开源工作流让这件事变得具体:GitHub 上的一个 <strong>Pull Request</strong> <em>就是</em>一次代码评审。评审者在行内留评论，作者修改回复，PR 在评审者批准前不会合并。PR-评审这种模式就是工业界版本的 inspections，如今已经几乎在所有软件开发里普及。</p>
+</blockquote>
+<hr>
+<h2 id="18-形式化方法">18. 形式化方法</h2>
+<p>第三类 QA —— 保证级别最高、代价也最高的那一类。</p>
+<p>幻灯片的三行总结:</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>正确性证明（Proofs of correctness）</strong></td>
+<td>一个数学证明，证明程序符合它的形式规格</td>
+</tr>
+<tr>
+<td><strong>只做 verification</strong></td>
+<td>形式化方法回答&quot;系统是否匹配规格？&quot;它无法回答&quot;规格是否对？&quot; —— 那仍然是 validation</td>
+</tr>
+<tr>
+<td><strong>通常与形式化规格一起做</strong></td>
+<td>规格本身必须用一种形式化语言（比如 <strong>Z</strong>、<strong>TLA+</strong>、<strong>Coq</strong>、<strong>Alloy</strong>）写出，才能拿去做证明</td>
+</tr>
+</tbody></table>
+<p>幻灯片展示了一段 <strong>Z 规格</strong> 的片段（例子用了集合构造记法、全称量词、对 <code>OZSpec → UMLDiagram</code> 映射上的谓词逻辑） —— 暗示了形式化规格能稠密到什么地步。大多数学生这辈子都不会写 Z，但应该认得出它的样子。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/formal-methods-z-spec.png" alt="幻灯片上一段 Z 记法形式规格片段，声明 `project : OZSpec → UMLDiagram`，以及对 `oz`、`uml`、`Classdef`、`Opdef`、`inh`、类名/属性名/操作名上的若干全称与存在量化谓词 —— 典型的稠密集合构造 Z 记法，学生可能逐行读不懂，但应认得出这是"形式化规格"。"></p>
+<blockquote>
+<p>这个权衡很残酷:形式化方法给出可能最强的正确性保证，但代价只在极小、极关键的组件上才值得 —— 飞控律背后的数学、TLS 库里的加密代码、实时操作系统内核。它们不用于日常应用代码。</p>
+</blockquote>
+<hr>
+<h2 id="19-静态分析">19. 静态分析</h2>
+<p>第四类 QA，也是大多数学生真的会用上的那一类。</p>
+<blockquote>
+<p><strong>A computer program analyzes source code and finds possible defects (without running the code).</strong><br><strong>Results are reviewed by a person because many warnings are not actually problems.</strong><br><em>（一个计算机程序分析源代码、找出可能的缺陷（不运行代码）。结果由人来审阅，因为很多警告其实不是问题。）</em></p>
+</blockquote>
+<p>这两行里塞了两个想法:</p>
+<ul>
+<li><strong>不运行代码。</strong> 静态分析器解析源代码，在其上做符号化推理 —— 类型、数据流、控制流、可能的别名。它们从不执行程序。这就是为什么它们便宜、快，能在每次提交时跑。</li>
+<li><strong>很多警告其实不是问题。</strong> 静态分析器必然是近似的。它会标出任何<em>可能</em>的缺陷 —— 包括运行时不可达的那些。输出是一份<strong>候选缺陷清单</strong>，不是一份 bug 清单。由人来分类处理这份清单。</li>
+</ul>
+<h3 id="示例工具findbugs">示例工具:FindBugs</h3>
+<p>幻灯片截屏了 <strong>FindBugs</strong>，一个 Java 静态分析器，标记 bug <em>模式</em> —— &quot;Suspicious calls to generic container methods&quot;、&quot;Call to equals() with null argument&quot;、&quot;Call to equals() comparing unrelated class and interface&quot;。截图显示它标出了一行具体的 <code>if (!enum_.equals(&quot;&quot;))</code> 并解释:<em>&quot;We don&#39;t call nextElement() on <code>enum_</code>, so this will be an infinite loop if it is ever called. Should be <code>if (!enum_.nextElement().equals(&quot;&quot;))</code>.&quot;</em> —— 一个不运行代码就抓到的真实 bug 模式。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/findbugs-screenshot.png" alt="FindBugs 静态分析器 Eclipse 插件的截图。左侧面板按类别和优先级列出 bug 模式 —— "Suspicious calls to generic container methods (1)"、"Call to equals() comparison (20)"，其中 "Call to equals() comparing unrelated class and interface" 高亮。右侧面板展示出错的 Java 源代码 `PartialCompositeContext.java`，被标记的那一行以黄色高亮。底部面板显示 bug 描述 "Call to equals() comparing unrelated class and interface" 以及说明文字，指出该比较在运行时永远为 false。"></p>
+<p>其他值得知道名字的常用静态分析器:</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java</td>
+<td>FindBugs / SpotBugs、Checkstyle、PMD</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>mypy（类型）、pylint、flake8、ruff</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript</td>
+<td>ESLint、TypeScript 编译器</td>
+</tr>
+<tr>
+<td>C / C++</td>
+<td>Clang Static Analyzer、Coverity、PVS-Studio</td>
+</tr>
+<tr>
+<td>多语言</td>
+<td>SonarQube</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>静态分析是日常使用中<strong>性价比最高</strong>的 QA 技术。它几乎免费（在 CI 里跑），能抓到整类没有测试能可靠找到的 bug（空指针解引用、资源泄漏、死代码、简单的竞争条件），而且配置好之后基本不打扰你。每个严肃项目都该把它打开。第七周的 Power-of-Ten 第 10 条 —— <em>打开所有编译警告，并配合一个或多个源码分析器</em> —— 就是这同一推荐在安全攸关版本下的形态。</p>
+</blockquote>
+<hr>
+<h2 id="20-本次没讲的测试主题">20. 本次没讲的测试主题</h2>
+<p>这一讲在收尾时点了一遍它<em>没讲</em>的主题 —— 让学生知道自己漏了什么，可以自己去补。</p>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>一句话总结</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>回归测试（Regression testing）</strong></td>
+<td>每个新版本上重跑既有测试套件，确保老功能仍然能工作（第七周点过名；这一周没深入）</td>
+</tr>
+<tr>
+<td><strong>集成测试（Integration testing）</strong></td>
+<td>测试金字塔的&quot;中间层&quot; —— 测试模块之间的接口</td>
+</tr>
+<tr>
+<td><strong>交互测试（Mocking）</strong></td>
+<td>用 <strong>mock 对象</strong> 替换真实协作者，mock 记录调用并返回固定值 —— 让一个单元能在脱离依赖的情况下被测试</td>
+</tr>
+<tr>
+<td><strong>调试（Debugging）</strong></td>
+<td>一旦测试失败，找出并修复底层 fault 的过程</td>
+</tr>
+<tr>
+<td><strong>变异测试（Mutation testing）</strong></td>
+<td>fault seeding（第七周 §19.3）的自动化形式 —— 像 <strong>PIT</strong>、<strong>Stryker</strong>、<strong>mutmut</strong> 这类工具系统地注入变异，度量测试套件抓到了多少</td>
+</tr>
+<tr>
+<td><strong>模糊测试（Fuzz testing）</strong></td>
+<td>给程序喂<em>随机或畸形</em>输入，看它崩溃或卡死 —— 在找安全漏洞上极其有效</td>
+</tr>
+<tr>
+<td><strong>探索式测试（Exploratory testing）</strong></td>
+<td>熟练的人类测试者不带预定脚本地与系统交互，由假设和好奇心引导</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这些都是<strong>研究生测试课或工业界的标准主题</strong>。INF 43 只是入门；你现在掌握了词汇和核心实践，但现实测试在这个基础上还涉及好几种技术。</p>
+</blockquote>
+<hr>
+<h2 id="21-quiz-7-复习指南">21. Quiz 7 复习指南</h2>
+<p>Lecture 16 显式发布了复习指南。Quiz 7 覆盖从 Lecture 13（第七周）到 Lecture 16（第八周）的全部内容 —— 第七周和第八周加起来。</p>
+<h3 id="211-测试基础lecture-1314">21.1 测试基础（Lecture 13–14）</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>你需要会做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Validation vs. verification</strong></td>
+<td>给出两者定义；解释区别（&quot;做对的系统&quot; vs &quot;把系统做对&quot;）</td>
+</tr>
+<tr>
+<td><strong>Mistake / fault / error / failure（IEEE）</strong></td>
+<td>四个都要会定义；给出因果链（Mistake → Fault → Error → Failure）</td>
+</tr>
+<tr>
+<td><strong>测试目标</strong></td>
+<td>找 fault；提升信心（V+V）；准确 / 彻底 / 可重复 / 系统化</td>
+</tr>
+<tr>
+<td><strong>Dijkstra 名言</strong></td>
+<td>背原文:<em>&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;</em> 解释<em>为什么</em></td>
+</tr>
+<tr>
+<td><strong>测试的层次</strong></td>
+<td>单元 / 集成（功能） / 系统（验收） —— 每一个的定义 + 例子</td>
+</tr>
+<tr>
+<td><strong>Test oracle</strong></td>
+<td>什么是 oracle？为什么自动化它很难？（cosine 例子）</td>
+</tr>
+<tr>
+<td><strong>怎么算做完了的几种方式</strong></td>
+<td>时间/预算；find-rate 趋平；fault seeding；&quot;每条需求至少被测过一次&quot;（工业界最常见）</td>
+</tr>
+</tbody></table>
+<h3 id="212-黑盒测试lecture-15">21.2 黑盒测试（Lecture 15）</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>你需要会做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>等价类划分</strong></td>
+<td>给出定义；能从规格里识别类；挑代表</td>
+</tr>
+<tr>
+<td><strong>边界值分析</strong></td>
+<td>给出定义；在每个类内挑边界值；解释<em>为什么</em>挑边界（off-by-one、<code>&lt;</code> vs <code>&lt;=</code>）</td>
+</tr>
+<tr>
+<td><strong>组合测试</strong></td>
+<td>解释如何跨多个参数合并划分；了解笛卡尔积的爆炸性</td>
+</tr>
+</tbody></table>
+<h3 id="213-白盒测试lecture-1516">21.3 白盒测试（Lecture 15–16）</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>你需要会做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>语句 / 节点覆盖</strong></td>
+<td>给出定义；给一个 CFG，设计达到它的最小测试集</td>
+</tr>
+<tr>
+<td><strong>分支 / 边覆盖</strong></td>
+<td>给出定义；给一个 CFG，设计达到它的最小测试集；解释为什么它比语句覆盖更强</td>
+</tr>
+<tr>
+<td><strong>控制流图</strong></td>
+<td>从源代码画一个；正确标注分支（T/F 或 case 值）；识别入口和出口</td>
+</tr>
+</tbody></table>
+<h3 id="214-其它-qa-主题lecture-16">21.4 其它 QA 主题（Lecture 16）</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>你需要会做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>代码检查（Code inspections）</strong></td>
+<td>是什么；<em>为什么</em>&quot;出乎意料地有效&quot;；说出 2–3 条好处</td>
+</tr>
+<tr>
+<td><strong>静态分析器（Static analyzers）</strong></td>
+<td>是什么；它们<em>不</em>执行代码就能跑；警告需要人工分类</td>
+</tr>
+</tbody></table>
+<h3 id="215-实战例子熟练度">21.5 实战例子熟练度</h3>
+<p>§14 的 CFG-与-覆盖讲义正是 quiz 可能重复的那种机械练习:<em>这里有一个小函数，画 CFG，给一个语句覆盖的最小测试集，给一个分支覆盖的最小测试集。</em> 要能流利地把这三件事都做完，不用把图画两遍。</p>
+<hr>
+<h2 id="22-总结与记忆框架">22. 总结与记忆框架</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 8 knowledge structure
+|
++-- The question this week
+|   +-- Given that we can&#39;t test exhaustively / prove correctness,
+|       which test cases do we actually run?
+|
++-- Two overall testing approaches (Lecture 15)
+|   +-- Black-box / specification-based / functional
+|   |     +-- look only at the SPEC
+|   |     +-- stops via the test oracle (pass/fail)
+|   +-- White-box / structural / code-based
+|         +-- look at the SOURCE CODE
+|         +-- stops via a coverage criterion (statement, branch, ...)
+|
++-- Black-box techniques (Lecture 15)
+|   +-- Equivalence Class Partitioning:
+|   |     +-- group inputs the program treats the same
+|   |     +-- classes must COVER the domain and NOT OVERLAP
+|   |     +-- one representative per class
+|   +-- Boundary Value Analysis:
+|   |     +-- bugs cluster at edges (&lt; vs &lt;=)
+|   |     +-- pick values on the boundaries of each class
+|   +-- Systematic 5-step procedure:
+|   |     1. Identify the domain
+|   |     2. Pick a basis for partitioning
+|   |        (size, structure, correctness, intuition)
+|   |     3. Divide into subdomains
+|   |     4. Pick representative(s) per subdomain
+|   |     5. Test reps + boundaries
+|   +-- Grading example: 0..100 -&gt; A/B/C/D/F + invalid
+|   |     12 tests = boundaries of 5 classes + 2 invalid edges
+|   +-- Combinatorial Testing:
+|         +-- partition each parameter independently
+|         +-- devise combinations (full Cartesian, all-pairs, ...)
+|
++-- White-box techniques (Lectures 15-16)
+|   +-- Control-Flow Graphs:
+|   |     +-- entry + exit nodes
+|   |     +-- node = atomic instruction
+|   |     +-- edge = directed control flow
+|   |     +-- branches = 2+ outgoing edges, labeled T/F
+|   +-- Coverage criteria (increasing strictness):
+|   |     +-- Statement / node:  every node visited
+|   |     +-- Branch / edge:     every edge visited
+|   |     +-- Condition:         every sub-condition T and F
+|   |     +-- Method:            every method called
+|   |     +-- Method-call:       every call site x every target
+|   |     +-- Path:              every path (often infeasible)
+|   +-- Branch SUBSUMES statement (every edge -&gt; every node)
+|   +-- Worked example: int m(int i) with i%2, i%4, i%3, i%9
+|   |     +-- statement coverage minimal: { i=4, i=9 }     (2 tests)
+|   |     +-- branch coverage minimal:    { 4, 2, 9, 3, 1} (5 tests)
+|   +-- Challenges:
+|         +-- great for finding under-tested parts
+|         +-- 100% coverage != bug-free (need strong oracles)
+|         +-- some elements are INFEASIBLE (unreachable code)
+|
++-- The other 3 QA families (Lecture 16)
+|   +-- Inspections &amp; Reviews:
+|   |     +-- humans read code/docs for defects
+|   |     +-- &quot;surprisingly effective&quot;
+|   |     +-- modern form: GitHub Pull Requests
+|   +-- Formal Methods:
+|   |     +-- mathematical proofs of correctness
+|   |     +-- VERIFICATION ONLY (not validation)
+|   |     +-- needs formal specifications (Z, TLA+, Coq, ...)
+|   +-- Static Analysis:
+|         +-- analyze source WITHOUT running it
+|         +-- e.g. FindBugs / SpotBugs / mypy / ESLint / Coverity
+|         +-- humans triage warnings (not all are real bugs)
+|
++-- Topics named but not covered
+|   +-- regression, integration, mocking, debugging,
+|       mutation testing, fuzz testing, exploratory testing
+|
++-- Quiz 7 = Weeks 7 + 8
+    +-- V&amp;V, M/F/E/F, Dijkstra, levels, oracles, when-done
+    +-- Black-box: eq partitioning + boundary + combinatorial
+    +-- White-box: statement + branch + CFG
+    +-- Inspections + static analyzers
+    +-- Be able to: draw a CFG, design min statement-coverage
+        test set, design min branch-coverage test set</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="82"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（82 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="一句话总结">一句话总结</h3>
+<blockquote>
+<p>测试用例选取是把一个有效无穷的输入空间压缩成一个有限测试套件的工程艺术:<strong>黑盒测试</strong>用规格把输入划分成等价类，挑代表加边界值（并通过组合测试跨参数合并划分），<strong>白盒测试</strong>用从源代码导出的控制流图，要求测试输入达到某个覆盖准则 —— 最常见的是<strong>语句覆盖</strong>或严格更强的<strong>分支覆盖</strong> —— 而环绕在测试周围更大的 QA 工具箱还包括<strong>检查与代码评审</strong>（人读代码）、<strong>形式化方法</strong>（数学正确性证明，用于最关键的组件），以及<strong>静态分析</strong>（像 FindBugs 这样不执行代码就标记候选缺陷的工具），反复出现的教训是:没有任何单一技术能抓到每一个 bug，严肃项目都要用一套<strong>混合</strong>方法。</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 7 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>软件质量保证与测试</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-09/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 9 周 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>软件流程与生命周期模型</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" title="上一篇: 软件质量保证与测试 ([)" aria-label="上一篇: 第 7 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 7 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 8 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-09/zh-CN/" title="下一篇: 软件流程与生命周期模型 (])" aria-label="下一篇: 第 9 周" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 9 周</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

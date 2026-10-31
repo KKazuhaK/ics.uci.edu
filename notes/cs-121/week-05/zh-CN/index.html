@@ -1,0 +1,1055 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>CS 121 文本处理、词项-文档矩阵 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="分词难点、停用词去除、词干提取（suffix-s、Porter、Krovetz）、用词性标注和 n-gram 识别短语、文档结构与锚文本，以及词项-文档关联矩阵。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413980" data-source-url="/~kazuhak/notes/cs-121/week-05/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-05/en-US/" data-prev-url="/~kazuhak/notes/cs-121/week-04/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 5 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 5 周 · 信息检索课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 CS 121 第 5 周 的课程笔记，适合按周复习文本处理、网络图、SEO、网络爬虫，以及搜索引擎如何索引网页并为其排序。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 28 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-5文本处理词项-文档矩阵">CS 121: Information Retrieval — Week 5：文本处理、词项-文档矩阵</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%88%91%E4%BB%AC%E6%89%80%E5%9C%A8%E7%9A%84%E4%BD%8D%E7%BD%AE%E6%96%87%E6%9C%AC%E8%BD%AC%E6%8D%A2">1. 我们所在的位置：文本转换</a></li>
+<li><a href="#2-%E5%88%86%E8%AF%8D%E6%97%B6%E8%A6%81%E8%80%83%E8%99%91%E7%9A%84%E9%97%AE%E9%A2%98">2. 分词时要考虑的问题</a></li>
+<li><a href="#3-%E5%88%86%E8%AF%8D%E8%BF%87%E7%A8%8B">3. 分词过程</a></li>
+<li><a href="#4-%E5%81%9C%E7%94%A8%E8%AF%8D%E5%8E%BB%E9%99%A4">4. 停用词去除</a></li>
+<li><a href="#5-%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96">5. 词干提取</a></li>
+<li><a href="#6-porter-%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96%E5%99%A8">6. Porter 词干提取器</a></li>
+<li><a href="#7-%E8%AF%8D%E5%85%B8%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96%E5%99%A8krovetz-%E4%B8%8E%E5%AF%B9%E6%AF%94">7. 词典词干提取器、Krovetz 与对比</a></li>
+<li><a href="#8-%E7%9F%AD%E8%AF%AD">8. 短语</a></li>
+<li><a href="#9-%E8%AF%8D%E6%80%A7%E6%A0%87%E6%B3%A8">9. 词性标注</a></li>
+<li><a href="#10-%E8%AF%8D-n-gram">10. 词 N-gram</a></li>
+<li><a href="#11-%E6%96%87%E6%A1%A3%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A0%87%E8%AE%B0">11. 文档结构与标记</a></li>
+<li><a href="#12-%E9%93%BE%E6%8E%A5%E4%B8%8E%E9%94%9A%E6%96%87%E6%9C%AC">12. 链接与锚文本</a></li>
+<li><a href="#13-%E8%AF%8D%E9%A1%B9-%E6%96%87%E6%A1%A3%E5%85%B3%E8%81%94%E7%9F%A9%E9%98%B5">13. 词项-文档关联矩阵</a></li>
+<li><a href="#14-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B8%AA%E7%9F%A9%E9%98%B5%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95">14. 为什么这个矩阵无法扩展</a></li>
+<li><a href="#15-%E7%A4%BA%E4%BE%8B%E9%A2%98%E9%99%84%E8%A7%A3%E7%AD%94">15. 示例题（附解答）</a></li>
+<li><a href="#16-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%BB%B6%E4%BA%8B">16. 速查与必记的 5 件事</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 28<br>整理自 Lecture 13 和 14 的幻灯片（YuJa 视频未收录；课堂用的 Lecture 12.5 尚未发布）。按概念组织，而不是按讲次组织。<br>📖 本周阅读：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al.，第 4 章（到 §4.4 为止）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning, Raghavan &amp; Schütze, <em>Introduction to IR</em>，第 1 章</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：Assignment 2（网络爬虫）截止时间为 <strong>10 月 30 日（周五）晚 9:00</strong>。<br>Online Quiz 2 在下周三 <strong>11 月 4 日</strong>，课上用笔记本电脑进行（晚 7:00 开放，时长 35 分钟）。</p>
+</blockquote>
+<hr>
+<h2 id="1-我们所在的位置文本转换">1. 我们所在的位置：文本转换</h2>
+<p>两份幻灯片都位于架构图中的<strong>文本转换/处理</strong>模块（L13 p2、p10 · L14 p2、p29；完整的架构图见<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#10-%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84">第 1 周第 10 节</a>）。本周主题是 &quot;Text processing &amp; tokenization++&quot;：文档的文本从文档库到索引之间要经过哪些处理。</p>
+<p><strong>分词</strong>（tokenizing），又叫<strong>词法分析</strong>（lexical analysis），是把字符（通常是字符序列）组成有意义的单元。它在英语中就出乎意料地复杂，在其他语言中可能更难（L13 p4–5）。早期 IR 的规则（3 个及以上字母数字字符组成一个词，以空格或特殊字符结尾，再转为小写）以及它在 Bigcorp 句子上的结果，见<a href="/~kazuhak/notes/cs-121/week-02/zh-CN/#23-%E6%97%A9%E6%9C%9F%E7%9A%84%E5%88%86%E8%AF%8D%E6%96%B9%E6%B3%95">第 2 周 2.3 节</a>。L13 补充了两点：</p>
+<ul>
+<li>把大写转为小写有几个名字：<strong>case folding</strong>、<strong>normalization</strong> 或 <strong>downcasing</strong>。</li>
+<li>这条规则用于搜索、甚至用于大规模实验都过于简单，因为<strong>丢失了太多信息</strong>。分词中的小决定，可能对某些查询的效果产生<strong>重大影响</strong>（L13 p6）。</li>
+</ul>
+<hr>
+<h2 id="2-分词时要考虑的问题">2. 分词时要考虑的问题</h2>
+<p>幻灯片列出的难点（L13 p7–9）：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>为什么重要</th>
+<th>幻灯片中的例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>短词</strong></td>
+<td>在某些查询中很重要，通常是组合出现时</td>
+<td>xp, am, pm, el paso, world war II, &quot;to be or not to be&quot;</td>
+</tr>
+<tr>
+<td><strong>连字符：可合并</strong></td>
+<td>有时连字符并不必要；两种写法都常见，可以合并</td>
+<td>e-bay, wal-mart, active-x, cd-rom, t-shirts</td>
+</tr>
+<tr>
+<td><strong>连字符：难以判断</strong></td>
+<td>连字符可能是词的一部分，也可能是分隔符，更难决定</td>
+<td>winston-salem, mazda rx-7, e-cards, pre-diabetes, t-mobile, spanish-speaking</td>
+</tr>
+<tr>
+<td><strong>特殊字符</strong></td>
+<td>是标签、URL、文档中代码的重要组成部分</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>大写词</strong></td>
+<td>含义可能与小写形式相同，也可能不同</td>
+<td>&quot;Bush&quot;、&quot;Apple&quot; 与 &quot;bush&quot;、&quot;apple&quot;</td>
+</tr>
+<tr>
+<td><strong>撇号</strong></td>
+<td>可能是词的一部分、所有格的一部分，或者只是个错误</td>
+<td>rosie o&#39;donnell, can&#39;t, don&#39;t, 80&#39;s, 1890&#39;s, men&#39;s straw hats, master&#39;s degree, england&#39;s ten largest cities, shriner&#39;s</td>
+</tr>
+<tr>
+<td><strong>数字</strong></td>
+<td>可能很重要，包括小数</td>
+<td>nokia 3250, top 10 courses, united 93, quicktime 6.5 pro, 92.3 the beat, 288358, 3.14159265</td>
+</tr>
+<tr>
+<td><strong>句点</strong></td>
+<td>出现在数字、缩写、URL、句末等各种情况中</td>
+<td>I.B.M., Ph.D., cs.umass.edu, F.E.A.R.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在搜索引擎中，<strong>查询的分词步骤必须与文档的分词步骤完全相同</strong>（L13 p9）。如果文档索引的是 <code>ibm</code>，而查询被分成 <code>i</code>、<code>b</code>、<code>m</code>，就什么也匹配不上。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.2 Tokenizing（书中第 87 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="3-分词过程">3. 分词过程</h2>
+<p>分词是一个<strong>多步骤的过程</strong>（L13 p11）。第一步用<strong>分词器 + 解析器</strong>找出文档中哪些部分需要为搜索而分词（<a href="#11-%E6%96%87%E6%A1%A3%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A0%87%E8%AE%B0">第 11 节</a>中的标记正是解析器派上用场的地方）。</p>
+<p>最通用的策略是<strong>把复杂的决定推迟给其他组件</strong>：</p>
+<ul>
+<li>一个词是任意一串字母数字字符，以空格或特殊字符结尾，全部转为小写。</li>
+<li><strong>所有内容都建索引</strong>，系统同时记录额外信息。例子：<code>92.3</code> → <code>92</code> <code>3</code>，但搜索仍然能找到 <code>92</code> 和 <code>3</code> <strong>相邻</strong>的文档。</li>
+<li>加入一些特殊规则，减少对查询转换组件的依赖。</li>
+</ul>
+<p>这与过去使用的简单分词过程差别不大（L13 p12）。早期 <strong>TREC</strong> 集合使用的规则：</p>
+<table>
+<thead>
+<tr>
+<th>规则</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>忽略词中的撇号</td>
+<td>o&#39;connor → <code>oconnor</code>，bob&#39;s → <code>bobs</code></td>
+</tr>
+<tr>
+<td>忽略缩写中的句点</td>
+<td>I.B.M. → <code>ibm</code>，Ph.D. → <code>phd</code></td>
+</tr>
+</tbody></table>
+<p>困难的情况仍然交给<strong>后处理</strong>：信息抽取和查询转换。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：分词器刻意保持简单，同时保留足够的信息（比如词的位置），让后续阶段能找回它丢掉的东西。</p>
+</blockquote>
+<hr>
+<h2 id="4-停用词去除">4. 停用词去除</h2>
+<p><strong>功能词</strong>（限定词、介词）本身几乎没有意义，而且出现频率非常高（L13 p13）。它们可以被当作<strong>停用词</strong>（stopword）去掉，这样可以：</p>
+<ul>
+<li>减少索引空间，</li>
+<li>缩短响应时间，</li>
+<li>提高检索效果。</li>
+</ul>
+<p>但它们在<strong>组合中</strong>可能很重要：&quot;to be or not to be&quot; 全部是停用词。</p>
+<p>构建停用词表（L13 p14）：可以取最高频的词，也可以用标准词表。词表会针对应用、领域，甚至<strong>文档的不同部分</strong>定制——&quot;click&quot; 和 &quot;here&quot; 就是锚文本中很好的停用词。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：通常最好的做法是<strong>为文档中所有词建索引</strong>，<strong>在查询时</strong>再决定使用哪些词（L13 p14）。在建索引时删掉的词就再也找不回来了。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.3 Stopping（书中第 90 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="5-词干提取">5. 词干提取</h2>
+<p>词干提取（stemming）也叫<strong>合并</strong>（conflation）。词由<strong>语素</strong>（morpheme）构成（L13 p15）：</p>
+<ul>
+<li><strong>词干</strong>（stem）是核心单元。</li>
+<li><strong>词缀</strong>（affix）是附着在词干上的单元。在 &quot;stems&quot; 中，STEM 是词干，S 是词缀。</li>
+</ul>
+<p>很多词都有形态变化：<strong>屈折变化</strong>（复数、时态）和<strong>派生变化</strong>（加上 <em>-ation</em> 之类的后缀把动词变成名词）。大多数情况下，这些变体的意思相同或非常接近。</p>
+<p><strong>词干提取器</strong>（stemmer）试图把这些变化归并到一个<strong>共同的词干</strong>，通常是去掉后缀。和停用词一样，它可以在建索引时做，也可以在查询处理时做，或者两者都做（L13 p16）。幻灯片的例子：用户搜索 &quot;mark spitz swimming&quot;，但讲过去赛事的网页写的是 &quot;swam&quot;。词干提取器要把 &quot;swimming&quot; 和 &quot;swam&quot; 都变成同一个词干（例如 &quot;swim&quot;），二者才能匹配。</p>
+<p>效果通常是<strong>小但显著的提升</strong>（L13 p17）：英语大约提升 5–10%，阿拉伯语或俄语可达 50%，对这些语言可能至关重要。阿拉伯语围绕一个词根构造出很多词——幻灯片中词根 <em>ktb</em> 的表：</p>
+<table>
+<thead>
+<tr>
+<th>词</th>
+<th>意思</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>kitab</td>
+<td>a book（一本书）</td>
+</tr>
+<tr>
+<td>kitabi</td>
+<td>my book（我的书）</td>
+</tr>
+<tr>
+<td>alkitab</td>
+<td>the book（这本书）</td>
+</tr>
+<tr>
+<td>kitabuki</td>
+<td>your book (f)（你的书，阴性）</td>
+</tr>
+<tr>
+<td>kitabuka</td>
+<td>your book (m)（你的书，阳性）</td>
+</tr>
+<tr>
+<td>kitabuhu</td>
+<td>his book（他的书）</td>
+</tr>
+<tr>
+<td>kataba</td>
+<td>to write（写）</td>
+</tr>
+<tr>
+<td>maktaba</td>
+<td>library, bookstore（图书馆、书店）</td>
+</tr>
+<tr>
+<td>maktab</td>
+<td>office（办公室）</td>
+</tr>
+</tbody></table>
+<p><strong>两种基本类型</strong>（L13 p18–20），都与语言有关：</p>
+<ul>
+<li><strong>基于词典</strong>：使用相关词的列表。</li>
+<li><strong>基于算法</strong>：用程序判断哪些词相关。</li>
+</ul>
+<p>最简单的英语算法词干提取器是 <strong>suffix-s</strong>：去掉结尾的 &quot;s&quot;，假定它是复数。</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> suffix_s</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">word</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> word[:-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] </span><span style="color:#C586C0">if</span><span style="color:#D4D4D4"> word.endswith(</span><span style="color:#CE9178">"s"</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> word</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> w </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"cats"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"lakes"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"wiis"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"centuries"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"is"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(w, </span><span style="color:#CE9178">"->"</span><span style="color:#D4D4D4">, suffix_s(w))</span></span>
+<span class="line"><span style="color:#6A9955"># cats -> cat</span></span>
+<span class="line"><span style="color:#6A9955"># lakes -> lake</span></span>
+<span class="line"><span style="color:#6A9955"># wiis -> wii</span></span>
+<span class="line"><span style="color:#6A9955"># centuries -> centurie</span></span>
+<span class="line"><span style="color:#6A9955"># is -> i</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>它会产生<strong>很多假阴性</strong>（该合并的相关词没合并：centuries ↛ century），也有<strong>一些假阳性</strong>（把不相关的词合并了：is → i）。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：注意方向。<strong>假阳性</strong>（false positive）是把<em>不该</em>匹配的词合并了（is/I）；<strong>假阴性</strong>（false negative）是漏掉了<em>应该</em>匹配的词（centuries/century）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#151-suffix-s%E5%81%87%E9%98%B3%E6%80%A7%E4%B8%8E%E5%81%87%E9%98%B4%E6%80%A7l13-p1820">例题 15.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.4 Stemming（书中第 91 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="6-porter-词干提取器">6. Porter 词干提取器</h2>
+<p><strong>Porter 词干提取器</strong>（L13 p21）是一种算法词干提取器，自 70 年代起就用于 IR 实验：</p>
+<ul>
+<li>它由<strong>一系列规则</strong>组成；每一步都执行<strong>适用的最长后缀</strong>所对应的规则。</li>
+<li>在 TREC 中效果很好。</li>
+<li>它产生的是<strong>词干，不一定是词</strong>。</li>
+<li>缺点：会犯不少错误，而且很难修改。</li>
+</ul>
+<p>幻灯片展示了它五个步骤中的一个（L13 p22，&quot;Example step (1 of 5)&quot;）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Step 1a:
+- Replace sses by ss (e.g., stresses → stress).
+- Delete s if the preceding word part contains a vowel not immediately
+  before the s (e.g., gaps → gap but gas → gas).
+- Replace ied or ies by i if preceded by more than one letter, otherwise
+  by ie (e.g., ties → tie, cries → cri).
+- If suffix is us or ss do nothing (e.g., stress → stress).
+Step 1b:
+- Replace eed, eedly by ee if it is in the part of the word after the
+  first non-vowel following a vowel (e.g., agreed → agree, feed → feed).
+- Delete ed, edly, ing, ingly if the preceding word part contains a
+  vowel, and then if the word ends in at, bl, or iz add e (e.g., fished →
+  fish, pirating → pirate), or if the word ends with a double letter that
+  is not ll, ss or zz, remove the last letter (e.g., falling → fall,
+  dripping → drip), or if the word is short, add e (e.g., hoping → hope).
+- Whew!</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>规则大意：Step 1a 处理复数 -s 结尾——sses 变 ss；ied/ies 前面多于一个字母时变 i，否则变 ie；以 us 或 ss 结尾不动；以 s 结尾时，如果 s 前面那个字母之前还有元音，就删掉 s。Step 1b 处理 -ed / -ing——eed/eedly 位于&quot;第一个元音之后的第一个非元音&quot;之后的部分时变 ee；ed/edly/ing/ingly 前面有元音就删掉，然后：以 at、bl、iz 结尾加 e，以 ll、ss、zz 以外的双写字母结尾去掉一个，短词加 e。</p>
+<p>下面可以逐步演示幻灯片的全部 12 个例子，也可以输入你自己的词。表格会依次填出每个词经过 1a、1b 后的结果（紫色格子表示<em>这一步</em>改动了这个词，最终词干加粗），代码面板会高亮触发的规则：</p>
+<pre data-language="viz" data-viz="porter-step1"><code>{&quot;title&quot;: &quot;Porter 第 1a + 1b 步：幻灯片中的例子（L13 p22）&quot;, &quot;words&quot;: &quot;stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping&quot;, &quot;lang&quot;: &quot;zh&quot;, &quot;interactive&quot;: true}</code></pre><p>所有例子的结果都和幻灯片一致：stress、gap、gas、tie、cri、agree、feed、fish、pirate、fall、drip、hope。注意 &quot;cri&quot;：是词干，不是词。</p>
+<p>Porter 会犯的错误（L13 p23–24）：</p>
+<table>
+<thead>
+<tr>
+<th>假阳性（被合并了，但不该合并）</th>
+<th>假阴性（没合并，但应该合并）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>organization / organ</td>
+<td>european / europe</td>
+</tr>
+<tr>
+<td>generalization / generic</td>
+<td>cylinder / cylindrical</td>
+</tr>
+<tr>
+<td>numerical / numerous</td>
+<td>matrices / matrix</td>
+</tr>
+<tr>
+<td>policy / police</td>
+<td>urgency / urgent</td>
+</tr>
+<tr>
+<td>university / universe</td>
+<td>create / creation</td>
+</tr>
+<tr>
+<td>addition / additive</td>
+<td>analysis / analyses</td>
+</tr>
+<tr>
+<td>negligible / negligent</td>
+<td>useful / usefully</td>
+</tr>
+<tr>
+<td>execute / executive</td>
+<td>noise / noisy</td>
+</tr>
+<tr>
+<td>past / paste</td>
+<td>decompose / decomposition</td>
+</tr>
+<tr>
+<td>ignore / ignorant</td>
+<td>sparse / sparsity</td>
+</tr>
+<tr>
+<td>special / specialized</td>
+<td>resolve / resolution</td>
+</tr>
+<tr>
+<td>head / heading</td>
+<td>triangle / triangular</td>
+</tr>
+</tbody></table>
+<p><strong>Porter2</strong> 词干提取器解决了其中一部分问题，并且可以加入例外。其他语言也用过类似的方法。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#152-%E6%89%8B%E7%AE%97-porter-%E7%AC%AC-1-%E6%AD%A5l13-p22">例题 15.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://tartarus.org/martin/PorterStemmer/">Porter 词干提取器（tartarus.org）</a> · <a href="http://snowball.tartarus.org/algorithms/english/stemmer.html">Porter2 / Snowball 英语词干提取器</a></p>
+</blockquote>
+<hr>
+<h2 id="7-词典词干提取器krovetz-与对比">7. 词典词干提取器、Krovetz 与对比</h2>
+<p><strong>词典词干提取器</strong>（L13 p25）使用人工构建的 <code>(词, 词干)</code> 对列表：</p>
+<ul>
+<li><strong>假阳性率非常低</strong>。</li>
+<li>相关的词不需要长得像：&quot;is&quot;、&quot;be&quot;、&quot;was&quot;。</li>
+<li>重要缺点：<strong>无法自动应对新词</strong>。</li>
+<li>词表可以先用统计分析半自动构建，再由人工整理。这对搜索应用中的<strong>查询扩展</strong>很有用。</li>
+</ul>
+<p><strong>Krovetz 词干提取器</strong>（L13 p26–27）是算法与词典的<strong>混合</strong>。它基于这样的观察：不规则的词通常是语言中最古老的，新词往往遵循更规则的语法惯例。</p>
+<ol>
+<li>先在词典中查这个词。如果在词典里，就保持不变，或替换为它的&quot;例外&quot;形式。</li>
+<li>如果不在，就检查有哪些后缀可以去掉。</li>
+<li>去掉后缀后，再查一次词典。</li>
+</ol>
+<p>它的优点：通常产生的是<strong>词，而不是词干</strong>。它的假阳性率更低，假阴性率稍高（取决于词典的大小和整理质量）。用于搜索时，效果相当。</p>
+<p>幻灯片在同一段文本上的对比（L13 p28–29）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>文本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>原文</strong></td>
+<td>Document will describe marketing strategies carried out by U.S. companies for their agricultural chemicals, report predictions for market share of such chemicals, or report market statistics for agrochemicals, pesticide, herbicide, fungicide, insecticide, fertilizer, predicted sales, market share, stimulate demand, price cut, volume of sales.</td>
+</tr>
+<tr>
+<td><strong>Porter</strong></td>
+<td>document describ market strategi carri compani agricultur chemic report predict market share chemic report market statist agrochem pesticid herbicid fungicid insecticid fertil predict sale market share stimul demand price cut volum sale</td>
+</tr>
+<tr>
+<td><strong>Krovetz</strong></td>
+<td>document describe marketing strategy carry company agriculture chemical report prediction market share chemical report market statistic agrochemic pesticide herbicide fungicide insecticide fertilizer predict sale stimulate demand price cut volume sale</td>
+</tr>
+</tbody></table>
+<p>两种输出都已经去掉了停用词（will、out、by、for、their、of、such、or）。Porter 的输出是 &quot;strategi&quot;、&quot;compani&quot; 这样的词干；Krovetz 的输出是 &quot;strategy&quot;、&quot;company&quot; 这样的真实单词。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：算法型 = 规则，错误多，不需要维护词典。词典型 = 假阳性少，处理不了新词。Krovetz = 先查词典，规则兜底。</p>
+</blockquote>
+<hr>
+<h2 id="8-短语">8. 短语</h2>
+<p>短语在搜索中很重要（L14 p4–6）：很多网络搜索查询都是 <strong>2–3 个词的短语</strong>。短语：</p>
+<ul>
+<li><strong>比单个词更精确</strong>——包含 &quot;black sea&quot; 的文档，与分别包含 &quot;black&quot; 和 &quot;sea&quot; 两个词的文档不同。<strong>顺序也重要</strong>：你想要包含 &quot;the sea turned black&quot; 的页面吗？</li>
+<li><strong>歧义更少</strong>——&quot;big apple&quot; 与 &quot;apple&quot;。</li>
+</ul>
+<p>短语<strong>给排序带来困难</strong>，具体取决于模型。给定查询 &quot;fishing supplies&quot;，下面这些文档该怎么打分：完整短语出现多次、完整短语只出现一次、两个词在同一句话中、同一段中、同一文档中、词的各种变体？</p>
+<p>两个问题（L14 p7–8、p18）：<strong>什么是短语？</strong>以及<strong>如何识别短语？</strong>有三种方法，分别在接下来三个地方讲：</p>
+<ol>
+<li>用<strong>词性（POS）标注器</strong>识别句法短语 → <a href="#9-%E8%AF%8D%E6%80%A7%E6%A0%87%E6%B3%A8">第 9 节</a>。</li>
+<li>使用<strong>词 n-gram</strong> → <a href="#10-%E8%AF%8D-n-gram">第 10 节</a>。</li>
+<li>在索引中存储<strong>词的位置</strong>，在查询中使用<strong>邻近运算符</strong>。</li>
+</ol>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.5 Phrases and N-grams（书中第 97 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="9-词性标注">9. 词性标注</h2>
+<p>词性标注器用文本的<strong>统计 / 机器学习模型</strong>预测每个词的句法标签（L14 p9）。标签示例：</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>含义</th>
+<th>标签</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NN</td>
+<td>单数名词</td>
+<td>IN</td>
+<td>介词</td>
+</tr>
+<tr>
+<td>NNS</td>
+<td>复数名词</td>
+<td>JJ</td>
+<td>形容词</td>
+</tr>
+<tr>
+<td>VB</td>
+<td>动词</td>
+<td>CC</td>
+<td>连词（如 &quot;and&quot;、&quot;or&quot;）</td>
+</tr>
+<tr>
+<td>VBD</td>
+<td>动词过去式</td>
+<td>PRP</td>
+<td>代词</td>
+</tr>
+<tr>
+<td>VBN</td>
+<td>动词过去分词</td>
+<td>MD</td>
+<td>情态助动词（如 &quot;can&quot;、&quot;will&quot;）</td>
+</tr>
+</tbody></table>
+<p>然后就可以把短语定义为<strong>简单名词组</strong>。Brill 标注器在第 7 节那段对比文本上的输出（L14 p10）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Document/NN will/MD describe/VB marketing/NN strategies/NNS carried/VBD
+out/IN by/IN U.S./NNP companies/NNS for/IN their/PRP agricultural/JJ
+chemicals/NNS ,/, report/NN predictions/NNS for/IN market/NN share/NN
+of/IN such/JJ chemicals/NNS ,/, or/CC report/NN market/NN statistics/NNS
+for/IN agrochemicals/NNS ,/, pesticide/NN ,/, herbicide/NN ,/,
+fungicide/NN ,/, insecticide/NN ,/, fertilizer/NN ,/, predicted/VBN
+sales/NNS ,/, market/NN share/NN ,/, stimulate/VB demand/NN ,/, price/NN
+cut/NN ,/, volume/NN of/IN sales/NNS ./.</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>用这种方法在两个集合中找到的最高频名词短语（L14 p11）：</p>
+<table>
+<thead>
+<tr>
+<th>TREC 频次</th>
+<th>TREC 短语</th>
+<th>专利频次</th>
+<th>专利短语</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>65824</td>
+<td>united states</td>
+<td>975362</td>
+<td>present invention</td>
+</tr>
+<tr>
+<td>61327</td>
+<td>article type</td>
+<td>191625</td>
+<td>u.s. pat</td>
+</tr>
+<tr>
+<td>33864</td>
+<td>los angeles</td>
+<td>147352</td>
+<td>preferred embodiment</td>
+</tr>
+<tr>
+<td>18062</td>
+<td>hong kong</td>
+<td>95097</td>
+<td>carbon atoms</td>
+</tr>
+<tr>
+<td>17788</td>
+<td>north korea</td>
+<td>87903</td>
+<td>group consisting</td>
+</tr>
+<tr>
+<td>17308</td>
+<td>new york</td>
+<td>81809</td>
+<td>room temperature</td>
+</tr>
+<tr>
+<td>15513</td>
+<td>san diego</td>
+<td>78458</td>
+<td>seq id</td>
+</tr>
+<tr>
+<td>15009</td>
+<td>orange county</td>
+<td>75850</td>
+<td>brief description</td>
+</tr>
+<tr>
+<td>12869</td>
+<td>prime minister</td>
+<td>66407</td>
+<td>prior art</td>
+</tr>
+<tr>
+<td>12799</td>
+<td>first time</td>
+<td>59828</td>
+<td>perspective view</td>
+</tr>
+<tr>
+<td>12067</td>
+<td>soviet union</td>
+<td>58724</td>
+<td>first embodiment</td>
+</tr>
+<tr>
+<td>10811</td>
+<td>russian federation</td>
+<td>56715</td>
+<td>reaction mixture</td>
+</tr>
+<tr>
+<td>9912</td>
+<td>united nations</td>
+<td>54619</td>
+<td>detailed description</td>
+</tr>
+<tr>
+<td>8127</td>
+<td>southern california</td>
+<td>54117</td>
+<td>ethyl acetate</td>
+</tr>
+<tr>
+<td>7640</td>
+<td>south korea</td>
+<td>52195</td>
+<td>example 1</td>
+</tr>
+<tr>
+<td>7620</td>
+<td>end recording</td>
+<td>52003</td>
+<td>block diagram</td>
+</tr>
+<tr>
+<td>7524</td>
+<td>european union</td>
+<td>46299</td>
+<td>second embodiment</td>
+</tr>
+<tr>
+<td>7436</td>
+<td>south africa</td>
+<td>41694</td>
+<td>accompanying drawings</td>
+</tr>
+<tr>
+<td>7362</td>
+<td>san francisco</td>
+<td>40554</td>
+<td>output signal</td>
+</tr>
+<tr>
+<td>7086</td>
+<td>news conference</td>
+<td>37911</td>
+<td>first end</td>
+</tr>
+<tr>
+<td>6792</td>
+<td>city council</td>
+<td>35827</td>
+<td>second end</td>
+</tr>
+<tr>
+<td>6348</td>
+<td>middle east</td>
+<td>34881</td>
+<td>appended claims</td>
+</tr>
+<tr>
+<td>6157</td>
+<td>peace process</td>
+<td>33947</td>
+<td>distal end</td>
+</tr>
+<tr>
+<td>5955</td>
+<td>human rights</td>
+<td>32338</td>
+<td>cross-sectional view</td>
+</tr>
+<tr>
+<td>5837</td>
+<td>white house</td>
+<td>30193</td>
+<td>outer surface</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="10-词-n-gram">10. 词 N-gram</h2>
+<p>词性标注<strong>对大型集合来说太慢</strong>（L14 p12–13）。更简单的定义：短语就是<strong>任意 n 个词组成的序列</strong>，即 <strong>n-gram</strong>（也叫 <strong>shingle</strong>）。bigram 是 2 个词，trigram 是 3 个词，unigram 是单个词。n-gram 也用于<strong>字符级别</strong>，比如 OCR 之类的应用。</p>
+<p>n-gram 通常由<strong>重叠</strong>的词序列构成：在文档中让一个 n 词&quot;窗口&quot;每次移动一个词。</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> ngrams</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">words</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">.join(words[i:i + n])</span></span>
+<span class="line"><span style="color:#C586C0">            for</span><span style="color:#D4D4D4"> i </span><span style="color:#C586C0">in</span><span style="color:#DCDCAA"> range</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(words) - n + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">words = </span><span style="color:#CE9178">"the sea turned black"</span><span style="color:#D4D4D4">.split()</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> n </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(n, ngrams(words, n))</span></span>
+<span class="line"><span style="color:#6A9955"># 1 ['the', 'sea', 'turned', 'black']</span></span>
+<span class="line"><span style="color:#6A9955"># 2 ['the sea', 'sea turned', 'turned black']</span></span>
+<span class="line"><span style="color:#6A9955"># 3 ['the sea turned', 'sea turned black']</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>下面可以直接运行；下一步会数出一个 1,000 词文档中的 n-gram 个数：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;词 n-gram：每次移动一个词的窗口（L14 p4、p12–15）&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;const words = \&quot;the sea turned black\&quot;.split(\&quot; \&quot;);\nfunction ngrams(ws, n) {\n  const out = [];\n  for (let i = 0; i + n &lt;= ws.length; i++) out.push(ws.slice(i, i + n).join(\&quot; \&quot;));\n  return out;\n}\nconsole.log(\&quot;unigrams\&quot;, ngrams(words, 1));\nconsole.log(\&quot;bigrams \&quot;, ngrams(words, 2));\nconsole.log(\&quot;trigrams\&quot;, ngrams(words, 3));&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;不列出窗口，只数个数：N 个词的文档有 N − n + 1 个长度为 n 的 n-gram。&quot;, &quot;js&quot;: &quot;\n// L14 p14: n-gram instances in a 1,000-word document, 2 &lt;= n &lt;= 5\nlet total = 0;\nfor (let n = 2; n &lt;= 5; n++) { console.log(\&quot;n =\&quot;, n, \&quot;:\&quot;, 1000 - n + 1); total += 1000 - n + 1; }\nconsole.log(\&quot;total\&quot;, total);&quot;}], &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>n-gram 带来了什么（L14 p14–15）：</p>
+<ul>
+<li><strong>高频的 n-gram 更可能是有意义的短语。</strong></li>
+<li>n-gram 服从 <strong>Zipf 分布</strong>——比单个词拟合得更好（Zipf 定律见<a href="/~kazuhak/notes/cs-121/week-04/zh-CN/#11-%E6%96%87%E6%9C%AC%E7%BB%9F%E8%AE%A1%E4%B8%8E-zipf-%E5%AE%9A%E5%BE%8B">第 4 周第 11 节</a>）。</li>
+<li>可以为指定长度以内的<strong>所有 n-gram 建索引</strong>。优点：<strong>比词性标注快得多</strong>。缺点：<strong>占用大量存储</strong>——一个 1,000 词的文档包含 <strong>3,990</strong> 个 2 ≤ n ≤ 5 的词 n-gram 实例。</li>
+</ul>
+<p><strong>Google n-gram</strong>（L14 p16–17）：尽管存储开销大，<strong>很多网络搜索引擎仍然会为 n-gram 建索引</strong>。Google 的样本：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>词元（tokens）</td>
+<td>1,024,908,267,229</td>
+</tr>
+<tr>
+<td>句子</td>
+<td>95,119,665,584</td>
+</tr>
+<tr>
+<td>Unigram</td>
+<td>13,588,391</td>
+</tr>
+<tr>
+<td>Bigram</td>
+<td>314,843,401</td>
+</tr>
+<tr>
+<td>Trigram</td>
+<td>977,069,902</td>
+</tr>
+<tr>
+<td>Fourgram</td>
+<td>1,313,818,354</td>
+</tr>
+<tr>
+<td>Fivegram</td>
+<td>1,176,470,663</td>
+</tr>
+</tbody></table>
+<p>网络上英语中最常见的 trigram 是 <strong>&quot;all rights reserved&quot;</strong>；中文中是&quot;有限责任公司&quot;（limited liability corporation）。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#153-1000-%E8%AF%8D%E7%9A%84%E6%96%87%E6%A1%A3%E9%87%8C%E6%9C%89%E5%A4%9A%E5%B0%91%E4%B8%AA-n-graml14-p1415">例题 15.3</a></p>
+</blockquote>
+<hr>
+<h2 id="11-文档结构与标记">11. 文档结构与标记</h2>
+<p><strong>文档中某些部分比其他部分更重要</strong>（L14 p20–21）。文档解析器通过 HTML 标签之类的标记识别结构：</p>
+<ul>
+<li><strong>标题、锚文本和加粗文本</strong>很可能包含重要内容。</li>
+<li><strong>元数据</strong>也可能很重要。</li>
+<li><strong>链接</strong>用于链接分析（课程后面会讲）。</li>
+</ul>
+<p>幻灯片的例子是维基百科页面 &quot;Tropical fish&quot;（L14 p22–24）。渲染后的页面有标题、&quot;From Wikipedia, the free encyclopedia&quot;，以及两段包含很多链接词的文字（fish、tropical、freshwater、salt water、Fishkeepers、aquarium、iridescence、pigmented）。它的 HTML 源码（按幻灯片节选）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">meta</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"keywords"</span><span style="color:#9CDCFE"> content</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Tropical fish, Airstone, Albinism, Algae eater,</span></span>
+<span class="line"><span style="color:#CE9178">Aquarium, Aquarium fish feeder, Aquarium furniture, Aquascaping, Bath treatment</span></span>
+<span class="line"><span style="color:#CE9178">(fishkeeping),Berlin Method, Biotope"</span><span style="color:#808080"> /></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">title</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish - Wikipedia, the free encyclopedia</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">title</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"firstHeading"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">b</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">b</span><span style="color:#808080">></span><span style="color:#D4D4D4"> include </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fish"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fish"</span><span style="color:#808080">></span><span style="color:#D4D4D4">fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> found in </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Tropics"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Tropics"</span><span style="color:#808080">></span><span style="color:#D4D4D4">tropical</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> environments around the world,</span></span>
+<span class="line"><span style="color:#D4D4D4">including both </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fresh_water"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fresh water"</span><span style="color:#808080">></span><span style="color:#D4D4D4">freshwater</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> and </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Sea_water"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Sea water"</span><span style="color:#808080">></span><span style="color:#D4D4D4">salt water</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> species. </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fishkeeping"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fishkeeping"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Fishkeepers</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> often use the term</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4">tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4"> to refer only those requiring fresh water, with saltwater tropical fish</span></span>
+<span class="line"><span style="color:#D4D4D4">referred to as </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">i</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/List_of_marine_aquarium_fish_species"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"List of</span></span>
+<span class="line"><span style="color:#CE9178">marine aquarium fish species"</span><span style="color:#808080">></span><span style="color:#D4D4D4">marine fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4">.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish are popular </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Aquarium"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Aquarium"</span><span style="color:#808080">></span><span style="color:#D4D4D4">aquarium</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">fish , due to their often bright coloration. In freshwater fish, this coloration typically</span></span>
+<span class="line"><span style="color:#D4D4D4">derives from </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Iridescence"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Iridescence"</span><span style="color:#808080">></span><span style="color:#D4D4D4">iridescence</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4">, while salt</span></span>
+<span class="line"><span style="color:#D4D4D4">water fish are generally </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Pigment"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Pigment"</span><span style="color:#808080">></span><span style="color:#D4D4D4">pigmented</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4">.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>标记告诉解析器每部分是什么：<code>&lt;title&gt;</code>、<code>&lt;h1&gt;</code> 标题、加粗的 <code>&lt;b&gt;Tropical fish&lt;/b&gt;</code>、关键词 <code>&lt;meta&gt;</code>，以及每个 <code>&lt;a href&gt;</code> 链接。L14 p24 把链接（freshwater、salt water、aquarium、iridescence、pigmented）框了出来：它们引出了第 12 节。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.4 Document Structure and Markup（书中第 101 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="12-链接与锚文本">12. 链接与锚文本</h2>
+<p>链接是 Web 的关键组成部分：对导航重要，对搜索也重要（L14 p25）。在</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"http://example.com"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Example website</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>中，&quot;Example website&quot; 是<strong>锚文本</strong>（anchor text），<code>http://example.com</code> 是<strong>目标链接</strong>。搜索引擎两者都会用。</p>
+<p>锚文本被用作<strong>目标页面内容的描述</strong>（L14 p26–28）。<strong>所有指向某个页面的链接</strong>的锚文本，会被收集成该页面的一个<strong>额外文本字段</strong>。幻灯片的示意图中，页面 <code>www.example.com</code> 有四个字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>text（页面自身的正文）</td>
+<td>document text</td>
+</tr>
+<tr>
+<td>来自 other.com 的锚文本</td>
+<td>example</td>
+</tr>
+<tr>
+<td>来自 null.com 的锚文本</td>
+<td>click here</td>
+</tr>
+<tr>
+<td>title</td>
+<td>example site</td>
+</tr>
+</tbody></table>
+<p>锚文本往往<strong>简短、有描述性，并且与查询文本相似</strong>。检索实验表明，它对<strong>某些类型的查询</strong>的效果有<strong>显著影响——比 PageRank 还大！</strong></p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：锚文本描述的是链接<strong>指向的</strong>页面，而不是链接所在的页面。另外，&quot;click here&quot; 正是锚文本专用停用词表会去掉的那种文字（第 4 节）。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.5.1 Anchor Text（书中第 105 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="13-词项-文档关联矩阵">13. 词项-文档关联矩阵</h2>
+<p>&quot;Unstructured data in 1620&quot;（L14 p31–32）：<strong>莎士比亚的哪些剧本包含 Brutus AND Caesar，但 NOT Calpurnia？</strong>你可以对所有剧本 grep Brutus 和 Caesar，再去掉包含 Calpurnia 的行。为什么这不是搜索的答案？</p>
+<ul>
+<li>对大型语料库来说<strong>太慢</strong>。</li>
+<li><strong>NOT Calpurnia</strong> 并不简单。</li>
+<li>其他操作，比如找出 <em>Romans</em> 在 <em>countrymen</em> <strong>附近</strong>出现的地方，无法实现。</li>
+<li>无法做<strong>排序检索</strong>——而用户想要的是排好序的文档。</li>
+</ul>
+<p><strong>词项-文档关联矩阵</strong>（term-document incidence matrix，L14 p33–35）是一个布尔矩阵：行是<strong>词项</strong>，列是<strong>文档</strong>；剧本包含该词时值为 1，否则为 0。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Antony and Cleopatra</th>
+<th>Julius Caesar</th>
+<th>The Tempest</th>
+<th>Hamlet</th>
+<th>Othello</th>
+<th>Macbeth</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Antony</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Brutus</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Caesar</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Calpurnia</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Cleopatra</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>mercy</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>worser</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p><strong>关联向量</strong>（L14 p36–38）：每个词项有一个 0/1 向量，就是它所在的行。回答查询时，取出 Brutus、Caesar 和 Calpurnia 的行，把 Calpurnia 的行<strong>取反</strong>，再做<strong>按位 AND</strong>：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mo>=</mo><msub><mi>I</mi><mrow><mi>B</mi><mi>r</mi><mi>u</mi></mrow></msub><mo>∧</mo><msub><mi>I</mi><mrow><mi>C</mi><mi>a</mi><mi>e</mi></mrow></msub><mo>∧</mo><mi mathvariant="normal">¬</mi><msub><mi>I</mi><mrow><mi>C</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R = I_{Bru} \wedge I_{Cae} \wedge \neg I_{Cal}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">u</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">¬</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">I_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是词项 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> 的行，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∧</mo></mrow><annotation encoding="application/x-tex">\wedge</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5556em;"></span><span class="mord">∧</span></span></span></span> 是按位 AND，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">¬</mi></mrow><annotation encoding="application/x-tex">\neg</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">¬</span></span></span></span> 把每一位取反。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">(Brutus)         1 1 0 1 0 0  AND
+(Caesar)         1 1 0 1 1 1  AND
+(NOT Calpurnia)  1 0 1 1 1 1  =
+                 1 0 0 1 0 0</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>结果中的 1 在第 1 列和第 4 列：<strong>Antony and Cleopatra</strong> 和 <strong>Hamlet</strong>。下面可以逐步演示，也可以输入别的查询（对这些词项使用 AND / OR / NOT）：</p>
+<pre data-language="viz" data-viz="incidence-matrix"><code>{&quot;title&quot;: &quot;Brutus AND Caesar AND NOT Calpurnia（L14 p33–38）&quot;, &quot;terms&quot;: &quot;Antony: 1 1 0 0 0 1; Brutus: 1 1 0 1 0 0; Caesar: 1 1 0 1 1 1; Calpurnia: 0 1 0 0 0 0; Cleopatra: 1 0 0 0 0 0; mercy: 1 0 1 1 1 1; worser: 1 0 1 1 1 0&quot;, &quot;docs&quot;: &quot;Antony and Cleopatra, Julius Caesar, The Tempest, Hamlet, Othello, Macbeth&quot;, &quot;query&quot;: &quot;Brutus AND Caesar AND NOT Calpurnia&quot;, &quot;lang&quot;: &quot;zh&quot;, &quot;interactive&quot;: true}</code></pre><p>原文中的答案（L14 p39）：</p>
+<ul>
+<li><em>Antony and Cleopatra</em>，第三幕第二场——Agrippa [对 Domitius Enobarbus 旁白]：&quot;Why, Enobarbus, / When Antony found Julius <strong>Caesar</strong> dead, / He cried almost to roaring; and he wept / When at Philippi he found <strong>Brutus</strong> slain.&quot;</li>
+<li><em>Hamlet</em>，第三幕第二场——Lord Polonius：&quot;I did enact Julius <strong>Caesar</strong> I was killed i&#39; the / Capitol; <strong>Brutus</strong> killed me.&quot;</li>
+</ul>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#154-brutus-and-caesar-and-not-calpurnial14-p3338">例题 15.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning et al., <em>Introduction to IR</em>，第 1 章（本周阅读）</a></p>
+</blockquote>
+<hr>
+<h2 id="14-为什么这个矩阵无法扩展">14. 为什么这个矩阵无法扩展</h2>
+<p>&quot;Can you use this in bigger collections?&quot;（L14 p40–43）设：</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span> 篇文档，每篇约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> 个词；</li>
+<li>每个词约 6 字节（含空格和标点）→ 约 <strong>6 GB</strong> 数据；</li>
+<li>其中有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn><mtext>K</mtext></mrow><annotation encoding="application/x-tex">M = 500\text{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span></span></span></span> 个<strong>不同</strong>的词项。</li>
+</ul>
+<p>那么词项-文档矩阵是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>500</mn><mtext>K</mtext><mo>×</mo><mn>1</mn><mtext>M</mtext></mrow><annotation encoding="application/x-tex">500\text{K} \times 1\text{M}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1</span><span class="mord text"><span class="mord">M</span></span></span></span></span>：<strong>五千亿</strong>个 0 和 1，所以<strong>无法在内存中构建</strong>。但其中<strong>最多只有十亿个 1</strong>——最多 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^6 \times 10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> 个，每个词的出现最多贡献一个。这个矩阵<strong>极其稀疏</strong>。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：更好的表示方式是<strong>只记录 1 的位置</strong>（L14 p43）。对每个词项，保存包含它的文档列表——这正是之后几周倒排索引的起点。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#155-%E5%85%B3%E8%81%94%E7%9F%A9%E9%98%B5%E6%9C%89%E5%A4%9A%E5%A4%A7l14-p4043">例题 15.5</a></p>
+</blockquote>
+<hr>
+<h2 id="15-示例题附解答">15. 示例题（附解答）</h2>
+<h3 id="151-suffix-s假阳性与假阴性l13-p1820">15.1 suffix-s：假阳性与假阴性（L13 p18–20）</h3>
+<p>对 cats、lakes、wiis、centuries、is 使用 suffix-s 词干提取器（去掉结尾的 &quot;s&quot;，假定是复数）。哪些结果是假阴性，哪些是假阳性？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> cats → cat、lakes → lake、wiis → wii 都是对的。centuries → <strong>centurie</strong>，而不是 century：两个相关的词没能合并，这是<strong>假阴性</strong>。is → <strong>i</strong>：两个不相关的词被合并了，这是<strong>假阳性</strong>。返回<a href="#5-%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96">第 5 节</a>。</p>
+<h3 id="152-手算-porter-第-1-步l13-p22">15.2 手算 Porter 第 1 步（L13 p22）</h3>
+<p>只按幻灯片上的 Step 1a 和 Step 1b，依次对下面的词提取词干：stresses、gaps、gas、ties、cries、agreed、feed、fished、pirating、falling、dripping、hoping。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<table>
+<thead>
+<tr>
+<th>词</th>
+<th>触发的规则</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>stresses</td>
+<td>1a：sses → ss</td>
+<td>stress</td>
+</tr>
+<tr>
+<td>gaps</td>
+<td>1a：删除 s（&quot;p&quot; 之前有元音 &quot;a&quot;）</td>
+<td>gap</td>
+</tr>
+<tr>
+<td>gas</td>
+<td>1a：保留 s（元音 &quot;a&quot; 紧挨在 s 前面）</td>
+<td>gas</td>
+</tr>
+<tr>
+<td>ties</td>
+<td>1a：ies → ie（前面只有一个字母 &quot;t&quot;）</td>
+<td>tie</td>
+</tr>
+<tr>
+<td>cries</td>
+<td>1a：ies → i（前面多于一个字母）</td>
+<td>cri</td>
+</tr>
+<tr>
+<td>agreed</td>
+<td>1b：eed → ee（后缀位于 &quot;ag&quot; 之后，即第一个元音后的第一个非元音之后）</td>
+<td>agree</td>
+</tr>
+<tr>
+<td>feed</td>
+<td>1b：保留 eed（后缀不在那个区域内）</td>
+<td>feed</td>
+</tr>
+<tr>
+<td>fished</td>
+<td>1b：删除 ed</td>
+<td>fish</td>
+</tr>
+<tr>
+<td>pirating</td>
+<td>1b：删除 ing，然后以 &quot;at&quot; 结尾 → 加 e</td>
+<td>pirate</td>
+</tr>
+<tr>
+<td>falling</td>
+<td>1b：删除 ing；&quot;ll&quot; 是允许的双写字母</td>
+<td>fall</td>
+</tr>
+<tr>
+<td>dripping</td>
+<td>1b：删除 ing，然后双写 &quot;p&quot; → 去掉一个</td>
+<td>drip</td>
+</tr>
+<tr>
+<td>hoping</td>
+<td>1b：删除 ing，然后短词 → 加 e</td>
+<td>hope</td>
+</tr>
+</tbody></table>
+<p><a href="#6-porter-%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96%E5%99%A8">第 6 节</a>中的演示正是按这些规则运行的，12 个结果完全相同。</p>
+<h3 id="153-1000-词的文档里有多少个-n-graml14-p1415">15.3 1,000 词的文档里有多少个 n-gram？（L14 p14–15）</h3>
+<p>一篇文档有 1,000 个词。使用重叠窗口时，它包含多少个 2 ≤ n ≤ 5 的词 n-gram 实例？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> n 个词的窗口可以放在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1000</mn><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">1000 - n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1000</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 个位置：999 个 bigram、998 个 trigram、997 个 fourgram、996 个 fivegram。合计 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>999</mn><mo>+</mo><mn>998</mn><mo>+</mo><mn>997</mn><mo>+</mo><mn>996</mn><mo>=</mo><mn>3</mn><mo separator="true" lspace="0em" rspace="0em">,</mo><mn>990</mn></mrow><annotation encoding="application/x-tex">999 + 998 + 997 + 996 = 3{,}990</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">999</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">998</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">997</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">996</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">3</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">990</span></span></span></span>——是文档长度的四倍。这就是为 n-gram 建索引的存储代价。返回<a href="#10-%E8%AF%8D-n-gram">第 10 节</a>。</p>
+<h3 id="154-brutus-and-caesar-and-not-calpurnial14-p3338">15.4 Brutus AND Caesar AND NOT Calpurnia（L14 p33–38）</h3>
+<p>使用第 13 节的关联矩阵，哪些剧本满足 <em>Brutus AND Caesar AND NOT Calpurnia</em>？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> Brutus = 110100，Caesar = 110111，Calpurnia = 010000 → NOT Calpurnia = 101111。110100 AND 110111 = 110100；再 AND 101111 = <strong>100100</strong>。第 1 列和第 4 列：<strong>Antony and Cleopatra</strong> 和 <strong>Hamlet</strong>。Julius Caesar 两个名字都有，但也有 Calpurnia，所以被 NOT 排除了。返回<a href="#13-%E8%AF%8D%E9%A1%B9-%E6%96%87%E6%A1%A3%E5%85%B3%E8%81%94%E7%9F%A9%E9%98%B5">第 13 节</a>。</p>
+<h3 id="155-关联矩阵有多大l14-p4043">15.5 关联矩阵有多大？（L14 p40–43）</h3>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span> 篇文档，每篇约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> 个词，每词约 6 字节，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn><mtext>K</mtext></mrow><annotation encoding="application/x-tex">M = 500\text{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span></span></span></span> 个不同词项。文本有多少？矩阵有多少个格子？最多有多少个 1？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 文本：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup><mo>×</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">10^6 \times 10^3 \times 6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">6</span></span></span></span> 字节 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mn>6</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">= 6 \times 10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> 字节 ≈ <strong>6 GB</strong>。矩阵：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>5</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>=</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup></mrow><annotation encoding="application/x-tex">5 \times 10^5 \times 10^6 = 5 \times 10^{11}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span></span></span></span> 个格子，即<strong>五千亿</strong>个。1 的个数：每个词的出现最多贡献一个，所以最多 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^6 \times 10^3 = 10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> 个，即<strong>十亿</strong>个。最多只有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup><mo stretchy="false">)</mo><mo>=</mo><mn>0.2</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">10^9 / (5 \times 10^{11}) = 0.2\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">0.2%</span></span></span></span> 的格子是 1（这是我们用幻灯片数字算出的比例），所以只存 1 的位置。返回<a href="#14-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B8%AA%E7%9F%A9%E9%98%B5%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95">第 14 节</a>。</p>
+<hr>
+<h2 id="16-速查与必记的-5-件事">16. 速查与必记的 5 件事</h2>
+<table>
+<thead>
+<tr>
+<th>文本处理步骤</th>
+<th>作用</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分词</td>
+<td>字符 → 词元；转小写（case folding）</td>
+<td>连字符、撇号、句点、数字；查询必须和文档用同样的分词方式</td>
+</tr>
+<tr>
+<td>停用词去除</td>
+<td>去掉功能词</td>
+<td>&quot;to be or not to be&quot;；最好全部建索引，查询时再决定</td>
+</tr>
+<tr>
+<td>词干提取</td>
+<td>把形态变体合并成一个词干</td>
+<td>假阳性（is → i）与假阴性（centuries ↛ century）</td>
+</tr>
+<tr>
+<td>短语</td>
+<td>多词单元</td>
+<td>词性标注（慢）、n-gram（占存储）、位置 + 邻近运算符</td>
+</tr>
+<tr>
+<td>结构 / 标记</td>
+<td>重视标题、锚文本、加粗、元数据</td>
+<td>锚文本描述的是<strong>目标</strong>页面</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>词干提取器</th>
+<th>类型</th>
+<th>输出</th>
+<th>错误</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>suffix-s</td>
+<td>算法型</td>
+<td>词干</td>
+<td>假阴性多，也有一些假阳性</td>
+</tr>
+<tr>
+<td>Porter</td>
+<td>算法型（规则，最长后缀）</td>
+<td>词干，不一定是词</td>
+<td>错误多，难以修改</td>
+</tr>
+<tr>
+<td>Porter2</td>
+<td>算法型</td>
+<td>词干</td>
+<td>修正了部分 Porter 的问题，可加入例外</td>
+</tr>
+<tr>
+<td>词典型</td>
+<td>词表</td>
+<td>词</td>
+<td>假阳性极少；处理不了新词</td>
+</tr>
+<tr>
+<td>Krovetz</td>
+<td>混合：先查词典，再去后缀</td>
+<td>词</td>
+<td>假阳性更少，假阴性稍多</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>关联矩阵</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>元素</td>
+<td>文档包含该词项时为 1</td>
+</tr>
+<tr>
+<td>AND / NOT 查询</td>
+<td>对行做按位 AND；NOT = 取反</td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span>、<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">M = 5 \times 10^5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span> 时的大小</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup></mrow><annotation encoding="application/x-tex">5 \times 10^{11}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span></span></span></span> 个格子，≤ <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> 个 1 → 稀疏，只存 1</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 件事</strong></p>
+<ol>
+<li>分词中的小决定可能大幅改变查询效果——查询必须和文档经过完全相同的步骤。</li>
+<li>停用词的常用策略：全部建索引，查询时再决定；停用词在组合中有意义。</li>
+<li>词干提取器在假阳性和假阴性之间权衡：Porter 产生词干（cri），Krovetz 产生词。</li>
+<li>短语可以用词性标注（准确、慢）、n-gram（快、占存储：n = 2–5 时每 1,000 词有 3,990 个）、或位置 + 邻近运算符来识别；锚文本是目标页面的强信号。</li>
+<li>关联矩阵用按位 AND/OR/NOT 回答布尔查询，但在 Web 规模下它巨大且稀疏——只存 1。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-04/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 4 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>字符编码、文档存储、重复检测与 Zipf 定律</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>CS 121 · Information Retrieval</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-04/zh-CN/" title="上一篇: 字符编码、文档存储、重复检测与 Zipf 定律 ([)" aria-label="上一篇: 第 4 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 4 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 5 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

@@ -1,0 +1,835 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Linked Lists &amp; Stacks | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Singly linked list API, implementation and analysis, doubly linked lists, ArrayList vs. linked lists, and the Stack ADT."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413976" data-source-url="/~kazuhak/notes/ics-46/lec-04/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-04/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-03/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-05/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 4</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 4 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 4 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-4-linked-lists--stacks">Information and Computer Science 46 — Lecture 4: Linked Lists &amp; Stacks</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-linked-lists-the-idea">1. Linked Lists: The Idea</a></li>
+<li><a href="#2-singly-linked-list-implementation">2. Singly Linked List: Implementation</a></li>
+<li><a href="#3-singly-linked-list-analysis">3. Singly Linked List: Analysis</a></li>
+<li><a href="#4-doubly-linked-list">4. Doubly Linked List</a></li>
+<li><a href="#5-arraylist-vs-linked-lists">5. ArrayList vs. Linked Lists</a></li>
+<li><a href="#6-stacks">6. Stacks</a></li>
+<li><a href="#7-complete-implementation">7. Complete Implementation</a></li>
+<li><a href="#8-in-class-activities-with-solutions">8. In-class Activities (with Solutions)</a></li>
+<li><a href="#9-quick-reference--top-5-things-to-remember">9. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46, Prof. Tom Yeh, Fall 2026, 10/08/26. Built from the Lecture 4 slides (pp. 1–49); supplements: algs4 §1.3, Thornton&#39;s ICS 46 notes. Organized by concept, not by source.<br>Slides 50–51 (stacks on a linked list, &quot;How do we choose?&quot;) are repeated at the start of Lecture 5, so they live in the Lecture 5 notes.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong> (slides 2–3):<br>Lab 2 (includes building the SLL below) due <strong>Mon 10/19/26</strong>; HW 2 due <strong>Fri 10/16/26</strong>.<br>Learning Activity A in Friday&#39;s discussion + Activity B the Friday after = Quiz 1. Consent form: 1% extra credit (alternative reflection prompts if you don&#39;t consent).<br>Install the MetaCog Chrome extension (bit.ly/MetaCogExt → unzip → <code>chrome://extensions</code> → developer mode → &quot;Load unpacked&quot; → <code>dist</code> folder → click its reload button → save your 5-digit student ID).<br>Lecture activities count for credit starting next week.</p>
+</blockquote>
+<hr>
+<h2 id="1-linked-lists-the-idea">1. Linked Lists: The Idea</h2>
+<p>Today&#39;s goals (slide 4): linked lists, then stacks.</p>
+<h3 id="11-nodes-connected-by-pointers-slides-57">1.1 Nodes connected by pointers (slides 5–7)</h3>
+<p>An ArrayList keeps items in one contiguous block. A <strong>linked list</strong> is still a dynamic linear structure, but each item lives in its own heap <strong>node</strong>, and the order is stored in <strong>pointers</strong> from node to node — the nodes can be anywhere in memory. Slide 6 shows this on memory cells 0–7: the list &quot;CS ? !&quot; starts at cell 3 (the <strong>head</strong>), cell 3 links to cell 1, cell 1 links to cell 6; the other cells aren&#39;t part of the list.</p>
+<p>Slide 7&#39;s recursive definition: a singly linked list is <strong>either empty (<code>nullptr</code>) or a node holding an item and a pointer to a singly linked list</strong>. <code>Node&lt;T&gt;</code> holds one item of type <code>T</code> and a link to the next node. The last node&#39;s <code>next</code> is <code>nullptr</code> (the slash in the slide&#39;s box).</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;Slide 6&#39;s list: reaching the last node means walking&quot;, &quot;items&quot;: &quot;CS, ?, !&quot;, &quot;ops&quot;: &quot;get(2)&quot;, &quot;start&quot;: 1}</code></pre><blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (algs4 §1.3): the recursive definition gives the standard traversal loop, <code>for (Node* x = head; x != nullptr; x = x-&gt;next)</code>, which you&#39;ll use for printing, the destructor and copying.</p>
+</blockquote>
+<h3 id="12-the-api-and-a-worked-sequence-slides-815">1.2 The API and a worked sequence (slides 8–15)</h3>
+<p>Slide 8&#39;s <code>SinglyLinkedList&lt;T&gt;</code> API: <code>SinglyLinkedList()</code>, <code>bool isEmpty() const</code>, <code>size_t size() const</code>, <code>T get(size_t index) const</code>, <code>void add(const T&amp; item)</code> (<strong>at the head</strong>), <code>void add(size_t index, const T&amp; item)</code>, <code>T remove()</code> (<strong>the head</strong>), <code>T remove(size_t index)</code>. Note that the no-index <code>add</code>/<code>remove</code> work at the <strong>head</strong>, the opposite of Lecture 3&#39;s ArrayList.</p>
+<p>Slides 9–15 animate it (indices count from the head, starting at 0):</p>
+<table>
+<thead>
+<tr>
+<th>Slide</th>
+<th>Call</th>
+<th>List afterwards</th>
+<th><code>n</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9</td>
+<td><code>SinglyLinkedList&lt;std::string&gt; sll;</code></td>
+<td>empty</td>
+<td>0</td>
+</tr>
+<tr>
+<td>10–12</td>
+<td><code>add(&quot;ICS 46&quot;)</code>, <code>add(&quot;ROCKS&quot;)</code>, <code>add(&quot;!&quot;)</code></td>
+<td>! → ROCKS → ICS 46</td>
+<td>3</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>add(1, &quot;?&quot;)</code></td>
+<td>! → ? → ROCKS → ICS 46</td>
+<td>4</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>remove()</code> returns &quot;!&quot;</td>
+<td>? → ROCKS → ICS 46</td>
+<td>3</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>remove(1)</code> returns &quot;ROCKS&quot;</td>
+<td>? → ICS 46</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;Slides 9–15&quot;, &quot;ops&quot;: &quot;add(ICS 46); add(ROCKS); add(!); add(1, ?); remove(); remove(1)&quot;, &quot;interactive&quot;: true}</code></pre><p>Head-insertion means items come out in <strong>reverse order</strong> of insertion — that&#39;s LIFO, the stack behaviour of section 6.</p>
+<hr>
+<h2 id="2-singly-linked-list-implementation">2. Singly Linked List: Implementation</h2>
+<h3 id="21-the-class-nested-node-head-n-slides-1618">2.1 The class: nested <code>Node</code>, <code>head</code>, <code>n</code> (slides 16–18)</h3>
+<p>Slide 16&#39;s plan: our own list (part of Lab 2), a <strong>template</strong>, a <strong>nested class <code>Node</code></strong>, and a <strong>count of elements</strong>. Slide 17:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#6A9955">    /**</span></span>
+<span class="line"><span style="color:#6A9955">     * Defines the nodes of the singly linked list. Each node holds</span></span>
+<span class="line"><span style="color:#6A9955">     * a value and a pointer to the next node.</span></span>
+<span class="line"><span style="color:#6A9955">     */</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // Pointer to the first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // Number of elements in the list</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~SinglyLinkedList</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Rule of Five: also define copy ctor, copy assign,</span></span>
+<span class="line"><span style="color:#6A9955">    // move ctor, move assign  (see Lab 2 spec)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // isEmpty, size, get, add, remove ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Storing <code>n</code> makes <code>size()</code> O(1), at the price that every mutator must update it. <code>Node</code> has <strong>no default constructor</strong> — that matters for two slide bugs below. Slide 18:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955"> // return size() == 0;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The two <code>isEmpty</code> versions agree as long as the invariant <strong><code>head == nullptr</code> exactly when <code>n == 0</code></strong> holds. The destructor (declared on slide 17) frees every node by removing the head until the list is empty; the copy/move operations are Lab 2&#39;s job — the compiler&#39;s default copy would share one chain and double-free it.</p>
+<h3 id="22-rangecheck-slide-19">2.2 <code>rangeCheck</code> (slide 19)</h3>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">        throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (slide 19): <code>index &lt; 0</code> on a <code>size_t</code> is always false, and <code>index &gt; n</code> lets <code>index == n</code> through, so <code>get(n)</code> dereferences <code>nullptr</code> → use <code>if (index &gt;= n)</code> for <code>get</code>/<code>remove</code>; <code>add(index, item)</code> allows <code>index == n</code> (append) and checks <code>index &gt; n</code> itself.</p>
+</blockquote>
+<p>Example (compiled): on a 2-item list, <code>get(2)</code> prints <code>get(2): Index 2 out of bounds</code>.</p>
+<h3 id="23-getindex-walk-with-a-finger-slides-2022">2.3 <code>get(index)</code>: walk with a finger (slides 20–22)</h3>
+<p>The only node you can reach directly is the head, so put a temporary pointer — the <strong>finger</strong> — on it and move forward <code>index</code> times (slide 22):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">    // Check whether index is valid</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Start from head of list</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Move forward 'index' times</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        index</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // return the item in the node at position 'index'</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Example: <code>get(2)</code> on ! → ? → ROCKS → ICS46 moves finger &quot;!&quot; → &quot;?&quot; → &quot;ROCKS&quot; and returns &quot;ROCKS&quot;. Up to <code>n - 1</code> steps, so <strong>O(n)</strong>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (slides 22, 38): <code>get</code> is missing <code>const</code> (slide 8 says <code>T get(size_t index) const</code>) → add it, or you can&#39;t call <code>get</code> on a <code>const</code> list.</p>
+</blockquote>
+<h3 id="24-additem-insert-at-the-head-slides-2325">2.4 <code>add(item)</code>: insert at the head (slides 23–25)</h3>
+<p>Make the new node point at the current first node, then make <code>head</code> point at the new node (slide 25):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> oldHead</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // remember the current first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> newNode</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">       // allocate node (next defaults to nullptr)</span></span>
+<span class="line"><span style="color:#9CDCFE">    newNode</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">oldHead</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">              // link new node to the old head</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                       // new node becomes the head</span></span>
+<span class="line"><span style="color:#D4D4D4">    ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                                  // increase number of nodes</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Example: <code>add(&quot;UCI&quot;)</code> on ! → ? → ROCKS → ICS46 gives <code>[UCI, !, ?, ROCKS, ICS46] n=5</code>. No loop → <strong>O(1)</strong>, and it works on an empty list too (<code>oldHead</code> is <code>nullptr</code>).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: link before you move <code>head</code>. Writing <code>head = newNode;</code> first loses the only pointer to the old list. <code>head = new Node(item, head);</code> does both in one line.</p>
+</blockquote>
+<h3 id="25-addindex-item-insert-at-an-index-slides-2630">2.5 <code>add(index, item)</code>: insert at an index (slides 26–30)</h3>
+<p>To insert &quot;UCI&quot; at index 2 of ! → ? → ROCKS → ICS46, the pointer that must change is <strong>&quot;?&quot;&#39;s <code>next</code></strong> — the node <em>before</em> the spot. So walk two pointers: <code>finger</code> lands on the node now at <code>index</code>, <code>previous</code> stays one behind. Slides 27–29 animate the walk for <code>add(2, …)</code>: (<code>previous</code>, <code>finger</code>) goes (nullptr, &quot;!&quot;) → (&quot;!&quot;, &quot;?&quot;) → (&quot;?&quot;, &quot;ROCKS&quot;), then stop. Slide 30:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">        // check that index is within range</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // if index is 0, then call one-argument add</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">        add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // else</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">        // make two pointers, previous and finger. Point previous to null and finger to head</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // search for index-th position by pointing previous to finger and advancing finger</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">            previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">            finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">            index</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#6A9955">        // create new node to insert in correct position. Set its pointers and contents</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> current</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">        current</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        current</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // make previous point to newly created node.</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // increase number of nodes</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (slide 30): <code>new Node()</code> doesn&#39;t compile (<code>Node</code> has no default constructor) → <code>Node* current = new Node(item, finger);</code>. Also <code>int index</code> → <code>size_t</code>, and the range check must allow <code>index == n</code>.</p>
+</blockquote>
+<p>Index 0 is a special case because <code>previous</code> would stay <code>nullptr</code>, and inserting at the front changes <code>head</code>, not some node&#39;s <code>next</code>. The two-step picture after the walk, using the fixed line:</p>
+<p><code>add(2, &quot;UCI&quot;)</code> on ! → ? → ROCKS → ICS46, from the walk to the splice. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;add(2, \&quot;UCI\&quot;) (slides 26–30)&quot;, &quot;items&quot;: &quot;!, ?, ROCKS, ICS46&quot;, &quot;ops&quot;: &quot;add(2, UCI)&quot;}</code></pre><p>Example (compiled): <code>add(2, &quot;UCI&quot;)</code> → <code>[!, ?, UCI, ROCKS, ICS46] n=5</code>; <code>add(4, &quot;end&quot;)</code> on a 4-item list appends → <code>[!, ?, ROCKS, ICS46, end] n=5</code>. Walk up to <code>n</code> steps → <strong>O(n)</strong>.</p>
+<h3 id="26-remove-remove-the-head-slides-3132">2.6 <code>remove()</code>: remove the head (slides 31–32)</h3>
+<p>Move <code>head</code> one node right, then delete the old first node (slide 32):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#6A9955">    // Make a temporary pointer to head</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // Move head one to the right</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // Decrease number of nodes</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Delete old head node</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (slides 32, 40, 41): <code>temp-&gt;data</code> / <code>finger-&gt;data</code> — the field is called <code>item</code> → <code>T data = temp-&gt;item;</code>.</p>
+</blockquote>
+<p>Copy the item out, <strong>then</strong> <code>delete</code>, then return the copy — after <code>delete</code>, <code>temp</code> dangles. Example: <code>remove()</code> on ! → ? → ROCKS → ICS 46 returns &quot;!&quot;. <strong>O(1)</strong>. (On an empty list it would dereference <code>nullptr</code>; the complete implementation throws first.)</p>
+<h3 id="27-removeindex-remove-at-an-index-slides-3334-41">2.7 <code>remove(index)</code>: remove at an index (slides 33–34, 41)</h3>
+<p>Same walk as <code>add(index, item)</code>; once <code>finger</code> is on the victim, make <code>previous</code> skip over it. Slide 34 leaves the <code>else</code> branch as Activity 1; slide 41 shows the finished method (code: <a href="#81-activity-1-implement-remove-at-an-index-slide-34">Activity 1 solution</a>, with <code>item</code> for the slide&#39;s <code>finger-&gt;data</code>):</p>
+<p><code>remove(2)</code> on ! → ? → ROCKS → ICS46: walk, bypass, delete. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;remove(2) (Activity 1)&quot;, &quot;items&quot;: &quot;!, ?, ROCKS, ICS46&quot;, &quot;ops&quot;: &quot;remove(2)&quot;}</code></pre><p>Example (compiled): <code>remove(2)</code> on ! → ? → UCI → ROCKS → ICS46 returns &quot;UCI&quot;. Walk → <strong>O(n)</strong>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#81-activity-1-implement-remove-at-an-index-slide-34">Activity 1</a>.</p>
+</blockquote>
+<hr>
+<h2 id="3-singly-linked-list-analysis">3. Singly Linked List: Analysis</h2>
+<h3 id="31-cost-of-each-operation-slides-3541">3.1 Cost of each operation (slides 35–41)</h3>
+<p>Slides 35–41 ask for each operation&#39;s worst case. The question is always: <em>how many nodes must we walk past before the constant-time pointer work?</em></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Worst case</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>add(item)</code> at head (slides 35–36)</td>
+<td><strong>O(1)</strong></td>
+<td>no loop</td>
+</tr>
+<tr>
+<td><code>get(index)</code> (slide 38)</td>
+<td><strong>O(n)</strong></td>
+<td>walk up to <code>n - 1</code> steps</td>
+</tr>
+<tr>
+<td><code>add(index, item)</code> (slide 39)</td>
+<td><strong>O(n)</strong></td>
+<td>walk, then O(1) splice</td>
+</tr>
+<tr>
+<td><code>remove()</code> at head (slide 40)</td>
+<td><strong>O(1)</strong></td>
+<td>move <code>head</code>, delete one node</td>
+</tr>
+<tr>
+<td><code>remove(index)</code> (slide 41)</td>
+<td><strong>O(n)</strong></td>
+<td>walk, then O(1) bypass</td>
+</tr>
+<tr>
+<td>add / remove at tail (head only)</td>
+<td><strong>O(n)</strong></td>
+<td>walk to the end (removal needs the second-to-last node)</td>
+</tr>
+</tbody></table>
+<p>Slides 35–36 analyse an older <code>add</code> that assigns to <code>first = new Node();</code> and sets <code>first-&gt;item</code>, <code>first-&gt;next = oldHead</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (slides 35–36): leftover <code>first</code> (no such member; <code>head</code> never updated) and <code>new Node()</code> → use slide 25&#39;s version; the answer is still O(1).<br>⚠️ <strong>Pitfall</strong> (slide 38): <code>public T get(int index)</code> is a Java leftover → in C++, access comes from the <code>public:</code> label.</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Linked List Variations): <code>get(i)</code> is really <strong>Θ(i)</strong> — <code>get(0)</code> is fast on any list. &quot;O(n)&quot; is the worst case over all <code>i</code>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#82-activity-2-time-complexity-of-singly-linked-list-operations-slide-37">Activity 2</a>.</p>
+</blockquote>
+<h3 id="32-would-a-tail-pointer-help">3.2 Would a tail pointer help?</h3>
+<p>Add a <code>Node* tail</code> member pointing at the last node:</p>
+<ul>
+<li><strong>Add at tail → O(1)</strong>: <code>tail-&gt;next = newNode; tail = newNode;</code> (empty list: set <code>head</code> too).</li>
+<li><strong>Remove at tail → still O(n)</strong>: you need the <em>second-to-last</em> node to set its <code>next</code> to <code>nullptr</code>, and an SLL can&#39;t step backwards from <code>tail</code>.</li>
+</ul>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: in an SLL, a pointer to a node lets you change what comes <strong>after</strong> it, never what comes <strong>before</strong> it.</p>
+</blockquote>
+<hr>
+<h2 id="4-doubly-linked-list">4. Doubly Linked List</h2>
+<h3 id="41-node-with-prev-head-and-tail-slides-4244">4.1 Node with <code>prev</code>, head and tail (slides 42–44)</h3>
+<p>A <strong>doubly linked list (DLL)</strong> gives every node a second pointer to the node before it (slide 42):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 43&#39;s operations name the end they work on: <code>DoublyLinkedList()</code>, <code>isEmpty()</code>, <code>size()</code>, <code>get(int index)</code>, <code>addFirst(Item item)</code>, <code>addLast(Item item)</code>, <code>add(int index, Item item)</code>, <code>Item removeFirst()</code>, <code>Item removeLast()</code>, <code>Item remove(int index)</code> (<code>Item</code>/<code>int</code> are slide naming; in our C++ it&#39;s <code>T</code>/<code>size_t</code>). The list keeps a <strong>head</strong> (Head/Beginning/Front/First) and a <strong>tail</strong> (Tail/End/Back/Last).</p>
+<p>Slide 44 shows five small diagrams with no arrows between them; read in order they are the list growing and then shrinking:</p>
+<table>
+<thead>
+<tr>
+<th>Diagram</th>
+<th>Nodes</th>
+<th>head</th>
+<th>tail</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>ICS 46 (<code>prev</code> and <code>next</code> both null)</td>
+<td>ICS 46</td>
+<td>ICS 46 (same node)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>ROCKS ⇄ ICS 46</td>
+<td>ROCKS</td>
+<td>ICS 46</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ROCKS ⇄ ICS 46 ⇄ !</td>
+<td>ROCKS</td>
+<td>!</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ROCKS ⇄ ICS 46</td>
+<td>ROCKS</td>
+<td>ICS 46</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ICS 46</td>
+<td>ICS 46</td>
+<td>ICS 46</td>
+</tr>
+</tbody></table>
+<p>One sequence that produces slide 44&#39;s five states in order. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="doubly-linked-list"><code>{&quot;title&quot;: &quot;Slide 44&#39;s states&quot;, &quot;ops&quot;: &quot;addLast(ICS 46); addFirst(ROCKS); addLast(!); removeLast(); removeFirst()&quot;, &quot;interactive&quot;: true}</code></pre><p>The one-node state is the edge case: <code>head == tail</code>, so adding to an empty list or removing the last node must update <strong>both</strong>.</p>
+<h3 id="42-both-ends-in-o1-my-completion">4.2 Both ends in O(1) (my completion)</h3>
+<p>The slides give the API and pictures, not DLL code; this is my completion (compiled; <code>addLast</code>/<code>addFirst</code>/<code>removeFirst</code> are in section 7):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                               // O(1) thanks to prev</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeLast() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                          // second-to-last, one step away</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Inserting in the middle changes <strong>four</strong> links (new node&#39;s <code>prev</code> and <code>next</code>, <code>before-&gt;next</code>, <code>after-&gt;prev</code>); removing a middle node <code>x</code> is <code>x-&gt;prev-&gt;next = x-&gt;next; x-&gt;next-&gt;prev = x-&gt;prev;</code>. Example (compiled): <code>addLast(&quot;ICS 46&quot;); addFirst(&quot;ROCKS&quot;); addLast(&quot;!&quot;)</code> → <code>[ROCKS, ICS 46, !] backwards [!, ICS 46, ROCKS]</code>; then <code>removeLast()</code> returns &quot;!&quot;.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Linked List Variations): a DLL can walk from whichever end is closer, Θ(min(i, n − i)) ≤ n/2 steps — faster, but <strong>still O(n)</strong>.</p>
+</blockquote>
+<h3 id="43-dll-analysis-slide-45">4.3 DLL analysis (slide 45)</h3>
+<table>
+<thead>
+<tr>
+<th>Operation (head + tail)</th>
+<th>Worst case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>insert at head / at tail</td>
+<td><strong>O(1)</strong> / <strong>O(1)</strong></td>
+</tr>
+<tr>
+<td><code>get(index)</code>, <code>add(index, item)</code>, <code>remove(index)</code></td>
+<td><strong>O(n)</strong> (walk)</td>
+</tr>
+<tr>
+<td>remove from head / from tail</td>
+<td><strong>O(1)</strong> / <strong>O(1)</strong> (<code>tail-&gt;prev</code>)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#83-activity-3-time-complexity-analysis-for-dll-slide-45">Activity 3</a>.</p>
+</blockquote>
+<hr>
+<h2 id="5-arraylist-vs-linked-lists">5. ArrayList vs. Linked Lists</h2>
+<p>Worst case unless marked; the ArrayList column is from <a href="/~kazuhak/notes/ics-46/lec-03/en-US/">Lecture 3</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>ArrayList</th>
+<th>SLL</th>
+<th>SLL + tail</th>
+<th>DLL (head + tail)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>get at index</td>
+<td><strong>O(1)</strong></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>add at front</td>
+<td>O(n) shift</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>add at end</td>
+<td><strong>O(1) amortized</strong></td>
+<td>O(n)</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>remove front</td>
+<td>O(n) shift</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>remove end</td>
+<td><strong>O(1) amortized</strong></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>add / remove at index</td>
+<td>O(n) shift</td>
+<td>O(n) walk</td>
+<td>O(n) walk</td>
+<td>O(n) walk</td>
+</tr>
+</tbody></table>
+<p>In an ArrayList, O(n) comes from <strong>shifting</strong>; in a linked list, from <strong>walking</strong> — the splice itself is O(1). Each node also costs extra memory for its pointers (measured on this g++ build: an SLL <code>Node&lt;int&gt;</code> is 16 bytes, a DLL <code>Node&lt;int&gt;</code> 24, vs. 4 bytes per ArrayList slot).</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong> (Thornton): more links buy faster operations at the cost of memory and more edge cases — pick the simplest variation that&#39;s fast enough for the operations you need.</p>
+</blockquote>
+<hr>
+<h2 id="6-stacks">6. Stacks</h2>
+<h3 id="61-the-stack-adt-slides-4647">6.1 The stack ADT (slides 46–47)</h3>
+<p>A <strong>stack</strong> is a dynamic linear structure where items are inserted and removed <strong>LIFO (Last In, First Out)</strong>: you only touch one end, the <strong>top</strong>. Pancakes (slide 47): add one = <strong>push</strong> onto the top; take one = <strong>pop</strong> the top; look at the top without taking it = <strong>peek</strong>. Goal: push and pop as efficient as possible. (Slide 47&#39;s picture: a stack of coloured discs with push/pop arrows at the top.)</p>
+<h3 id="62-tracing-push-and-pop-slide-48">6.2 Tracing push and pop (slide 48)</h3>
+<p>Input <code>To be or not to - be - - that - - - is</code> — a word is a push, <code>-</code> is a pop:</p>
+<table>
+<thead>
+<tr>
+<th>After</th>
+<th>Popped</th>
+<th>Stack (bottom → top)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>To be or not to</td>
+<td></td>
+<td>To be or not to</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>to</td>
+<td>To be or not</td>
+</tr>
+<tr>
+<td>be, <code>-</code>, <code>-</code></td>
+<td>be, not</td>
+<td>To be or</td>
+</tr>
+<tr>
+<td>that, <code>-</code>, <code>-</code>, <code>-</code></td>
+<td>that, or, be</td>
+<td>To</td>
+</tr>
+<tr>
+<td>is</td>
+<td></td>
+<td>To is</td>
+</tr>
+</tbody></table>
+<p>Compiled output:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">popped: to be not that or be
+left on stack (top first): is To</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="stack"><code>{&quot;title&quot;: &quot;Slide 48: To be or not to - be - - that - - - is&quot;, &quot;ops&quot;: &quot;To be or not to - be - - that - - - is&quot;, &quot;interactive&quot;: true}</code></pre><h3 id="63-stack-on-an-arraylist-slide-49">6.3 Stack on an ArrayList (slide 49)</h3>
+<p>Slide 49 draws &quot;ICS46 ROCKS !&quot; in slots 0–2, index 0 = <strong>Front</strong>, the last item = <strong>End/Rear</strong>. Put the <strong>top at the end</strong>: push = <code>add(item)</code>, pop = <code>remove()</code>, peek = <code>at(size() - 1)</code> — nothing else moves.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> ArrayStack</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    ArrayList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> push</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); }</span><span style="color:#6A9955">              // append at the end</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> pop</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(); }</span><span style="color:#6A9955">                          // remove from the end</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> peek</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">); }</span><span style="color:#6A9955"> // read the last item</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Example (compiled, counting element copies + shifts for n pushes):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">n=1000  top-at-back moves=2022 (2.022 per push)  top-at-front moves=501522 (501.522 per push)
+n=8000  top-at-back moves=16190 (2.02375 per push)  top-at-front moves=32012190 (4001.52 per push)</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Top at the back stays at ~2 moves per push (amortized O(1)); top at the front costs ~n/2 per push (O(n)).</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Amortized Analysis): amortized O(1) is a bound on the <strong>total</strong> over any sequence (n pushes ≤ 3n work), not on each call — one push that doubles the array is O(n). Peek&#39;s O(1) is a true worst case.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#84-activity-4-implementing-stacks-slide-49">Activity 4</a>.</p>
+</blockquote>
+<hr>
+<h2 id="7-complete-implementation">7. Complete Implementation</h2>
+<p>SLL (slides 17–41, bugs fixed) and DLL (my completion of slides 42–45). Built with <code>g++ -std=c++17 -Wall -Wextra -fsanitize=address,undefined</code>: no warnings, no sanitizer reports.</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;cstddef></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;stdexcept></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Singly linked list (slides 17-41, slide bugs fixed)</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // number of items</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">   // 0 &#x3C;= index &#x3C; n</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">            throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~SinglyLinkedList</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">            // Rule of Five: Lab 2</span></span>
+<span class="line"><span style="color:#4EC9B0">    SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">        rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">                          // at head</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">       // 0 &#x3C;= index &#x3C;= n</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">            throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                                       // at head</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"remove() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">                      // Activity 1</span></span>
+<span class="line"><span style="color:#DCDCAA">        rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] n="</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Doubly linked list with head and tail (my completion of slides 42-45)</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> pv</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">prev</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pv</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#DCDCAA"> nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">        // walk from the nearer end</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">            Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            for</span><span style="color:#D4D4D4"> (</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            return</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">; --</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    DoublyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">tail</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~DoublyLinkedList</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#DCDCAA">removeFirst</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    DoublyLinkedList</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> addLast</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> removeFirst</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeFirst() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeLast() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#DCDCAA"> nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">)-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> after</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> before</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">after</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">before</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">after</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        before</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        after</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> removeFirst</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> victim</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> victim</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] backwards ["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] n="</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    SinglyLinkedList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // slides 9-15</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ROCKS"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"?"</span><span style="color:#D4D4D4">);                 </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"remove() -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"remove(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">    try</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">); } </span><span style="color:#C586C0">catch</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">out_of_range</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"get(2): "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">what</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    DoublyLinkedList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // slide 44</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ROCKS"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"removeLast() -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">removeLast</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"UCI"</span><span style="color:#D4D4D4">);               </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"get(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">", remove(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="200"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 200 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">[!, ?, ROCKS, ICS 46] n=4
+remove() -&gt; !
+remove(1) -&gt; ROCKS
+[?, ICS 46] n=2
+get(2): Index 2 out of bounds
+[ROCKS, ICS 46, !] backwards [!, ICS 46, ROCKS] n=3
+removeLast() -&gt; !
+[ROCKS, UCI, ICS 46] backwards [ICS 46, UCI, ROCKS] n=3
+get(1) -&gt; UCI, remove(1) -&gt; UCI
+[ROCKS, ICS 46] backwards [ICS 46, ROCKS] n=2</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<hr>
+<h2 id="8-in-class-activities-with-solutions">8. In-class Activities (with Solutions)</h2>
+<h3 id="81-activity-1-implement-remove-at-an-index-slide-34">8.1 Activity 1: implement remove at an index (slide 34)</h3>
+<p>Complete the <code>else</code> branch (the slide shows ! ? ROCKS ICS46 with <code>previous</code> and <code>finger</code> under it):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Retrieves and removes the item at the specified index.</span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">        // check that index is within range</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // if index is 0, then call remove</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#6A9955">        // else</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">        // TODO</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Solution:</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">        Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // bypass the node</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#9CDCFE">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">            // copy out BEFORE delete</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Only the <code>next</code> of the node <em>before</em> the victim changes, so you need <code>previous</code>; index 0 is separate because there the pointer to change is <code>head</code>.</p>
+<h3 id="82-activity-2-time-complexity-of-singly-linked-list-operations-slide-37">8.2 Activity 2: Time Complexity of Singly Linked List operations (slide 37)</h3>
+<p>Fill in the worst case: <code>add(E item)</code> — O(1) insert at head, O( ) insert at tail; <code>get(int index)</code> — O( ); <code>add(int index, T item)</code> — O( ); <code>remove()</code> — O( ) from the head, O( ) from the tail; <code>remove(int index)</code> — O( ).</p>
+<p><strong>Solution:</strong> add at tail <strong>O(n)</strong> (O(1) with a tail pointer); <code>get</code> <strong>O(n)</strong>; <code>add(index)</code> <strong>O(n)</strong>; remove from head <strong>O(1)</strong>, from tail <strong>O(n)</strong> (even with a tail pointer — no way back to the second-to-last node); <code>remove(index)</code> <strong>O(n)</strong>.</p>
+<h3 id="83-activity-3-time-complexity-analysis-for-dll-slide-45">8.3 Activity 3: Time Complexity Analysis for DLL (slide 45)</h3>
+<p>Same table for a doubly linked list.</p>
+<p><strong>Solution:</strong> insert at head <strong>O(1)</strong>, at tail <strong>O(1)</strong>; <code>get</code> <strong>O(n)</strong>; <code>add(index)</code> <strong>O(n)</strong>; remove from head <strong>O(1)</strong>, from tail <strong>O(1)</strong>; <code>remove(index)</code> <strong>O(n)</strong>. Only the tail rows change: <code>tail-&gt;prev</code> reaches the second-to-last node in one step.</p>
+<h3 id="84-activity-4-implementing-stacks-slide-49">8.4 Activity 4: Implementing Stacks (slide 49)</h3>
+<p>Implement a stack using an <strong>ArrayList</strong> (operations <code>add(Item item)</code>, <code>add(int index, Item item)</code>, <code>remove()</code>). (a) Where should the top be (front or back)? (b) How do we implement Pop, Push and Peek? (c) <strong>Amortized</strong> big-O for Pop and Push? (d) <strong>Worst-case</strong> big-O for Peek? (e) <strong>Worst-case</strong> big-O if the top is in the reverse direction?</p>
+<p><strong>Solution:</strong>
+(a) The <strong>back</strong> (End/Rear) — adding/removing there shifts nothing.
+(b) push = <code>add(item)</code>, pop = <code>remove()</code>, peek = <code>at(size() - 1)</code>.
+(c) Both <strong>O(1) amortized</strong> (occasionally O(n) when the array doubles or shrinks at ¼ full).
+(d) <strong>O(1)</strong>.
+(e) Top at the front: push = <code>add(0, item)</code>, pop = <code>remove(0)</code> shift everything → <strong>O(n)</strong>; peek = <code>at(0)</code> stays O(1).</p>
+<hr>
+<h2 id="9-quick-reference--top-5-things-to-remember">9. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>ArrayList</th>
+<th>SLL</th>
+<th>SLL + tail</th>
+<th>DLL</th>
+<th>Stack on ArrayList (top at end)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>index access</td>
+<td>O(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>add / remove front</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>add end</td>
+<td>O(1) amort.</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>push: O(1) amort.</td>
+</tr>
+<tr>
+<td>remove end</td>
+<td>O(1) amort.</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>pop: O(1) amort.</td>
+</tr>
+<tr>
+<td>add / remove at index</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>peek</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember:</strong></p>
+<ol>
+<li>Every indexed linked-list operation is O(n) because of the <strong>walk</strong>; the splice itself is O(1).</li>
+<li>Inserting/removing inside an SLL needs the <strong>previous</strong> node; index 0 is special because it changes <code>head</code>.</li>
+<li>Removing an SLL&#39;s tail is O(n) even with a tail pointer; a DLL&#39;s <code>prev</code> makes it O(1).</li>
+<li>Copy the item out <strong>before</strong> <code>delete</code>, update <code>n</code> in every mutator, and handle the empty / one-node cases.</li>
+<li>Stack on an ArrayList: top at the <strong>end</strong> → push/pop O(1) amortized, peek O(1); top at the front → O(n).</li>
+</ol>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-05/en-US/">Lecture 5</a></strong>: stacks on an SLL/DLL (Activities 5 &amp; 6, slide 50) and &quot;How do we choose?&quot; (slide 51).</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-03/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 3</span><span class="pager-title" data-astro-cid-gxyjxt6l>Algorithm Analysis &amp; ArrayList</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-05/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 5 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Queues, Deques &amp; Stack Applications</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-03/en-US/" title="Previous: Algorithm Analysis &amp; ArrayList ([)" aria-label="Previous: Lecture 3" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 3</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 4</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-05/en-US/" title="Next: Queues, Deques &amp; Stack Applications (])" aria-label="Next: Lecture 5" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 5</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

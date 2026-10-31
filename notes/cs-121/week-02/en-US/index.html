@@ -1,0 +1,1149 @@
+<!DOCTYPE html><html lang="en-US"><head><title>CS 121 The Web Corpus, SEO, Web Crawling | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Corpus and tokenization, the web graph, web users and queries, the ad business model, SEO and spam, URLs, and the first steps toward a crawler."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-02/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413979" data-source-url="/~kazuhak/notes/cs-121/week-02/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-02/zh-CN/" data-prev-url="/~kazuhak/notes/cs-121/week-01/en-US/" data-next-url="/~kazuhak/notes/cs-121/week-03/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 2</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-02/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 2 · Information Retrieval Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents CS 121 Week 2 notes in a structured reading format so you can review text processing, the web graph, SEO, web crawling, and how search engines index and rank pages week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 22, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-2-the-web-corpus-search-engine-optimization-web-crawling">CS 121: Information Retrieval — Week 2: The Web Corpus, Search Engine Optimization, Web Crawling</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-corpus-and-text-processing">1. Corpus and Text Processing</a></li>
+<li><a href="#2-tokenization">2. Tokenization</a></li>
+<li><a href="#3-the-web-graph-and-its-characteristics">3. The Web Graph and Its Characteristics</a></li>
+<li><a href="#4-how-the-web-evolved-and-what-web-searches-look-like">4. How the Web Evolved and What Web Searches Look Like</a></li>
+<li><a href="#5-web-users-needs-queries-and-behavior">5. Web Users: Needs, Queries and Behavior</a></li>
+<li><a href="#6-how-users-evaluate-search-engines">6. How Users Evaluate Search Engines</a></li>
+<li><a href="#7-the-business-model-ads-on-search">7. The Business Model: Ads on Search</a></li>
+<li><a href="#8-search-engine-optimization-seo">8. Search Engine Optimization (SEO)</a></li>
+<li><a href="#9-coercion-techniques-and-spam">9. Coercion Techniques and Spam</a></li>
+<li><a href="#10-the-war-on-spam-and-why-seo-tricks-dont-last">10. The War on Spam and Why SEO Tricks Don&#39;t Last</a></li>
+<li><a href="#11-what-ranking-really-uses-the-yandex-leak">11. What Ranking Really Uses: The Yandex Leak</a></li>
+<li><a href="#12-uris-urls-and-urns">12. URIs, URLs and URNs</a></li>
+<li><a href="#13-flavors-of-web-data-collection">13. Flavors of Web Data Collection</a></li>
+<li><a href="#14-toward-web-crawling-what-counts-as-an-algorithm">14. Toward Web Crawling: What Counts as an Algorithm?</a></li>
+<li><a href="#15-in-class-notes--assignment-tips">15. In-class Notes &amp; Assignment Tips</a></li>
+<li><a href="#16-worked-examples-with-solutions">16. Worked Examples (with Solutions)</a></li>
+<li><a href="#17-quick-reference--top-5-things-to-remember">17. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 7<br>Built from the Lecture 3.5 (in class), 4, 5 and 6 slides (the YuJa videos are not included). Organized by concept, not by lecture.<br>Slides credit Profs. C. Lopes, A. Krone-Martins, C. Manning, P. Nayak, H. Schütze and others, and Addison Wesley.<br>📖 Readings this week: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., <em>Search Engines: IR in Practice</em>, Ch 3 Crawls and Feeds</a> · <a href="https://canvas.eee.uci.edu/courses/87165/files/37013257">Yandex leaked factors file (Canvas, &quot;if you are curious&quot;)</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: <strong>Assignment 1 (tokenizer from scratch) is due Friday, Oct 9.</strong><br>Book office hours if you need them; the professor can try to find alternative slots if necessary (L4 p48).<br>Three videos on YuJa this week (Mon + Wed + Fri); the Wednesday session reviews them, then goes to A1 Q&amp;A and assignment work (L3.5 p3, p30).</p>
+</blockquote>
+<hr>
+<h2 id="1-corpus-and-text-processing">1. Corpus and Text Processing</h2>
+<p>This week starts in the <strong>Text Transformation/Processing</strong> box of the architecture (L4 p3–4, highlighted). The whole diagram is explained in <a href="/~kazuhak/notes/cs-121/week-01/en-US/#10-search-engine-architecture">Week 1, section 10</a>.</p>
+<ul>
+<li><strong>Corpus</strong> (L4 p5–6): the complete set of documents available to be searched. In web search, it&#39;s the full set of pages the search engine will consider — what Text Acquisition put in the Local Document Store.</li>
+<li><strong>Text processing</strong> (L4 p7): the stage where the documents in your corpus are processed for use in the search engine. It happens <strong>before building the index</strong>, to improve efficiency and performance.</li>
+<li>It typically has <strong>two main steps</strong> (L4 p8):<ol>
+<li><strong>Tokenization</strong> (lexical analysis) — breaking the text into tokens.</li>
+<li><strong>Linguistic pre-processing</strong> — applying rules to the tokens to improve the efficiency of the index (Week 1 named two of them: stopping and stemming).</li>
+</ol>
+</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.1 Deciding What to Search (book p. 31)</a></p>
+</blockquote>
+<hr>
+<h2 id="2-tokenization">2. Tokenization</h2>
+<h3 id="21-what-a-tokenizer-does">2.1 What a tokenizer does</h3>
+<p>Tokenization <strong>breaks the input into simple units of meaning</strong> (L4 p9–10). A token can be a word — or not; it depends on how you choose to create tokens. The tokenizer (also called a <strong>lexer</strong> or <strong>scanner</strong>) turns a <strong>character stream into a token stream</strong>. The same machine shows up in two places:</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What the tokenizer feeds</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Compiler front-end</td>
+<td>A parser</td>
+</tr>
+<tr>
+<td>Preprocessor for information retrieval</td>
+<td>The retrieval system</td>
+</tr>
+</tbody></table>
+<h3 id="22-what-is-a-token-it-depends">2.2 What is a token? It depends</h3>
+<p>&quot;Divide on whitespace and throw away punctuation?&quot; (L4 p11–12). The slides list the cases where that simple rule has to make a choice:</p>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Examples from the slides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Apostrophes</td>
+<td>O&#39;Neill, Aren&#39;t</td>
+</tr>
+<tr>
+<td>Hyphens</td>
+<td>clear-headed vs clearheaded; mother-in-law</td>
+</tr>
+<tr>
+<td>Several words, one token?</td>
+<td>San Francisco; white space; New York University vs York University</td>
+</tr>
+<tr>
+<td>Tokens that aren&#39;t words</td>
+<td><code>info@uci.edu</code>, <code>http://www.ics.uci.edu/</code>, <code>192.168.0.1</code></td>
+</tr>
+</tbody></table>
+<p>There is no universally right answer: each choice decides which queries can match (three tokens for New York University means &quot;York University&quot; matches it too).</p>
+<h3 id="23-the-early-tokenization-methodology">2.3 The early tokenization methodology</h3>
+<p>Early IR systems used a very simple rule (L4 p13–15):</p>
+<ul>
+<li>A token is a <strong>sequence of 3 or more alphanumeric characters</strong>.</li>
+<li>A <strong>space or special character</strong> ends the token.</li>
+<li>All characters are converted to <strong>lower case</strong>.</li>
+</ul>
+<p>On the slide&#39;s sentence it gives:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">&quot;Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.&quot;
+        ↓
+&quot;bigcorp 2007 annual report showed profits rose&quot;</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>s</code>, <code>bi</code> and <code>10</code> are shorter than 3 characters and are thrown away. The slide&#39;s verdict: <strong>too generic and simple, resulting in a lot of lost information</strong> (slide: &quot;To generic&quot;).</p>
+<p>Step through the rule character by character, or type your own text:</p>
+<pre data-language="viz" data-viz="tokenize"><code>{&quot;title&quot;: &quot;Early tokenization methodology (L4 p13–15)&quot;, &quot;text&quot;: &quot;Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: This is the <em>historical</em> rule the slides criticize, not the rule for Assignment 1. A1&#39;s rules come from the A1 prompt — read it, don&#39;t copy this demo&#39;s choices.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#161-early-tokenization-of-the-bigcorp-sentence-l4-p1315">Worked Example 16.1</a> · <a href="#162-what-happens-to-the-tricky-tokens-l4-p1112">Worked Example 16.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.2 Tokenizing (book p. 87; a later reading)</a></p>
+</blockquote>
+<hr>
+<h2 id="3-the-web-graph-and-its-characteristics">3. The Web Graph and Its Characteristics</h2>
+<p>&quot;A bit further on the web&quot; (L4 p19). The user-side search picture from Week 1 comes back with a question: <strong>why can this spider crawl the web?</strong> (L4 p20). Because the Web is a graph (L4 p21–22):</p>
+<ul>
+<li><strong>Pages are nodes.</strong></li>
+<li><strong>Hyperlinks are directed edges.</strong> A link from A to B lets you get from A to B, not back.</li>
+</ul>
+<p>A crawler follows the edges from page to page. What does this graph look like? (L4 p23–30):</p>
+<table>
+<thead>
+<tr>
+<th>Characteristic</th>
+<th>What the slides say</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Significant duplication</strong></td>
+<td>30%–40% of pages in some studies [Brod97, Shiv99]; 25%–30% is Google&#39;s number from 2013; copyscape.com finds copies of a page</td>
+</tr>
+<tr>
+<td><strong>High linkage</strong></td>
+<td>More than 8 links per page</td>
+</tr>
+<tr>
+<td><strong>Very large</strong></td>
+<td>Hosts <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(10^9)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>; pages <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mo stretchy="false">?</mo><mo stretchy="false">?</mo><mo stretchy="false">?</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(???)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mclose">???)</span></span></span></span> — the slide leaves it open</td>
+</tr>
+<tr>
+<td><strong>Spam, misleading and false information</strong></td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mn>1</mn><msup><mn>0</mn><mrow><mn>8</mn><mtext>–</mtext><mn>9</mn></mrow></msup><mo stretchy="false">?</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(10^{8\text{–}9}?)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">8</span><span class="mord text mtight"><span class="mord mtight">–</span></span><span class="mord mtight">9</span></span></span></span></span></span></span></span></span><span class="mclose">?)</span></span></span></span> pages of it</td>
+</tr>
+<tr>
+<td><strong>High rate of change</strong></td>
+<td>see the three studies below</td>
+</tr>
+</tbody></table>
+<p><strong>Size</strong> — Netcraft&#39;s survey (L4 p24, 2020 chart; updated in class, L3.5 p5). On a log scale, websites grow from about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">10^4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span></span></span></span> in 1995 to a <strong>~1.8 billion peak in Feb 2018</strong>, then <strong>~1.1 billion in March 2024</strong>. Feb 2026: <strong>1,419,977,535 hostnames</strong>, only <strong>208,200,947 active sites</strong> (about 14.7%).</p>
+<p><strong>Rate of change</strong> (L4 p27–30; the slide first asks you to guess):</p>
+<table>
+<thead>
+<tr>
+<th>Study</th>
+<th>Sample</th>
+<th>Finding</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[Cho00]</td>
+<td>720k pages from 270 popular sites, sampled daily for 5 months in 1999</td>
+<td><strong>40% changed weekly, 23% daily</strong></td>
+</tr>
+<tr>
+<td>[Fett02]</td>
+<td>151M pages checked over a few months</td>
+<td>Significant changes: 7% weekly; some changes: 25% weekly</td>
+</tr>
+<tr>
+<td>[Ntul04]</td>
+<td>154 <strong>large</strong> sites recrawled from scratch weekly</td>
+<td>8% had new pages every week; 8% die; 5% new content; 25% new links</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Each row is a crawler/index problem: duplicates waste space, size means you can&#39;t fetch everything, spam means you can&#39;t trust what you fetch, and change makes every copy go stale.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.youtube.com/watch?v=mQZY7EmjbMA">Source of Google&#39;s 2013 duplication figure (YouTube)</a> · <a href="https://www.copyscape.com">Copyscape</a> · <a href="https://news.netcraft.com/archives/2020/09/23/september-2020-web-server-survey.html">Netcraft web server survey, Sep 2020</a> · <a href="https://www.netcraft.com/blog/march-2026-web-server-survey/">Netcraft web server survey, Mar 2026</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2 Crawling the Web (book p. 32)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates (book p. 60)</a></p>
+</blockquote>
+<hr>
+<h2 id="4-how-the-web-evolved-and-what-web-searches-look-like">4. How the Web Evolved and What Web Searches Look Like</h2>
+<p><strong>Evolution</strong> (L4 p31–32), in five phases:</p>
+<ol>
+<li>Static content (documents)</li>
+<li>Dynamic content (applications — the slide shows calendar and weather apps)</li>
+<li>User-generated content (social — Wikipedia, LinkedIn, Facebook)</li>
+<li>Mobile</li>
+<li>??? AR? VR? Brain-interfaces?</li>
+</ol>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: One need has stayed invariant through every phase: <strong>to find information</strong>. The present-day solution is IR systems for <strong>search and ranking</strong> (L4 p32).</p>
+</blockquote>
+<p><strong>Web search characteristics</strong> (L4 p33): there are <strong>few popular broad queries</strong> and <strong>many rare specific queries</strong>. The slide&#39;s example, all cancer-related searches, is a pie chart with a few visible slices (&quot;cancer&quot;, &quot;breast cancer&quot;, &quot;skin cancer&quot;, &quot;prostate cancer&quot;, &quot;lung cancer&quot;, &quot;colon cancer&quot;, &quot;leukemia&quot;, &quot;lymphoma&quot;) and hundreds of tiny ones.</p>
+<p><strong>Popular searches</strong> (L4 p34): term interest can be explored at Google Trends, and a search engine <strong>uses trend information</strong> to:</p>
+<table>
+<thead>
+<tr>
+<th>Use</th>
+<th>How trends help</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Auto-complete</td>
+<td>Enhance the user experience; correct spelling errors</td>
+</tr>
+<tr>
+<td>Optimize search results</td>
+<td>What&#39;s trending &quot;near you&quot; can help in relevance scoring</td>
+</tr>
+<tr>
+<td>Smart-cache search results</td>
+<td>If a search is trending, keep its results in cache</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.google.com/trends/">Google Trends</a></p>
+</blockquote>
+<hr>
+<h2 id="5-web-users-needs-queries-and-behavior">5. Web Users: Needs, Queries and Behavior</h2>
+<p><strong>Why people search</strong> [Jansen et al. 2008] (L4 p35):</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Share</th>
+<th>The user wants to…</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Informational</td>
+<td>~80%</td>
+<td>learn about something</td>
+</tr>
+<tr>
+<td>Navigational</td>
+<td>~10%</td>
+<td>go to that page (the pie chart calls it &quot;URL Search&quot;)</td>
+</tr>
+<tr>
+<td>Transactional</td>
+<td>~10%</td>
+<td>do something</td>
+</tr>
+<tr>
+<td>Miscellaneous</td>
+<td>(small)</td>
+<td>explore, socialize, etc.</td>
+</tr>
+</tbody></table>
+<p><strong>How they write queries</strong> (L4 p36–39): most queries are <strong>ill-defined</strong>:</p>
+<ul>
+<li><strong>Short</strong> — 80% have fewer than 3 words</li>
+<li><strong>Imprecise terms</strong></li>
+<li><strong>No logical operators</strong></li>
+<li><strong>Low effort</strong> — spelling mistakes</li>
+</ul>
+<p><strong>Who they are</strong> (L4 p40–44): wide variance in <strong>needs, expectations, knowledge and bandwidth</strong> (&quot;your search engine will be better if you take these points seriously&quot;). <strong>Behavior</strong>:</p>
+<ul>
+<li><strong>85% look over one result screen only</strong> (!!!)</li>
+<li>78% of queries are not modified</li>
+<li>They follow links — &quot;the scent of information&quot;</li>
+</ul>
+<p><strong>How far do people look?</strong> (L4 p49, an iProspect survey: &quot;If you don&#39;t find what you are looking for, at what point do you move on, either to another search engine or to another search on the same engine?&quot;)</p>
+<table>
+<thead>
+<tr>
+<th>Users move on…</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>After the first few entries</td>
+<td>22.6%</td>
+</tr>
+<tr>
+<td>After the first page</td>
+<td>18.6%</td>
+</tr>
+<tr>
+<td>After the first two pages</td>
+<td>25.8%</td>
+</tr>
+<tr>
+<td>After the first three pages</td>
+<td>14.7%</td>
+</tr>
+<tr>
+<td>More than three pages</td>
+<td>10.8%</td>
+</tr>
+<tr>
+<td>The whole list, unless it&#39;s dozens of pages</td>
+<td>7.4%</td>
+</tr>
+</tbody></table>
+<p>So 41.2% give up by the end of the first page and 67.0% by the end of the second (the bars add up to 99.9% because of rounding).</p>
+<p><strong>The information need pipeline</strong> (L4 p45): the query is the last link of a chain, losing meaning at each step.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Slide example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Task</td>
+<td>Stop the noisy fan in the courtyard</td>
+</tr>
+<tr>
+<td>Info need</td>
+<td>Info about EPA regulations</td>
+</tr>
+<tr>
+<td>Verbal form</td>
+<td>What are EPA rules on noise pollution?</td>
+</tr>
+<tr>
+<td>Query</td>
+<td>EPA Sound Pollution</td>
+</tr>
+</tbody></table>
+<p><strong>Answering the need behind the query</strong> (L4 p46–47). The query is often an <strong>imprecise indicator</strong> of what the user wants. What can we do?</p>
+<ul>
+<li>Design retrieval models and mathematical definitions of the <strong>relevance score</strong> that are generic, albeit not ideal for every specific topic (relevance and retrieval models: <a href="/~kazuhak/notes/cs-121/week-01/en-US/#6-the-core-issue-relevance-and-retrieval-models">Week 1, section 6</a>)</li>
+<li>Use <strong>user context</strong>: who, where, what</li>
+<li><strong>Guess the type of information</strong> wanted (image, map, math, …)</li>
+<li><strong>Correct and/or expand</strong> queries</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Two different 80% figures: ~80% of searches are <em>informational</em>; 80% of queries are <em>shorter than 3 words</em>. 85% = one result screen; 78% = queries not modified.</p>
+</blockquote>
+<hr>
+<h2 id="6-how-users-evaluate-search-engines">6. How Users Evaluate Search Engines</h2>
+<p><strong>The major standard is the quality of the pages returned</strong> (L5 p2–5). In classic IR that&#39;s relevance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span>; a real engine&#39;s relevance is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo separator="true">,</mo><mo>…</mo><mtext> </mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D, \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span></span></span></span> — query, document <em>and more</em> — and how you really define it is among your engine&#39;s secrets. Also important to users:</p>
+<ul>
+<li>Trust</li>
+<li>Duplicate elimination (with a &quot;show similar&quot; option)</li>
+<li>Readability</li>
+<li>Fast access</li>
+<li>No pop-ups</li>
+</ul>
+<h3 id="61-precision-vs-recall">6.1 Precision vs. recall</h3>
+<p>(L5 p6–11 · L3.5 p7–14, asked as a class poll)</p>
+<ul>
+<li><strong>Precision</strong>: how relevant are the <em>first few</em> hits?</li>
+<li><strong>Recall</strong>: how <em>many</em> of the relevant hits are presented?</li>
+</ul>
+<p><strong>For web search, precision is more important than recall.</strong> The Nielsen Norman Group eyetracking heat maps (L5 p9) show an <strong>F-shape</strong> on &quot;About us&quot;, product and search-results pages alike: across the top, across again, then down the left edge.</p>
+<p><strong>When is recall important? When completeness is required</strong> (L5 p11): a <strong>commitment reading pattern</strong> (the whole page is read) — sources trusted <em>a priori</em>, motivated users. Example: search engines for <strong>law and the sciences</strong>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#163-precision-or-recall-l5-p611--l35-p714">Worked Example 16.3</a></p>
+</blockquote>
+<h3 id="62-interface-and-tools">6.2 Interface and tools</h3>
+<p><strong>Good UI: simple, no clutter</strong> (L5 p12–15; screenshots of Google, DuckDuckGo, Bing, Yandex, Baidu and Yahoo!). Plus <strong>pre- and post-processing tools</strong> (L5 p16):</p>
+<ul>
+<li>Spell check / auto correct</li>
+<li>Suggested alternative searches</li>
+<li>Links to resources (maps, images, etc.)</li>
+<li>Handling syntactic cues — e.g. a URL typed in the search box, or a math equation</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.nngroup.com">Nielsen Norman Group (eyetracking studies credited on L5 p9, p11)</a></p>
+</blockquote>
+<hr>
+<h2 id="7-the-business-model-ads-on-search">7. The Business Model: Ads on Search</h2>
+<p>Week 1 showed that search is the largest slice of online ad revenue (<a href="/~kazuhak/notes/cs-121/week-01/en-US/#4-why-web-search-engines-matter">Week 1, section 4</a>). This week is the history and the mechanics (L5 p17–21):</p>
+<ol>
+<li><strong>Early synergy</strong>: keyword-based engines — Altavista (1995–1997), Excite, InfoSeek, Inktomi — and <strong>paid placement ranking</strong>, ads based on an <strong>auction for a keyword</strong> (Goto.com → Overture.com → Yahoo! → Google).</li>
+<li><strong>Link-based ranking</strong>, pioneered by Google (1998+): links added <strong>authoritativeness</strong> to relevance and blew away keyword-only engines. Great user experience, no business model yet — meanwhile Goto/Overture&#39;s annual revenues were near USD 1B.</li>
+<li><strong>Google added paid placement ads</strong>, differentiated from the results. <strong>Yahoo!</strong> bought Inktomi for search tech (a few hundred million USD) and Overture for paid placement tech (USD 1.6 billion, 2003): sponsored links alongside objective results. Google licensed Yahoo!&#39;s paid placement tech — its ad engine for many years (perhaps still; nobody knows with certainty).</li>
+<li><strong>Today</strong>: engines maintain that ads do <strong>not</strong> affect vendors&#39; ranking (nobody knows for sure). Placement is <strong>fully automated</strong>, <strong>balances auction price and relevance</strong>, and is <strong>targeted</strong>.</li>
+</ol>
+<h3 id="71-how-companies-pay">7.1 How companies pay</h3>
+<p>(L5 p22)</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>The advertiser pays…</th>
+<th>Good for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CPM</strong> — Cost Per Mil</td>
+<td>per <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> showings (impressions) of the ad</td>
+<td>Branding campaigns</td>
+</tr>
+<tr>
+<td><strong>CPC</strong> — Cost Per Click</td>
+<td>when a user clicks the ad</td>
+<td>Sales campaigns</td>
+</tr>
+<tr>
+<td><strong>CPA</strong> — Cost Per Action/Acquisition</td>
+<td>only if the click triggered some action (e.g. DuckDuckGo + Amazon)</td>
+<td>Paying for results</td>
+</tr>
+</tbody></table>
+<p><strong>Why it makes sense for the business</strong> (L3.5 p16–17): on the search-engine picture, crawling, indexing and organic results are <strong>more interesting, less valuable financially</strong>; the ad indices are <strong>less interesting, ~10× more valuable</strong>.</p>
+<h3 id="72-click-fraud">7.2 Click fraud</h3>
+<p>(L5 p23)</p>
+<ul>
+<li><strong>USD 7.2 billion were lost between 2016 and 2018</strong> (Guardian).</li>
+<li>Google calls these <strong>&quot;invalid clicks&quot;</strong>.</li>
+<li>Search engines have sophisticated tools to detect fraud.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The M in CPM is <em>mil(le)</em> — a thousand impressions, not a million. Click fraud hurts per-click pricing: each fake click is billed.</p>
+</blockquote>
+<hr>
+<h2 id="8-search-engine-optimization-seo">8. Search Engine Optimization (SEO)</h2>
+<p><strong>Paid ad placement costs money. So…</strong> (L5 p24–26) — <strong>SEO</strong> is the <strong>tuning of a web page/site/app to rank highly</strong> in search results for certain queries. It&#39;s an alternative to paying for ad placement, with a bonus: <strong>visibility through rank = greater trust</strong>. In short, <strong>it&#39;s marketing</strong>: getting your content to your audience.</p>
+<table>
+<thead>
+<tr>
+<th>Question (L5 p27–28)</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Motives</td>
+<td>Commercial, political, religious, lobbying</td>
+</tr>
+<tr>
+<td>Who does it</td>
+<td>Internally: webmasters, writers. Commercially: companies, consultants. Hosting services. Plugins to popular CMSs</td>
+</tr>
+</tbody></table>
+<p>SEO is essentially a <strong>marketing–technology interface</strong> area (L5 p29). How to do it: Google&#39;s webmaster guidance, WebmasterWorld&#39;s SEO tools, and many books (the slide shows <em>The Art of SEO</em> by Enge, Spencer and Stricchiola, O&#39;Reilly).</p>
+<p><strong>Ethical and unethical ways</strong> (L5 p30–31):</p>
+<table>
+<thead>
+<tr>
+<th>Legitimate</th>
+<th>Unethical (&quot;aka spam&quot;)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Indexed age of the pages (older is better)</td>
+<td>Fake pages</td>
+</tr>
+<tr>
+<td>Good incoming links</td>
+<td>Fake sites that point to your site</td>
+</tr>
+<tr>
+<td>Good content: well written, well organized, up to date</td>
+<td>Fake comments/engagement (bots!)</td>
+</tr>
+<tr>
+<td>Good use of web standards/practices</td>
+<td>In short: &quot;alternative facts&quot;, aka lies</td>
+</tr>
+<tr>
+<td>Fast servers (quick response)</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Sometimes the line between legitimate and illegitimate is hard to find — there&#39;s a <strong>large grey area</strong>.</p>
+<p><strong>Location matters too</strong> (L5 p32): results also depend on <strong>which data center receives the query</strong>. google.com, google.fr and google.pt show different results for a single query such as &quot;Paris&quot;, so different SEO strategies can be considered per country.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://support.google.com/webmasters/answer/40349?hl=en">Google: webmaster guidelines (answer 40349)</a> · <a href="http://freetools.webmasterworld.com/category/seo-tools">WebmasterWorld SEO tools</a></p>
+</blockquote>
+<hr>
+<h2 id="9-coercion-techniques-and-spam">9. Coercion Techniques and Spam</h2>
+<h3 id="91-coercion-techniques">9.1 Coercion techniques</h3>
+<p>(L6 p2–7 · L3.5 p19–22)</p>
+<p><strong>Keyword stuffing.</strong> First-generation search engines relied heavily on textual content and word frequency, so SEO played with keywords (L6 p3–4):</p>
+<ul>
+<li><strong>Misleading meta-tags</strong> — the slide shows a travel site&#39;s <code>&lt;head&gt;</code> with a <code>&lt;meta name=&quot;keywords&quot;&gt;</code> tag listing &quot;Expedia, Travel, Cheap Airfare, Car, Hotels, Vacations, Airfare, Car Rental, Cruises, …&quot; and a description tag stuffed the same way</li>
+<li><strong>Repeating words</strong> over and over</li>
+<li><strong>Playing games with colors</strong> (white text on white) — visible to spiders/crawlers and indexers, but not to users</li>
+</ul>
+<p><strong>Cloaking</strong>: serving different content to a spider than to a browser (L6 p5). The server checks who is asking:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  r[&quot;Request for URL&quot;] --&gt; q{&quot;Request from spider?&quot;}
+  q -- &quot;Yes&quot; --&gt; s[&quot;Page for a search engine (Spam!)&quot;]
+  q -- &quot;No&quot; --&gt; u[&quot;Page for User&quot;]</code></pre><p>The slide&#39;s remark: this architecture is the same as a <strong>dynamic content engine</strong> — it can adapt to different search engines.</p>
+<p><strong>Doorway pages</strong>: like cloaking, but using a <strong>redirect (302)</strong> (L6 p6). HTTP 302 means &quot;the requested resource resides <strong>temporarily</strong> under a different URI. Since the redirection might be altered on occasion, the client SHOULD continue to use the Request-URI for future requests.&quot; The initial page is optimized for the spider; then an instantaneous redirect takes the user to the actual content, so <strong>the user sees the final page</strong>.</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  r[&quot;Request for URL&quot;] --&gt; d[&quot;Page for a search engine (Spam!)&quot;]
+  d -- &quot;Instantaneous redirect (302)&quot; --&gt; u[&quot;Page for User&quot;]</code></pre><p><strong>Link exchanges</strong> (L6 p7): &quot;I link to you, you link to me&quot;; &quot;translations&quot;; and <strong>universities and professors are targets</strong> — essentially because of the <strong>trust transfer</strong> that matters at the link-analysis level.</p>
+<h3 id="92-spam">9.2 Spam</h3>
+<p>(L6 p8–11)</p>
+<table>
+<thead>
+<tr>
+<th>Two major types</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Link spamming</strong></td>
+<td>Bots that search for blogs and leave comments with links</td>
+</tr>
+<tr>
+<td><strong>Clicker bots</strong></td>
+<td>Bots that issue queries and &quot;click&quot; on targeted query results</td>
+</tr>
+</tbody></table>
+<p>There is a whole <strong>spam industry</strong> (L6 p10: results selling &quot;First Page of Google GUARANTEED&quot;, &quot;How To Get On The First Page of Google In 24 hours&quot;), and web contests get spammed too (L6 p11).</p>
+<h3 id="93-counteracting-cloaking-spoofing-the-user-agent">9.3 Counteracting cloaking: spoofing the User-Agent</h3>
+<p>(L3.5 p23–24) The important class is <code>urllib.request.Request()</code>: by setting the <strong>User-Agent</strong> header, a simple Python script makes the server think it&#39;s Chrome on an iPhone. This is <strong>&quot;spoofing&quot;</strong>, widely used to access sites that refuse scripts/bots — <strong>but be careful with this!</strong> The slide&#39;s <code>print_url_3.py</code>:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">#</span></span>
+<span class="line"><span style="color:#6A9955"># Example 3 of urllib.request.open()</span></span>
+<span class="line"><span style="color:#6A9955">#</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> sys</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> urllib.request</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> print_data_url</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url_name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">str</span><span style="color:#D4D4D4">) -> </span><span style="color:#569CD6">None</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#6A9955">    # First we spoof an user agent</span></span>
+<span class="line"><span style="color:#D4D4D4">    headers = {</span><span style="color:#CE9178">'User-Agent'</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Mac OS X) AppleWebKit/605.1.15 (KHTML, like "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Gecko) CriOS/110.0.5481.83 Mobile/15E148 "</span></span>
+<span class="line"><span style="color:#CE9178">                             "Safari/604.1"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">    request = urllib.request.Request(url_name, </span><span style="color:#9CDCFE">headers</span><span style="color:#D4D4D4">=headers)</span></span>
+<span class="line"><span style="color:#6A9955">    # Now we can retrieve data</span></span>
+<span class="line"><span style="color:#D4D4D4">    response = urllib.request.urlopen(request)</span></span>
+<span class="line"><span style="color:#D4D4D4">    response_data = response.read()</span></span>
+<span class="line"><span style="color:#D4D4D4">    response_data = response_data.decode(</span><span style="color:#9CDCFE">encoding</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'utf-8'</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    response.close()</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(response_data)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#9CDCFE"> __name__</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"__main__"</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#D4D4D4">    print_data_url(sys.argv[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">])</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>On the slide, a &quot;what is my user agent&quot; page reports the iPhone string:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">$</span><span style="color:#CE9178"> python3</span><span style="color:#CE9178"> print_url_3.py</span><span style="color:#CE9178"> https://www.whatismybrowser.com/detect/what-is-my-user-agent/</span><span style="color:#D4D4D4"> | </span><span style="color:#DCDCAA">grep</span><span style="color:#569CD6"> -i</span><span style="color:#CE9178"> "Mozilla"</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Checked against a local server that echoes the header: the script arrives as the iPhone string above; a plain <code>urlopen(url)</code> arrives as <code>Python-urllib/3.x</code> — the default a cloaking server or bot blocker looks for.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Cloaking and doorway pages both show the engine something the user doesn&#39;t see; the difference is the mechanism. Cloaking = the <strong>server branches on who&#39;s asking</strong>. Doorway = <strong>one page for everyone, then a 302 redirect</strong> that only a browser follows to the real content.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.wholewhale.com/tips/how-to-win-or-cheat-any-online-voting-contest/">How to win (or cheat) any online voting contest</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.5.3 Link Quality (book p. 111; a later reading)</a></p>
+</blockquote>
+<hr>
+<h2 id="10-the-war-on-spam-and-why-seo-tricks-dont-last">10. The War on Spam and Why SEO Tricks Don&#39;t Last</h2>
+<p><strong>How engines fight back</strong> (L6 p12–15):</p>
+<table>
+<thead>
+<tr>
+<th>Weapon</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Quality indicators</td>
+<td>Statistical analysis of links; statistical analysis of votes</td>
+</tr>
+<tr>
+<td>Usage indicators</td>
+<td>Analytics</td>
+</tr>
+<tr>
+<td>Anti-bot mechanisms</td>
+<td>Captchas (the slide shows a reCAPTCHA &quot;type the two words&quot;)</td>
+</tr>
+<tr>
+<td>Limits on meta keywords</td>
+<td></td>
+</tr>
+<tr>
+<td>Family-friendly filters</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Robust link analysis</strong></td>
+<td>Ignore statistically improbable links (a page in Portuguese from Portugal linking to a page in Chinese from China); detect cycles; use link analysis to detect spammers — a very simple rule: <strong>guilt by association</strong></td>
+</tr>
+<tr>
+<td>Editorial (human!) intervention</td>
+<td>Black-listing, and creating training sets for supervised ML</td>
+</tr>
+<tr>
+<td>Spam recognition by machine learning</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Webmaster guidelines</strong> (L6 p16): search engines publish SEO policies — what is allowed and what isn&#39;t. They <strong>must not be ignored</strong>: once a site is blacklisted by a search engine, it virtually <strong>disappears from the Web</strong>.</p>
+<p><strong>SEO &quot;tricks&quot; are volatile</strong> (L6 p17–19), because they depend on how the engines work, and those methods keep changing:</p>
+<table>
+<thead>
+<tr>
+<th>Era</th>
+<th>Google&#39;s methods</th>
+<th>What they look at</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1996 – ?</td>
+<td>PageRank; then Panda (2011), Penguin (2012), Hummingbird (2013), Pigeon (2014), …</td>
+<td><strong>Words and links</strong></td>
+</tr>
+<tr>
+<td>Since 2016</td>
+<td>RankBrain — machine learning based</td>
+<td><strong>Concepts</strong></td>
+</tr>
+<tr>
+<td>Since October 2019</td>
+<td>BERT — NLP, machine learning</td>
+<td></td>
+</tr>
+<tr>
+<td>Now</td>
+<td>RankBrain + BERT + … — <strong>more than 200 methods and signals</strong> (!)</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Can you optimize for BERT? Google says no (but it&#39;s too early to tell).</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The slides&#39; solution (L6 p20 · L3.5 p25): <strong>optimizing for users will guarantee optimizing for good search engines.</strong> Tricks exploit gaps between what engines measure and what users want; the gaps keep closing.</p>
+</blockquote>
+<hr>
+<h2 id="11-what-ranking-really-uses-the-yandex-leak">11. What Ranking Really Uses: The Yandex Leak</h2>
+<p>(L3.5 p37–43, in-class only)</p>
+<p><strong>Yandex</strong> is the largest internet and technology company in Russia and the former Soviet Union countries. It launched in 1997, one year before Google (1998), and is now probably the largest search engine in Russia — before the war it had a market share of about 42% there. Worldwide it ranks 4th (search engine market share, March 2023):</p>
+<table>
+<thead>
+<tr>
+<th>Engine</th>
+<th>Google</th>
+<th>Bing</th>
+<th>Yahoo!</th>
+<th><strong>Yandex</strong></th>
+<th>DuckDuckGo</th>
+<th>Baidu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Share</td>
+<td>93.18%</td>
+<td>2.87%</td>
+<td>1.12%</td>
+<td><strong>1.02%</strong></td>
+<td>0.52%</td>
+<td>0.42%</td>
+</tr>
+</tbody></table>
+<p><strong>The leak</strong> (L3.5 p41): Yandex has developed search technology since 1993. Software information was leaked by a (now former) employee on <strong>25 Jan 2023</strong> — 44 GB of data, available via torrents, covering not only search but also maps, mail and cloud services.</p>
+<p><strong>Three major factor families</strong> (L3.5 p42):</p>
+<table>
+<thead>
+<tr>
+<th>Factor type</th>
+<th>Depends on</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Static</strong></td>
+<td>The website only</td>
+<td>Links, headers, advertisement ratio</td>
+</tr>
+<tr>
+<td><strong>Dynamic</strong></td>
+<td>Website + the query</td>
+<td>Text relevance, tf-idf ranking</td>
+</tr>
+<tr>
+<td><strong>User search</strong></td>
+<td>The user only</td>
+<td>User location, query language</td>
+</tr>
+</tbody></table>
+<p><strong>Signals used in the ranking</strong> (L3.5 p43):</p>
+<ul>
+<li>MatrixNet + Palekh + Korolyov + CatBoost (ML ranking models)</li>
+<li>PageRank</li>
+<li>tf-idf</li>
+<li>Page quality scoring</li>
+<li>Authoritativeness link inheritance</li>
+<li>Historical server response quality</li>
+<li>Page age, freshness, update frequency</li>
+<li><strong>Crawl level</strong>: more weight to pages reached directly after the first page</li>
+<li><strong>Click history</strong>: how often users click the page when it appears in a result list — filtered from bots!</li>
+<li>Specific factors for medical, legal, financial (and probably political) topics</li>
+<li><strong>URL string</strong>: numbers, trailing slashes, capital letters — all negative!</li>
+<li>Similarity between users</li>
+<li>Font size (is it mobile friendly?)</li>
+<li>…</li>
+</ul>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The leak matches the week: &quot;fast servers&quot; (section 8) = <em>historical server response quality</em>; bot-filtered click history = defence against clicker bots (section 9); static/dynamic/user factors = <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo separator="true">,</mo><mo>…</mo><mtext> </mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D, \dots)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span></span></span></span> spelled out.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://canvas.eee.uci.edu/courses/87165/files/37013257">Yandex leaked factors file (Canvas, optional reading)</a></p>
+</blockquote>
+<hr>
+<h2 id="12-uris-urls-and-urns">12. URIs, URLs and URNs</h2>
+<p>&quot;Acquiring data from the Web&quot; (L6 p21): the architecture slide now circles <strong>Web Pages + Text Acquisition</strong> (L6 p22) — the start of crawling.</p>
+<blockquote>
+<p>🗣️ <strong>In class</strong>: &quot;Pay attention to the difference between URI, URN and URL&quot; (L3.5 p3–26).</p>
+</blockquote>
+<h3 id="121-definitions">12.1 Definitions</h3>
+<p>(L6 p23–24 · L3.5 p27–29)</p>
+<p>A <strong>URI</strong> is a string of characters used to identify a resource. (The slides expand it as &quot;Universal Resource Identifier&quot;; the standard name is <strong>Uniform</strong> Resource Identifier.)</p>
+<table>
+<thead>
+<tr>
+<th>Example URI</th>
+<th>Kind</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://www.ics.uci.edu</code></td>
+<td>URL</td>
+</tr>
+<tr>
+<td>ISBN 0-486-27777-3</td>
+<td>URN</td>
+</tr>
+<tr>
+<td><code>ftp://ftp.ics.uci.edu</code></td>
+<td>URL</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>URL (locator)</strong>: must specify <strong>where</strong> the resource is.</li>
+<li><strong>URN (name)</strong>: just <strong>what</strong> it is.</li>
+<li>The course focuses on URLs, but &quot;URI&quot; might slip in as a synonym.</li>
+</ul>
+<h3 id="122-anatomy-of-a-url">12.2 Anatomy of a URL</h3>
+<p>(L6 p25–28)</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">scheme://domain:port/path?query_string#fragment_id
+         \_________/
+          authority</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>scheme://domain</code> is <strong>mandatory</strong>; <code>:port/path?query_string#fragment_id</code> is <strong>optional</strong>. Together, domain and port form the <strong>authority</strong>. The full picture is slightly more complicated (see the full spec).</p>
+<p>The slides annotate two URLs:</p>
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th>Parts</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://www.ics.uci.edu/~lopes</code></td>
+<td><code>http</code> = on a web server · <code>www.ics.uci.edu</code> = no port, just domain · <code>~lopes</code> = path</td>
+</tr>
+<tr>
+<td><code>http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code></td>
+<td>domain <code>calendar.ics.uci.edu</code> · path <code>calendar.php</code> · query <code>type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code></td>
+</tr>
+</tbody></table>
+<p><strong>Domains and subdomains</strong>: in <code>calendar.ics.uci.edu</code>, the <strong>domain name</strong> is <code>uci.edu</code>; <code>ics</code> and <code>calendar</code> are subdomains.</p>
+<p><strong>Absolute vs. relative URLs — important for A2!</strong> (L3.5 p29): <code>&lt;a href=&quot;http://www.ics.uci.edu/~algol/somesite.html&quot;&gt;</code> is absolute; <code>&lt;a href=&quot;/somesite.html&quot;&gt;</code> is relative and has to be resolved against the page it appears on.</p>
+<p>Try it — step through the parsing, the query parameters and relative resolution (edit the URLs and press Run):</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Anatomy of a URL (L6 p25–28 · L3.5 p29)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;const urls = [\n  \&quot;http://www.ics.uci.edu/~lopes\&quot;,\n  \&quot;http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013\&quot;\n];\nfor (const s of urls) {\n  const u = new URL(s);\n  console.log(s);\n  console.log({ scheme: u.protocol, host: u.hostname, port: u.port, path: u.pathname, query: u.search, fragment: u.hash });\n}&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;The query string is a list of name=value pairs; category is present but empty.&quot;, &quot;js&quot;: &quot;\nconst q = new URL(urls[1]).searchParams;\nfor (const [name, value] of q) console.log(name, \&quot;=\&quot;, JSON.stringify(value));&quot;}, {&quot;note&quot;: &quot;Relative links are resolved against the page they appear on: a leading / restarts at the domain.&quot;, &quot;js&quot;: &quot;\nconst page = \&quot;http://www.ics.uci.edu/~algol/somesite.html\&quot;;\nconsole.log(new URL(\&quot;/somesite.html\&quot;, page).href);\nconsole.log(new URL(\&quot;somesite.html\&quot;, page).href);&quot;}, {&quot;note&quot;: &quot;Every optional part filled in (illustrative URL): port, path, query, fragment.&quot;, &quot;js&quot;: &quot;\nconst full = new URL(\&quot;http://www.ics.uci.edu:8080/~lopes/index.html?lang=en#top\&quot;);\nconsole.log({ host: full.hostname, port: full.port, path: full.pathname, query: full.search, fragment: full.hash });&quot;}], &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>In Python (the course language), <code>urllib.parse</code> gives the same parts:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> urllib.parse </span><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> urlsplit, urljoin</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">p = urlsplit(</span><span style="color:#CE9178">"http://calendar.ics.uci.edu/calendar.php"</span></span>
+<span class="line"><span style="color:#CE9178">             "?type=month&#x26;calendar=1&#x26;category=&#x26;month=02&#x26;year=2013"</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(p.scheme, p.hostname, p.port, p.path)</span></span>
+<span class="line"><span style="color:#6A9955"># http calendar.ics.uci.edu None /calendar.php</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(p.query)</span></span>
+<span class="line"><span style="color:#6A9955"># type=month&#x26;calendar=1&#x26;category=&#x26;month=02&#x26;year=2013</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">page = </span><span style="color:#CE9178">"http://www.ics.uci.edu/~algol/somesite.html"</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(urljoin(page, </span><span style="color:#CE9178">"/somesite.html"</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#6A9955"># http://www.ics.uci.edu/somesite.html</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(urljoin(page, </span><span style="color:#CE9178">"somesite.html"</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#6A9955"># http://www.ics.uci.edu/~algol/somesite.html</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The slide&#39;s two links are <strong>not</strong> the same page. On <code>http://www.ics.uci.edu/~algol/somesite.html</code>, <code>href=&quot;/somesite.html&quot;</code> resolves to <code>http://www.ics.uci.edu/somesite.html</code> — the leading <code>/</code> drops <code>~algol/</code>. Resolve every link (<code>urljoin</code>) before you queue it.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#164-take-the-slides-urls-apart-l6-p2528">Worked Example 16.4</a> · <a href="#165-uri-url-or-urn-l6-p2324--l35-p2728">Worked Example 16.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="http://www.w3.org/Addressing/URL/url-spec.txt">W3C: URL specification</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2.1 Retrieving Web Pages (book p. 33)</a></p>
+</blockquote>
+<hr>
+<h2 id="13-flavors-of-web-data-collection">13. Flavors of Web Data Collection</h2>
+<p>How to acquire data? Four ways (L6 p29–34):</p>
+<table>
+<thead>
+<tr>
+<th>Flavor</th>
+<th>How it works</th>
+<th>Notes from the slides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data dumps</strong></td>
+<td>Sites package their data periodically and provide it as a &quot;dump&quot;</td>
+<td>Wikipedia (it suggests you torrent it); arXiv bulk full-text access</td>
+</tr>
+<tr>
+<td><strong>URL downloads</strong></td>
+<td>Two steps: (1) find out the URLs of specific resources; (2) run a downloader over that list</td>
+<td>E.g. &quot;crawling&quot; (!) SourceForge / GitHub for source code — or papers, pages, etc. Some sites use regular URLs: <code>http://link.springer.com/chapter/10.1007/978-3-642-34213-4_1</code>, <code>…_2</code>, …; Google Code&#39;s <code>http://code.google.com/p/python-for-android/downloads/list</code></td>
+</tr>
+<tr>
+<td><strong>Web APIs</strong></td>
+<td>Sites provide (REST) interfaces for getting their data</td>
+<td>Usually <strong>higher-level</strong> (no HTML parsing) but usually <strong>restrictive</strong> (only part of the data). Facebook Graph API, YouTube API, Twitter API, arXiv API, …</td>
+</tr>
+<tr>
+<td><strong>Web crawling</strong></td>
+<td>Like people: get HTML pages and other documents, <strong>discovering new URLs as it goes</strong></td>
+<td>Good for <strong>changing</strong> collections and <strong>unknown</strong> documents. Web admins don&#39;t like crawlers: they consume resources meant for people (&quot;more on this later…&quot;)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Only crawling works when you don&#39;t know the URLs in advance; URL downloads need a predictable pattern like <code>…34213-4_1</code>, <code>…_2</code>.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="http://en.wikipedia.org/wiki/Wikipedia:Database_download">Wikipedia: Database download</a> · <a href="https://arxiv.org/help/bulk_data_s3">arXiv bulk data (S3)</a> · <a href="https://arxiv.org/help/api/index">arXiv API</a> · <a href="https://developers.facebook.com/docs/reference/api/">Facebook Graph API</a> · <a href="https://developers.facebook.com/docs/reference/api/examples/">Graph API examples</a> · <a href="https://developers.google.com/youtube/">YouTube API</a><br>🔗 <strong>More</strong>: <a href="https://dev.twitter.com/docs">Twitter API docs</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.4 Document Feeds (book p. 47)</a></p>
+</blockquote>
+<hr>
+<h2 id="14-toward-web-crawling-what-counts-as-an-algorithm">14. Toward Web Crawling: What Counts as an Algorithm?</h2>
+<p>Lecture 6 ends by opening the next topic, the <strong>basic crawl algorithm</strong> (L6 p35, a title slide). Before writing it down, it asks: &quot;Algorithm?&quot; — using <strong>Knuth&#39;s definition</strong> (L6 p36). A procedure is an algorithm if it has:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>The question to ask</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Finiteness</strong></td>
+<td>Does it end after a finite number of steps?</td>
+</tr>
+<tr>
+<td><strong>Definiteness</strong></td>
+<td>Are the steps rigorously and unambiguously specified?</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>Does it have zero or more inputs?</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>Does it have one or more outputs related to the inputs?</td>
+</tr>
+<tr>
+<td><strong>Effectiveness</strong></td>
+<td>Are the operations basic enough for someone to perform them using pencil and paper only?</td>
+</tr>
+</tbody></table>
+<p>Keep them in mind for the crawl loop — on a huge, ever-changing web (section 3), think about finiteness. The crawl algorithm itself — frontier, politeness, robots.txt — is covered in <a href="/~kazuhak/notes/cs-121/week-03/en-US/#1-the-basic-crawl-algorithm">Week 3 §1</a>.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.2.2 The Web Crawler (book p. 35)</a></p>
+</blockquote>
+<hr>
+<h2 id="15-in-class-notes--assignment-tips">15. In-class Notes &amp; Assignment Tips</h2>
+<p>The in-class deck opens with <strong>&quot;Expectations — by the end of the quarter…&quot;</strong> (L3.5 p2; the rest was said in class).</p>
+<p><strong>Assignment 1: tokenizer from scratch</strong> (L4 p16–18 · L3.5 p31–36; due Fri Oct 9):</p>
+<ul>
+<li><strong>Python</strong> — L4 says 3.10+, the in-class deck 3.6+; either way <strong>preferably 3.10</strong>, what the <code>openlab.ics.uci.edu</code> machines have.</li>
+<li><strong>Underspecified by design</strong>: make and defend your own choices — <em>but that doesn&#39;t mean anything is acceptable</em>; follow the prompt!</li>
+<li><strong>It must run from the command line</strong>, e.g. <code>python3 PartA.py /blabla/assignmentTestCase.txt</code>, taking the file names from command-line arguments (&quot;yes, you can <code>import sys</code>&quot;).</li>
+<li><strong>Well commented</strong>: test by having someone read the code <em>without</em> the prompt; comments must reflect your understanding, including the complexity analysis.</li>
+<li><strong>The method/function signatures are informal</strong>: you can change their names, but not what they do.</li>
+<li><strong>Exception handling is required</strong>: your code cannot break because of characters in non-English languages, non-existing files, etc.</li>
+<li><strong>Very important: you cannot <code>import assignment1</code>…</strong></li>
+</ul>
+<p><strong>For A2</strong>: absolute vs. relative URLs (<a href="#12-uris-urls-and-urns">section 12</a>).</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="/~kazuhak/notes/cs-121/week-01/en-US/#11-in-class-notes--assignment-tips">Week 1 A1 and openlab notes</a></p>
+</blockquote>
+<hr>
+<h2 id="16-worked-examples-with-solutions">16. Worked Examples (with Solutions)</h2>
+<h3 id="161-early-tokenization-of-the-bigcorp-sentence-l4-p1315">16.1 Early tokenization of the Bigcorp sentence (L4 p13–15)</h3>
+<p>Apply the early methodology (tokens = runs of 3 or more alphanumeric characters; any space or special character ends a token; lower-case everything) to:</p>
+<p><code>Bigcorp&#39;s 2007 bi-annual report showed profits rose 10%.</code></p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Split at every non-alphanumeric character (<code>&#39;</code>, spaces, <code>-</code>, <code>%</code>, <code>.</code>) and lower-case: <code>bigcorp</code>, <code>s</code>, <code>2007</code>, <code>bi</code>, <code>annual</code>, <code>report</code>, <code>showed</code>, <code>profits</code>, <code>rose</code>, <code>10</code>. Drop the runs shorter than 3 — <code>s</code>, <code>bi</code>, <code>10</code>. Result: <code>bigcorp 2007 annual report showed profits rose</code>, 7 tokens, the slide&#39;s answer. Lost: the &quot;bi&quot; that changes &quot;annual&quot; and the 10% that was the news — &quot;too generic&quot;. Back to <a href="#2-tokenization">section 2</a>.</p>
+<h3 id="162-what-happens-to-the-tricky-tokens-l4-p1112">16.2 What happens to the tricky tokens? (L4 p11–12)</h3>
+<p>Run each of the slide&#39;s examples through (a) &quot;split on whitespace, then throw away punctuation&quot; and (b) the early methodology. Which ones go wrong, and how?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>(a) whitespace + drop punctuation</th>
+<th>(b) early methodology (3+ alnum)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>O&#39;Neill</td>
+<td><code>oneill</code></td>
+<td><code>neill</code> (<code>o</code> dropped)</td>
+</tr>
+<tr>
+<td>Aren&#39;t</td>
+<td><code>arent</code></td>
+<td><code>aren</code> (<code>t</code> dropped)</td>
+</tr>
+<tr>
+<td>clear-headed</td>
+<td><code>clearheaded</code></td>
+<td><code>clear</code>, <code>headed</code></td>
+</tr>
+<tr>
+<td>clearheaded</td>
+<td><code>clearheaded</code></td>
+<td><code>clearheaded</code></td>
+</tr>
+<tr>
+<td>mother-in-law</td>
+<td><code>motherinlaw</code></td>
+<td><code>mother</code>, <code>law</code> (<code>in</code> dropped)</td>
+</tr>
+<tr>
+<td>San Francisco</td>
+<td><code>san</code>, <code>francisco</code></td>
+<td><code>san</code>, <code>francisco</code></td>
+</tr>
+<tr>
+<td>New York University</td>
+<td><code>new</code>, <code>york</code>, <code>university</code></td>
+<td><code>new</code>, <code>york</code>, <code>university</code></td>
+</tr>
+<tr>
+<td><code>info@uci.edu</code></td>
+<td><code>infouciedu</code></td>
+<td><code>info</code>, <code>uci</code>, <code>edu</code></td>
+</tr>
+<tr>
+<td><code>http://www.ics.uci.edu/</code></td>
+<td><code>httpwwwicsuciedu</code></td>
+<td><code>http</code>, <code>www</code>, <code>ics</code>, <code>uci</code>, <code>edu</code></td>
+</tr>
+<tr>
+<td><code>192.168.0.1</code></td>
+<td><code>19216801</code></td>
+<td><code>192</code>, <code>168</code> (<code>0</code>, <code>1</code> dropped)</td>
+</tr>
+</tbody></table>
+<p>Rule (a) makes clear-headed match clearheaded but glues e-mails, URLs and IPs into meaningless strings; rule (b) shreds them and loses the short parts. <strong>Neither</strong> keeps O&#39;Neill, &quot;San Francisco&quot; or &quot;New York University&quot; as one unit. Every fix is a design decision — &quot;What is a token? Depends…&quot;. Check column (b):</p>
+<pre data-language="viz" data-viz="tokenize"><code>{&quot;title&quot;: &quot;Tricky tokens under the early method (L4 p11)&quot;, &quot;text&quot;: &quot;O&#39;Neill aren&#39;t clear-headed mother-in-law&quot;}</code></pre><p>Back to <a href="#2-tokenization">section 2</a>.</p>
+<h3 id="163-precision-or-recall-l5-p611--l35-p714">16.3 Precision or recall? (L5 p6–11 · L3.5 p7–14)</h3>
+<p>The class poll: which is more important for a web search engine, precision (how relevant are the first few hits?) or recall (how many relevant hits are presented?). And when is recall the one that matters?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> <strong>Precision</strong>, for web search: users read in an F-shape and mostly stop at the first screen (85% look at one result screen; 41.2% give up by the end of page 1 in the iProspect survey), so the <em>top</em> hits decide quality. <strong>Recall</strong> matters <strong>when completeness is required</strong> — motivated users, trusted sources, the commitment pattern: search engines for <strong>law</strong> and the <strong>sciences</strong>. Back to <a href="#61-precision-vs-recall">section 6</a>.</p>
+<h3 id="164-take-the-slides-urls-apart-l6-p2528">16.4 Take the slide&#39;s URLs apart (L6 p25–28)</h3>
+<p>Using <code>scheme://domain:port/path?query_string#fragment_id</code>, give every part of
+(a) <code>http://www.ics.uci.edu/~lopes</code> and
+(b) <code>http://calendar.ics.uci.edu/calendar.php?type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code>.
+What is the domain name in (b)? Which parts are mandatory?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>(a)</th>
+<th>(b)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>scheme</td>
+<td><code>http</code></td>
+<td><code>http</code></td>
+</tr>
+<tr>
+<td>domain (host)</td>
+<td><code>www.ics.uci.edu</code></td>
+<td><code>calendar.ics.uci.edu</code></td>
+</tr>
+<tr>
+<td>port</td>
+<td>none written (&quot;no port! just domain&quot;)</td>
+<td>none written</td>
+</tr>
+<tr>
+<td>path</td>
+<td><code>/~lopes</code></td>
+<td><code>/calendar.php</code></td>
+</tr>
+<tr>
+<td>query string</td>
+<td>none</td>
+<td><code>type=month&amp;calendar=1&amp;category=&amp;month=02&amp;year=2013</code> — 5 pairs; <code>category</code> is empty</td>
+</tr>
+<tr>
+<td>fragment</td>
+<td>none</td>
+<td>none</td>
+</tr>
+</tbody></table>
+<p>Domain name in (b): <code>uci.edu</code> (<code>ics</code>, <code>calendar</code> are subdomains). Only <code>scheme://domain</code> is mandatory. Same values as <code>urlsplit</code> and the demo in <a href="#122-anatomy-of-a-url">section 12</a>.</p>
+<h3 id="165-uri-url-or-urn-l6-p2324--l35-p2728">16.5 URI, URL or URN? (L6 p23–24 · L3.5 p27–28)</h3>
+<p>Classify <code>http://www.ics.uci.edu</code>, ISBN 0-486-27777-3 and <code>ftp://ftp.ics.uci.edu</code>.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> All three are <strong>URIs</strong>. <code>http://www.ics.uci.edu</code> and <code>ftp://ftp.ics.uci.edu</code> are <strong>URLs</strong> — they say <strong>where</strong> the resource is. The ISBN is a <strong>URN</strong> — it names <strong>what</strong> the book is, not where a copy is. Back to <a href="#121-definitions">section 12</a>.</p>
+<hr>
+<h2 id="17-quick-reference--top-5-things-to-remember">17. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Corpus</td>
+<td>All documents available to be searched</td>
+</tr>
+<tr>
+<td>Tokenizer / lexer / scanner</td>
+<td>Character stream → token stream</td>
+</tr>
+<tr>
+<td>Precision / recall</td>
+<td>Relevance of the first hits / how many relevant hits are shown</td>
+</tr>
+<tr>
+<td>CPM / CPC / CPA</td>
+<td>Per 1,000 impressions / per click / per action</td>
+</tr>
+<tr>
+<td>URI / URL / URN</td>
+<td>Identifier / where it is / what it is</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Web fact</th>
+<th>Number</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Duplication</td>
+<td>30–40% (studies), 25–30% (Google, 2013)</td>
+</tr>
+<tr>
+<td>Links per page</td>
+<td>more than 8</td>
+</tr>
+<tr>
+<td>Websites</td>
+<td>~1.8B peak (Feb 2018), ~1.1B (Mar 2024); Feb 2026: 1.42B hostnames, 208M active</td>
+</tr>
+<tr>
+<td>Change [Cho00]</td>
+<td>40% weekly, 23% daily</td>
+</tr>
+<tr>
+<td>Needs [Jansen 2008]</td>
+<td>~80% informational, ~10% navigational, ~10% transactional</td>
+</tr>
+<tr>
+<td>Queries</td>
+<td>80% shorter than 3 words; 78% not modified</td>
+</tr>
+<tr>
+<td>Results</td>
+<td>85% look at one result screen only</td>
+</tr>
+<tr>
+<td>Click fraud</td>
+<td>USD 7.2B lost, 2016–2018</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Spam technique</th>
+<th>How it fools the engine</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Keyword stuffing</td>
+<td>Misleading meta-tags, repeated words, white-on-white text</td>
+</tr>
+<tr>
+<td>Cloaking</td>
+<td>Server sends spiders a different page than browsers</td>
+</tr>
+<tr>
+<td>Doorway page</td>
+<td>Spider-optimized page + instant 302 redirect for users</td>
+</tr>
+<tr>
+<td>Link exchanges / link spam</td>
+<td>Fake links and blog comments to transfer trust</td>
+</tr>
+<tr>
+<td>Clicker bots</td>
+<td>Fake queries and clicks on targeted results</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>URL part</th>
+<th>Mandatory?</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scheme://domain</code></td>
+<td>Yes</td>
+<td><code>http://calendar.ics.uci.edu</code></td>
+</tr>
+<tr>
+<td><code>:port</code></td>
+<td>No</td>
+<td>omitted → default port</td>
+</tr>
+<tr>
+<td><code>/path</code></td>
+<td>No</td>
+<td><code>/calendar.php</code></td>
+</tr>
+<tr>
+<td><code>?query_string</code></td>
+<td>No</td>
+<td><code>?type=month&amp;…&amp;year=2013</code></td>
+</tr>
+<tr>
+<td><code>#fragment_id</code></td>
+<td>No</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Tokenization is full of choices; the early &quot;3+ alphanumerics, lower-cased&quot; rule turns the Bigcorp sentence into <code>bigcorp 2007 annual report showed profits rose</code> and loses information.</li>
+<li>The Web is a directed graph: huge, duplicated (30–40%), densely linked (8+ links/page), spam-ridden, changing fast (40% weekly, Cho00).</li>
+<li>For web search <strong>precision beats recall</strong>; recall matters when completeness is required (law, sciences).</li>
+<li>CPM = per thousand impressions, CPC = per click, CPA = per action; cloaking branches on the requester, a doorway page uses a 302 redirect.</li>
+<li>Only <code>scheme://domain</code> is mandatory in a URL; URL = <em>where</em>, URN = <em>what</em>; resolve relative links like <code>/somesite.html</code> against their page.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-01/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 1</span><span class="pager-title" data-astro-cid-gxyjxt6l>Course Intro, IR and the Web, Architecture</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/week-03/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 3 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Web Crawling</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-01/en-US/" title="Previous: Course Intro, IR and the Web, Architecture ([)" aria-label="Previous: Week 1" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 1</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 2</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-02/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/cs-121/week-03/en-US/" title="Next: Web Crawling (])" aria-label="Next: Week 3" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 3</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

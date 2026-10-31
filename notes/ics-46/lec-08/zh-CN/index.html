@@ -1,0 +1,480 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 归并排序与快速排序 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="合并两个有序半段、自顶向下归并排序及其 N log N 分析、稳定性与改进，以及快速排序的背景（在 Lecture 9 中继续）。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413978" data-source-url="/~kazuhak/notes/ics-46/lec-08/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-08/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-07/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-09/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 8 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 8 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 8 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 29 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-8归并排序与快速排序">Information and Computer Science 46 — Lecture 8：归并排序与快速排序</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F%E6%80%9D%E8%B7%AF">1. 归并排序：思路</a></li>
+<li><a href="#2-%E5%90%88%E5%B9%B6%E4%B8%A4%E4%B8%AA%E5%B7%B2%E6%8E%92%E5%BA%8F%E7%9A%84%E5%8D%8A%E6%AE%B5">2. 合并两个已排序的半段</a></li>
+<li><a href="#3-%E9%80%92%E5%BD%92%E7%9A%84-sort-%E4%B8%8E%E5%8C%85%E8%A3%85%E5%87%BD%E6%95%B0">3. 递归的 sort 与包装函数</a></li>
+<li><a href="#4-%E5%9C%A8-m-e-r-g-e-s-r-t-%E4%B8%8A%E8%BF%BD%E8%B8%AA%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F">4. 在 M E R G E S R T 上追踪归并排序</a></li>
+<li><a href="#5-%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F%E7%9A%84%E5%88%86%E6%9E%90">5. 归并排序的分析</a></li>
+<li><a href="#6-%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F%E7%9A%84%E6%80%A7%E8%B4%A8%E4%B8%8E%E6%94%B9%E8%BF%9B">6. 归并排序的性质与改进</a></li>
+<li><a href="#7-%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F%E8%83%8C%E6%99%AF">7. 快速排序：背景</a></li>
+<li><a href="#8-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">8. 完整实现</a></li>
+<li><a href="#9-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">9. 课堂活动（附解答）</a></li>
+<li><a href="#10-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">10. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/22/26<br>整理自 Lecture 8 幻灯片（p1–49）；补充材料：algs4 §2.2 Mergesort，Thornton 的 &quot;Comparison-Based Sorting&quot;。按概念组织，而不是按资料来源组织。<br>幻灯片 p50–83（快速排序算法、代码、划分、追踪、活动 4）在 Lecture 9 的幻灯片中重复出现，因此放在 <a href="/~kazuhak/notes/ics-46/lec-09/zh-CN/">Lecture 9 笔记</a>中讲解。<br>本讲目标（幻灯片 p3）：归并排序及其分析，快速排序。归并部分（幻灯片 p4–20）同时也出现在 Lecture 7 的末尾，这里一并讲解。选择排序与插入排序见 <a href="/~kazuhak/notes/ics-46/lec-07/zh-CN/">Lecture 7 笔记</a>；递推式与主定理见 <a href="/~kazuhak/notes/ics-46/lec-06/zh-CN/">Lecture 6 笔记</a>。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>（幻灯片 p2）：<br>Quiz 2 本周<strong>五</strong>进行<br>HW 3 <strong>周五</strong>截止<br>Lab 3 <strong>下周一</strong>截止<br>课程批准的 AI 工具很快将发布</p>
+</blockquote>
+<hr>
+<h2 id="1-归并排序思路">1. 归并排序：思路</h2>
+<p>归并排序（merge sort）由约翰·冯·诺依曼（John von Neumann）于 1945 年发明，是“分治法（divide and conquer）的典型范例”（幻灯片 p22）。算法如下（幻灯片 p21）：</p>
+<ol>
+<li><strong>划分</strong>：把数组分成两半。</li>
+<li><strong>递归排序</strong>：分别对两半进行排序。</li>
+<li><strong>归并</strong>：把两个已排序的半段合并起来。</li>
+</ol>
+<p>幻灯片 p5 对 <code>M E R G E S O R T E X A M P L E</code> 的概览：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入</td>
+<td>M E R G E S O R T E X A M P L E</td>
+</tr>
+<tr>
+<td>对左半部分排序</td>
+<td>E E G M O R R S | T E X A M P L E</td>
+</tr>
+<tr>
+<td>对右半部分排序</td>
+<td>E E G M O R R S | A E E L M P T X</td>
+</tr>
+<tr>
+<td>合并结果</td>
+<td>A E E E E G L M M O P R R S T X</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：划分非常简单（在中间下标处切开）。所有实际工作，即每一次比较，都发生在 <code>merge()</code> 中。</p>
+</blockquote>
+<h2 id="2-合并两个已排序的半段">2. 合并两个已排序的半段</h2>
+<p><code>merge</code> 接收 <code>a[lo..mid]</code> 和 <code>a[mid+1..hi]</code>，两段<strong>各自已经有序</strong>，并使 <code>a[lo..hi]</code> 变为有序（幻灯片 p6）。它先把这一区间复制到辅助数组 <code>aux</code> 中，然后逐个位置 <code>k</code> 写回到 <code>a</code>：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> merge</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++)</span><span style="color:#6A9955">       // Copy from a to aux</span></span>
+<span class="line"><span style="color:#9CDCFE">        aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span><span style="color:#6A9955">     // Merge back into a</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                     // Left subarray is exhausted</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                 // Right subarray is exhausted</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">])</span><span style="color:#6A9955">        // Select from right subarray</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#6A9955">                             // Select from left subarray</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>各个下标的含义（幻灯片 p8–9）：</p>
+<ul>
+<li><code>i</code> = <code>aux</code> 中<strong>左</strong>半段下一个未使用的元素（当 <code>i &lt;= mid</code> 时有效）</li>
+<li><code>j</code> = <code>aux</code> 中<strong>右</strong>半段下一个未使用的元素（当 <code>j &lt;= hi</code> 时有效）</li>
+<li><code>k</code> = <code>a</code> 中下一个待填充的位置</li>
+</ul>
+<p><code>i &gt; mid</code> 表示左半段已用完，<code>j &gt; hi</code> 表示右半段已用完；此时剩余元素直接复制，无需比较。只有两段都还有元素时，第三个分支才比较 <code>aux[j] &lt; aux[i]</code>，较小者胜出。幻灯片中的“扑克牌演示”：两叠已排序的牌正面朝上，每次总是取较小的顶牌。</p>
+<p>幻灯片 p7–18 归并 <code>aux = A G L O R | H I M S T</code>（lo = 0，mid = 4，hi = 9）：</p>
+<table>
+<thead>
+<tr>
+<th>k</th>
+<th>情形</th>
+<th>赋值</th>
+<th>之后的 a</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>aux[i] &lt; aux[j]（A vs H）</td>
+<td>a[0] = aux[0]</td>
+<td><strong>A</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>G vs H</td>
+<td>a[1] = aux[1]</td>
+<td>A <strong>G</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>aux[i] &gt; aux[j]（L vs H）</td>
+<td>a[2] = aux[5]</td>
+<td>A G <strong>H</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>L vs I</td>
+<td>a[3] = aux[6]</td>
+<td>A G H <strong>I</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>L vs M</td>
+<td>a[4] = aux[2]</td>
+<td>… <strong>L</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>O vs M</td>
+<td>a[5] = aux[7]</td>
+<td>… <strong>M</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>O vs S</td>
+<td>a[6] = aux[3]</td>
+<td>… <strong>O</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>R vs S</td>
+<td>a[7] = aux[4]</td>
+<td>… <strong>R</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>i &gt; mid</td>
+<td>a[8] = aux[8]</td>
+<td>… <strong>S</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>i &gt; mid</td>
+<td>a[9] = aux[9]</td>
+<td>A G H I L M O R S T</td>
+</tr>
+</tbody></table>
+<p>下面可逐步演示（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;幻灯片 7–18：合并 A G L O R | H I M S T&quot;, &quot;items&quot;: &quot;A, G, L, O, R, H, I, M, S, T&quot;, &quot;mode&quot;: &quot;merge&quot;, &quot;mid&quot;: 4}</code></pre><p>幻灯片 p19 链接到 Algorithms 2.2 的 &quot;Merging Demo&quot; 视频，展示的是同一过程。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>merge</code> 只有在两半都已排序时才正确。它从不回头检查，因此未排序的半段会以原来的顺序与另一半混合输出。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#91-%E6%B4%BB%E5%8A%A8-1merge-%E4%B8%AD%E7%9A%84%E6%AF%94%E8%BE%83%E6%AC%A1%E6%95%B0%E5%B9%BB%E7%81%AF%E7%89%87-20">活动 1</a> 统计 <code>merge</code> 所做的比较次数。</p>
+</blockquote>
+<h2 id="3-递归的-sort-与包装函数">3. 递归的 sort 与包装函数</h2>
+<p>幻灯片 p22–23：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                        // Base case for recursion</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> + (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // calculate midpoint, split in half</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">               // recursively sort left subarray</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">             // recursively sort right subarray</span></span>
+<span class="line"><span style="color:#DCDCAA">    merge</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">          // merge left and right</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> T</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span><span style="color:#6A9955">              // Dynamically allocate aux array</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    delete[]</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>lo</code> 与 <code>hi</code> 都是<strong>闭区间</strong>，因此包装函数传入的是 <code>length - 1</code>。</li>
+<li>基本情形 <code>hi &lt;= lo</code>：只有 0 或 1 个元素的区间本身已经有序。</li>
+<li><code>mid = lo + (hi - lo) / 2</code> 与 <code>(lo + hi) / 2</code> 等价，但不会导致 <code>int</code> 溢出。长度为奇数时，左半段 <code>lo..mid</code> 多一个元素。</li>
+<li>两个 <code>sort</code> 函数是<strong>重载</strong>。用户调用 <code>sort(a, length)</code>；包装函数只分配一次 <code>aux</code> 并向下传递，而不是在每次 <code>merge</code> 中都分配。</li>
+<li><code>new T[length]</code> 与 <code>delete[]</code> 配对使用。</li>
+</ul>
+<p>幻灯片 p23 的说明：<code>std::sort</code> 和 <code>std::merge</code> 已经在 <code>&lt;algorithm&gt;</code> 中提供；我们自己实现它们是为了理解其原理。</p>
+<h2 id="4-在-m-e-r-g-e-s-r-t-上追踪归并排序">4. 在 M E R G E S R T 上追踪归并排序</h2>
+<p>幻灯片 p24–41 跟踪 <code>sort([M,E,R,G,E,S,R,T])</code>。调用顺序是<strong>深度优先</strong>的：一直向左递归直到基本情形（幻灯片用一面砖墙来表示），然后处理右侧，最后在回溯时逐层归并。</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>发生了什么</th>
+<th>之后的 a</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sort(0,7)</td>
+<td>mid = 3，向左递归</td>
+<td>M E R G E S R T</td>
+</tr>
+<tr>
+<td>sort(0,3)</td>
+<td>mid = 1，向左递归</td>
+<td></td>
+</tr>
+<tr>
+<td>sort(0,1)</td>
+<td>mid = 0；sort(0,0) 和 sort(1,1) 触发基本情形；merge(0,0,1)</td>
+<td><strong>E M</strong> R G E S R T</td>
+</tr>
+<tr>
+<td>sort(2,3)</td>
+<td>sort(2,2)、sort(3,3) 返回；merge(2,2,3)</td>
+<td>E M <strong>G R</strong> E S R T</td>
+</tr>
+<tr>
+<td>回到 sort(0,3)</td>
+<td>merge(0,1,3)</td>
+<td><strong>E G M R</strong> E S R T</td>
+</tr>
+<tr>
+<td>sort(4,7)</td>
+<td>对 E S R T 重复相同模式</td>
+<td>E G M R <strong>E R S T</strong></td>
+</tr>
+<tr>
+<td>回到 sort(0,7)</td>
+<td>merge(0,3,7)</td>
+<td><strong>E E G M R R S T</strong></td>
+</tr>
+</tbody></table>
+<p>幻灯片 p41 给出了完整的递归树：<code>MERG | ESRT</code> → <code>ME RG ES RT</code> → 单个字母 → <code>EM GR ES RT</code> → <code>EGMR ERST</code> → <code>EEGMRRST</code>。<code>aux</code> 数组会在两次归并之间保留旧副本（例如 <code>[M, E, R, G, , , , ]</code>）；这无害，因为每次 <code>merge</code> 都会先重新复制自己的区间。</p>
+<p>逐步演示整个递归过程（可编辑 items 以尝试自己的输入）：</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;幻灯片 24–41：sort M E R G E S R T&quot;, &quot;items&quot;: &quot;M, E, R, G, E, S, R, T&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>📝 <strong>练习</strong>：<a href="#92-%E6%B4%BB%E5%8A%A8-2%E5%AD%90%E6%95%B0%E7%BB%84%E9%95%BF%E5%BA%A6%E5%B9%BB%E7%81%AF%E7%89%87-42">活动 2</a> 询问当 n = 10 时会出现哪些子数组长度。</p>
+</blockquote>
+<h2 id="5-归并排序的分析">5. 归并排序的分析</h2>
+<p><strong>为什么重要</strong>（幻灯片 p43）：以每秒 10¹⁰ 次比较（笔记本电脑）与 10¹⁷ 次（超级计算机）计算：</p>
+<table>
+<thead>
+<tr>
+<th>计算机</th>
+<th>插入排序：千</th>
+<th>百万</th>
+<th>十亿</th>
+<th>归并排序：千</th>
+<th>百万</th>
+<th>十亿</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>笔记本电脑</td>
+<td>瞬间</td>
+<td>2 小时</td>
+<td>300 年</td>
+<td>瞬间</td>
+<td>1 秒</td>
+<td>15 分钟</td>
+</tr>
+<tr>
+<td>超级计算机</td>
+<td>瞬间</td>
+<td>1 秒</td>
+<td>1 周</td>
+<td>瞬间</td>
+<td>瞬间</td>
+<td>瞬间</td>
+</tr>
+</tbody></table>
+<p>运行归并排序的笔记本电脑快过运行插入排序的超级计算机：好的算法胜过超级计算机。</p>
+<p><strong>比较次数的计数</strong>（活动 3，幻灯片 p44）。对 n 个元素的一次 <code>merge</code> 最多进行 <strong>n − 1</strong> 次比较：每次比较放置一个元素，而最后一个元素总是无需比较即可放置（另一半已经为空）。因此最坏情况下的次数满足</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mtext> </mtext><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>C</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">C(n) = 2\,C(n/2) + (n - 1), \qquad C(1) = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span></div>
+<p>（两次递归排序，加上最后的一次归并；计算 <code>mid</code> 不需要比较）。若只关注增长阶，可写为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">T(n) = 2T(n/2) + n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>。</p>
+<ul>
+<li><strong>递归树</strong>：第 k 层有 2ᵏ 个子问题，每个规模为 n/2ᵏ，因此每一层总共归并 n 个元素。将 n 不断减半直到 1 需要 log₂ n 层。总计约为 n · log₂ n。精确地，当 n 为 2 的幂时 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>n</mi><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mi>n</mi><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">C(n) = n\log_2 n - n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9386em;vertical-align:-0.2441em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>（n = 8 时为 17）。</li>
+<li><strong>主定理</strong>（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><msup><mi>n</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">T(n) = aT(n/b) + n^d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/</span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span></span>）：a = 2，b = 2，d = 1，且 a = bᵈ，因此 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">(</mo><mi>n</mi><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T(n) = \Theta(n^d \log n) = \Theta(n \log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord">Θ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Θ</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>。</li>
+</ul>
+<p>若计算所有工作量（复制到 <code>aux</code>、更新下标），而不只是比较次数，只会改变常数：每次 <code>merge</code> 仍是 Θ(n)，因此结论相同，即最好、平均与最坏情况都是 <strong>Θ(n log n)</strong>。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（algs4 §2.2）：algs4 §2.2 给出了完整范围：对于任意规模为 n 的输入，归并排序使用的比较次数介于 ½ n lg n 与 n lg n 之间。最好情况恰好是最坏情况的一半，因为一次归并至少需要 n/2 次比较（一半会先用完）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#93-%E6%B4%BB%E5%8A%A8-3%E6%9C%80%E5%9D%8F%E6%83%85%E5%86%B5%E5%88%86%E6%9E%90%E5%B9%BB%E7%81%AF%E7%89%87-44">活动 3</a> 就是这一推导。</p>
+</blockquote>
+<h2 id="6-归并排序的性质与改进">6. 归并排序的性质与改进</h2>
+<p>幻灯片 p45：</p>
+<ul>
+<li><strong>额外内存与 n 成正比</strong>：最后一次归并需要 <code>aux</code> 容纳 n 个元素。</li>
+<li><strong>最简单形式下不是原地的</strong>。有一些改进可以把辅助数组减半（幻灯片写的是 &quot;halting&quot;，是 &quot;halving&quot;（减半）的笔误），但真正原地的归并非常困难。</li>
+<li><strong>稳定</strong>：相等的键保持原始的相对顺序。在 <code>merge</code> 中，只有当 <code>aux[j] &lt; aux[i]</code> 时才取右侧元素；相等时 <code>else</code> 分支取的是<strong>左侧</strong>元素，而它本来就排在前面。</li>
+</ul>
+<p>改进措施（幻灯片 p46）：</p>
+<ol>
+<li>对小数组使用<strong>插入排序</strong>。</li>
+<li>若已经有序则<strong>停止</strong>。</li>
+<li><strong>消除</strong>到辅助数组的复制，以节省时间。</li>
+</ol>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（algs4 §2.2）：三种改进的具体含义：(1) 在元素少于约 10–15 个时切换为插入排序，可使典型归并排序加快 10–15%；(2) 当 <code>a[mid] &lt;= a[mid+1]</code> 时跳过 <code>merge</code>，这使得已排序的输入只需线性时间；(3) 在每一层递归中交替使用 <code>a</code> 与 <code>aux</code> 的角色，节省复制的时间（而非空间）。</p>
+</blockquote>
+<p>截至目前的排序算法比较（幻灯片 p47）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>原地</th>
+<th>稳定</th>
+<th>最好</th>
+<th>平均</th>
+<th>最坏</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>选择排序</td>
+<td>✓</td>
+<td></td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>n 次交换</td>
+</tr>
+<tr>
+<td>插入排序</td>
+<td>✓</td>
+<td>✓</td>
+<td>O(n)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>适用于小数组或部分有序的数组</td>
+</tr>
+<tr>
+<td>归并排序</td>
+<td></td>
+<td>✓</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>性能有保证；稳定</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：如果把平局判断改为 <code>aux[j] &lt;= aux[i]</code>，归并排序就不再稳定了（来自右侧的相等元素会跑到前面）。</p>
+</blockquote>
+<h2 id="7-快速排序背景">7. 快速排序：背景</h2>
+<p>快速排序（quick sort，幻灯片 p49）同样是分治法，由 Tony Hoare（托尼·霍尔）于 1959 年发明。他想在字典中查单词之前先对单词排序，想出了快速排序，但当时不知道如何实现它；后来他学习了 Algol 60 和递归，才把它实现出来。他因此获得 1980 年的图灵奖（他还发明了 null，并对此深感后悔）。</p>
+<blockquote>
+<p>➡️ <strong>在 <a href="/~kazuhak/notes/ics-46/lec-09/zh-CN/">Lecture 9</a> 中继续</strong>：算法概要、快速排序代码与随机洗牌、划分、划分与完整排序的追踪，以及本讲的活动 4（即 Lecture 9 的活动 1）。幻灯片 p50–83 在 Lecture 9 幻灯片开头重复出现，因此放在那一讲讲解。</p>
+</blockquote>
+<h2 id="8-完整实现">8. 完整实现</h2>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">namespace</span><span style="color:#4EC9B0"> mergesort</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> merge</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">)              </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">)          </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">]) </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#9CDCFE">                      a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> + (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    merge</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> T</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    delete[]</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用 <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code> 测试（比较次数通过带计数功能的 <code>operator&lt;</code> 统计）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">merge example: AGHILMORST  compares=8
+best 123|456 compares=3
+worst 135|246 compares=5
+MERGESRT -&gt; EEGMRRST  compares=15
+worst n=8 compares=17 (n lg n - n + 1 = 17)
+mergesort wrapper: 1 2 3 5 8 9</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-课堂活动附解答">9. 课堂活动（附解答）</h2>
+<h3 id="91-活动-1merge-中的比较次数幻灯片-20">9.1 活动 1：merge 中的比较次数（幻灯片 20）</h3>
+<p>要把两个已排序的子数组（各长 n/2）合并为一个长度为 n 的有序数组，<code>merge()</code> 需要调用多少次 <code>&lt;</code>？</p>
+<p>A. 约 n/4 到约 n/2
+B. 约 n/2
+C. 约 n/2 到 n
+D. 约 n
+E. 约 n 到 2n</p>
+<p>给出一个最好情况的例子和一个最坏情况的例子（每个有序子数组使用 3 个元素）。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：每次比较恰好放置一个元素；一旦某一半用完，就不再进行比较。</p>
+</blockquote>
+<p><strong>解答：C。</strong> 最好情况：一半在 n/2 次比较后就用完了，例如 <code>1 2 3 | 4 5 6</code> → 3 次比较（1、2、3 各自都小于 4；然后 4 5 6 直接复制）。最坏情况：两半交错排列，直到最后两半都还没用完，例如 <code>1 3 5 | 2 4 6</code> → 5 = n − 1 次比较。因此次数介于约 n/2 与约 n 之间。验证最坏情况：</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;活动 1 最坏情况：1 3 5 | 2 4 6&quot;, &quot;items&quot;: &quot;1, 3, 5, 2, 4, 6&quot;, &quot;mode&quot;: &quot;merge&quot;, &quot;mid&quot;: 2}</code></pre><p>返回 <a href="#2-%E5%90%88%E5%B9%B6%E4%B8%A4%E4%B8%AA%E5%B7%B2%E6%8E%92%E5%BA%8F%E7%9A%84%E5%8D%8A%E6%AE%B5">合并两个已排序的半段</a>。</p>
+<h3 id="92-活动-2子数组长度幻灯片-42">9.2 活动 2：子数组长度（幻灯片 42）</h3>
+<p>对长度为 10 的数组运行归并排序时，下列哪些子数组长度会出现？</p>
+<p>A. { 1, 2, 3, 5, 7, 10 }
+B. { 2, 4, 6, 8, 10 }
+C. { 1, 2, 5, 10 }
+D. { 1, 2, 3, 4, 5, 10 }
+E. { 1, 2, 3, 5, 10 }</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答：E。</strong> 长度为 n 的区间会被分成 ⌈n/2⌉（左侧，包含 <code>mid</code>）与 ⌊n/2⌋：10 → 5 + 5，5 → 3 + 2，3 → 2 + 1，2 → 1 + 1。出现的长度为：10、5、3、2、1。A 多了 7；B 与 D 含有从不出现的偶数长度（B 还缺少 1，而每次递归都会到达 1）；C 缺少 3。返回 <a href="#4-%E5%9C%A8-m-e-r-g-e-s-r-t-%E4%B8%8A%E8%BF%BD%E8%B8%AA%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F">追踪归并排序的过程</a>。</p>
+<h3 id="93-活动-3最坏情况分析幻灯片-44">9.3 活动 3：最坏情况分析（幻灯片 44）</h3>
+<p><strong>(a)</strong> 分析归并排序的最坏情况时间复杂度（比较次数）。
+<strong>(b)</strong> 写出描述最坏情况时间复杂度的递推式。
+<strong>(c)</strong> 使用递归树或主定理求解该递推式。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> <strong>(a)</strong> 所有比较都发生在 <code>merge</code> 中；归并 n 个元素最多需要 n − 1 次比较。<strong>(b)</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C(n) = 2C(n/2) + (n - 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">C(1) = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>；若只关注增长阶，则为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">T(n) = 2T(n/2) + n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>。<strong>(c)</strong> 递归树：log₂ n 层 × 每层 n = n log₂ n（精确值为 n log₂ n − n + 1）。主定理：a = 2，b = 2，d = 1，a = bᵈ → Θ(n log n)。返回 <a href="#5-%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F%E7%9A%84%E5%88%86%E6%9E%90">归并排序的分析</a>。</p>
+<h2 id="10-速查与必记的-5-个要点">10. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>归并排序</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>切分</td>
+<td>在中间下标（<code>mid</code>）处</td>
+</tr>
+<tr>
+<td>工作何时完成</td>
+<td>递归调用之后（<code>merge</code>）</td>
+</tr>
+<tr>
+<td>比较发生在</td>
+<td>merge 中的 <code>aux[j] &lt; aux[i]</code></td>
+</tr>
+<tr>
+<td>额外内存</td>
+<td>大小为 n 的 <code>aux</code>（非原地）</td>
+</tr>
+<tr>
+<td>稳定</td>
+<td>是（平局时取左侧）</td>
+</tr>
+<tr>
+<td>时间</td>
+<td>最好/平均/最坏均为 Θ(n log n)</td>
+</tr>
+<tr>
+<td>合并两个长 n/2 的半段所需比较次数</td>
+<td>约 n/2 到 n − 1</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li><code>merge</code> 只在两半都还有元素时比较 <code>aux[j] &lt; aux[i]</code>；<code>i &gt; mid</code> / <code>j &gt; hi</code> 表示某一半已用完，平局时取左侧元素，这使归并排序保持稳定。</li>
+<li>归并排序的递推式为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C(n) = 2C(n/2) + (n - 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>：log₂ n 层 × 每层 n = 在所有情况下都是 Θ(n log n)，代价是 O(n) 的 <code>aux</code> 数组（非原地）。</li>
+<li>子数组长度来自于反复切分为 ⌈n/2⌉ 与 ⌊n/2⌋（n = 10 → 10、5、3、2、1）。</li>
+<li>合并两个长 n/2 的有序半段，比较次数介于 n/2（某一半先用完）与 n − 1（两半交错）之间。</li>
+<li>三项改进：小子数组改用插入排序；当 <code>a[mid] &lt;= a[mid+1]</code> 时跳过 <code>merge</code>；交替使用 <code>a</code> 与 <code>aux</code> 以省去复制。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 7 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>排序</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-09/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 9 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>快速排序</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" title="上一篇: 排序 ([)" aria-label="上一篇: 第 7 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 7 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 8 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-09/zh-CN/" title="下一篇: 快速排序 (])" aria-label="下一篇: 第 9 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 9 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

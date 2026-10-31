@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Randomness, References &amp; Pointers | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Random number generation in C++, references, raw pointers, and an introduction to smart pointers and ownership."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413975" data-source-url="/~kazuhak/notes/ics-46/lec-01/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-01/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-00/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-02/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 1</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 1 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 1 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-1-randomness-references-pointers">Information and Computer Science 46 — Lecture 1: Randomness, References, Pointers</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-randomness-and-random-number-generation">1. Randomness and Random Number Generation</a></li>
+<li><a href="#2-c-references">2. C++ References</a></li>
+<li><a href="#3-c-pointers">3. C++ Pointers</a></li>
+<li><a href="#4-smart-pointers-and-ownership">4. Smart Pointers and Ownership</a></li>
+<li><a href="#5-in-class-activities-with-solutions">5. In-class Activities (with Solutions)</a></li>
+<li><a href="#6-quick-reference--top-5-things-to-remember">6. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, Tuesday 09/29/26<br>Built from the Lecture 1 slides (pages 1–31, 35), with Thornton&#39;s ICS 46 notes (Randomness, Smart Pointers), Thornton&#39;s ICS 45C notes (Pointers and the Heap) and W. Brown&#39;s <em>Random Number Generation in C++11</em> (N3551, linked on the recap slide) as supplements. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>:<br><strong>Lab 1</strong> released, due <strong>Mon 10/5</strong>: set up the environment, compile a small test program, submit to <strong>Gradescope</strong> (used for all homeworks, labs and projects).<br><strong>Programming environment</strong>: VS Code + C++ on the <strong>UCI ICS OpenLab JupyterHub</strong> — grading is done in this environment; setup directions are in Lab 1. Turn off Copilot and any other AI assistance.<br><strong>Pensive</strong> link posted for problem sets. <strong>Office hours</strong> calendar updated: Prof. Yeh Tue/Thu 5–6 pm (ICS1 195); lectures Tue/Thu 3:30–4:50; discussion Fri.<br>Why this course: interview questions have traditionally focused on data structures and algorithms.<br>Today&#39;s goals: randomness, references, pointers, smart pointers.</p>
+</blockquote>
+<hr>
+<h2 id="1-randomness-and-random-number-generation">1. Randomness and Random Number Generation</h2>
+<h3 id="11-what-random-means">1.1 What &quot;random&quot; means</h3>
+<p>A sequence is <strong>random</strong> if nobody can predict the next value better than chance, even after seeing all previous ones; the goal is for programs to <em>generate</em> such sequences (slide 6). Uses: <strong>machine learning</strong> (weight init, train/test splits, SGD), <strong>security</strong> (keys, tokens — a predictable key is a guessable key), <strong>simulation</strong> (Monte Carlo, varying the seed), <strong>games</strong> (world generation, NPC decisions).</p>
+<h3 id="12-true-random-vs-pseudorandom">1.2 True random vs. pseudorandom</h3>
+<p>Slide 7 splits random number generators (RNGs) into two kinds:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Truly random (TRNG / hardware RNG)</th>
+<th>Pseudorandom (PRNG)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>How</td>
+<td>measures changing <strong>physical phenomena</strong></td>
+<td><strong>computes</strong> each value from the previous internal state</td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>dice, coins, cards; network traffic, temperature, lava lamps; atmospheric noise (random.org)</td>
+<td>Mersenne Twister, linear congruential generators</td>
+</tr>
+<tr>
+<td>Reproducible?</td>
+<td>no</td>
+<td><strong>yes</strong> — same seed, same sequence</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>limited (collecting entropy takes time)</td>
+<td>very fast</td>
+</tr>
+</tbody></table>
+<p>The title-slide photo is Cloudflare&#39;s lava-lamp &quot;Wall of Entropy&quot;, a real TRNG source.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Randomness): entropy is scarce — the OS can only observe so many unpredictable events per second. So real programs combine both: take <strong>one</strong> value from the entropy source as the <strong>seed</strong>, then let a fast PRNG expand it into a long sequence.</p>
+</blockquote>
+<h3 id="13-seeding-the-engine">1.3 Seeding the engine</h3>
+<p>In <code>&lt;random&gt;</code> the PRNG is called an <strong>engine</strong>, and you create it with a <strong>seed</strong> (slide 8).</p>
+<p><strong>Approach 01 — fixed seed</strong>: identical sequence every run; best for testing, simulations, debugging.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#569CD6">const</span><span style="color:#569CD6"> unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> SEED</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">123</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">SEED</span><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Approach 02 — entropy source</strong>: <code>std::random_device</code> taps the OS/hardware entropy; <strong>call</strong> it to get one seed. Different sequence each run; for production.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span><span style="color:#6A9955">   // note the ()</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: a fixed seed reproduces the sequence only on the <strong>same standard library</strong> — <code>default_random_engine</code> is vendor-chosen, so g++ and MSVC may print different numbers for seed 123. Use <code>std::mt19937</code> if you need identical results everywhere.</p>
+</blockquote>
+<h3 id="14-distributions-uniform-and-normal">1.4 Distributions: uniform and normal</h3>
+<p>The engine produces raw uniform bits; a <strong>distribution</strong> shapes them into the values you want (slide 9).</p>
+<ul>
+<li><strong>Uniform integer</strong>: integers in [min, max], <strong>both inclusive</strong>, all equally likely (flat).</li>
+<li><strong>Normal / Gaussian</strong>: bell curve centered at the <strong>mean</strong>; the <strong>standard deviation</strong> sets the spread (e.g. exam scores).</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// Equal chance for 1, 2, 3, 4, 5, or 6</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">uniform_int_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> mean</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> stddev</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">normal_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">d</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">mean</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">stddev</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 9&#39;s two histograms (stars per value):</p>
+<table>
+<thead>
+<tr>
+<th>value</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>uniform, min 0, max 10</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>normal, mean 5.0, sd 2.0</td>
+<td>0</td>
+<td>1</td>
+<td>3</td>
+<td>6</td>
+<td>9</td>
+<td>9</td>
+<td>8</td>
+<td>5</td>
+<td>3</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>(The normal histogram also lists −2, −1, 11, 12 — all empty.)</p>
+<p>Uniform is flat; normal peaks around the mean and almost nothing lands more than 2 sd away (below 1 or above 9).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (N3551 §3): don&#39;t write <code>1 + engine() % 6</code>. The engine&#39;s range usually isn&#39;t a multiple of 6, so low values come out slightly more often — a biased die. Always go through a distribution (and avoid the old C <code>rand()</code>).</p>
+</blockquote>
+<h3 id="15-putting-it-together-rolling-dice">1.5 Putting it together: rolling dice</h3>
+<p>Slide 10: create the three pieces <strong>once</strong> — (1) entropy + engine, (2) distribution mapping to [1, 6], (3) call <code>distribution(engine)</code> for each sample.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 1. Source of Entropy &#x26; Engine</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span><span style="color:#6A9955">   // slide: engine{device}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 2. Inclusive Uniform Distribution [1, 6]</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">uniform_int_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 3. Generate Samples</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">distribution</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Slide bug (p10, p11)</strong>: <code>engine{device}</code> → <code>engine{device()}</code>. Passing the device object itself doesn&#39;t compile (g++: <code>no matching function for call to &#39;std::linear_congruential_engine&lt;...&gt;(&lt;brace-enclosed initializer list&gt;)&#39;</code>); you must call it.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong> (Thornton): don&#39;t create the device/engine/distribution inside the loop — you&#39;d hit the slow entropy source every time and throw away the PRNG state. Create once, call many times.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#51-activity-0-random-number-generation-slide-11">Activity 0</a> — seed with 46 and switch to <code>normal(4.0, 0.6)</code>.</p>
+</blockquote>
+<hr>
+<h2 id="2-c-references">2. C++ References</h2>
+<h3 id="21-a-reference-is-an-alias">2.1 A reference is an alias</h3>
+<p>A <strong>reference</strong> is another name for an existing object (slide 13). It <strong>must be initialized</strong>, and it <strong>can never be re-bound</strong> to another object. Also called an <strong>lvalue reference</strong>; declared with <code>&amp;</code> on the type: <code>int&amp; ref = existingVariable;</code>. Unlike a Python name, <code>r = j;</code> does not rebind <code>r</code> — it copies <code>j</code>&#39;s value into whatever <code>r</code> refers to.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                       // r now refers to i</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 3</span></span>
+<span class="line"><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                            // a change to r is also a change to i</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 4</span></span>
+<span class="line"><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                            // a change to i is also a change to r</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 5</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>There is one <code>int</code> with two names.</p>
+<h3 id="22-pass-by-value-vs-pass-by-reference">2.2 Pass-by-value vs. pass-by-reference</h3>
+<p>Pass-by-value gives the function a <strong>copy</strong>; pass-by-reference makes the parameter an <strong>alias</strong> for the caller&#39;s argument (slide 14). Why use references: it <strong>allows modification</strong> of the original, and <strong>avoids copying</strong> large data (performance, memory).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    x</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // prints 4</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    foo</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // prints 4</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> swap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With <code>void foo(int x)</code> the output would be <code>4</code> then <code>3</code>; <code>swap</code> without <code>&amp;</code> would swap two copies and change nothing.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: read a big object → <code>const T&amp;</code>; modify the caller&#39;s object → <code>T&amp;</code>; small types like <code>int</code> → by value.</p>
+</blockquote>
+<h3 id="23-return-by-value-vs-return-by-reference">2.3 Return-by-value vs. return-by-reference</h3>
+<p>Slide 15: <strong>return by value by default</strong> — it&#39;s safe (no dangling references), cheap thanks to RVO / move semantics / copy elision (guaranteed in C++17), and simpler. <strong>Return by reference</strong> for class getters (<code>const T&amp;</code> to big internal data), operator overloading (<code>operator[]</code>, <code>operator=</code>, <code>operator&lt;&lt;</code> so calls can chain), and long-lived objects outside the function.</p>
+<p><strong>Critical rule: never return a reference to a local stack variable</strong> — it&#39;s destroyed when the function returns.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// BAD: Dangling reference to local object</span></span>
+<span class="line"><span style="color:#569CD6">int&#x26;</span><span style="color:#DCDCAA"> getBad</span><span style="color:#D4D4D4">() { </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> local</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> local</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // DANGER! Destroyed on exit</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// GOOD: Return by value (optimized by RVO/Copy Elision)</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> getGood</span><span style="color:#D4D4D4">() { </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // Safe zero-copy return</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>What <code>getBad()</code> actually does (g++ 13, <code>-Wall -fsanitize=address,undefined</code>):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">bad.cpp:2:40: warning: reference to local variable &#39;local&#39; returned [-Wreturn-local-addr]
+bad.cpp:2:40: runtime error: reference binding to null pointer of type &#39;int&#39;
+AddressSanitizer: SEGV on unknown address 0x000000000000</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Move Semantics): <em>moving</em> a <code>std::vector</code> just steals its internal array pointer, size and capacity (O(1)) instead of copying every element (O(n)). That&#39;s why slide 15 can call return-by-value cheap. <code>std::move(x)</code> only marks <code>x</code> as &quot;safe to steal from&quot; — you&#39;ll see it with <code>unique_ptr</code> in §4.4.</p>
+</blockquote>
+<hr>
+<h2 id="3-c-pointers">3. C++ Pointers</h2>
+<h3 id="31-what-a-pointer-is">3.1 What a pointer is</h3>
+<p>A <strong>pointer</strong> holds a <strong>memory address</strong> (a run-time value) plus the <strong>type</strong> it points to (known at compile time) (slide 17). Declared with <code>*</code>: <code>int* x;</code>. Read declarations right to left: <code>int** q</code> is &quot;pointer to pointer to int&quot;, <code>int*&amp; s</code> is &quot;reference to pointer to int&quot;.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Reference <code>int&amp;</code></th>
+<th>Pointer <code>int*</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Can be null?</td>
+<td>no</td>
+<td>yes (<code>nullptr</code>)</td>
+</tr>
+<tr>
+<td>Must be initialized?</td>
+<td>yes</td>
+<td>no (but uninitialized = garbage)</td>
+</tr>
+<tr>
+<td>Can change target?</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Reach the object</td>
+<td>just the name</td>
+<td><code>*p</code></td>
+</tr>
+</tbody></table>
+<h3 id="32---and-pointer-assignment">3.2 <code>&amp;</code>, <code>*</code>, and pointer assignment</h3>
+<p>The <strong>address-of</strong> operator <code>&amp;</code> (in an <em>expression</em>) gives a variable&#39;s address — different from <code>&amp;</code> in a <em>type</em>, which declares a reference. The <strong>dereference</strong> operator <code>*</code> is its opposite: it reaches the object at the address (and the name has nothing to do with references; it&#39;s an older C term). You can copy pointers (<code>int* q = p;</code> → both point at the same object) and have pointers to pointers (<code>int** q = &amp;p;</code>) (slides 17–18).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 3</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                        // change i through p</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 4</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">** </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                  // *q is p, **q is i (prints 4)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 19: pointers enable direct memory manipulation, dynamic allocation, and data structures (linked lists, trees, graphs). Unlike a reference, a pointer can be <strong>re-pointed</strong>:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // p holds the memory address of x</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">20</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // changes x to 20 through the pointer</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> y</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">y</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // now p points to y instead of x</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Verified: afterwards <code>x</code> is 20 and <code>*p</code> is 30.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: an address isn&#39;t an <code>int</code> — <code>int* p = i;</code> is a compile error; write <code>int* p = &amp;i;</code>.</p>
+</blockquote>
+<h3 id="33-nullptr">3.3 <code>nullptr</code></h3>
+<p><code>nullptr</code> means &quot;points to nothing&quot; (e.g. the last node&#39;s <code>next</code> in a linked list). Slide 19 asks what happens if you dereference it: <strong>undefined behavior</strong> — in practice a crash.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">              // CRASH</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Segmentation fault            # plain g++, exit code 139</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Check <code>if (p != nullptr)</code> before dereferencing a pointer that might be null.</p>
+<h3 id="34-stack-vs-heap-pointers-and-references-together">3.4 Stack vs. heap; pointers and references together</h3>
+<p>Two memory regions (slide 20): the <strong>stack</strong> holds function calls and locals (static allocation, freed automatically); the <strong>heap</strong> holds objects created by <code>new</code> at run time (dynamic allocation, alive until <code>delete</code>). <strong>References are implicit synonyms for objects; pointers store the location of objects.</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">     // new int: allocate an int on the heap</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // q is another name for the heap int</span></span>
+<span class="line"><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 4</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // address of the int q names (same as p)</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">*&#x26; </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // s is a reference to an int pointer</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 6</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 20&#39;s program in memory — one heap <code>int</code>, four ways to reach it (dotted arrows are references). Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;Slide 20: p, q, r, s&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;int* p = new int; *p = 3; int&amp; q = *p; q = 4;&quot;, &quot;note&quot;: &quot;p points at a heap int; q is another name for it (dashed = reference), so q = 4 writes the int&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;p&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;}, {&quot;name&quot;: &quot;q&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;, &quot;ref&quot;: true}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;h1&quot;, &quot;type&quot;: &quot;int&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;value&quot;, &quot;value&quot;: &quot;4&quot;, &quot;old&quot;: &quot;3&quot;}]}]}, {&quot;code&quot;: &quot;int* r = &amp;q; *r = 5; int*&amp; s = p; *s = 6;&quot;, &quot;note&quot;: &quot;r holds the same address as p; s is a reference to the pointer p itself&quot;, &quot;add_vars&quot;: {&quot;main&quot;: [{&quot;name&quot;: &quot;r&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;}, {&quot;name&quot;: &quot;s&quot;, &quot;value&quot;: &quot;-&gt;main.p&quot;, &quot;ref&quot;: true}]}, &quot;set&quot;: {&quot;h1.value&quot;: {&quot;value&quot;: &quot;6&quot;, &quot;old&quot;: &quot;4&quot;}}}]}</code></pre><p>One heap <code>int</code>, four ways to reach it: verified <code>r == p</code> and <code>&amp;s == &amp;p</code> both print <code>true</code>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#52-activity-1a-visualize-pointers-and-references-slide-21">Activity 1a</a> and <a href="#53-activity-1b-pointers--references-slide-22">Activity 1b</a> — same picture, then one changed line.</p>
+</blockquote>
+<h3 id="35-new-delete-leaks-and-dangling-pointers">3.5 <code>new</code>, <code>delete</code>, leaks and dangling pointers</h3>
+<p><code>delete p</code> deletes <strong>the object p points to</strong>, not <code>p</code> itself. Rule: <strong>every <code>new</code> has exactly one matching <code>delete</code></strong>. Breaking it:</p>
+<table>
+<thead>
+<tr>
+<th>Bug</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Memory leak</strong></td>
+<td>never deleted; once the last pointer to it is gone, it&#39;s unreachable but still allocated</td>
+</tr>
+<tr>
+<td><strong>Dangling pointer</strong></td>
+<td>after <code>delete p</code>, <code>p</code> still holds the old address; using it is undefined behavior</td>
+</tr>
+<tr>
+<td><strong>Double free</strong></td>
+<td>deleting the same address twice — undefined behavior (Activity 1b)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton 45C): every time you write <code>new</code>, ask &quot;who will delete this, and when?&quot; Python frees heap objects with a garbage collector; C++ has none, so that&#39;s your job — or a smart pointer&#39;s.</p>
+</blockquote>
+<hr>
+<h2 id="4-smart-pointers-and-ownership">4. Smart Pointers and Ownership</h2>
+<h3 id="41-the-problem-with-raw-pointers">4.1 The problem with raw pointers</h3>
+<p>Slide 24&#39;s dangers: dereferencing <code>nullptr</code> is UB; a bad cast can point anywhere; the <strong>same syntax</strong> points to one object or an array (<code>new int</code> vs <code>new int[10]</code>); and a pointer <strong>still points to deallocated objects</strong> (dangling). So: <strong>prefer stack allocation</strong> (cleaned up automatically on scope exit, even with exceptions) and <strong>allocate dynamically only when necessary</strong> — size unknown until run time, or the data must outlive the function.</p>
+<p>Smart pointers (in <code>&lt;memory&gt;</code>) are the modern solution:</p>
+<table>
+<thead>
+<tr>
+<th>Smart pointer</th>
+<th>Ownership</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::unique_ptr</code></td>
+<td>exclusive</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr</code></td>
+<td>shared (reference counting)</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr</code></td>
+<td>non-owning observer</td>
+</tr>
+</tbody></table>
+<p><strong>Slide bug (p24)</strong>: <code>std::share_ptr</code> → <code>std::shared_ptr</code>.</p>
+<h3 id="42-ownership">4.2 Ownership</h3>
+<p>A pointer that <strong>owns</strong> an object must make sure it&#39;s freed when the pointer is destroyed (slide 25). Thinking in ownership prevents leaks (nobody deletes) and double deletes (two pointers delete).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> A</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    A</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~A</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    B</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // other member variables would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">A</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">A</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">    : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">}, ...</span><span style="color:#6A9955"> // other member variable initializers would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // other code to be run after the initializers would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">A</span><span style="color:#D4D4D4">::~</span><span style="color:#DCDCAA">A</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // necessary cleanup other than deleting the object pointed to by b</span></span>
+<span class="line"><span style="color:#6A9955">    // would be here</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Slide 25&#39;s question — what if the constructor throws after <code>new B</code>?</strong> <code>A</code> never finished constructing, so <code>~A()</code> never runs. The member <code>b</code> is destroyed, but destroying a <em>raw</em> pointer doesn&#39;t delete the <code>B</code> → <strong>leak</strong>. (Verified side by side in §4.3.)</p>
+<h3 id="43-stdunique_ptr-exclusive-ownership">4.3 <code>std::unique_ptr</code>: exclusive ownership</h3>
+<p>A <code>unique_ptr</code> <strong>destroys the object it points to when it is itself destroyed</strong> — guaranteed automatic deletion (slide 26). Pointed-to type goes in <code>&lt; &gt;</code>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;memory></span><span style="color:#6A9955">    // We need this if we want to use smart pointers</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // Creates a unique_ptr called p and points it to a newly-allocated int.</span></span>
+<span class="line"><span style="color:#6A9955">    // p holds unique ownership of that int.</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // We can dereference the pointer with the * operator, just as you'd</span></span>
+<span class="line"><span style="color:#6A9955">    // expect with a raw pointer.</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // When p falls out of scope -- either because the function ends normally</span></span>
+<span class="line"><span style="color:#6A9955">    // or because the function threw an exception -- it will destroy the</span></span>
+<span class="line"><span style="color:#6A9955">    // int it points to automatically, so no need for delete!  Similarly, if</span></span>
+<span class="line"><span style="color:#6A9955">    // we re-point p to a new integer later, or we point it to null, a</span></span>
+<span class="line"><span style="color:#6A9955">    // deletion will also be triggered.</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 27 rewrites class A with <code>std::unique_ptr&lt;B&gt; b;</code> — <code>~A()</code> no longer needs <code>delete b</code> (and can be omitted entirely if it has nothing else to do). <strong>Slide bug (p27)</strong>: the class is followed by a duplicated <code>};</code> → one <code>};</code>.</p>
+<p>Example — both versions with a constructor that throws (verified):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> B</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">    B</span><span style="color:#D4D4D4">()  { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"B constructed"</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~B</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"B destroyed"</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> RawA</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">                     // slide 25 version</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    RawA</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">} { </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">runtime_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"constructor failed"</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~RawA</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    B</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> A</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">                        // slide 27 version</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    A</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">} { </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">runtime_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"constructor failed"</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">B</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">B constructed
+RawA: constructor failed          &lt;- no &quot;B destroyed&quot;: leaked
+B constructed
+B destroyed
+A: constructor failed
+==ERROR: LeakSanitizer: detected memory leaks   (1 byte: RawA&#39;s B)</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, Smart Pointers): this is <strong>RAII</strong> — acquire in a constructor, release in a destructor; local objects&#39; destructors always run, on normal return <em>and</em> during an exception. Modern code usually writes <code>auto p = std::make_unique&lt;int&gt;(3);</code> (and <code>std::make_shared</code>) instead of a bare <code>new</code>.</p>
+</blockquote>
+<h3 id="44-unique_ptr-cannot-be-copied">4.4 <code>unique_ptr</code> cannot be copied</h3>
+<p><strong>It&#39;s unsafe to copy a <code>unique_ptr</code>, so it&#39;s not allowed</strong> (slide 28). Slide 28 asks what happens with pass-by-value:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    foo</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Answer: it doesn&#39;t compile</strong> — <code>error: use of deleted function &#39;std::unique_ptr&lt;...&gt;::unique_ptr(const std::unique_ptr&lt;...&gt;&amp;)&#39;</code>. If it were allowed, <code>p</code> and <code>q</code> would both &quot;own&quot; the int (the slide&#39;s picture); when <code>foo</code> returns, <code>q</code> deletes it, and <code>p</code> dangles and would delete it again.</p>
+<p>What to write instead (verified):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> borrow</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955">                        // just use the int</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> borrowOwner</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> q</span><span style="color:#D4D4D4">) { *</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // use the caller's owner</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> take</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955"> /* ... */</span><span style="color:#D4D4D4"> }</span><span style="color:#6A9955">       // take ownership</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">borrow</span><span style="color:#D4D4D4">(*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">          // p still owns the int</span></span>
+<span class="line"><span style="color:#DCDCAA">borrowOwner</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">      // p still owns the int</span></span>
+<span class="line"><span style="color:#DCDCAA">take</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">));</span><span style="color:#6A9955">  // ownership moves into q; afterwards p == nullptr</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="45-stdshared_ptr-reference-counting">4.5 <code>std::shared_ptr</code>: reference counting</h3>
+<p>With shared ownership (slide 29), the object lives <strong>as long as at least one</strong> <code>shared_ptr</code> points to it and is destroyed when the <strong>last</strong> one goes away. It works by <strong>counting</strong> pointers (&quot;similar to Python garbage collection&quot;), and <code>shared_ptr</code> <strong>can be copied</strong> safely — a copy adds 1.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">     // p1 points to a new integer</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // p2 points to the same integer</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                              // 4 is stored in that integer</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // prints 4</span></span>
+<span class="line"><span style="color:#9CDCFE">    p1</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                         // p1 no longer points to the integer, but p2 still does</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span><span style="color:#6A9955">                                         // when the function ends, the integer is destroyed</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>After line</th>
+<th><code>use_count</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>p1{new int}</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>p2 = p1</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>p1 = nullptr</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>}</code> (p2 destroyed)</td>
+<td>0 → int deleted</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: &quot;similar to Python&quot; is only half true — Python also has a cycle collector; <code>shared_ptr</code> does <strong>not</strong>. See §4.6.</p>
+</blockquote>
+<h3 id="46-the-cycle-problem-and-stdweak_ptr">4.6 The cycle problem and <code>std::weak_ptr</code></h3>
+<p>Slide 30 (Activity 2): even shared ownership can leak.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;memory></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">  // Forward declaration</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Parent</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Child</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">child</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Parent</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Parent destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Child</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Child destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">p</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Parent</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Child</span><span style="color:#D4D4D4">>  </span><span style="color:#DCDCAA">c</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Child</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">child</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // Parent owns Child</span></span>
+<span class="line"><span style="color:#9CDCFE">    c</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // Child owns Parent</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Neither Parent nor Child is destroyed here because</span></span>
+<span class="line"><span style="color:#6A9955">    // they keep each other alive (circular reference).</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The cycle in memory. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;Activity 2: a shared_ptr cycle&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;shared_ptr&lt;Parent&gt; p(new Parent()); shared_ptr&lt;Child&gt; c(new Child());&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;p&quot;, &quot;value&quot;: &quot;-&gt;P&quot;}, {&quot;name&quot;: &quot;c&quot;, &quot;value&quot;: &quot;-&gt;C&quot;}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;P&quot;, &quot;type&quot;: &quot;Parent&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;child&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;use_count&quot;, &quot;value&quot;: &quot;1&quot;}]}, {&quot;id&quot;: &quot;C&quot;, &quot;type&quot;: &quot;Child&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;parent&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;use_count&quot;, &quot;value&quot;: &quot;1&quot;}]}]}, {&quot;code&quot;: &quot;p-&gt;child = c;  c-&gt;parent = p;&quot;, &quot;note&quot;: &quot;each object now has two owners: a local and the other object&quot;, &quot;set&quot;: {&quot;P.child&quot;: {&quot;value&quot;: &quot;-&gt;C&quot;, &quot;old&quot;: &quot;nullptr&quot;}, &quot;C.parent&quot;: {&quot;value&quot;: &quot;-&gt;P&quot;, &quot;old&quot;: &quot;nullptr&quot;}, &quot;P.use_count&quot;: {&quot;value&quot;: &quot;2&quot;, &quot;old&quot;: &quot;1&quot;}, &quot;C.use_count&quot;: {&quot;value&quot;: &quot;2&quot;, &quot;old&quot;: &quot;1&quot;}}}, {&quot;code&quot;: &quot;} // end of scope: p and c destroyed&quot;, &quot;note&quot;: &quot;counts drop to 1, not 0 — the two objects keep each other alive and nothing outside can reach them: leaked, no destructor runs&quot;, &quot;pop_frame&quot;: true, &quot;set&quot;: {&quot;P.use_count&quot;: {&quot;value&quot;: &quot;1&quot;, &quot;old&quot;: &quot;2&quot;}, &quot;C.use_count&quot;: {&quot;value&quot;: &quot;1&quot;, &quot;old&quot;: &quot;2&quot;}}}]}</code></pre><p>Neither destructor message prints. (Verified counts: Parent 2, Child 2 after the assignments. Run inside a helper function, LeakSanitizer reports <code>80 byte(s) leaked in 4 allocation(s)</code> — two objects plus two control blocks.)</p>
+<p><strong>Fix</strong>: make the back-pointer non-owning. A <code>weak_ptr</code> points at a <code>shared_ptr</code>-managed object <strong>without</strong> adding to its count.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">weak_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // FIX: observer, not owner</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Child</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Child destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#6A9955">// to use it:  if (std::shared_ptr&#x3C;Parent> pp = c->parent.lock()) { ... }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Parent count 1, Child count 2
+child can still reach its parent
+Parent destroyed
+Child destroyed</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>p</code> dies → Parent&#39;s count hits 0 → Parent destroyed, which destroys its <code>child</code> member → Child&#39;s count hits 0.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#54-activity-2-shared-ownership-slide-30">Activity 2</a>.</p>
+</blockquote>
+<h3 id="47-guidelines-borrowing-vs-owning">4.7 Guidelines: borrowing vs. owning</h3>
+<p><strong>Not all pointers imply ownership</strong> — objects can be <strong>borrowed</strong> without taking responsibility for them (slide 31).</p>
+<table>
+<thead>
+<tr>
+<th>Use</th>
+<th>Meaning</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>A&amp;</code> / <code>const A&amp;</code></td>
+<td>reference: <strong>guaranteed existence</strong> (no null); <code>const</code> forbids modification</td>
+<td>the borrower always needs an object</td>
+</tr>
+<tr>
+<td><code>A*</code></td>
+<td>raw pointer: <strong>explicit non-ownership</strong> by convention; <strong>optional presence</strong> (may be <code>nullptr</code>)</td>
+<td>the object may be absent</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr&lt;A&gt;</code></td>
+<td>smart non-owning; pairs with <code>shared_ptr</code></td>
+<td>back-references in shared structures</td>
+</tr>
+</tbody></table>
+<p>Practical example: tree nodes hold <code>shared_ptr</code> to their <strong>children</strong> and <code>weak_ptr</code> to their <strong>parent</strong> — the §4.6 fix.</p>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-02/en-US/">Lecture 2</a></strong>: Activity 3 (converting a tree&#39;s raw pointers to <code>unique_ptr</code>, then to <code>shared_ptr</code> + <code>weak_ptr</code>, then to <code>unique_ptr</code> + raw pointers), using raw and smart pointers together (<code>.get()</code>, owners vs. observers), and the smart pointer recap.</p>
+</blockquote>
+<hr>
+<h2 id="5-in-class-activities-with-solutions">5. In-class Activities (with Solutions)</h2>
+<h3 id="51-activity-0-random-number-generation-slide-11">5.1 Activity 0: Random Number Generation (slide 11)</h3>
+<p>Update <code>random_test.cpp</code> (class Google folder) to (1) print random numbers from a <strong>PRNG seeded with 46</strong>, (2) using a <strong>normal distribution</strong> with mean <strong>4.0</strong> and stddev <strong>0.6</strong>. The given code uses <code>engine{device}</code> and <code>uniform_int_distribution&lt;int&gt; distribution{1, 6}</code>.</p>
+<p><strong>Solution</strong> — change the two lines (no <code>random_device</code> needed for a fixed seed):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">const</span><span style="color:#569CD6"> unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> SEED</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">46</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">SEED</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">                     // 1) fixed seed</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">normal_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">4.0</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0.6</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">    // 2) normal(4.0, 0.6)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>First 10 values (g++ 13 / libstdc++), identical on every run:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">2.94246 4.7139 3.62995 3.87306 4.78358 4.23905 3.89193 3.93273 4.34897 4.33676</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>1000 samples have mean 4.007 and about 68% fall in 3.4–4.6 (within one sd). If you keep the device instead, fix <code>engine{device}</code> → <code>engine{device()}</code>.</p>
+<h3 id="52-activity-1a-visualize-pointers-and-references-slide-21">5.2 Activity 1a: Visualize Pointers and References (slide 21)</h3>
+<p>Draw stack/heap (dashed = reference, solid = pointer) for:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">*&#x26; </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Solution</strong> — prints <strong><code>3</code></strong> then <strong><code>9</code></strong>; clean under ASan.</p>
+<ul>
+<li><code>*a = *b</code> copies the <strong>value</strong> 3; <code>a</code> and <code>b</code> still point at two different ints.</li>
+<li><code>c</code> names <code>b</code>&#39;s int, so <code>c = 6</code> leaves <code>a</code>&#39;s int at 3 → prints 3.</li>
+<li><code>d</code> is another name for the pointer <code>a</code>, so <code>*d = 9</code> writes <code>a</code>&#39;s int → prints 9.</li>
+<li>Final picture: <code>a</code> → int 9, <code>b</code> → int 6, <code>c</code> dashed to the 6, <code>d</code> dashed to <code>a</code>. Two objects, each deleted once.</li>
+</ul>
+<h3 id="53-activity-1b-pointers--references-slide-22">5.3 Activity 1b: Pointers &amp; References (slide 22)</h3>
+<p>Same code, but <code>*a = *b;</code> becomes <code>a = b; // change from 1a</code>.</p>
+<p><strong>Solution</strong> — prints <strong><code>6</code></strong> then <strong><code>9</code></strong>, then crashes:</p>
+<ul>
+<li><code>a = b</code> copies the <strong>address</strong>: both point at the int holding 3. The int holding 2 has no pointer left → <strong>leak</strong>.</li>
+<li><code>c = 6</code> and <code>*d = 9</code> both write that one shared int → 6, then 9.</li>
+<li><code>delete a; delete b;</code> deletes the same address twice → <strong>double free</strong>:</li>
+</ul>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">6
+9
+==ERROR: AddressSanitizer: attempting double-free on 0x502000000030 in thread T0</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>*a = *b</code> copies what&#39;s pointed to; <code>a = b</code> copies the pointer — the aliasing smart pointers exist to prevent.</p>
+<h3 id="54-activity-2-shared-ownership-slide-30">5.4 Activity 2: Shared Ownership (slide 30)</h3>
+<p>For the <code>Parent</code>/<code>Child</code> program in <a href="#46-the-cycle-problem-and-stdweak_ptr">§4.6</a>: (a) what happens to the parent and child at the end of <code>main</code>? (b) why? (c) what&#39;s the fix?</p>
+<p><strong>Solution.</strong>
+(a) Neither is destroyed — no destructor output; both objects leak.
+(b) Each has two owners (a local + the other object). When <code>p</code> and <code>c</code> die, each count drops to 1, not 0: a <strong>reference cycle</strong>, which <code>shared_ptr</code> can&#39;t detect.
+(c) Change <code>Child</code>&#39;s member to <code>std::weak_ptr&lt;Parent&gt; parent;</code>. Parent&#39;s count stays 1, so both are destroyed (<code>Parent destroyed</code>, <code>Child destroyed</code>). Use <code>lock()</code> to reach the parent.</p>
+<hr>
+<h2 id="6-quick-reference--top-5-things-to-remember">6. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Want</th>
+<th>Write</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>reproducible engine</td>
+<td><code>std::default_random_engine engine{46u};</code></td>
+</tr>
+<tr>
+<td>real-run engine</td>
+<td><code>std::random_device device; std::default_random_engine engine{device()};</code></td>
+</tr>
+<tr>
+<td>die roll / bell curve</td>
+<td><code>std::uniform_int_distribution&lt;int&gt; d{1, 6};</code> / <code>std::normal_distribution&lt;double&gt; d{4.0, 0.6};</code> then <code>d(engine)</code></td>
+</tr>
+<tr>
+<td>alias, never null, never re-bound</td>
+<td><code>T&amp; r = x;</code></td>
+</tr>
+<tr>
+<td>address / follow address</td>
+<td><code>&amp;x</code> / <code>*p</code></td>
+</tr>
+<tr>
+<td>one owner, auto delete</td>
+<td><code>std::unique_ptr&lt;T&gt;</code> — <code>std::move</code> to hand over</td>
+</tr>
+<tr>
+<td>several owners</td>
+<td><code>std::shared_ptr&lt;T&gt;</code> — copy adds to the count</td>
+</tr>
+<tr>
+<td>non-owning back-pointer</td>
+<td><code>std::weak_ptr&lt;T&gt;</code> — <code>lock()</code> to use</td>
+</tr>
+<tr>
+<td>borrow: must exist / may be absent</td>
+<td><code>const T&amp;</code> or <code>T&amp;</code> / <code>T*</code></td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Seed once (<code>engine{device()}</code> with the parentheses, or a fixed seed for tests) and always go through a distribution.</li>
+<li>A reference is a permanent alias: assigning through it never re-binds it, and never return a reference to a local.</li>
+<li><code>*a = *b</code> copies the value; <code>a = b</code> copies the address — which can leak the old object and set up a double free.</li>
+<li><code>unique_ptr</code> can&#39;t be copied (two owners would double-delete); borrow with <code>T&amp;</code>/<code>T*</code> or transfer with <code>std::move</code>.</li>
+<li><code>shared_ptr</code> cycles leak because the counts never reach 0; make the child → parent pointer a <code>weak_ptr</code>.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-00/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 0</span><span class="pager-title" data-astro-cid-gxyjxt6l>Course Intro, Unit Tests &amp; Templates</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-02/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 2 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Smart Pointers, Arrays &amp; Empirical Analysis</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-00/en-US/" title="Previous: Course Intro, Unit Tests &amp; Templates ([)" aria-label="Previous: Lecture 0" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 0</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 1</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-02/en-US/" title="Next: Smart Pointers, Arrays &amp; Empirical Analysis (])" aria-label="Next: Lecture 2" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 2</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

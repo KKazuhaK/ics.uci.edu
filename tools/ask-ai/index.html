@@ -1,0 +1,1289 @@
+<!DOCTYPE html><html lang="en"><head><title>Ask AI | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/tools/ask-ai/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><style>
+			:root {
+				--chat-blue: #244f8f;
+				--chat-blue-bg: rgba(36, 79, 143, 0.10);
+				--chat-blue-border: rgba(36, 79, 143, 0.22);
+				--chat-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--chat-blue-hover: #183b73;
+				--chat-border: rgba(42, 79, 133, 0.16);
+				--chat-border-soft: rgba(42, 79, 133, 0.12);
+				--chat-ink: #23324a;
+				--chat-muted: #516074;
+				--chat-card-bg: rgba(255, 255, 255, 0.98);
+				--chat-card-bg-soft:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				--chat-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--chat-card-shadow-lg: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--chat-input-bg: #ffffff;
+				--chat-input-border: rgba(42, 79, 133, 0.2);
+				--chat-msg-user-bg: var(--chat-blue);
+				--chat-msg-user-text: #ffffff;
+				--chat-msg-ai-bg: #f7f9fc;
+				--chat-msg-ai-text: #23324a;
+				--chat-badge-bg: #e67e22;
+				--chat-badge-text: #ffffff;
+				--chat-crumb-sep: #97a7bb;
+				--chat-chip-current-text: #ffffff;
+				--chat-red: #c53030;
+				--chat-red-bg: rgba(197, 48, 48, 0.08);
+				--chat-red-bg-strong: rgba(197, 48, 48, 0.15);
+				--chat-red-border: rgba(197, 48, 48, 0.2);
+				--chat-shiki-bg: #1e1e1e;
+				--chat-shiki-text: #d4d4d4;
+			}
+
+			html[data-theme="dark"] {
+				--chat-blue: #6aa3f5;
+				--chat-blue-bg: rgba(106, 163, 245, 0.15);
+				--chat-blue-border: rgba(106, 163, 245, 0.32);
+				--chat-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--chat-blue-hover: #a8c9ff;
+				--chat-border: rgba(255, 255, 255, 0.1);
+				--chat-border-soft: rgba(255, 255, 255, 0.07);
+				--chat-ink: #dde4f0;
+				--chat-muted: #8c9cb5;
+				--chat-card-bg: #14181f;
+				--chat-card-bg-soft:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--chat-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--chat-card-shadow-lg: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--chat-input-bg: #181d26;
+				--chat-input-border: rgba(255, 255, 255, 0.14);
+				--chat-msg-user-text: #0a0d12;
+				--chat-msg-ai-bg: #1a1f28;
+				--chat-msg-ai-text: #dde4f0;
+				--chat-badge-bg: #d97a1d;
+				--chat-crumb-sep: #54627a;
+				--chat-chip-current-text: #0a0d12;
+				--chat-red: #f28b8b;
+				--chat-red-bg: rgba(242, 139, 139, 0.12);
+				--chat-red-bg-strong: rgba(242, 139, 139, 0.22);
+				--chat-red-border: rgba(242, 139, 139, 0.32);
+			}
+
+			.chat-shell {
+				display: flex;
+				flex-direction: column;
+				background: var(--chat-card-bg);
+				border: 1px solid var(--chat-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--chat-card-shadow-lg);
+				overflow: hidden;
+			}
+
+			.chat-shell > header.major {
+				display: none;
+			}
+
+			.chat-shell > :last-child { border-bottom: 0 !important; }
+
+			/* Intro card */
+			.chat-intro {
+				padding: 0.75rem 1.5rem;
+				border-bottom: 1px solid var(--chat-border);
+				background: var(--chat-card-bg-soft);
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				flex-wrap: wrap;
+				gap: 0.6rem;
+			}
+			.chat-intro .crumbs { margin-bottom: 0; }
+
+			.chat-breadcrumb {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+				align-items: center;
+			}
+
+			.chat-chip {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				text-decoration: none;
+				border-bottom: 0 !important;
+				background: var(--chat-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--chat-blue-border);
+				color: var(--chat-blue) !important;
+				transition: background 0.2s ease, transform 0.2s ease;
+			}
+
+			.chat-chip:hover {
+				background: var(--chat-blue-bg-strong);
+				transform: translateY(-1px);
+				color: var(--chat-blue-hover) !important;
+			}
+
+			.chat-chip-current {
+				background: var(--chat-blue);
+				box-shadow: none;
+				color: var(--chat-chip-current-text) !important;
+				cursor: default;
+			}
+
+			.chat-chip-current:hover {
+				background: var(--chat-blue);
+				transform: none;
+				color: var(--chat-chip-current-text) !important;
+			}
+
+			.chat-sep {
+				font-size: 1.18rem;
+				font-weight: 700;
+				color: var(--chat-crumb-sep);
+				user-select: none;
+				line-height: 1;
+			}
+
+			.chat-badge {
+				display: inline-flex;
+				align-items: center;
+				padding: 0.38rem 0.8rem;
+				border-radius: 999px;
+				font-size: 0.86rem;
+				font-weight: 700;
+				letter-spacing: .5px;
+				text-transform: uppercase;
+				color: var(--chat-msg-user-text);
+				background: var(--chat-badge-bg);
+				box-shadow: none;
+			}
+
+			/* Match .crumb sizing (bento.css) so the whole intro row lines up */
+			.chat-beta {
+				display: inline-flex; align-items: center; align-self: stretch;
+				margin-left: 4px; padding: 0 12px; border-radius: 999px;
+				font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
+			}
+			#logout-btn, #new-chat-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.25rem;
+				padding: 7px 14px;
+				border-radius: 999px;
+				font-family: inherit;
+				font-size: 14px;
+				font-weight: 600;
+				letter-spacing: normal;
+				text-transform: none;
+				text-decoration: none;
+				border: none;
+				border-bottom: 0 !important;
+				cursor: pointer;
+				transition: background 0.2s ease, transform 0.2s ease;
+				line-height: inherit;
+				height: auto;
+			}
+			#new-chat-btn {
+				display: none;
+				background: var(--chat-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--chat-blue-border);
+				color: var(--chat-blue);
+			}
+			#new-chat-btn.active { display: inline-flex; }
+			#new-chat-btn:hover {
+				background: var(--chat-blue-bg-strong);
+				transform: translateY(-1px);
+				color: var(--chat-blue-hover);
+			}
+			#logout-btn {
+				display: none;
+				background: var(--chat-red-bg);
+				box-shadow: inset 0 0 0 1.5px var(--chat-red-border);
+				color: var(--chat-red);
+			}
+			#logout-btn:hover {
+				background: var(--chat-red-bg-strong);
+				transform: translateY(-1px);
+			}
+			#logout-btn.active { display: inline-flex; }
+
+			/* Login notice */
+			#login-notice {
+				max-width: 520px;
+				text-align: left;
+				font-size: 0.85rem;
+				line-height: 1.65;
+				color: var(--chat-muted);
+				margin: 0;
+				list-style: none;
+				padding: 0;
+			}
+			#login-notice li {
+				padding: 3px 0 3px 1.2em;
+				position: relative;
+			}
+			#login-notice li::before {
+				content: "•";
+				position: absolute;
+				left: 0;
+				color: var(--chat-blue);
+				font-weight: 700;
+			}
+			#login-notice a { color: var(--chat-blue); font-weight: 600; }
+			#login-notice strong { color: var(--chat-ink); }
+
+			/* Chat card */
+			.chat-card {
+				background: var(--chat-card-bg);
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				height: calc(100vh - 280px);
+				min-height: 300px;
+			}
+			.chat-card.login-mode {
+				height: auto;
+				min-height: 400px;
+				overflow: visible;
+			}
+
+			/* Login gate */
+			#password-gate {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				flex: 1;
+				gap: 14px;
+				padding: 2rem;
+			}
+			#sso-login-btn {
+				all: unset; box-sizing: border-box;
+				display: inline-flex; align-items: center; gap: 12px;
+				background: var(--chat-blue); color: var(--chat-msg-user-text);
+				border-radius: 999px;
+				padding: 10px 28px 10px 10px; cursor: pointer;
+				font-size: 14.5px; font-weight: 700; letter-spacing: .02em;
+				transition: background .15s, box-shadow .15s;
+				box-shadow: 0 2px 8px rgba(36,79,143,.25);
+			}
+			#sso-login-btn:hover { background: var(--chat-blue-hover); box-shadow: 0 4px 16px rgba(36,79,143,.35); }
+			#sso-login-btn img {
+				width: 32px; height: 32px; border-radius: 50%;
+				border: none; object-fit: cover;
+			}
+			#pw-toggle {
+				all: unset; box-sizing: border-box;
+				cursor: pointer; color: var(--chat-muted); font-size: 12.5px;
+				border-bottom: 1px dashed var(--chat-border);
+				transition: color .15s;
+			}
+			#pw-toggle:hover { color: var(--chat-blue); }
+			#pw-section { display: none; flex-direction: column; align-items: center; gap: 12px; }
+			#pw-section.active { display: flex; }
+			#password-gate label {
+				color: var(--chat-muted);
+				font-size: 0.95em;
+				font-weight: 600;
+			}
+			#password-gate input {
+				all: unset;
+				box-sizing: border-box;
+				background: var(--chat-blue-bg);
+				border: 1.5px solid var(--chat-border);
+				color: var(--chat-ink);
+				padding: 10px 16px;
+				border-radius: 10px;
+				font-size: 15px;
+				width: 260px;
+				text-align: center;
+				transition: border-color .15s;
+			}
+			#password-gate input:focus {
+				border-color: var(--chat-blue);
+			}
+			#password-gate .pw-btn {
+				all: unset;
+				box-sizing: border-box;
+				background: var(--chat-blue);
+				color: var(--chat-msg-user-text);
+				border: none;
+				padding: 10px 32px;
+				border-radius: 10px;
+				cursor: pointer;
+				font-size: 14px;
+				font-weight: 700;
+				letter-spacing: .04em;
+				text-transform: uppercase;
+				transition: background .2s;
+			}
+			#password-gate .pw-btn:hover { background: var(--chat-blue-hover); }
+			#password-error {
+				color: var(--chat-red);
+				font-size: 0.85em;
+				min-height: 1.2em;
+			}
+
+			/* Chat area */
+			#chat-area {
+				display: none;
+				flex-direction: column;
+				flex: 1;
+				min-height: 0;
+			}
+			#chat-area.active { display: flex; }
+
+			#messages {
+				flex: 1;
+				overflow-y: auto;
+				padding: 18px 20px;
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+				min-height: 0;
+			}
+			#messages::-webkit-scrollbar { width: 5px; }
+			#messages::-webkit-scrollbar-thumb { background: var(--chat-blue-bg-strong); border-radius: 3px; }
+
+			.msg {
+				max-width: 85%;
+				padding: 11px 16px;
+				border-radius: 14px;
+				font-size: 14.5px;
+				line-height: 1.65;
+				word-wrap: break-word;
+				color: var(--chat-ink);
+			}
+			.msg.user {
+				align-self: flex-end;
+				background: var(--chat-blue);
+				color: var(--chat-msg-user-text);
+				border-bottom-right-radius: 4px;
+				white-space: pre-wrap;
+			}
+			.msg.assistant {
+				align-self: flex-start;
+				max-width: 100%;
+				background: none;
+				color: var(--chat-ink);
+				border: none;
+				padding: 4px 40px;
+				border-radius: 0;
+			}
+			.msg.assistant a { color: var(--chat-blue); text-decoration: underline; text-underline-offset: 2px; }
+			.msg.assistant a:hover { color: var(--chat-blue-hover); }
+			.msg.assistant strong { color: var(--chat-ink); font-weight: 700; }
+			.msg.assistant em { font-style: italic; color: var(--chat-muted); }
+			.msg.assistant h1, .msg.assistant h2, .msg.assistant h3, .msg.assistant h4 { color: var(--chat-ink); margin: 8px 0 4px; }
+			.msg.assistant h1 { font-size: 16px; }
+			.msg.assistant h2 { font-size: 15px; }
+			.msg.assistant h3 { font-size: 14.5px; }
+			.msg.assistant h4 { font-size: 14px; }
+			.msg.assistant ul, .msg.assistant ol { margin: 4px 0; padding-left: 1.4em; }
+			.msg.assistant li { margin: 2px 0; }
+			.msg.assistant hr { border: none; border-top: 1px solid var(--chat-border); margin: 8px 0; }
+			.msg.assistant blockquote {
+				border-left: 3px solid var(--chat-blue-border); padding: 2px 0 2px 12px; margin: 6px 0;
+				color: var(--chat-muted); font-style: italic;
+			}
+			.msg.assistant blockquote p { margin: 0; }
+			.msg.assistant del { text-decoration: line-through; opacity: 0.6; }
+			.msg.assistant table { border-collapse: collapse; margin: 6px 0; font-size: 13px; width: auto; }
+			.msg.assistant th, .msg.assistant td { border: 1px solid var(--chat-border); padding: 5px 10px; text-align: left; background: var(--chat-input-bg); color: var(--chat-ink); }
+			.msg.assistant th { background: var(--chat-blue-bg); font-weight: 700; color: var(--chat-ink); }
+			.msg.assistant tbody tr:nth-child(even) td { background: var(--chat-msg-ai-bg); }
+			.msg.assistant p { margin: 4px 0; }
+			.msg.assistant pre.md-code {
+				display: block; border: 1px solid var(--chat-border-soft);
+				border-radius: 8px; padding: 10px 12px; margin: 6px 0;
+				overflow-x: auto; line-height: 1.5; font-size: 13px;
+				font-family: 'SF Mono','Fira Code',Consolas,monospace;
+				background: #1e1e1e; color: #d4d4d4;
+			}
+			.msg.assistant pre.md-code code {
+				font-family: inherit; font-size: inherit; background: none !important;
+				padding: 0; border: none; color: inherit; white-space: pre; display: block;
+			}
+			.msg.assistant pre.md-code pre.shiki {
+				margin: 0; padding: 0; border: none; border-radius: 0;
+				background: none !important; overflow: visible;
+			}
+			.msg.assistant pre.md-code pre.shiki code {
+				font-size: 0; line-height: 0;
+			}
+			.msg.assistant pre.md-code pre.shiki code .line {
+				font-size: 13px; line-height: 1.5; display: block; min-height: 1em;
+			}
+			.msg.assistant .md-inline-code {
+				background: var(--chat-blue-bg); padding: 1px 5px; border-radius: 3px; font-size: 13px;
+				font-family: 'SF Mono','Fira Code',Consolas,monospace; color: var(--chat-blue);
+				border: none;
+			}
+			.msg.assistant .katex-display { margin: 6px 0; overflow-x: auto; overflow-y: hidden; }
+			.msg.assistant .katex { font-size: 1em; }
+			.msg.error {
+				align-self: flex-start;
+				background: var(--chat-red-bg);
+				color: var(--chat-red);
+				border: 1px solid var(--chat-red-border);
+				border-bottom-left-radius: 4px;
+			}
+			.msg.system {
+				align-self: center;
+				color: var(--chat-muted);
+				font-size: 13px;
+				background: none;
+				padding: 4px;
+				opacity: 0.7;
+			}
+
+			.msg.user img {
+				max-width: 220px; max-height: 160px; border-radius: 8px; margin-top: 8px; display: block;
+				border: 1px solid rgba(255,255,255,.2); object-fit: cover;
+			}
+			.msg.user .file-badge {
+				display: flex; align-items: center; gap: 6px; margin-top: 8px;
+				padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+				background: rgba(255,255,255,.12); color: rgba(255,255,255,.85);
+				border: 1px solid rgba(255,255,255,.15);
+			}
+			.msg.user .file-badge svg { width: 14px; height: 14px; flex-shrink: 0; opacity: .7; }
+
+			/* File preview */
+			#file-preview-bar {
+				display: none; padding: 8px 16px; border-top: 1px solid var(--chat-border);
+				background: var(--chat-msg-ai-bg); align-items: center; gap: 10px;
+			}
+			#file-preview-bar.active { display: flex; }
+			#file-preview-bar img {
+				max-height: 60px; max-width: 120px; border-radius: 6px;
+				border: 1px solid var(--chat-border); object-fit: cover;
+			}
+			#file-preview-bar .file-icon {
+				width: 36px; height: 36px; min-width: 36px; border-radius: 6px;
+				background: var(--chat-blue-bg); border: 1px solid var(--chat-blue-border);
+				display: flex; align-items: center; justify-content: center;
+				color: var(--chat-blue); font-size: 11px; font-weight: 700; text-transform: uppercase;
+			}
+			#file-preview-bar .file-name {
+				flex: 1; font-size: 12.5px; color: var(--chat-muted);
+				overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+			}
+			#file-remove {
+				all: unset; box-sizing: border-box; cursor: pointer;
+				color: var(--chat-muted); font-size: 18px; line-height: 1;
+				width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+				border-radius: 50%; transition: all .15s;
+			}
+			#file-remove:hover { color: var(--chat-red); background: var(--chat-red-bg); }
+
+			/* Thinking indicator: shimmering label until the first token, then a small "Thought for Ns" note */
+			.msg.think { display: flex; flex-direction: column; gap: 6px; }
+			.think-label {
+				font-weight: 500; color: transparent; -webkit-background-clip: text; background-clip: text;
+				background-image: linear-gradient(90deg, var(--chat-muted) 0%, var(--chat-blue-border) 50%, var(--chat-muted) 100%);
+				background-size: 200% 100%; animation: think-shimmer 1.6s linear infinite;
+			}
+			@keyframes think-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+			.thought { align-self: flex-start; padding: 0 40px; margin-bottom: -6px; font-size: 13px; color: var(--chat-muted); }
+
+			/* Input */
+			#input-row {
+				display: flex;
+				gap: 10px;
+				padding: 12px 16px;
+				border-top: 1px solid var(--chat-border);
+				align-items: center;
+				background: var(--chat-msg-ai-bg);
+			}
+			#chat-input {
+				all: unset;
+				box-sizing: border-box;
+				flex: 1;
+				background: var(--chat-input-bg);
+				border: 1.5px solid var(--chat-border);
+				color: var(--chat-ink);
+				padding: 10px 14px;
+				border-radius: 10px;
+				font-size: 14.5px;
+				font-family: inherit;
+				resize: none;
+				overflow: hidden;
+				transition: border-color .15s;
+				min-height: 44px;
+				height: 44px;
+			}
+			#chat-input:focus { border-color: var(--chat-blue); }
+			#chat-input::placeholder { color: var(--chat-muted) !important; opacity: 1 !important; -webkit-text-fill-color: var(--chat-muted); }
+			#chat-input::-webkit-input-placeholder { color: var(--chat-muted); opacity: 1; -webkit-text-fill-color: var(--chat-muted); }
+			#file-upload-btn {
+				all: unset; box-sizing: border-box;
+				cursor: pointer; color: var(--chat-muted);
+				width: 44px; height: 44px; min-width: 44px;
+				display: flex; align-items: center; justify-content: center;
+				border-radius: 10px; border: 1.5px solid var(--chat-border);
+				transition: all .15s; flex-shrink: 0;
+			}
+			#file-upload-btn:hover { color: var(--chat-blue); border-color: var(--chat-blue-border); background: var(--chat-blue-bg); }
+			#file-upload-btn svg { width: 18px; height: 18px; }
+			#send-btn {
+				all: unset;
+				box-sizing: border-box;
+				background: var(--chat-blue);
+				color: var(--chat-msg-user-text);
+				border: none;
+				width: 44px; height: 44px; min-width: 44px;
+				border-radius: 10px;
+				cursor: pointer;
+				display: flex; align-items: center; justify-content: center;
+				transition: background .2s;
+				flex-shrink: 0;
+			}
+			#send-btn svg { width: 18px; height: 18px; fill: currentColor; }
+			#send-btn:hover { background: var(--chat-blue-hover); }
+			#send-btn:disabled { background: var(--chat-blue-bg-strong); color: var(--chat-muted); cursor: default; }
+			#chat-footer-hint {
+				text-align: center; font-size: 11.5px; color: var(--chat-crumb-sep);
+				padding: 6px 16px 10px; background: var(--chat-msg-ai-bg);
+				border-radius: 0 0 1.4rem 1.4rem;
+			}
+
+			@media screen and (max-width: 736px) {
+				#main > * > .inner {
+					width: 100% !important;
+					max-width: 100vw !important;
+					box-sizing: border-box !important;
+					padding: 0.75rem 0 1rem 0 !important;
+				}
+
+				.chat-shell {
+					gap: 0.6rem;
+				}
+
+				.chat-shell > header.major {
+					display: none;
+				}
+
+				.chat-shell {
+					border-radius: 0;
+					border-left: none;
+					border-right: none;
+				}
+
+				.chat-intro {
+					padding: 0.5rem 1rem;
+					flex-direction: column;
+					align-items: flex-start;
+				}
+
+				.chat-card {
+					height: calc(100dvh - 200px);
+					min-height: 200px;
+				}
+				.chat-card.login-mode {
+					height: auto;
+					min-height: auto;
+					overflow: visible;
+				}
+
+				.msg { max-width: 90%; }
+
+				#new-chat-btn { margin-top: 0; }
+			}
+		</style>
+</head><body><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><div id="main" class="alt">
+				<section id="one">
+					<div class="inner chat-shell">
+						<header class="major" style="display:none;">
+							<h1>Ask AI</h1>
+						</header>
+
+						<div class="chat-intro">
+							<nav class="crumbs" aria-label="Breadcrumb">
+								<a href="../../tools/" class="crumb">Tools</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current">Ask AI</span>
+								<span class="eyebrow-pill gold chat-beta">Beta</span>
+							</nav>
+							<div style="display:flex; gap:0.5rem; align-items:center;">
+								<button id="new-chat-btn"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.3em;"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>New Chat</button>
+								<button id="logout-btn"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.3em;"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>Log out</button>
+							</div>
+						</div>
+
+						<div class="chat-card login-mode">
+							<!-- Login Gate -->
+							<div id="password-gate">
+								<h3 style="margin:0 0 8px;font-size:1.1rem;color:var(--chat-ink);font-weight:700;">Before you start</h3>
+								<ul id="login-notice">
+									<li>This is an <strong>experimental AI assistant</strong>. Responses may be inaccurate — always verify with official course materials and your instructor.</li>
+									<li>Use responsibly and in accordance with <strong>UCI's academic integrity policies</strong>. Do not submit AI-generated content as your own work.</li>
+									<li>For questions about a specific page or article, use the <strong>Ask AI</strong> button in the bottom-right corner of that page for more relevant answers.</li>
+									<li>If you don't have a Kazuha Hub account, you can sign in directly with your Microsoft account.</li>
+									<li>Conversations are not stored on the server. Questions or feedback? <a href="mailto:kazuhak@uci.edu">Email me</a>.</li>
+								</ul>
+								<button id="sso-login-btn">
+									<img src="../../images/kazuha-avatar.png" alt="" />
+									Sign in with Kazuha Hub SSO
+								</button>
+								<button id="pw-toggle">Use Access Code</button>
+								<div id="pw-section">
+									<input type="password" id="password-input" placeholder="Enter access code" />
+									<div id="password-error"></div>
+									<button class="pw-btn" id="password-btn">Enter</button>
+								</div>
+							</div>
+
+							<!-- Chat Area (hidden until authenticated) -->
+							<div id="chat-area">
+								<div id="messages">
+																	</div>
+								<div id="file-preview-bar">
+									<div id="file-preview-visual"></div>
+									<span class="file-name" id="file-preview-name"></span>
+									<button id="file-remove" title="Remove file">&times;</button>
+								</div>
+								<div id="input-row">
+									<button id="file-upload-btn" title="Attach file">
+										<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+									</button>
+									<textarea id="chat-input" rows="1" placeholder="Ask anything..."></textarea>
+									<button id="send-btn"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+									<input type="file" id="file-input" accept="image/*,.pdf,.txt,.md,.csv,.json,.js,.py,.java,.c,.cpp,.h,.html,.css,.xml,.yaml,.yml,.log,.sh,.bat,.sql,.r,.go,.rs,.ts,.tsx,.jsx" style="display:none" />
+								</div>
+								<div id="chat-footer-hint">AI can make mistakes. Please double-check responses.</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+<script>
+		(function() {
+			var WORKER_URL = "https://ics-uci-edu-chat-ai.kazuhahub.workers.dev";
+			var PW_STORAGE_KEY = "kazuha_chat_pw";
+			var TOKEN_STORAGE_KEY = "kazuha_chat_token";
+			var KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
+			var KATEX_JS  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
+			var KATEX_AR  = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js";
+
+			var gate = document.getElementById("password-gate");
+			var chatArea = document.getElementById("chat-area");
+			var pwInput = document.getElementById("password-input");
+			var pwBtn = document.getElementById("password-btn");
+			var pwError = document.getElementById("password-error");
+			var ssoLoginBtn = document.getElementById("sso-login-btn");
+			var pwToggle = document.getElementById("pw-toggle");
+			var pwSection = document.getElementById("pw-section");
+			var logoutBtn = document.getElementById("logout-btn");
+			var messagesEl = document.getElementById("messages");
+			var chatInput = document.getElementById("chat-input");
+			var sendBtn = document.getElementById("send-btn");
+			var newChatBtn = document.getElementById("new-chat-btn");
+
+			var fileUploadBtn = document.getElementById("file-upload-btn");
+			var fileInput = document.getElementById("file-input");
+			var filePreviewBar = document.getElementById("file-preview-bar");
+			var filePreviewVisual = document.getElementById("file-preview-visual");
+			var filePreviewName = document.getElementById("file-preview-name");
+			var fileRemoveBtn = document.getElementById("file-remove");
+
+			// Auth state: either password or JWT token
+			var authPassword = "";
+			var authToken = "";
+			var chatHistory = [];
+			var isStreaming = false;
+			// pendingFile: { type:"image"|"pdf"|"text", dataUrl?:string, textContent?:string, name:string, ext:string }
+			var pendingFile = null;
+
+			// --- Auto-scroll (only if user is near bottom) ---
+			// Follow the stream only while pinned to the bottom. A distance check alone
+			// can't be escaped (each new chunk lands before the user scrolls far enough),
+			// so scrolling up by wheel/touch unpins and returning to the bottom re-pins.
+			var stickToBottom = true;
+			messagesEl.addEventListener("wheel", function(e) { if (e.deltaY < 0) stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("touchmove", function() { stickToBottom = false; }, { passive: true });
+			messagesEl.addEventListener("scroll", function() {
+				if (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 24) stickToBottom = true;
+			});
+			function autoScroll() {
+				if (stickToBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+			}
+
+			// --- Shiki (async, same as md-viewer: dark-plus theme) ---
+			var SHIKI_URL = "https://esm.sh/shiki@3.0.0";
+			var SHIKI_THEME = "dark-plus";
+			var shikiCodeToHtml = null;
+
+			// Preload Shiki
+			import(SHIKI_URL).then(function(m) { shikiCodeToHtml = m.codeToHtml; }).catch(function() {});
+
+			var langAliases = {
+				"c++":"cpp",cc:"cpp",cxx:"cpp",hpp:"cpp",py:"python",
+				sh:"bash",shell:"bash",zsh:"bash",js:"javascript",
+				mjs:"javascript",ts:"typescript",mts:"typescript",
+				yml:"yaml",md:"markdown",plain:"text",plaintext:"text",txt:"text"
+			};
+			function normLang(s) { var l = (s||"").trim().toLowerCase(); return langAliases[l] || l; }
+
+			async function highlightCode(el) {
+				if (!shikiCodeToHtml) return;
+				var pres = el.querySelectorAll("pre.md-code[data-lang]");
+				for (var i = 0; i < pres.length; i++) {
+					if (pres[i].getAttribute("data-highlighted")) continue;
+					var lang = normLang(pres[i].getAttribute("data-lang"));
+					if (!lang || lang === "text") continue;
+					try {
+						var code = pres[i].textContent || "";
+						var html = await shikiCodeToHtml(code, { lang: lang, theme: SHIKI_THEME });
+						// Replace inner content with Shiki output
+						var tpl = document.createElement("div");
+						tpl.innerHTML = html;
+						var shikiPre = tpl.querySelector("pre");
+						if (shikiPre) {
+							pres[i].innerHTML = shikiPre.innerHTML;
+							pres[i].style.background = shikiPre.style.background || "";
+							pres[i].style.color = shikiPre.style.color || "";
+							pres[i].setAttribute("data-highlighted", "1");
+						}
+					} catch(e) { /* unsupported lang */ }
+				}
+			}
+
+			// --- KaTeX on-demand ---
+			var katexReady = null;
+			function loadKatex() {
+				if (!katexReady) {
+					katexReady = new Promise(function(resolve) {
+						var link = document.createElement("link");
+						link.rel = "stylesheet"; link.href = KATEX_CSS; link.crossOrigin = "anonymous";
+						document.head.appendChild(link);
+						var s1 = document.createElement("script");
+						s1.src = KATEX_JS; s1.crossOrigin = "anonymous";
+						s1.onload = function() {
+							var s2 = document.createElement("script");
+							s2.src = KATEX_AR; s2.crossOrigin = "anonymous";
+							s2.onload = resolve;
+							document.head.appendChild(s2);
+						};
+						document.head.appendChild(s1);
+					});
+				}
+				return katexReady;
+			}
+
+			function tryRenderMath(latex, displayMode) {
+				if (typeof katex === "undefined") return null;
+				try { return katex.renderToString(latex, { displayMode: displayMode, throwOnError: false }); }
+				catch(e) { return null; }
+			}
+
+			// --- Markdown renderer (marked.js) + Shiki code cache ---
+			var codeCache = {}; // key: "lang\ncode" → highlighted HTML
+			var codePending = {}; // keys being processed by Shiki
+
+			var markedReady = false;
+			(function() {
+				var s = document.createElement("script");
+				s.src = "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js";
+				s.onload = function() {
+					marked.setOptions({ breaks: true, gfm: true });
+							var renderer = new marked.Renderer();
+					renderer.code = function(token) {
+						var lang = (token.lang || "").trim();
+						var nLang = normLang(lang);
+						var key = nLang + "\n" + token.text;
+						// Use cached highlighted version if available
+						if (codeCache[key]) return codeCache[key];
+						var escaped = token.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+						var plain = '<pre class="md-code"' + (lang ? ' data-lang="' + lang + '"' : '') + '><code>' + escaped + '</code></pre>';
+						// Queue Shiki highlighting (once per unique block)
+						if (shikiCodeToHtml && nLang && nLang !== "text" && !codePending[key]) {
+							codePending[key] = true;
+							shikiCodeToHtml(token.text, { lang: nLang, theme: SHIKI_THEME }).then(function(html) {
+								// Wrap Shiki output in our md-code container
+								codeCache[key] = '<pre class="md-code" data-lang="' + nLang + '">' + html + '</pre>';
+							}).catch(function() {});
+						}
+						return plain;
+					};
+					renderer.codespan = function(token) {
+						return '<code class="md-inline-code">' + token.text + '</code>';
+					};
+					marked.use({ renderer: renderer });
+					markedReady = true;
+				};
+				document.head.appendChild(s);
+			})();
+
+			function renderMd(text) {
+				// Stash math before markdown parsing
+				var mathSlots = [];
+				function stashMath(match, latex, display) {
+					var r = tryRenderMath(latex, display);
+					if (r) { mathSlots.push(r); return "\x00MATH" + (mathSlots.length - 1) + "\x00"; }
+					mathSlots.push(match);
+					return "\x00MATH" + (mathSlots.length - 1) + "\x00";
+				}
+				text = text.replace(/\$\$([\s\S]+?)\$\$/g, function(m, l) { return stashMath(m, l, true); });
+				text = text.replace(/\\\[([\s\S]+?)\\\]/g, function(m, l) { return stashMath(m, l, true); });
+				text = text.replace(/(?<!\$)\$(?!\$)(.+?)\$(?!\$)/g, function(m, l) { return stashMath(m, l, false); });
+				text = text.replace(/\\\((.+?)\\\)/g, function(m, l) { return stashMath(m, l, false); });
+
+				// Parse with marked.js or fallback
+				var s;
+				if (markedReady) {
+					s = marked.parse(text);
+				} else {
+					s = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+				}
+
+				// Restore math
+				s = s.replace(/\x00MATH(\d+)\x00/g, function(_, i) { return mathSlots[parseInt(i)]; });
+				return s;
+			}
+
+			// --- File upload ---
+			var MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
+			var TEXT_EXTS = ["txt","md","csv","json","js","ts","tsx","jsx","py","java","c","cpp","h","html","css","xml","yaml","yml","log","sh","bat","sql","r","go","rs"];
+
+			function getFileExt(name) { return (name.split(".").pop() || "").toLowerCase(); }
+			function isTextFile(file) { return file.type.startsWith("text/") || TEXT_EXTS.indexOf(getFileExt(file.name)) !== -1; }
+			function isImageFile(file) { return file.type.startsWith("image/"); }
+			function isPdfFile(file) { return file.type === "application/pdf" || getFileExt(file.name) === "pdf"; }
+
+			function clearPendingFile() {
+				pendingFile = null;
+				filePreviewBar.classList.remove("active");
+				filePreviewVisual.innerHTML = "";
+				filePreviewName.textContent = "";
+			}
+
+			function showFilePreview(pf) {
+				pendingFile = pf;
+				filePreviewName.textContent = pf.name;
+				if (pf.type === "image") {
+					filePreviewVisual.innerHTML = '<img src="' + pf.dataUrl + '" alt="preview" />';
+				} else {
+					filePreviewVisual.innerHTML = '<div class="file-icon">' + pf.ext.toUpperCase() + '</div>';
+				}
+				filePreviewBar.classList.add("active");
+				chatInput.focus();
+			}
+
+			function handleFile(file) {
+				if (!file) return;
+				if (file.size > MAX_FILE_SIZE) { alert("File too large (max 8MB)"); return; }
+				var ext = getFileExt(file.name);
+
+				if (isImageFile(file) || isPdfFile(file)) {
+					var reader = new FileReader();
+					reader.onload = function(e) {
+						showFilePreview({
+							type: isImageFile(file) ? "image" : "pdf",
+							dataUrl: e.target.result,
+							name: file.name,
+							ext: ext
+						});
+					};
+					reader.readAsDataURL(file);
+				} else if (isTextFile(file)) {
+					var reader = new FileReader();
+					reader.onload = function(e) {
+						var content = e.target.result;
+						if (content.length > 30000) content = content.slice(0, 30000) + "\n...(truncated)";
+						showFilePreview({
+							type: "text",
+							textContent: content,
+							name: file.name,
+							ext: ext
+						});
+					};
+					reader.readAsText(file);
+				} else {
+					alert("Unsupported file type: " + ext);
+				}
+			}
+
+			fileUploadBtn.addEventListener("click", function() { fileInput.click(); });
+
+			fileInput.addEventListener("change", function() {
+				handleFile(this.files && this.files[0]);
+				this.value = "";
+			});
+
+			fileRemoveBtn.addEventListener("click", clearPendingFile);
+
+			// Support paste image from clipboard
+			document.addEventListener("paste", function(e) {
+				if (!chatArea.classList.contains("active")) return;
+				var items = e.clipboardData && e.clipboardData.items;
+				if (!items) return;
+				for (var i = 0; i < items.length; i++) {
+					if (items[i].type.indexOf("image") !== -1) {
+						var file = items[i].getAsFile();
+						if (!file || file.size > MAX_FILE_SIZE) continue;
+						e.preventDefault();
+						var reader = new FileReader();
+						reader.onload = function(ev) {
+							showFilePreview({ type: "image", dataUrl: ev.target.result, name: "pasted-image.png", ext: "png" });
+						};
+						reader.readAsDataURL(file);
+						break;
+					}
+				}
+			});
+
+			// --- Auth ---
+			function unlock() {
+				gate.style.display = "none";
+				document.querySelector(".chat-card").classList.remove("login-mode");
+				chatArea.classList.add("active");
+				logoutBtn.classList.add("active");
+				newChatBtn.classList.add("active");
+				chatInput.focus();
+			}
+
+			function getAuthBody() {
+				// Returns auth fields to include in API requests
+				if (authToken) return { token: authToken };
+				if (authPassword) return { password: authPassword };
+				return {};
+			}
+
+			// 1. Check for JWT token in URL (from OAuth callback)
+			(function() {
+				var params = new URLSearchParams(window.location.search);
+				var token = params.get("token");
+				if (token) {
+					authToken = token;
+					localStorage.setItem(TOKEN_STORAGE_KEY, token);
+					// Clean URL
+					window.history.replaceState({}, "", window.location.pathname);
+					unlock();
+					return;
+				}
+				// 2. Check stored JWT
+				var storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+				if (storedToken) {
+					// Check if expired (decode payload without verification)
+					try {
+						var payload = JSON.parse(atob(storedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+						if (payload.exp && payload.exp > Date.now() / 1000) {
+							authToken = storedToken;
+							unlock();
+							return;
+						} else {
+							localStorage.removeItem(TOKEN_STORAGE_KEY);
+						}
+					} catch(e) { localStorage.removeItem(TOKEN_STORAGE_KEY); }
+				}
+				// 3. Check stored password
+				var storedPw = localStorage.getItem(PW_STORAGE_KEY);
+				if (storedPw) { authPassword = storedPw; unlock(); }
+			})();
+
+			// Hits a dedicated /auth/verify endpoint that just checks the password
+			// (no AI round-trip) and returns one of:
+			//   { ok: true }                                       → success
+			//   401 + { error, attemptsLeft }                      → wrong code, attempts remaining
+			//   429 + { error, retryAfter } (+ Retry-After header) → locked out, seconds until unlock
+			async function verifyPassword(pw) {
+				try {
+					var res = await fetch(WORKER_URL + "/auth/verify", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ password: pw })
+					});
+					var data = null;
+					try { data = await res.json(); } catch(e) {}
+					if (res.ok) return { ok: true };
+					if (res.status === 429) {
+						var retryAfter = (data && data.retryAfter) || parseInt(res.headers.get("Retry-After") || "0", 10) || 60;
+						return { ok: false, lockedFor: retryAfter };
+					}
+					return { ok: false, attemptsLeft: data && data.attemptsLeft };
+				} catch(e) { return { ok: false }; }
+			}
+
+			// Lockout countdown state
+			var pwCooldownTimer = null;
+			function fmtCooldown(sec) {
+				var m = Math.floor(sec / 60);
+				var s = sec % 60;
+				return m + ":" + (s < 10 ? "0" : "") + s;
+			}
+			function startPwCooldown(seconds) {
+				if (pwCooldownTimer) clearInterval(pwCooldownTimer);
+				var remaining = seconds;
+				pwInput.disabled = true;
+				pwBtn.disabled = true;
+				pwBtn.textContent = "Locked";
+				function tick() {
+					if (remaining <= 0) {
+						clearInterval(pwCooldownTimer);
+						pwCooldownTimer = null;
+						pwInput.disabled = false;
+						pwBtn.disabled = false;
+						pwBtn.textContent = "Enter";
+						pwError.textContent = "";
+						pwInput.focus();
+						return;
+					}
+					pwError.textContent = "Too many failed attempts. Try again in " + fmtCooldown(remaining) + ".";
+					remaining--;
+				}
+				tick();
+				pwCooldownTimer = setInterval(tick, 1000);
+			}
+
+			// SSO login
+			ssoLoginBtn.addEventListener("click", function() {
+				window.location.href = WORKER_URL + "/auth/login";
+			});
+
+			// Toggle password section
+			pwToggle.addEventListener("click", function() {
+				pwSection.classList.toggle("active");
+				if (pwSection.classList.contains("active")) {
+					pwToggle.textContent = "Hide Access Code Login";
+					pwInput.focus();
+				} else {
+					pwToggle.textContent = "Use Access Code";
+				}
+			});
+
+			// Logout
+			logoutBtn.addEventListener("click", function() {
+				localStorage.removeItem(TOKEN_STORAGE_KEY);
+				localStorage.removeItem(PW_STORAGE_KEY);
+				window.location.reload();
+			});
+
+			// Password login
+			pwBtn.addEventListener("click", async function() {
+				if (pwCooldownTimer) return; // ignore clicks during lockout
+				var pw = pwInput.value.trim();
+				if (!pw) return;
+				pwBtn.disabled = true;
+				pwBtn.textContent = "Verifying...";
+				pwError.textContent = "";
+				var result = await verifyPassword(pw);
+				if (result.ok) {
+					authPassword = pw;
+					localStorage.setItem(PW_STORAGE_KEY, pw);
+					unlock();
+					return;
+				}
+				if (result.lockedFor) {
+					startPwCooldown(result.lockedFor);
+					return;
+				}
+				if (typeof result.attemptsLeft === "number") {
+					pwError.textContent = result.attemptsLeft > 0
+						? "Invalid access code. " + result.attemptsLeft + " attempt" + (result.attemptsLeft === 1 ? "" : "s") + " left before lockout."
+						: "Invalid access code.";
+				} else {
+					pwError.textContent = "Invalid access code. Try again.";
+				}
+				pwBtn.disabled = false;
+				pwBtn.textContent = "Enter";
+			});
+
+			pwInput.addEventListener("keydown", function(e) {
+				if (e.key === "Enter") { e.preventDefault(); pwBtn.click(); }
+			});
+
+			// --- Chat ---
+			function addMessage(role, text) {
+				var div = document.createElement("div");
+				div.className = "msg " + role;
+				if (text) {
+					if (role === "assistant") { div.innerHTML = renderMd(text); }
+					else { div.textContent = text; }
+				}
+				messagesEl.appendChild(div);
+				autoScroll();
+				return div;
+			}
+
+			function showTyping() {
+				var div = document.createElement("div");
+				div.className = "msg assistant think";
+				div.innerHTML = '<div class="think-label">Thinking</div>';
+				div._start = Date.now();
+				messagesEl.appendChild(div);
+				autoScroll();
+				return div;
+			}
+
+			// Answer started: replace the indicator with a small "Thought for Ns" note
+			// (only when the wait was noticeable). Reasoning text is never shown.
+			function finishThinking(typing) {
+				var secs = Math.round((Date.now() - typing._start) / 1000);
+				if (secs < 2) { typing.remove(); return; }
+				var note = document.createElement("div");
+				note.className = "thought";
+				note.textContent = "Thought for " + secs + "s";
+				typing.replaceWith(note);
+			}
+
+			async function sendMessage() {
+				var text = chatInput.value.trim();
+				var file = pendingFile;
+				if ((!text && !file) || isStreaming) return;
+				stickToBottom = true;
+
+				// Build user message display
+				var userDiv = document.createElement("div");
+				userDiv.className = "msg user";
+				if (text) {
+					var textSpan = document.createElement("div");
+					textSpan.textContent = text;
+					userDiv.appendChild(textSpan);
+				}
+				if (file) {
+					if (file.type === "image") {
+						var img = document.createElement("img");
+						img.src = file.dataUrl;
+						img.alt = file.name;
+						userDiv.appendChild(img);
+					} else {
+						var badge = document.createElement("div");
+						badge.className = "file-badge";
+						var shortName = file.name.length > 20 ? file.name.slice(0, 10) + "..." + file.name.slice(-8) : file.name;
+						badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> <span>' + shortName + '</span>';
+						badge.title = file.name;
+						userDiv.appendChild(badge);
+					}
+				}
+				messagesEl.appendChild(userDiv);
+				autoScroll();
+
+				// Build content for API
+				var msgContent;
+				if (file) {
+					msgContent = [];
+					if (file.type === "text") {
+						// Inject text file content as text
+						var fileText = "--- FILE: " + file.name + " ---\n" + file.textContent + "\n--- END FILE ---";
+						msgContent.push({ type: "text", text: (text ? text + "\n\n" : "") + fileText });
+					} else {
+						if (text) msgContent.push({ type: "text", text: text });
+						if (file.type === "image") {
+							msgContent.push({ type: "image_url", image_url: { url: file.dataUrl } });
+						} else if (file.type === "pdf") {
+							msgContent.push({ type: "document_url", document_url: file.dataUrl });
+						}
+					}
+				} else {
+					msgContent = text;
+				}
+				chatHistory.push({ role: "user", content: msgContent });
+
+				// Clear input & file
+				chatInput.value = "";
+				chatInput.style.height = "auto";
+				clearPendingFile();
+
+				isStreaming = true;
+				sendBtn.disabled = true;
+
+				var typing = showTyping();
+				var fullText = "";
+				var katexLoading = false;
+
+				try {
+					var res = await fetch(WORKER_URL, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(Object.assign({ mode: "chat", messages: chatHistory }, getAuthBody()))
+					});
+
+					if (res.status === 401) {
+						localStorage.removeItem(TOKEN_STORAGE_KEY);
+						localStorage.removeItem(PW_STORAGE_KEY);
+						throw new Error("Session expired. Please refresh and sign in again.");
+					}
+					if (!res.ok) {
+						var err = await res.json().catch(function() { return { error: res.statusText }; });
+						throw new Error(err.error || "Request failed");
+					}
+
+					// Keep the typing indicator until the first token arrives.
+					var assistantDiv = null;
+
+					var reader = res.body.getReader();
+					var decoder = new TextDecoder();
+					var buffer = "";
+
+					while (true) {
+						var result = await reader.read();
+						if (result.done) break;
+						buffer += decoder.decode(result.value, { stream: true });
+						var lines = buffer.split("\n");
+						buffer = lines.pop() || "";
+
+						for (var i = 0; i < lines.length; i++) {
+							var line = lines[i].trim();
+							if (!line.startsWith("data: ")) continue;
+							var data = line.slice(6);
+							if (data === "[DONE]") continue;
+							try {
+								var json = JSON.parse(data);
+								var d = (json.choices && json.choices[0] && json.choices[0].delta) || {};
+								var delta = d.content;
+								if (delta) {
+									if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
+									fullText += delta;
+									if (!katexLoading && /\$|\\[(\[]/.test(fullText)) { katexLoading = true; loadKatex(); }
+									assistantDiv.innerHTML = renderMd(fullText);
+									autoScroll();
+								}
+							} catch(e) { /* skip */ }
+						}
+					}
+
+					if (!assistantDiv) { finishThinking(typing); assistantDiv = addMessage("assistant", ""); }
+					assistantDiv.innerHTML = fullText ? renderMd(fullText) : "(No response)";
+					await highlightCode(assistantDiv);
+					autoScroll();
+					chatHistory.push({ role: "assistant", content: fullText });
+
+				} catch(e) {
+					typing.remove();
+					addMessage("error", "Error: " + e.message);
+				}
+
+				isStreaming = false;
+				sendBtn.disabled = false;
+				chatInput.focus();
+			}
+
+			sendBtn.addEventListener("click", sendMessage);
+			chatInput.addEventListener("keydown", function(e) {
+				// Enter while an IME (e.g. Chinese pinyin) is composing picks a candidate; don't send.
+				if (e.isComposing || e.keyCode === 229) return;
+				if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+			});
+			chatInput.addEventListener("input", function() {
+				this.style.height = "auto";
+				this.style.height = Math.min(this.scrollHeight, 120) + "px";
+			});
+
+			// New chat
+			newChatBtn.addEventListener("click", function() {
+				chatHistory = [];
+				codeCache = {};
+				codePending = {};
+				clearPendingFile();
+				messagesEl.innerHTML = '<div class="msg system">AI can make mistakes. Please double-check responses.</div>';
+				chatInput.focus();
+			});
+		})();
+		</script>
+<footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script></body></html>

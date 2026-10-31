@@ -1,0 +1,931 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 43 Software Design and UML | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="From architecture to detailed design, the six design approaches, abstraction, UML class diagrams (associations, multiplicity, aggregation vs. composition), cohesion, coupling, and information hiding."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413993" data-source-url="/~kazuhak/notes/in4matx-43/week-05/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-43/week-04/en-US/" data-next-url="/~kazuhak/notes/in4matx-43/week-06/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 5</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 5 · Software Engineering Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 43 Week 5 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on May 2, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--week-5-lecture-notes">Informatics 43 — Week 5 Lecture Notes</h1>
+<blockquote>
+<p>Covers <strong>Lecture 9 &amp; Lecture 10</strong>: <em>&quot;How do we structure the software in detail? (Parts 1 &amp; 2)&quot;</em></p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-from-architecture-to-design--where-lecture-9-begins">From Architecture to Design — Where Lecture 9 Begins</a></li>
+<li><a href="#2-what-software-design-is">What Software Design Is</a></li>
+<li><a href="#3-design-phase-of-software-engineering">Design Phase of Software Engineering</a></li>
+<li><a href="#4-software-design-goals-and-activities">Software Design Goals and Activities</a></li>
+<li><a href="#5-six-approaches-to-software-design">Six Approaches to Software Design</a></li>
+<li><a href="#6-designs-and-models--what-they-look-like">Designs and Models — What They Look Like</a></li>
+<li><a href="#7-purpose-of-designs-think-talk-prescribe">Purpose of Designs: Think, Talk, Prescribe</a></li>
+<li><a href="#8-abstraction--the-core-move-of-se">Abstraction — The Core Move of SE</a></li>
+<li><a href="#9-design-notations-and-languages-lecture-10">Design Notations and Languages (Lecture 10)</a></li>
+<li><a href="#10-uml-class-diagrams">UML Class Diagrams</a></li>
+<li><a href="#11-relationships-between-classes">Relationships Between Classes</a></li>
+<li><a href="#12-other-uml-diagrams">Other UML Diagrams</a></li>
+<li><a href="#13-other-non-uml-diagrams">Other (Non-UML) Diagrams</a></li>
+<li><a href="#14-what-is-software-engineering-restated">What Is Software Engineering? (Restated)</a></li>
+<li><a href="#15-design-principles--cohesion-coupling-information-hiding">Design Principles — Cohesion, Coupling, Information Hiding</a></li>
+<li><a href="#16-quiz-5-study-guide">Quiz 5 Study Guide</a></li>
+<li><a href="#17-wrap-up-and-memory-framework">Wrap-Up and Memory Framework</a></li>
+</ol>
+<hr>
+<h2 id="1-from-architecture-to-design--where-lecture-9-begins">1. From Architecture to Design — Where Lecture 9 Begins</h2>
+<p>Week 4 ended with <strong>architecture</strong>: the <em>principal</em>, system-shaping decisions, packaged as named <strong>architectural styles</strong> (MVC, client-server, layered, peer-to-peer, pipe-and-filter, publish-subscribe). It also closed with the reminder that <strong>all successful software evolves</strong>, and that architecture is the main tool we have to plan for that evolution.</p>
+<p>Week 5 zooms one level <strong>down</strong>. Once the principal decisions are in place, <em>how do we structure the software in detail?</em> That is the design phase, and it covers everything from system-wide decisions (which language, which libraries, which protocols) all the way down to individual classes, methods, and screen layouts.</p>
+<p>The progression we are building up is now:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Architecture</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">Design</mtext><mtext> </mtext><mtext mathvariant="bold">(in</mtext><mtext> </mtext><mtext mathvariant="bold">detail)</mtext></mrow><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Code</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} \;\longrightarrow\; \textbf{Architecture} \;\longrightarrow\; \textbf{Design (in detail)} \;\longrightarrow\; \textbf{Code}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Architecture</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Design (in detail)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Code</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<hr>
+<h2 id="2-what-software-design-is">2. What Software Design Is</h2>
+<h3 id="21-design--all-the-creative-decisions-architecture-is-a-subset">2.1 Design = all the creative decisions; architecture is a subset</h3>
+<p>A useful mental picture: <strong>design decisions</strong> form a big set, and <strong>architectural decisions</strong> are a <em>subset</em> of them — specifically, the ones important enough to be called <em>principal</em>.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Scope</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Architectural decisions</strong></td>
+<td>The &quot;principal&quot; subset</td>
+<td>Style, components, connectors, configuration</td>
+</tr>
+<tr>
+<td><strong>Design decisions (whole)</strong></td>
+<td>Everything creative about how the system is built</td>
+<td>Architecture <em>plus</em> every smaller decision</td>
+</tr>
+</tbody></table>
+<p>Both layers cover the same four aspects of the system:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>What it captures</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Structure</strong></td>
+<td>How the system is divided into parts</td>
+</tr>
+<tr>
+<td><strong>Behavior</strong></td>
+<td>How those parts act over time</td>
+</tr>
+<tr>
+<td><strong>Interaction</strong></td>
+<td>How the parts communicate</td>
+</tr>
+<tr>
+<td><strong>Non-functional properties</strong></td>
+<td>Performance, scalability, security, reliability, etc.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The word <strong>&quot;principal&quot;</strong> is what distinguishes architecture from design. Architecture is the small core of decisions that shape everything else; design is the whole iceberg, including those decisions and all the smaller ones beneath them.</p>
+</blockquote>
+<hr>
+<h2 id="3-design-phase-of-software-engineering">3. Design Phase of Software Engineering</h2>
+<p>Design fits into the classic waterfall picture as the step between requirements and implementation:</p>
+<div class="code-wrap"><pre><code>Requirements (what)  →  Design (how)  →  Implementation  →  Verification  →  Maintenance</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The mental shorthand worth memorizing:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mo>=</mo><mtext mathvariant="italic">what</mtext><mspace width="1em"/><mspace width="1em"/><mtext mathvariant="bold">Design</mtext><mo>=</mo><mtext mathvariant="italic">how</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} = \textit{what} \quad\quad \textbf{Design} = \textit{how}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textit">what</span></span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord textbf">Design</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textit">how</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Design is where we commit to a <em>way</em> of satisfying the requirements — it is the bridge between &quot;the system shall do X&quot; and the actual code that does X.</p>
+<hr>
+<h2 id="4-software-design-goals-and-activities">4. Software Design Goals and Activities</h2>
+<p>Design is <strong>not a single act</strong>. It is a mix of two kinds of work, one big-and-upfront and one small-and-iterative.</p>
+<h3 id="41-system-wide-decisions">4.1 System-wide decisions</h3>
+<p>Decisions that apply to the whole system and are usually made early:</p>
+<ul>
+<li>Architecture (style, components, connectors)</li>
+<li>Programming language(s)</li>
+<li>Libraries and frameworks</li>
+<li>Platforms (web, mobile, desktop, embedded)</li>
+<li>Communication protocols (HTTP, gRPC, MQTT, …)</li>
+</ul>
+<h3 id="42-lower-level-decisions-made-iteratively">4.2 Lower-level decisions, made <em>iteratively</em></h3>
+<p>The bulk of design work is small, repeated cycles of:</p>
+<ol>
+<li><strong>Studying the problem</strong> — understanding the requirement or sub-problem at hand</li>
+<li><strong>Identifying solutions</strong> — sketching candidate designs</li>
+<li><strong>Creating abstractions</strong> — picking the structures, classes, screens, or data formats</li>
+<li><strong>Evaluating</strong> — checking the candidate, then iterating</li>
+</ol>
+<blockquote>
+<p>Design is not &quot;decide once, write code forever.&quot; It is loops within loops: a high-level loop for system-wide choices, and many small loops at the module, class, and UI level. The word <em>iterative</em> shows up in this lecture as much as it did in the architecture lecture.</p>
+</blockquote>
+<hr>
+<h2 id="5-six-approaches-to-software-design">5. Six Approaches to Software Design</h2>
+<p>The course identifies <strong>six approaches</strong> (the same six the Quiz asks about). Each one is a different <em>lens</em> — a different way to break the system down so the design problem becomes tractable.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Approach</th>
+<th>What it breaks the system down by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Software architecture</strong></td>
+<td>Principal/structural decisions (Week 4)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Functional decomposition</strong></td>
+<td>Functionality</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Relational database design</strong></td>
+<td>Data</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Object-oriented design and UML</strong></td>
+<td>Entities in the domain + the functionality of each</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>User interface design</strong></td>
+<td>The user-facing screens, iterated</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Sketching</strong></td>
+<td>Free-form drawing (covered in Lecture 10)</td>
+</tr>
+</tbody></table>
+<h3 id="51-functional-decomposition">5.1 Functional decomposition</h3>
+<p>Build a tree of functionality, root to leaves. Example from the slides — an &quot;Achieve&quot; goal-tracking app:</p>
+<div class="code-wrap"><pre><code>0. Achieve
+├── 1. Authenticate
+│   ├── 1.1 Login
+│   └── 1.2 Logout
+├── 2. Goal Setting
+│   ├── 2.1 Create goal
+│   ├── 2.2 Edit goal
+│   ├── 2.3 Delete goal
+│   └── 2.4 Mark goal complete
+└── 3. Messaging
+    ├── 3.1 View message
+    ├── 3.2 Send message
+    └── 3.3 Delete message</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>Design process driven by <em>breaking down the functionality</em>. Useful when the system&#39;s identity is best captured as &quot;the set of things it can do.&quot;</p>
+</blockquote>
+<h3 id="52-relational-database-design">5.2 Relational database design</h3>
+<p>Design process driven by <em>breaking down the data</em>. The system is described in terms of <strong>tables</strong>, the <strong>columns</strong> in those tables, and the <strong>keys</strong> that link them together (e.g. a <code>Publishers</code> table, an <code>Authors</code> table, and a <code>Books</code> table joined by <code>PubID</code> and <code>AuthorID</code>).</p>
+<blockquote>
+<p>Useful when the system&#39;s identity is best captured as &quot;the data it stores and the relationships between that data.&quot;</p>
+</blockquote>
+<h3 id="53-object-oriented-design-and-uml">5.3 Object-oriented design and UML</h3>
+<ul>
+<li>An <strong>object</strong> contains both <strong>data</strong> and <strong>methods</strong>.</li>
+<li>A <strong>class</strong> is a <strong>blueprint for making objects</strong>.</li>
+</ul>
+<p>Design process driven by <em>breaking down the entities in the domain and the functionality that accompanies each entity</em>. The <strong>Student / Enrollment / Seminar / Professor</strong> UML diagram in the slides is the canonical example — each real-world thing becomes a class with its own attributes (data) and operations (methods), connected to other classes by relationships.</p>
+<blockquote>
+<p>Useful when the system is best captured as &quot;a collection of interacting things.&quot;</p>
+</blockquote>
+<h3 id="54-user-interface-design">5.4 User interface design</h3>
+<p>Design process driven by <em>envisioning the user interface and iterating</em>. Mockups and wireframes (sometimes hand-drawn, sometimes done in tools like <strong>InVision</strong> or <strong>Balsamiq</strong>) are the design artifact, and each round of iteration tightens the UI.</p>
+<blockquote>
+<p>Useful when the system is best captured as &quot;what the user sees and does.&quot;</p>
+</blockquote>
+<h3 id="55-sketching">5.5 Sketching</h3>
+<p>The most informal approach — pencil/whiteboard drawings used to explore ideas quickly. Covered in more depth in Lecture 10 as one of the &quot;other diagrams.&quot;</p>
+<hr>
+<h2 id="6-designs-and-models--what-they-look-like">6. Designs and Models — What They Look Like</h2>
+<p>Lecture 9 spends several slides showing what <em>designs</em> actually look like in practice. The point of these slides is to broaden the student&#39;s mental image of &quot;design&quot; beyond just code-like artifacts:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Examples shown in lecture</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Sketches</strong></td>
+<td>Hand-drawn napkins, notebook pages with rough shapes and arrows</td>
+</tr>
+<tr>
+<td><strong>Physical models</strong></td>
+<td>3D architectural models of buildings and city blocks</td>
+</tr>
+<tr>
+<td><strong>Blueprints</strong></td>
+<td>Floor plans of a building (rooms labeled, dimensions marked)</td>
+</tr>
+<tr>
+<td><strong>Whiteboard models</strong></td>
+<td>A wall of multi-color whiteboard drawings — boxes, arrows, equations, all over a panoramic shot</td>
+</tr>
+<tr>
+<td><strong>UML class diagrams</strong></td>
+<td>Formal boxes-with-three-sections-and-arrows</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The pattern: a design is <strong>any external representation of the structure or behavior of the system-to-be</strong>. It can be a doodle or a precise UML diagram. They are all on the same spectrum.</p>
+</blockquote>
+<hr>
+<h2 id="7-purpose-of-designs-think-talk-prescribe">7. Purpose of Designs: Think, Talk, Prescribe</h2>
+<p>There are <strong>three</strong> reasons designers produce designs, and a fourth meta-property they all share.</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>What the design is for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Designs to think</strong></td>
+<td>An aid to the designer&#39;s own reasoning — putting the system on paper so the brain can manipulate it</td>
+</tr>
+<tr>
+<td><strong>Designs to talk</strong></td>
+<td>A shared artifact for discussing the system with teammates, customers, or other stakeholders</td>
+</tr>
+<tr>
+<td><strong>Designs to prescribe</strong></td>
+<td>A specification that tells implementers <em>exactly</em> what to build</td>
+</tr>
+</tbody></table>
+<p>And the meta-property:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Designs</mtext><mtext> </mtext><mtext mathvariant="bold">are</mtext><mtext> </mtext><mtext mathvariant="bold">developed</mtext><mtext> </mtext><mtext mathvariant="bold">iteratively.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Designs are developed iteratively.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Designs are developed iteratively.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>A design is rarely produced in one pass — it gets sketched, discussed, revised, and tightened across many iterations before becoming prescriptive enough to hand to implementers. The same design might <em>start</em> as a &quot;to think&quot; doodle, <em>become</em> a &quot;to talk&quot; diagram in a meeting, and <em>end up</em> as a &quot;to prescribe&quot; UML class diagram in the design document.</p>
+<blockquote>
+<p>Note for Quiz 5: the slide uses <em>think, talk, prescribe</em>, while the quiz study slide phrases it as <em>think, communicate, prescribe</em> — these mean the same thing. &quot;Talk&quot; and &quot;communicate&quot; are interchangeable here.</p>
+</blockquote>
+<hr>
+<h2 id="8-abstraction--the-core-move-of-se">8. Abstraction — The Core Move of SE</h2>
+<h3 id="81-what-an-abstraction-is">8.1 What an abstraction is</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Abstraction</mtext><mo>=</mo><mtext>removing irrelevant information and retaining/highlighting the relevant information</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Abstraction} = \text{removing irrelevant information and retaining/highlighting the relevant information}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Abstraction</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">removing irrelevant information and retaining/highlighting the relevant information</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Every design notation we use — UML class diagrams, ER diagrams, mockups, pseudo code, architecture diagrams — is a way of <strong>abstracting</strong>. Each notation throws away certain things and emphasizes others.</p>
+<h3 id="82-every-notation-has-its-own-abstraction">8.2 Every notation has its own abstraction</h3>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>What it highlights</th>
+<th>What it abstracts away</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Functional decomposition tree</td>
+<td>What the system <strong>does</strong></td>
+<td>Data, classes, screens</td>
+</tr>
+<tr>
+<td>Relational schema</td>
+<td>The <strong>data</strong> and its relationships</td>
+<td>Behavior, screens</td>
+</tr>
+<tr>
+<td>UML class diagram</td>
+<td><strong>Entities</strong> and their static relationships</td>
+<td>Time, dynamic behavior, UI</td>
+</tr>
+<tr>
+<td>UI mockup</td>
+<td>What the user <strong>sees</strong></td>
+<td>Internal logic, data layout</td>
+</tr>
+<tr>
+<td>Architecture diagram</td>
+<td>High-level <strong>components and connectors</strong></td>
+<td>Internal class structure, code</td>
+</tr>
+<tr>
+<td>Code</td>
+<td>Every executable detail</td>
+<td>Nothing — but you can&#39;t see the forest</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>No single notation captures everything. Different design problems call for different notations, which is why designers learn many.</p>
+</blockquote>
+<h3 id="83-the-big-claim">8.3 The big claim</h3>
+<blockquote>
+<p><strong>Software engineering is all about constructing and elaborating abstractions/models.</strong></p>
+</blockquote>
+<p>This is the punchline of Lecture 9 and reappears in Lecture 10 as: <em>&quot;Software engineering is the process of building a set of related models that represent the system-to-be.&quot;</em> When the course says SE is about models, it means <strong>a set of related models</strong> — not one master diagram, but several, each abstracting a different aspect.</p>
+<hr>
+<h2 id="9-design-notations-and-languages-lecture-10">9. Design Notations and Languages (Lecture 10)</h2>
+<p>Lecture 10 reframes the design phase by stepping back and asking: <em>what languages do we use at each stage of software development?</em></p>
+<h3 id="91-different-languages-for-different-stages">9.1 Different languages for different stages</h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Language</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Requirements</strong></td>
+<td>English (or another natural language)</td>
+</tr>
+<tr>
+<td><strong>Design</strong></td>
+<td><strong>Diagrams / UML</strong></td>
+</tr>
+<tr>
+<td><strong>Coding / Testing</strong></td>
+<td>Java, Python, etc.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Design notations are the <em>language of the design phase</em> — they sit between English and code on the spectrum of precision. Diagrams are precise enough to support reasoning but loose enough to discuss with non-programmers.</p>
+</blockquote>
+<h3 id="92-why-notation-matters">9.2 Why notation matters</h3>
+<p>The lecture quotes A.N. Whitehead (1911):</p>
+<blockquote>
+<p><em>A good notation relieves the brain of unnecessary work and frees it to concentrate on more advanced problems.</em></p>
+</blockquote>
+<p>The takeaway: <strong>a good notation is not a cosmetic choice</strong> — it is part of how the designer thinks. UML, ER diagrams, mockups, and pseudocode are all attempts to provide notation that lets the designer reason at the right level of abstraction.</p>
+<hr>
+<h2 id="10-uml-class-diagrams">10. UML Class Diagrams</h2>
+<h3 id="101-what-uml-is">10.1 What UML is</h3>
+<p><strong>UML (Unified Modeling Language)</strong> is the <strong>industry standard</strong> for software design and modeling. It is a <em>family</em> of diagram types, each capturing a different aspect of the system:</p>
+<ul>
+<li><strong>Class diagrams</strong> — structure (the focus of Lecture 10)</li>
+<li><strong>Activity diagrams</strong> — workflow / control flow</li>
+<li><strong>Sequence diagrams</strong> — interactions over time</li>
+<li><strong>Use case diagrams</strong> — actors and their interactions with the system</li>
+<li>… and more</li>
+</ul>
+<h3 id="102-what-a-class-diagram-is-for">10.2 What a class diagram is for</h3>
+<p>A UML class diagram is used in <strong>decomposing a system into modules known as classes</strong>. Typical uses:</p>
+<ul>
+<li><strong>Model domain concepts</strong> (the entities in the problem space)</li>
+<li><strong>Create a detailed, object-oriented design</strong> of the code to be implemented</li>
+</ul>
+<h3 id="103-the-class-box">10.3 The class box</h3>
+<p>A class is drawn as a box with <strong>three compartments</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Compartment</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Top</td>
+<td>Class name</td>
+</tr>
+<tr>
+<td>Middle</td>
+<td>Attributes (data fields), with type</td>
+</tr>
+<tr>
+<td>Bottom</td>
+<td>Operations (methods), with parameters and return type</td>
+</tr>
+</tbody></table>
+<p><strong>Visibility markers:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>+</code></td>
+<td><strong>public</strong></td>
+</tr>
+<tr>
+<td><code>−</code></td>
+<td><strong>private</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Both visibility markers (<code>+</code> / <code>−</code>) and return types are <em>optional</em> in UML notation.</strong> It is common to see class diagrams where some or all of these are omitted — especially during early/informal design when the goal is just to communicate structure. They get filled in as the diagram becomes more <em>prescriptive</em>.</p>
+</blockquote>
+<p>Generic template:</p>
+<div class="code-wrap"><pre><code>+-----------------------------------------+
+|              Class Name                 |
++-----------------------------------------+
+| -attribute : Type                       |
+| -attribute : Type                       |
++-----------------------------------------+
+| +operation(parameter) : ReturnType      |
+| +operation(parameter) : ReturnType      |
++-----------------------------------------+</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/uml-class-box-template.png" alt="Canonical three-section UML class box: name on top, attributes (with types) in the middle, operations (with parameters and return types) at the bottom."></p>
+<h3 id="104-translation-to-code--airplane-example">10.4 Translation to code — <code>Airplane</code> example</h3>
+<p>UML class:</p>
+<div class="code-wrap"><pre><code>+--------------------------+
+|        Airplane          |
++--------------------------+
+| - speed : int            |
++--------------------------+
+| + getSpeed() : int       |
+| + setSpeed(int) : void   |
++--------------------------+</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Equivalent Java:</p>
+<div class="code-wrap"><pre data-language="java" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">public</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Airplane</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    private</span><span style="color:#4EC9B0"> int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#DCDCAA"> Airplane</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">speed</span><span style="color:#D4D4D4"> = speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#4EC9B0"> int</span><span style="color:#DCDCAA"> getSpeed</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#D4D4D4"> speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#4EC9B0"> void</span><span style="color:#DCDCAA"> setSpeed</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">speed</span><span style="color:#D4D4D4"> = speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Using it:</p>
+<div class="code-wrap"><pre data-language="java" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Airplane</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Airplane</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSpeed</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">System</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">out</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">println</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">""</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getSpeed</span><span style="color:#D4D4D4">());</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/airplane-class-to-code.png" alt="Airplane class diagram alongside its Java code: the attribute -speed:int translates to private int speed, and operations +getSpeed():int / +setSpeed(int):void map directly to public methods."></p>
+<blockquote>
+<p>Notice the direct mapping: the <code>−</code> becomes <code>private</code>, the <code>+</code> becomes <code>public</code>, attributes become fields, operations become methods, and parameter / return types map straight across. This is why UML class diagrams are so commonly used in OO design — they translate to code almost mechanically.</p>
+</blockquote>
+<h3 id="105-prescriptive-vs-descriptive-uml--connection-back-to-week-4">10.5 Prescriptive vs. Descriptive UML — connection back to Week 4</h3>
+<p>The <strong>prescriptive vs. descriptive</strong> distinction from Week 4 (architecture) applies to UML class diagrams too:</p>
+<table>
+<thead>
+<tr>
+<th>Perspective</th>
+<th>Where the diagram comes from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Prescriptive</strong> UML</td>
+<td>Drawn by the <em>designer</em> before code is written — the <em>intended</em> class structure</td>
+</tr>
+<tr>
+<td><strong>Descriptive</strong> UML</td>
+<td><strong>Auto-generated from the existing code</strong> by a tool — the <em>actual</em> class structure</td>
+</tr>
+</tbody></table>
+<p>Tools that read source code and produce UML class diagrams (&quot;reverse engineering&quot;) let teams <strong>compare prescriptive against descriptive</strong> to detect <strong>design erosion</strong> — exactly analogous to architectural erosion. If the descriptive diagram has classes, fields, or relationships that the prescriptive one does not (or vice versa), the implementation has drifted from the design.</p>
+<blockquote>
+<p>The same prescriptive/descriptive lens that applies at the architectural level applies one zoom-in further, at the class-design level. Erosion is not just a Week-4 phenomenon — it shows up wherever a planned model has to keep up with evolving code.</p>
+</blockquote>
+<hr>
+<h2 id="11-relationships-between-classes">11. Relationships Between Classes</h2>
+<p>Classes never live in isolation. UML defines several relationship types; the four the lecture covers are <strong>inheritance, association (with multiplicity), aggregation, and composition</strong>.</p>
+<h3 id="111-inheritance">11.1 Inheritance</h3>
+<p>Drawn as a <strong>hollow triangle arrow</strong> pointing from the child class to the parent class. The child inherits the parent&#39;s attributes and methods, and can add its own.</p>
+<p>Example: <code>Hippo</code> inherits from <code>Animal</code>. <code>Animal</code> has <code>food type</code>, <code>location</code>, <code>makeNoise()</code>, <code>eat()</code>, <code>roam()</code>. <code>Hippo</code> adds <code>submerged: boolean</code> and <code>submerge()</code>, and overrides <code>makeNoise()</code> and <code>eat()</code>.</p>
+<div class="code-wrap"><pre><code>        Animal
+        ▲
+        │  (inheritance)
+        │
+        Hippo</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/inheritance-hippo-animal.png" alt="UML inheritance: Hippo points to Animal via a hollow-triangle arrow, indicating Hippo is-a Animal — inheriting the parent's attributes and methods, overriding some (makeNoise / eat) and adding its own (submerged / submerge())."></p>
+<h3 id="112-association">11.2 Association</h3>
+<p>A plain line between two classes means the two classes are <strong>connected</strong> in some way. Associations can be enriched in three ways:</p>
+<table>
+<thead>
+<tr>
+<th>Enrichment</th>
+<th>What it adds</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Label</strong> (e.g. <code>takes class from</code>)</td>
+<td>A name describing the relationship</td>
+</tr>
+<tr>
+<td><strong>Direction</strong> (arrowhead)</td>
+<td>Which class &quot;knows about&quot; the other</td>
+</tr>
+<tr>
+<td><strong>Multiplicity</strong> (numbers at each end)</td>
+<td>How many of each class participate</td>
+</tr>
+</tbody></table>
+<p>The lecture&#39;s running example uses <strong>Student</strong> and <strong>Instructor</strong>:</p>
+<ul>
+<li>A plain line = &quot;Student is associated with Instructor&quot;</li>
+<li>With <code>1...*</code> on the Student side and <code>1</code> on the Instructor side = &quot;many students per one instructor&quot;</li>
+<li>Two labels (<code>listens to</code> / <code>teaches</code>) = the relationship has a directional reading</li>
+<li>An arrow from Router to DomainNameServer = &quot;Router knows about DNS, but DNS does not know about Router&quot;</li>
+</ul>
+<p><strong>Default conventions when annotations are missing:</strong></p>
+<table>
+<thead>
+<tr>
+<th>If you see...</th>
+<th>Default meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>No arrows</strong> (plain line)</td>
+<td><strong>Bidirectional</strong> — both classes know about each other</td>
+</tr>
+<tr>
+<td><strong>Arrow on one side only</strong></td>
+<td><strong>Unidirectional</strong> — only the source class knows about the target</td>
+</tr>
+<tr>
+<td><strong>No multiplicity numbers</strong></td>
+<td><strong>1-to-1</strong> by default</td>
+</tr>
+<tr>
+<td><strong>No label</strong></td>
+<td>The association exists but is left unnamed</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The defaults matter on quizzes: a plain undecorated line between two classes is <em>not</em> &quot;no information given&quot; — it specifically means <strong>bidirectional 1-to-1</strong>. Adding arrows or multiplicities is how you <em>narrow</em> the relationship from this default.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/association-student-instructor.png" alt="Student / Instructor association variants: a plain "takes class from" labeled line, then a 1...* / 1 multiplicity ("one Instructor with many Students"), then directional `listens to` / `teaches` labels, and finally a Router → DomainNameServer arrow ("navigable in one direction only")."></p>
+<h3 id="113-multiplicity">11.3 Multiplicity</h3>
+<p>Multiplicity annotates the <strong>endpoints</strong> of an association line:</p>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>exactly one</td>
+</tr>
+<tr>
+<td><code>0..1</code></td>
+<td>zero or one (optional)</td>
+</tr>
+<tr>
+<td><code>*</code> or <code>0..*</code></td>
+<td>zero or more</td>
+</tr>
+<tr>
+<td><code>1..*</code></td>
+<td>one or more (at least one)</td>
+</tr>
+<tr>
+<td><code>2..5</code></td>
+<td>between two and five (inclusive)</td>
+</tr>
+</tbody></table>
+<p>The lecture&#39;s six-row table:</p>
+<table>
+<thead>
+<tr>
+<th>A — B</th>
+<th>Reading</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>A —— B</code> (no numbers)</td>
+<td>One B with each A; one A with each B</td>
+</tr>
+<tr>
+<td><code>A 1 ←→ 1 B</code></td>
+<td>Same as above</td>
+</tr>
+<tr>
+<td><code>A 1 —— * B</code></td>
+<td>Zero or more Bs with each A; one A with each B</td>
+</tr>
+<tr>
+<td><code>A * —— * B</code></td>
+<td>Zero or more Bs with each A; ditto As with each B</td>
+</tr>
+<tr>
+<td><code>A 1 —— 2..5 B</code></td>
+<td>Two to five Bs with each A; one A with each B</td>
+</tr>
+<tr>
+<td><code>A —→ * B</code></td>
+<td>Zero or more Bs with each A; <strong>B knows nothing about A</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The arrowhead is doing extra work in the last row: the relationship is <strong>navigable in only one direction</strong>. A holds references to its Bs, but B has no reference back to A.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/multiplicity-examples.png" alt="Six multiplicity examples: 1↔1 (bidirectional one-to-one), 1↔1 (numbered version), 1—* (one-to-many), *—* (many-to-many), 1—2..5 (one with two-to-five), —→* (directional, where the right side knows nothing about the left). Each row pairs A and B class boxes with endpoint numbers and connecting lines or arrows."></p>
+<h3 id="114-whole-part-aggregation">11.4 Whole-Part: Aggregation</h3>
+<p><strong>Aggregation</strong> = &quot;one object <strong>contains</strong> (or is composed of) a set of other objects.&quot; Drawn with a <strong>hollow diamond</strong> on the <em>whole</em> end.</p>
+<ul>
+<li>Aggregation relationships are <strong>transitive</strong> (if A aggregates B and B aggregates C, then A aggregates C)</li>
+<li>Aggregation relationships are <strong>asymmetric</strong> (if A aggregates B, then B does not aggregate A)</li>
+</ul>
+<p>Example: a <code>Crate</code> contains <code>Bottle</code>s. The bottles can exist outside the crate; the crate just <em>holds</em> them.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/aggregation-crate-bottle.png" alt="Aggregation: hollow diamond on the whole's end. Crate aggregates Bottle — the crate "holds" the bottles, but bottles can exist independently of the crate."></p>
+<h3 id="115-whole-part-composition">11.5 Whole-Part: Composition</h3>
+<p><strong>Composition</strong> = a <em>stronger</em> variant of aggregation that <strong>adds existence dependency</strong>. Drawn with a <strong>filled (solid) diamond</strong> on the whole end.</p>
+<p>The defining property: <strong>if the whole is destroyed, the parts are destroyed too</strong>. The parts cannot exist independently.</p>
+<p>Example: a <code>House</code> is composed of <code>Room</code>s. If the House is demolished, its Rooms cease to exist as well.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Aggregation (◇)</th>
+<th>Composition (◆)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Whole &quot;contains&quot; parts</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Parts can exist independently</td>
+<td>Yes</td>
+<td><strong>No</strong></td>
+</tr>
+<tr>
+<td>Symbol</td>
+<td>Hollow diamond</td>
+<td>Filled diamond</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The crate/bottle vs. house/room distinction is the standard way to remember this: bottles can leave the crate, rooms cannot leave the house.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/composition-house-room.png" alt="Composition: filled diamond on the whole's end. House composes Room — rooms cannot exist independently of the house; when the house is demolished, the rooms cease to exist."></p>
+<hr>
+<h2 id="12-other-uml-diagrams">12. Other UML Diagrams</h2>
+<p>Besides class diagrams, the lecture briefly previews three other UML diagram types. These are not the focus of Quiz 5, but they show the breadth of UML.</p>
+<h3 id="121-activity-diagram">12.1 Activity diagram</h3>
+<p>Like a flowchart of activities. The slide example shows an ATM:</p>
+<div class="code-wrap"><pre><code>Insert Card → Enter PIN → ◇ decision
+                          │
+                  [Invalid PIN] → Confiscate PIN
+                  [Valid PIN]   → Display Menu → ●</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Captures <strong>control flow</strong>: which activity follows which, where decisions branch.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/activity-diagram-atm.png" alt="UML activity diagram for an ATM: flow goes Insert Card → Enter PIN → decision diamond. Invalid PIN leads to Confiscate Card; Valid PIN leads to Display Menu and onward to the end node (filled circle)."></p>
+<h3 id="122-sequence-diagram">12.2 Sequence diagram</h3>
+<p>A grid of <strong>lifelines</strong> (vertical dashed lines, one per actor or system), with <strong>horizontal arrows</strong> showing messages exchanged between them in <em>time order</em> (top to bottom).</p>
+<p>Captures <strong>interactions over time</strong>: who calls whom, in what order.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/sequence-diagram-example.png" alt="UML sequence diagram example: each participant has a vertical (dashed) lifeline; horizontal arrows represent messages exchanged in time order (top to bottom), capturing "who calls whom, in what sequence.""></p>
+<h3 id="123-use-case-diagram">12.3 Use case diagram</h3>
+<p><strong>Stick-figure actors</strong> on the outside, <strong>labeled ovals</strong> (use cases) inside a system boundary. Lines show which actor participates in which use case.</p>
+<p>Captures <strong>what users can do with the system</strong>: e.g. for an airline, <em>Passenger</em> participates in <em>Check-In, Automated Check-In, Express Check-In, Boarding</em>; <em>Check-In Representative</em> participates in <em>Check-In</em>; etc.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/use-case-airline.png" alt="Airline use case diagram: a Passenger stick figure outside the system boundary participates in the Check-In, Automated Check-In, Express Check-In, and Boarding ovals; a Check-In Representative participates in Check-In."></p>
+<hr>
+<h2 id="13-other-non-uml-diagrams">13. Other (Non-UML) Diagrams</h2>
+<p>UML is one design notation among many. The lecture explicitly walks through several <strong>non-UML</strong> notations to drive home the point that designers use whatever notation fits the problem.</p>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Captures</th>
+<th>Typical tool/medium</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UI mockups</strong></td>
+<td>What the user sees</td>
+<td>Hand sketches, <strong>Balsamiq</strong>, Figma</td>
+</tr>
+<tr>
+<td><strong>Pseudo code</strong></td>
+<td>Algorithmic logic</td>
+<td>Plain text with <code>Begin / Until / If / End</code> keywords</td>
+</tr>
+<tr>
+<td><strong>Entity-Relationship (ER) diagram</strong></td>
+<td>Data entities and their relationships</td>
+<td>ER notation (rectangles for entities, diamonds for relationships, ovals for attributes)</td>
+</tr>
+<tr>
+<td><strong>Architecture diagrams</strong></td>
+<td>High-level components and connectors</td>
+<td>Boxes-and-arrows (e.g. Mail Server ↔ Mail Server with SMTP, POP/IMAP)</td>
+</tr>
+<tr>
+<td><strong>Storyboards</strong></td>
+<td>A <em>sequence</em> of UI/usage moments, comic-strip style</td>
+<td>Hand sketches or comic panels</td>
+</tr>
+<tr>
+<td><strong>Sketches</strong></td>
+<td>Anything, very loosely</td>
+<td>Whiteboards, napkins</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>All of these — UML and non-UML alike — are <em>statements in a language with a syntax</em>. Each notation is the language; each diagram is a sentence in that language.</p>
+</blockquote>
+<hr>
+<h2 id="14-what-is-software-engineering-restated">14. What Is Software Engineering? (Restated)</h2>
+<p>After walking through all of these notations, Lecture 10 restates the definition of SE:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Software</mtext><mtext> </mtext><mtext mathvariant="bold">engineering</mtext></mrow><mo>=</mo><mrow><mtext>the process of building a set of </mtext><mrow><mtext mathvariant="italic">related</mtext><mtext> </mtext><mtext mathvariant="italic">models</mtext></mrow><mtext> that represent the system-to-be.</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Software engineering} = \text{the process of building a set of \textit{related models} that represent the system-to-be.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Software engineering</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">the process of building a set of </span><span class="mord text"><span class="mord textit">related models</span></span><span class="mord"> that represent the system-to-be.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The key word is <strong>related</strong>. A real project produces <strong>many</strong> models — UML class diagrams, sequence diagrams, ER diagrams, architecture diagrams, UI mockups, pseudocode — and the engineer&#39;s job is to keep them <strong>consistent with each other</strong> and with the eventual code.</p>
+<hr>
+<h2 id="15-design-principles--cohesion-coupling-information-hiding">15. Design Principles — Cohesion, Coupling, Information Hiding</h2>
+<p>Two principles dominate the discussion of <em>good</em> design.</p>
+<h3 id="151-high-cohesion--low-coupling">15.1 High Cohesion / Low Coupling</h3>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cohesion</strong></td>
+<td>How tightly the elements <em>inside</em> a module belong together</td>
+</tr>
+<tr>
+<td><strong>Coupling</strong></td>
+<td>How strongly <em>separate</em> modules depend on each other</td>
+</tr>
+</tbody></table>
+<p>The principle:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Aim</mtext><mtext> </mtext><mtext mathvariant="bold">for</mtext><mtext> </mtext><mtext mathvariant="bold">HIGH</mtext><mtext> </mtext><mtext mathvariant="bold">cohesion</mtext><mtext> </mtext></mrow><mo stretchy="false">(</mo><mtext>group related things together</mtext><mo stretchy="false">)</mo><mrow><mtext> </mtext><mtext mathvariant="bold">and</mtext><mtext> </mtext><mtext mathvariant="bold">LOW</mtext><mtext> </mtext><mtext mathvariant="bold">coupling</mtext><mtext> </mtext></mrow><mo stretchy="false">(</mo><mtext>keep unrelated things apart</mtext><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Aim for HIGH cohesion } (\text{group related things together})\textbf{ and LOW coupling } (\text{keep unrelated things apart}).}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Aim for HIGH cohesion </span></span><span class="mopen">(</span><span class="mord text"><span class="mord">group related things together</span></span><span class="mclose">)</span><span class="mord text"><span class="mord textbf"> and LOW coupling </span></span><span class="mopen">(</span><span class="mord text"><span class="mord">keep unrelated things apart</span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Effects of getting this right:</p>
+<ul>
+<li><strong>Changes don&#39;t propagate.</strong> A change inside one module stays inside that module instead of cascading through the system.</li>
+<li><strong>Reuse is facilitated.</strong> A highly cohesive module does one thing well, which makes it pluggable into other systems.</li>
+</ul>
+<p>The lecture&#39;s classic visualization: ten nodes labeled 1–10, partitioned into modules A, B, C.</p>
+<table>
+<thead>
+<tr>
+<th>Bad design ☹</th>
+<th>Good design ☺</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Low cohesion</strong> — related nodes are spread across several modules</td>
+<td><strong>High cohesion</strong> — related nodes are grouped in the same module</td>
+</tr>
+<tr>
+<td><strong>High coupling</strong> — many lines cross module boundaries</td>
+<td><strong>Low coupling</strong> — few lines cross module boundaries</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/cohesion-coupling.png" alt="Cohesion vs. coupling visual contrast: left side shows low cohesion / high coupling — nodes 1–10 scattered across modules A, B, C with many cross-module lines; right side shows high cohesion / low coupling — related nodes grouped within the same module with few cross-module lines."></p>
+<h3 id="152-information-hiding">15.2 Information Hiding</h3>
+<p><strong>Information hiding</strong> = hiding the design decisions that are most likely to change, so that other parts of the program are protected from those changes.</p>
+<p>The slide quotes a definition that is worth memorizing:</p>
+<blockquote>
+<p><em>Showing only those details to the outside world which are necessary for the outside world, and hiding all other details from the outside world.</em></p>
+</blockquote>
+<p>The connection to coupling is direct: information hiding is a <em>technique</em> for reducing coupling. If module A only exposes a small public interface, module B can only depend on that interface — not on A&#39;s internals — so A&#39;s internals are free to change without breaking B.</p>
+<h3 id="153-why-these-principles-matter">15.3 Why these principles matter</h3>
+<p>Both principles serve the <strong>anticipation of change</strong> principle from Week 1:</p>
+<table>
+<thead>
+<tr>
+<th>Principle (Week 5)</th>
+<th>Serves (Week 1)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>High cohesion / low coupling</td>
+<td>Anticipation of change, reuse, separation of concerns</td>
+</tr>
+<tr>
+<td>Information hiding</td>
+<td>Anticipation of change, abstraction</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="16-quiz-5-study-guide">16. Quiz 5 Study Guide</h2>
+<p>You should know and understand:</p>
+<ul>
+<li><p><strong>The six approaches to software design</strong></p>
+<ul>
+<li>Software architecture</li>
+<li>Functional decomposition</li>
+<li>Relational database design</li>
+<li>Object-oriented design (and UML)</li>
+<li>User interface design</li>
+<li>Sketching</li>
+<li>For each: know what it breaks the system down by</li>
+</ul>
+</li>
+<li><p><strong>Purposes of designs</strong></p>
+<ul>
+<li><strong>Think</strong> — aid the designer&#39;s own reasoning</li>
+<li><strong>Communicate</strong> (a.k.a. <em>talk</em>) — share with stakeholders/teammates</li>
+<li><strong>Prescribe</strong> — specify what implementers must build</li>
+<li>And: designs are developed <em>iteratively</em></li>
+</ul>
+</li>
+<li><p><strong>Abstraction</strong></p>
+<ul>
+<li>Remove irrelevant info, retain/highlight relevant info</li>
+<li>Every design notation supports a particular kind of abstraction</li>
+<li>SE = constructing and elaborating abstractions/models</li>
+</ul>
+</li>
+<li><p><strong>Diagrams</strong></p>
+<ul>
+<li><strong>UML class diagrams</strong>: class boxes (name / attributes / operations), <code>+</code> public, <code>−</code> private, mapping to code</li>
+<li><strong>Associations</strong>: lines, labels, direction (arrowheads), multiplicity</li>
+<li><strong>Multiplicities</strong>: <code>1</code>, <code>0..1</code>, <code>*</code>, <code>0..*</code>, <code>1..*</code>, <code>2..5</code></li>
+<li><strong>Aggregation</strong> (hollow diamond) vs <strong>Composition</strong> (filled diamond, adds <em>existence dependency</em>)</li>
+</ul>
+</li>
+<li><p><strong>Design principles</strong></p>
+<ul>
+<li><strong>High cohesion / low coupling</strong> — what each means, and why both matter (changes don&#39;t propagate, reuse facilitated)</li>
+<li><strong>Information hiding</strong> — hide what&#39;s likely to change; expose only what&#39;s necessary</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="17-wrap-up-and-memory-framework">17. Wrap-Up and Memory Framework</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 5 knowledge structure
+|
++-- Where we are
+|   +-- Requirements (what)  -&gt; Architecture  -&gt; Design (how)  -&gt; Code
+|   +-- Design = ALL creative decisions; architecture is the
+|       &quot;principal&quot; subset
+|   +-- Design covers: structure, behavior, interaction,
+|       non-functional properties
+|
++-- Goals/activities of design
+|   +-- system-wide decisions (architecture, language, libraries,
+|   |                          platforms, protocols)
+|   +-- iterative lower-level loop:
+|       study problem -&gt; identify solutions -&gt; create abstractions
+|       -&gt; evaluate -&gt; repeat
+|
++-- Six approaches to software design
+|   +-- 1. Software architecture            (Week 4)
+|   +-- 2. Functional decomposition         -&gt; break down FUNCTIONALITY
+|   +-- 3. Relational database design       -&gt; break down DATA
+|   +-- 4. Object-oriented design + UML     -&gt; break down ENTITIES + their FUNCTIONALITY
+|   +-- 5. User interface design            -&gt; envision UI, iterate
+|   +-- 6. Sketching                        -&gt; free-form, fast, informal
+|
++-- Designs / Models
+|   +-- can be: sketches, physical models, blueprints,
+|   |           whiteboard scribbles, UML diagrams
+|   +-- purposes: think | talk (communicate) | prescribe
+|   +-- always developed ITERATIVELY
+|
++-- Abstraction
+|   +-- = remove irrelevant info, retain relevant info
+|   +-- every design notation supports a kind of abstraction
+|   +-- SE = constructing &amp; elaborating abstractions/models
+|
++-- Design notations / languages
+|   +-- Requirements -&gt; English
+|   +-- Design       -&gt; Diagrams / UML
+|   +-- Coding       -&gt; Java, Python, ...
+|   +-- Whitehead: good notation frees the brain
+|
++-- UML
+|   +-- industry standard
+|   +-- class diagrams, activity diagrams, sequence diagrams,
+|       use case diagrams, ...
+|
++-- UML class diagrams
+|   +-- 3-compartment box: name | attributes | operations
+|   +-- visibility: + public, - private
+|   +-- mechanical mapping to code (Airplane example)
+|
++-- Relationships between classes
+|   +-- Inheritance     (hollow triangle: child -&gt; parent)
+|   +-- Association     (line; can have label, direction, multiplicity)
+|   |   +-- multiplicity: 1, 0..1, *, 0..*, 1..*, 2..5
+|   +-- Aggregation     (hollow diamond on the whole)
+|   |   +-- transitive + asymmetric
+|   |   +-- parts can exist independently  (crate / bottle)
+|   +-- Composition     (filled diamond on the whole)
+|       +-- variant of aggregation
+|       +-- adds EXISTENCE DEPENDENCY  (house / room)
+|
++-- Other UML diagrams
+|   +-- Activity   (control flow)
+|   +-- Sequence   (interaction over time)
+|   +-- Use case   (actors x system functions)
+|
++-- Other (non-UML) diagrams
+|   +-- UI mockups (Balsamiq)
+|   +-- Pseudo code
+|   +-- ER diagrams
+|   +-- Architecture diagrams
+|   +-- Storyboards
+|   +-- Sketches
+|
++-- &quot;What is SE?&quot; (restated)
+|   +-- the process of building a set of RELATED MODELS
+|       that represent the system-to-be
+|
++-- Design principles
+|   +-- High cohesion (group related)
+|   |   /  Low coupling (separate unrelated)
+|   |   -&gt; changes don&#39;t propagate
+|   |   -&gt; reuse is facilitated
+|   +-- Information hiding
+|       -&gt; hide decisions most likely to change
+|       -&gt; expose only what the outside world needs
+|       -&gt; serves anticipation of change</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="88"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 88 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="one-sentence-summary">One-sentence summary</h3>
+<blockquote>
+<p>Design is the <em>how</em> to requirements&#39; <em>what</em> — it is the iterative production of a set of related models (UML class/activity/sequence/use-case diagrams, ER diagrams, UI mockups, pseudocode, sketches, architecture diagrams) that abstract different aspects of the system-to-be, where each notation supports a different kind of abstraction; UML class diagrams (with <code>+</code>/<code>−</code> visibility, associations with multiplicity, inheritance, and aggregation vs. composition) are the workhorse for object-oriented structure, and the whole effort is judged by how well it achieves <strong>high cohesion / low coupling</strong> and <strong>information hiding</strong> so that change can be absorbed without cascading.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-04/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 4</span><span class="pager-title" data-astro-cid-gxyjxt6l>Software Architecture</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-06/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 6 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>User-Centered Design and Usability</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-04/en-US/" title="Previous: Software Architecture ([)" aria-label="Previous: Week 4" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 4</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 5</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-06/en-US/" title="Next: User-Centered Design and Usability (])" aria-label="Next: Week 6" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 6</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

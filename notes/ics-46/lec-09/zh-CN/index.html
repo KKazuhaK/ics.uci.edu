@@ -1,0 +1,640 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 快速排序 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="快速排序：Hoare/Sedgewick 双指针划分、完整排序过程追踪、最坏/最好/平均情况分析、稳定性与原地性、目前各排序算法对比，以及选主元与小数组截断等改进。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413978" data-source-url="/~kazuhak/notes/ics-46/lec-09/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-09/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-08/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 9 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-09/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 9 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 9 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 29 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-9快速排序">Information and Computer Science 46 — Lecture 9：快速排序</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F%E6%80%9D%E8%B7%AF">1. 快速排序：思路</a></li>
+<li><a href="#2-%E5%88%92%E5%88%86hoare-%E5%8F%8C%E6%8C%87%E9%92%88%E6%96%B9%E6%A1%88">2. 划分（Hoare 双指针方案）</a></li>
+<li><a href="#3-%E8%BF%BD%E8%B8%AA%E4%B8%80%E6%AC%A1%E5%88%92%E5%88%86">3. 追踪一次划分</a></li>
+<li><a href="#4-%E5%AE%8C%E6%95%B4%E6%8E%92%E5%BA%8F%E8%BF%BD%E8%B8%AA">4. 完整排序追踪</a></li>
+<li><a href="#5-%E5%88%86%E6%9E%90%E6%9C%80%E5%9D%8F%E6%9C%80%E5%A5%BD%E5%B9%B3%E5%9D%87">5. 分析：最坏、最好、平均</a></li>
+<li><a href="#6-%E6%80%A7%E8%B4%A8%E4%B8%8E%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%B0%8F%E7%BB%93">6. 性质与排序算法小结</a></li>
+<li><a href="#7-%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F%E7%9A%84%E6%94%B9%E8%BF%9B">7. 快速排序的改进</a></li>
+<li><a href="#8-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">8. 完整实现</a></li>
+<li><a href="#9-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">9. 课堂活动（附解答）</a></li>
+<li><a href="#10-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">10. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/27/26<br>整理自 Lecture 9 幻灯片（重复并完成了 Lecture 8 末尾开始的快速排序内容）；补充材料：algs4 §2.3 Quicksort、algs4 §2.2（下界）以及 Thornton 的 ComparisonBasedSorting 笔记。按概念组织，而不是按资料来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：Quiz 3 周五进行（Stacks、Queues、Deques）· HW 5 周五截止 · Lab 4 下周一截止<br>已批准的 AI 工具已发布：<strong>Learning Sentinel</strong>（基于学习活动的元认知）与 <strong>iGPT</strong>（教学型 AI 助教）。提交两部分的同意书以获得访问权限：(1) 为工具访问存储数据；(2) 去标识化的研究用途。完成者可获 ★ 1% 额外学分（本学季稍后还会提供另一种额外学分方式）。</p>
+</blockquote>
+<blockquote>
+<p>➡️ 快速排序的历史（Hoare，1959）与归并排序见 <a href="/~kazuhak/notes/ics-46/lec-08/zh-CN/">Lecture 8 笔记</a>。本幻灯片末尾的 Trees 部分见 Lecture 10 笔记。</p>
+</blockquote>
+<hr>
+<h2 id="1-快速排序思路">1. 快速排序：思路</h2>
+<p>快速排序（quick sort）与归并排序一样是分治法，但工作发生在递归<strong>之前</strong>，而不是之后（幻灯片 5）：</p>
+<ol>
+<li><strong>洗牌</strong>：随机打乱数组。</li>
+<li><strong>划分</strong>：使得对于某个枢轴下标 <code>j</code>：<ul>
+<li>元素 <code>a[j]</code> 已经处于最终位置，</li>
+<li><code>j</code> 左侧没有更大的元素，</li>
+<li><code>j</code> 右侧没有更小的元素。</li>
+</ul>
+</li>
+<li><strong>递归排序</strong>每个子数组。没有合并步骤：两侧都排好后，整个数组就已经有序。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>划分前</th>
+<th>划分后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>布局</td>
+<td><code>v</code>（枢轴位于 <code>lo</code>），之后是未知元素直到 <code>hi</code></td>
+<td><code>≤ v</code> … <code>v</code>（位于 <code>j</code>）… <code>≥ v</code></td>
+</tr>
+</tbody></table>
+<p>幻灯片 6 的代码（递归驱动函数与公共入口）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// quicksort</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">partition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                          // Random shuffle</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">shuffle</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">begin</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>示例（幻灯片 5，来自 algs4）：输入 <code>Q U I C K S O R T E X A M P L E</code> → 洗牌 → <code>K R A T E L E P U I M Q C X O S</code> → 以 <code>K</code> 划分 → <code>E C A I E K L P U T M Q R X O S</code> → 排序左侧 → 排序右侧 → <code>A C E E I K L M O P Q R S T U X</code>。</p>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误</strong>（第 6 和第 9 页的代码）：<br><code>std::shuffle(std::begin(a), std::end(a), engine)</code> 无法编译——<code>a</code> 是 <code>T*</code>，而 <code>std::begin</code>/<code>std::end</code> 需要数组或容器。修复：<code>std::shuffle(a, a + length, engine);</code><br><code>std::shuffle</code> 声明在 <code>&lt;algorithm&gt;</code> 中，而幻灯片没有包含该头文件。修复：添加 <code>#include &lt;algorithm&gt;</code>。</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>关键洞见</strong>：归并排序 = 切分平凡、合并困难。快速排序 = 切分困难（划分）、合并平凡。每次划分都会把<strong>一个</strong>元素（枢轴）放到最终位置，这就是递归总能终止的原因——每个子数组都严格更小。</p>
+</blockquote>
+<h2 id="2-划分hoare-双指针方案">2. 划分（Hoare 双指针方案）</h2>
+<p>目标（幻灯片 7）：重新排列 <code>a[lo..hi]</code>，使得 <code>a[lo..j-1] &lt;= a[j] &lt;= a[j+1..hi]</code>。</p>
+<ul>
+<li>枢轴 <code>v</code> 为 <code>a[lo]</code>（“最简单的方法”）。指针 <code>i</code> 从 <code>lo</code> 开始，<code>j</code> 从 <code>hi + 1</code> 开始。</li>
+<li>重复以下步骤，直到 <code>i</code> 与 <code>j</code> 交错：<ul>
+<li><code>i</code> 从左到右扫描，<strong>当 <code>a[i] &lt; v</code> 时继续</strong>（停在一个 <strong>≥</strong> 枢轴的键上）；</li>
+<li><code>j</code> 从右到左扫描，<strong>当 <code>v &lt; a[j]</code> 时继续</strong>（停在一个 <strong>≤</strong> 枢轴的键上）；</li>
+<li>若 <code>i &gt;= j</code>，跳出；</li>
+<li>交换 <code>a[i]</code> 与 <code>a[j]</code>。</li>
+</ul>
+</li>
+<li>最后交换 <code>a[lo]</code> 与 <code>a[j]</code>，并返回 <code>j</code>。</li>
+</ul>
+<p>为什么与 <code>a[j]</code> 交换，而不是与 <code>a[i]</code> 交换？扫描交错时，<code>j</code> 位于 <code>≤ v</code> 区域的最后一个元素上，因此把枢轴换到那里，可以保证它左侧的元素都 <code>≤ v</code>。</p>
+<p>幻灯片 8 的代码：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> partition</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // Move i to the right for elements &#x3C; v</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#6A9955">        // Move j to the left for elements > v</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[--</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // If pointers cross, stop</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span><span style="color:#6A9955">     // Swap elements at i and j</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#6A9955">    // Place the partitioning item in its correct position</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>当枢轴是最大或最小的键时，<code>i == hi</code> / <code>j == lo</code> 这两个保护条件使扫描保持在子数组之内。（其中 <code>j == lo</code> 的保护实际上是多余的——<code>a[lo]</code> 就是 <code>v</code> 本身，而 <code>v &lt; v</code> 为假——但它无害。）幻灯片标题把人名拼成了 &quot;Sedgwick&quot;，正确拼写是 Robert <strong>Sedgewick</strong>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：前置自增很重要。<code>a[++i]</code> 先移动再比较，因此 <code>i</code> 查看的第一个元素是 <code>a[lo+1]</code>（枢轴被跳过）。同理，<code>j</code> 从 <code>hi + 1</code> 开始，因此 <code>a[--j]</code> 从 <code>a[hi]</code> 开始。</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：两个扫描都在与枢轴<strong>相等</strong>的键上停止（使用 <code>&lt;</code>，而不是 <code>&lt;=</code>）。这看似会导致无用的交换，但它正是快速排序在含有大量重复元素的数组上依然快速的原因：当所有键都相等时，停止使 <code>i</code> 与 <code>j</code> 在中间相遇（均匀切分 → n log n）；而如果不停止，一个指针会跑到末尾，得到 0 / n−1 的切分 → 二次方时间（algs4 §2.3）。</p>
+</blockquote>
+<h2 id="3-追踪一次划分">3. 追踪一次划分</h2>
+<p>幻灯片 9–35 演示对已洗牌数组 <code>K R A T E L E P U I M Q C X O S</code> 以 <code>v = K</code> 进行的第一次划分：</p>
+<table>
+<thead>
+<tr>
+<th>轮次</th>
+<th><code>i</code> 停在</th>
+<th><code>j</code> 停在</th>
+<th>操作</th>
+<th>之后的数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1（<code>R</code> ≥ K）</td>
+<td>12（<code>C</code> ≤ K）</td>
+<td>交换</td>
+<td><code>K C A T E L E P U I M Q R X O S</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>3（<code>T</code>）</td>
+<td>9（<code>I</code>）</td>
+<td>交换</td>
+<td><code>K C A I E L E P U T M Q R X O S</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>5（<code>L</code>）</td>
+<td>6（<code>E</code>）</td>
+<td>交换</td>
+<td><code>K C A I E E L P U T M Q R X O S</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>6（<code>L</code>）</td>
+<td>5（<code>E</code>）</td>
+<td><code>i &gt;= j</code> → 跳出</td>
+<td>—</td>
+</tr>
+<tr>
+<td>结束</td>
+<td></td>
+<td></td>
+<td><code>swap(a[0], a[5])</code>，返回 5</td>
+<td><code>E C A I E K L P U T M Q R X O S</code></td>
+</tr>
+</tbody></table>
+<p>划分之后：<code>K</code> 永久位于下标 5，其左侧全部 <code>≤ K</code>，右侧全部 <code>≥ K</code>。接着 <code>sort</code> 对 <code>lo = 0, hi = 4</code> 递归（幻灯片 35；幻灯片 37 显示该调用的开始状态：<code>E C A I E</code>，<code>i = 0</code>，<code>j = 5</code>）。</p>
+<p>下面可以逐步演示（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;幻灯片 9–35：partition(a, 0, 15)，v = K&quot;, &quot;items&quot;: &quot;K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S&quot;, &quot;mode&quot;: &quot;partition&quot;}</code></pre><h2 id="4-完整排序追踪">4. 完整排序追踪</h2>
+<p>幻灯片 36（algs4 的追踪）列出了每一次 <code>partition</code> 调用。每一行是在以最终位于 <code>j</code> 的枢轴对 <code>a[lo..hi]</code> 划分之后的数组；<code>lo == hi</code>（或 <code>hi &lt; lo</code>）的行是大小为 1/0 的子数组——<strong>不进行划分</strong>，<code>sort</code> 直接返回。</p>
+<table>
+<thead>
+<tr>
+<th>lo</th>
+<th>j</th>
+<th>hi</th>
+<th>本次调用之后的数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>5</td>
+<td>15</td>
+<td>E C A I E <strong>K</strong> L P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>4</td>
+<td>E C A <strong>E</strong> I K L P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>A C <strong>E</strong> E I K …</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td><strong>A</strong> C E E I K …</td>
+</tr>
+<tr>
+<td>6</td>
+<td>6</td>
+<td>15</td>
+<td>A C E E I K <strong>L</strong> P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>7</td>
+<td>9</td>
+<td>15</td>
+<td>… L M O <strong>P</strong> T Q R X U S</td>
+</tr>
+<tr>
+<td>7</td>
+<td>7</td>
+<td>8</td>
+<td>… L <strong>M</strong> O P …</td>
+</tr>
+<tr>
+<td>10</td>
+<td>13</td>
+<td>15</td>
+<td>… P S Q R <strong>T</strong> U X</td>
+</tr>
+<tr>
+<td>10</td>
+<td>12</td>
+<td>12</td>
+<td>… P R Q <strong>S</strong> T U X</td>
+</tr>
+<tr>
+<td>10</td>
+<td>11</td>
+<td>11</td>
+<td>… P Q <strong>R</strong> S T U X</td>
+</tr>
+<tr>
+<td>14</td>
+<td>14</td>
+<td>15</td>
+<td>… T <strong>U</strong> X</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>A C E E I K L M O P Q R S T U X</td>
+</tr>
+</tbody></table>
+<p>在幻灯片上，<strong>粉色</strong>标记左侧调用 <code>sort(a, lo, j-1)</code>，<strong>蓝色</strong>标记右侧调用 <code>sort(a, j+1, hi)</code>，<strong>红色</strong>标记枢轴。注意顺序：左侧子数组完全排序之后，右侧才会被处理（深度优先递归）。</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;幻灯片 36：对已洗牌数组进行完整快速排序&quot;, &quot;items&quot;: &quot;K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S&quot;, &quot;mode&quot;: &quot;sort&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>📝 <strong>练习</strong>：<a href="#91-%E6%B4%BB%E5%8A%A8-1%E7%94%A8%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F%E6%8E%92%E5%BA%8F%E5%B9%BB%E7%81%AF%E7%89%87-38">活动 1</a> —— 手工对 <code>3 7 8 5 2 1 9 5 4</code> 排序。</p>
+</blockquote>
+<h2 id="5-分析最坏最好平均">5. 分析：最坏、最好、平均</h2>
+<p>对 <code>n</code> 个元素调用一次 <code>partition</code> 是 <strong>O(n)</strong>：<code>i</code> 与 <code>j</code> 一起扫过子数组一次（约 n + 1 次比较）。因此一切取决于<strong>枢轴落在哪里</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>情形</th>
+<th>场景</th>
+<th>递推式</th>
+<th>解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最坏</td>
+<td>枢轴总是最小或最大的键 → 切分为 0 和 n−1（例如未洗牌的已排序或逆序输入）</td>
+<td>T(n) = T(n−1) + n</td>
+<td>n + (n−1) + … + 2 ≈ n²/2 → <strong>O(n²)</strong></td>
+</tr>
+<tr>
+<td>最好</td>
+<td>枢轴总是中位数 → 两半</td>
+<td>T(n) = 2T(n/2) + n</td>
+<td>lg n 层 × 每层 n 的工作 → <strong>O(n log n)</strong></td>
+</tr>
+<tr>
+<td>平均</td>
+<td>随机洗牌 → 枢轴的秩均匀随机</td>
+<td>—</td>
+<td><strong>O(n log n)</strong></td>
+</tr>
+</tbody></table>
+<p>用幻灯片代码测得（不洗牌，规模为 n 的已排序输入）：n = 100 → 5,148 次比较，n = 200 → 20,298 次，n = 400 → 80,598 次——约为 n²/2，每当 n 翻倍，次数约变为四倍。规模为 1,000 的同一已排序输入<strong>经过</strong>洗牌后，比较次数为 12,083 次。</p>
+<p>什么能降低最坏情况发生的概率？开始时的<strong>随机洗牌</strong>：任何固定的输入（已排序、逆序等）都不再糟糕；只有不幸的随机选择才会导致最坏情况，而对于大的 n，这种情况的概率微乎其微。这就是幻灯片 40 中的“概率保证”。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：平均情况约为 <strong>2n ln n ≈ 1.39 n lg n</strong> 次比较（algs4 §2.3），而归并排序至多约 n lg n 次。幻灯片 40 中“比归并排序多 39% 的比较”正是由这一比值得来。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#92-%E6%B4%BB%E5%8A%A8-2%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F%E5%88%86%E6%9E%90%E5%B9%BB%E7%81%AF%E7%89%87-39">活动 2</a> —— 最坏/最好情况的场景与递推式。</p>
+</blockquote>
+<h2 id="6-性质与排序算法小结">6. 性质与排序算法小结</h2>
+<p>幻灯片 40，关于快速排序的注释：</p>
+<ul>
+<li><strong>比归并排序多 39% 的比较，但实践中更快。</strong> 原因：<ul>
+<li>数据移动更少（归并排序在每一层都要把每个元素复制到 <code>aux</code> 再复制回来）；</li>
+<li>缓存性能好——划分顺序扫描内存，适合预取；</li>
+<li>不需要额外的内存分配。</li>
+</ul>
+</li>
+<li><strong>随机洗牌</strong>提供了针对最坏情况的概率保证。</li>
+<li>平均 O(n log n)，最坏 O(n²)。</li>
+<li><strong>原地排序</strong>：只在数组内部交换（外加递归栈）。</li>
+<li><strong>不稳定</strong>：长距离交换可能打乱相等键的顺序。活动 1 中的例子：以第一个 <code>5</code> 为枢轴划分 <code>5 8 7 9 5 4</code>，最后的 <code>swap(a[lo], a[j])</code> 交换了两个 <code>5</code>。</li>
+</ul>
+<p>幻灯片 41 的总结表：</p>
+<table>
+<thead>
+<tr>
+<th>排序</th>
+<th>原地</th>
+<th>稳定</th>
+<th>最好</th>
+<th>平均</th>
+<th>最坏</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>选择排序</td>
+<td>✓</td>
+<td></td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>n 次交换</td>
+</tr>
+<tr>
+<td>插入排序</td>
+<td>✓</td>
+<td>✓</td>
+<td>O(n)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>适用于小数组或部分有序的数组</td>
+</tr>
+<tr>
+<td>归并排序</td>
+<td></td>
+<td>✓</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>性能有保证；稳定</td>
+</tr>
+<tr>
+<td>快速排序</td>
+<td>✓</td>
+<td></td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td><strong>O(n²)</strong></td>
+<td>n log n 的概率保证；实践中最快</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>所有基于比较的排序算法在最坏情况下的下界都是 n log n</strong>（幻灯片写作 &quot;O(n log n)&quot;；严格来说这是下界，即 Ω）。</li>
+<li>快速排序的表现说明大 O 记号只是现实性能的<strong>不完整模型</strong>：它的最坏大 O 是所有 n log n 排序中最差的，却仍然是最快的。</li>
+</ul>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：为什么 n log n 无法被超越：比较排序必须区分输入的全部 n! 种排列，而每次比较只有两种结果，因此某些输入至少需要 lg(n!) ≈ n lg n 次比较（algs4 §2.2）。归并排序达到了这一下界，因此在渐近意义上是最优的。</p>
+</blockquote>
+<h2 id="7-快速排序的改进">7. 快速排序的改进</h2>
+<p>幻灯片 42：</p>
+<ol>
+<li><strong>对小子数组使用插入排序</strong>——在极小的子数组上，递归开销占主导，而插入排序在这种规模下很快（与 Lecture 8 中归并排序的技巧相同）。</li>
+<li><strong>改进枢轴选择</strong>（并去掉开始时的整体随机洗牌）：<ul>
+<li>使用<strong>随机元素</strong>作为枢轴（把它交换到 <code>a[lo]</code>，然后照常划分）；</li>
+<li>使用<strong>小样本的中位数</strong>作为枢轴——平均而言切分更好。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：algs4 建议切换到插入排序的阈值大约在 5 到 15 个元素之间，并指出取 <strong>3</strong> 个样本（三数取中）就能获得大部分“样本中位数”的好处。</p>
+</blockquote>
+<p>幻灯片 43 链接了 <a href="https://www.youtube.com/watch?v=XaqR3G_NVoo">归并排序</a> 与 <a href="https://www.youtube.com/watch?v=3San3uKKHgg">快速排序</a> 的“舞蹈”视频——快速排序的舞蹈使用的是与课上不同的<strong>划分变体</strong>，因此不要用它来核对追踪过程。</p>
+<h2 id="8-完整实现">8. 完整实现</h2>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;algorithm></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> partition</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[--</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">partition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">shuffle</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">  // fixed</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="38"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（38 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-课堂活动附解答">9. 课堂活动（附解答）</h2>
+<h3 id="91-活动-1用快速排序排序幻灯片-38">9.1 活动 1：用快速排序排序（幻灯片 38）</h3>
+<p>用快速排序对下列数组排序：
+注：假设枢轴取 lo。</p>
+<table>
+<thead>
+<tr>
+<th>3</th>
+<th>7</th>
+<th>8</th>
+<th>5</th>
+<th>2</th>
+<th>1</th>
+<th>9</th>
+<th>5</th>
+<th>4</th>
+</tr>
+</thead>
+</table>
+<p>（幻灯片注释：Visualgo 的快速排序实现与本讲介绍的不同。）</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：不洗牌；严格按照代码运行 <code>partition</code>——<code>i</code> 停在 ≥ 枢轴的元素上，<code>j</code> 停在 ≤ 枢轴的元素上。</p>
+</blockquote>
+<p><strong>解答。</strong> 第一次划分，<code>lo = 0, hi = 8</code>，<code>v = 3</code>：</p>
+<table>
+<thead>
+<tr>
+<th>轮次</th>
+<th><code>i</code> 停在</th>
+<th><code>j</code> 停在</th>
+<th>操作</th>
+<th>数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1（7）</td>
+<td>5（1）</td>
+<td>交换</td>
+<td>3 1 8 5 2 7 9 5 4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2（8）</td>
+<td>4（2）</td>
+<td>交换</td>
+<td>3 1 2 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3（5）</td>
+<td>2（2）</td>
+<td>交错 → 跳出</td>
+<td></td>
+</tr>
+<tr>
+<td>结束</td>
+<td></td>
+<td></td>
+<td>交换 a[0]、a[2]；j = 2</td>
+<td>2 1 <strong>3</strong> 5 8 7 9 5 4</td>
+</tr>
+</tbody></table>
+<p>所有调用：</p>
+<table>
+<thead>
+<tr>
+<th>lo</th>
+<th>j</th>
+<th>hi</th>
+<th>之后的数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>2</td>
+<td>8</td>
+<td>2 1 <strong>3</strong> 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1 <strong>2</strong> 3 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>5</td>
+<td>8</td>
+<td>1 2 3 5 4 <strong>5</strong> 9 7 8</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>4</td>
+<td>1 2 3 4 <strong>5</strong> 5 9 7 8</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8</td>
+<td>8</td>
+<td>1 2 3 4 5 5 8 7 <strong>9</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>7</td>
+<td>7</td>
+<td>1 2 3 4 5 5 7 <strong>8</strong> 9</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>1 2 3 4 5 5 7 8 9</td>
+</tr>
+</tbody></table>
+<p>陷阱在于对 <code>5 8 7 9 5 4</code>（<code>v = 5</code>）的调用：<code>j</code> 停在第二个 <code>5</code> 上，因为它与枢轴<strong>相等</strong>（<code>5 &lt; 5</code> 为假），于是两个 <code>5</code> 被交换——快速排序不稳定。请逐步检查：</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;活动 1 检查（幻灯片 38）&quot;, &quot;items&quot;: &quot;3, 7, 8, 5, 2, 1, 9, 5, 4&quot;, &quot;mode&quot;: &quot;sort&quot;}</code></pre><p>返回 <a href="#4-%E5%AE%8C%E6%95%B4%E6%8E%92%E5%BA%8F%E8%BF%BD%E8%B8%AA">§4 完整排序追踪</a>。</p>
+<h3 id="92-活动-2快速排序分析幻灯片-39">9.2 活动 2：快速排序分析（幻灯片 39）</h3>
+<p><strong>最坏情况分析</strong>
+<strong>(a)</strong> 场景——何时发生？
+<strong>(b)</strong> 数学模型——先确定递推式，然后求解。</p>
+<p><strong>最好情况分析</strong>
+<strong>(c)</strong> 场景——何时发生？
+<strong>(d)</strong> 数学模型——先确定递推式，然后求解。</p>
+<p><strong>(e)</strong> 什么能降低最坏情况发生的可能性？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<p><strong>(a)</strong> 每个枢轴都是其子数组中最小（或最大）的键，因此每次划分只剥离一个元素：一侧为空，另一侧有 n − 1 个。若枢轴取 <code>a[lo]</code> 且不洗牌，已排序（或逆序）的数组就会出现这种情况。</p>
+<p><strong>(b)</strong> T(n) = T(n − 1) + n（划分为 O(n)）。展开：n + (n − 1) + … + 2 ≈ n²/2 → <strong>O(n²)</strong>。</p>
+<p><strong>(c)</strong> 每个枢轴都落在中间（它是中位数），把数组切分为两半。</p>
+<p><strong>(d)</strong> T(n) = 2T(n/2) + n——即归并排序的递推式：lg n 层，每层 n 的工作 → <strong>O(n log n)</strong>。</p>
+<p><strong>(e)</strong> 排序前的<strong>随机洗牌</strong>（或随机枢轴 / 样本中位数枢轴）：这样一来，最坏情况需要极不走运的随机选择，而不是像已排序数组这样常见的输入。</p>
+<p>返回 <a href="#5-%E5%88%86%E6%9E%90%E6%9C%80%E5%9D%8F%E6%9C%80%E5%A5%BD%E5%B9%B3%E5%9D%87">§5 分析</a>。</p>
+<h2 id="10-速查与必记的-5-个要点">10. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>partition(a, lo, hi)</code></td>
+<td>对 n = hi − lo + 1 为 O(n)</td>
+</tr>
+<tr>
+<td>快速排序，最好 / 平均</td>
+<td>O(n log n)</td>
+</tr>
+<tr>
+<td>快速排序，最坏</td>
+<td>O(n²)（枢轴总是最小/最大）</td>
+</tr>
+<tr>
+<td>额外内存</td>
+<td>原地（仅递归栈）</td>
+</tr>
+<tr>
+<td>稳定？</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>划分规则</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>枢轴</td>
+<td><code>v = a[lo]</code></td>
+</tr>
+<tr>
+<td>起点</td>
+<td><code>i = lo</code>，<code>j = hi + 1</code></td>
+</tr>
+<tr>
+<td><code>i</code> 扫描</td>
+<td><code>while (a[++i] &lt; v)</code> —— 停在 ≥ v 上</td>
+</tr>
+<tr>
+<td><code>j</code> 扫描</td>
+<td><code>while (v &lt; a[--j])</code> —— 停在 ≤ v 上</td>
+</tr>
+<tr>
+<td>停止</td>
+<td><code>i &gt;= j</code></td>
+</tr>
+<tr>
+<td>收尾</td>
+<td><code>swap(a[lo], a[j])</code>，返回 <code>j</code></td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>划分把枢轴放到其最终位置，左侧 <code>≤ v</code>、右侧 <code>≥ v</code>；然后对 <code>lo..j-1</code> 与 <code>j+1..hi</code> 递归——没有合并步骤。</li>
+<li>两个扫描都在与枢轴<strong>相等</strong>的键上停止，且最后的交换是与 <code>a[j]</code> 而不是 <code>a[i]</code>——手工追踪的成败就取决于这两个细节。</li>
+<li>最坏情况 T(n) = T(n−1) + n = O(n²)，发生在枢轴总是最小或最大时（取 <code>a[lo]</code> 为枢轴且不洗牌的已排序输入）；最好情况 T(n) = 2T(n/2) + n = O(n log n)。</li>
+<li>随机洗牌（或随机 / 三数取中的枢轴）使最坏情况几乎不会发生；平均为 O(n log n)，比归并排序多约 39% 的比较，但实践中仍更快（移动更少、对缓存友好、无需额外数组）。</li>
+<li>快速排序是原地的但不稳定；归并排序稳定但不是原地的；没有任何基于比较的排序在最坏情况下能突破 n log n。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-08/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 8 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>归并排序与快速排序</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>ICS 46 · Data Structure Implementation and Analysis</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-08/zh-CN/" title="上一篇: 归并排序与快速排序 ([)" aria-label="上一篇: 第 8 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 8 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 9 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-09/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

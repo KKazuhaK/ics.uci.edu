@@ -1,0 +1,835 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 服务器端开发、身份验证与授权 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Node.js 与 npm、读取文件、Express 及其生成器、身份验证与授权的区别、OAuth 2.0 及其四个步骤、同源策略，以及 OpenID Connect。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-09/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-09/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-09/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413984" data-source-url="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-09/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 9 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 9 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 9 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 22 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-9服务端开发身份验证与授权">IN4MATX 133: User Interface Software — Lecture 9：服务端开发、身份验证与授权</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%BC%80%E5%8F%91%E4%B8%8E-nodejs">1. 服务端开发与 Node.js</a></li>
+<li><a href="#2-nodejs-hello-worldjavascript-%E5%9C%A8%E5%93%AA%E9%87%8C%E8%BF%90%E8%A1%8C">2. Node.js Hello World：JavaScript 在哪里运行？</a></li>
+<li><a href="#3-%E4%BD%BF%E7%94%A8-node-%E8%AF%BB%E5%8F%96%E6%96%87%E4%BB%B6">3. 使用 Node 读取文件</a></li>
+<li><a href="#4-web-%E6%A1%86%E6%9E%B6%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E4%BB%A5%E5%8F%8A-express">4. Web 框架需要什么，以及 Express</a></li>
+<li><a href="#5-express-%E7%94%9F%E6%88%90%E5%99%A8">5. Express 生成器</a></li>
+<li><a href="#6-%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E4%B8%8E%E6%8E%88%E6%9D%83">6. 身份验证与授权</a></li>
+<li><a href="#7-%E5%AF%86%E7%A0%81%E4%B8%8E%E5%92%8C%E7%AC%AC%E4%B8%89%E6%96%B9%E5%85%B1%E4%BA%AB%E6%95%B0%E6%8D%AE">7. 密码与和第三方共享数据</a></li>
+<li><a href="#8-oauth-20%E6%9C%AF%E8%AF%AD%E4%B8%8E%E5%9B%9B%E4%B8%AA%E6%AD%A5%E9%AA%A4">8. OAuth 2.0：术语与四个步骤</a></li>
+<li><a href="#9-%E5%9C%A8%E4%BD%A0%E8%87%AA%E5%B7%B1%E7%9A%84-nodeexpress-%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%AD%E5%AE%9E%E7%8E%B0-oauth-20">9. 在你自己的 Node/Express 服务器中实现 OAuth 2.0</a></li>
+<li><a href="#10-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5">10. 同源策略</a></li>
+<li><a href="#11-openid-connect">11. OpenID Connect</a></li>
+<li><a href="#12-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">12. 课堂问题与演示（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">13. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周四 10/22（第 4 周）<br>内容整理自 Lecture 9 的幻灯片和 demo 仓库文件夹 <code>W4_L2_Oct22_ServerAuth</code>。按概念组织，而不是按来源组织。<br>幻灯片 65–100 位于结束语“Today&#39;s goals”和标题页（“More details on OAuth Flow”“More on Node and Express”）之后；其内容已并入下面对应的章节。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：<br><strong>没有 Lecture 8 笔记：</strong> 周二 10/20 停课——Reid 教授在伦敦，他的独立游戏入选了 MCM London Comic Con 的 Leftfield 展映。本讲（周四 10/22）由助教 Ziqi 讲授。<br>A2 的截止日期<strong>不变</strong>；A3 会推迟几天。A3 有一个 <code>#assignment3</code> Slack 频道（组队、提问）。<br>A1 成绩大概下周公布；复议需在 2 天内提交，通过大纲中的表单。请包含所有文件、遵守命名约定，并说明如何运行任何特殊的内容。<br>周五有 Vega-Lite 演示。</p>
+</blockquote>
+<hr>
+<h2 id="1-服务端开发与-nodejs">1. 服务端开发与 Node.js</h2>
+<p><strong>Node.js</strong> 在浏览器之外、服务器上运行 JavaScript。它采用<strong>事件驱动的非阻塞 I/O</strong>（event-driven, non-blocking I/O）模型，因此效率很高，最适合高度交互的页面。当需要大量计算时，其他框架更好——事件循环处理重度 CPU 任务时效率很低。对本课程而言，它最大的优势是门槛低：我们已经会 JavaScript 了。</p>
+<p>其他服务端环境包括：<strong>Ruby</strong>（Ruby on Rails）、<strong>Python</strong>（Django 或 web2py）——如今几乎任何语言都可以用来构建动态网站。</p>
+<p><strong>npm</strong>（Node 包管理器）随 Node 一同下载。它最初只收录 Node 专用的库；现在它也托管许多通用的 JavaScript 包（它就是 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/">Lecture 6</a> 中的同一个 npm）。</p>
+<p><strong>Node.js 为你已经熟悉的 JavaScript 增加了</strong>（幻灯片 19）：</p>
+<ul>
+<li>操作系统级功能，例如读写文件</li>
+<li>导入和管理包的工具</li>
+<li>作为 Web 服务器监听端口的能力</li>
+<li>但它仍然只是 JavaScript，作为 Web 框架来说相当基础</li>
+</ul>
+<p><strong>处理模型</strong>（幻灯片 83）：请求在<strong>单线程事件循环</strong>（single-threaded event loop）中处理——每当有人加载由 Node 管理的页面，请求都会加入这个循环。请求以<strong>异步</strong>方式处理：耗时的任务（读取文件等）交给工作线程池，工作完成后，响应通过<strong>回调</strong>返回给客户端。</p>
+<blockquote>
+<p>💡 <strong>关键点</strong>：“单线程”并不意味着一次只能处理一个请求：事件循环会把慢速的 I/O 交出去，然后继续处理其他工作。而 CPU 密集型计算<em>确实</em>会阻塞事件循环——这是 Node 的弱点。</p>
+</blockquote>
+<h2 id="2-nodejs-hello-worldjavascript-在哪里运行">2. Node.js Hello World：JavaScript 在哪里运行？</h2>
+<p>幻灯片 10–13 逐步构建了最小的 Node Web 服务器：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'http'</span><span style="color:#D4D4D4">);                          </span><span style="color:#6A9955">// require the http library</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> server</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createServer</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">) {  </span><span style="color:#6A9955">// anonymous function with request and response parameters</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">);                                </span><span style="color:#6A9955">// "Ok" status in the header</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello World'</span><span style="color:#D4D4D4">);                            </span><span style="color:#6A9955">// write hello world text</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">8080</span><span style="color:#D4D4D4">);                                 </span><span style="color:#6A9955">// listen on port 8080</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>用 <code>node file.js</code> 运行它（幻灯片 14）。<code>require</code> 是 Node 导入库的方式——类似于 Python 的 <code>import</code>。</p>
+<p><strong>记住：Node.js 是服务端 JavaScript。</strong> 幻灯片 17–18 比较了两种都使用 8080 端口的设置：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>服务端（<code>node hello.js</code>）</th>
+<th>客户端（<code>live-server</code>）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>谁在监听 8080</td>
+<td>Node 本身</td>
+<td>live-server</td>
+</tr>
+<tr>
+<td>JS（以及 <code>console.log</code>）在哪里运行</td>
+<td><strong>终端</strong></td>
+<td><strong>浏览器</strong></td>
+</tr>
+</tbody></table>
+<p>幻灯片 17 的 <code>hello.js</code> 在 <code>server.listen(8080);</code> 之后添加了 <code>console.log(&#39;Hello, console&#39;);</code>。运行后，终端输出：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">$</span><span style="color:#CE9178"> node</span><span style="color:#CE9178"> hello.js</span></span>
+<span class="line"><span style="color:#DCDCAA">Hello,</span><span style="color:#CE9178"> console</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>而在 <code>localhost:8080</code> 的浏览器会收到 <code>200 OK</code>，响应体为 <code>Hello World</code>——浏览器控制台中什么也没有。</p>
+<p>幻灯片 18 的客户端版本：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"./hello.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Hello, world</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// hello.js</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, world'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：浏览器中的 JS 有 <code>document</code>，但没有 <code>require(&#39;http&#39;)</code> 或文件访问；Node 有 <code>require</code>、文件和端口，但没有 <code>document</code>。</p>
+</blockquote>
+<h2 id="3-使用-node-读取文件">3. 使用 Node 读取文件</h2>
+<p><code>fs</code>（文件系统）库<strong>异步</strong>读取文件——你传入一个回调，它会在读取完成后运行（幻灯片 81）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> fs</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'fs'</span><span style="color:#D4D4D4">);        </span><span style="color:#6A9955">// require the file system library</span></span>
+<span class="line"><span style="color:#9CDCFE">fs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">readFile</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"/path/to/file"</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">);           </span><span style="color:#6A9955">// read file, wait for asynchronous response</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>不指定编码时，<code>data</code> 是 <strong>Buffer</strong>（原始字节），而不是字符串。用这种方式读取演示中的 <code>133_class.json</code> 会输出：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">&lt;Buffer 7b 0a 20 20 22 73 74 75 64 65 6e 74 73 22 3a 20 5b 22 41 6c 69 63 65 22 2c 20 22 42 6f 62 22 2c 20 22 43 68 65 73 74 65 72 22 2c 20 22 44 65 65 70 61 ... 67 more bytes&gt;</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>JSON.parse(data)</code> 和 <code>res.end(data)</code> 都接受 Buffer。</p>
+<p>幻灯片 82 把 <code>fs</code> 和 HTTP 服务器组合成一个简单的<strong>静态文件服务器</strong>——URL 路径决定返回哪个文件：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'http'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> fs</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'fs'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> server</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createServer</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">fs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">readFile</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">__dirname</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">      res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">404</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">      res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#4FC1FF">JSON</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">stringify</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#C586C0">      return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#9CDCFE">    res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  });</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">8080</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>__dirname</code> 是脚本所在的文件夹。在 <code>133_class.json</code> 旁运行此服务器，结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>请求</th>
+<th>状态</th>
+<th>响应体</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/133_class.json</code></td>
+<td>200</td>
+<td>文件内容</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>404</td>
+<td><code>{&quot;errno&quot;:-21,&quot;code&quot;:&quot;EISDIR&quot;,&quot;syscall&quot;:&quot;read&quot;}</code>（它是一个文件夹）</td>
+</tr>
+<tr>
+<td><code>/nope.txt</code></td>
+<td>404</td>
+<td><code>{&quot;errno&quot;:-2,&quot;code&quot;:&quot;ENOENT&quot;,&quot;syscall&quot;:&quot;open&quot;,&quot;path&quot;:&quot;.../nope.txt&quot;}</code></td>
+</tr>
+</tbody></table>
+<p>课堂编码演示（幻灯片 14–15）基于此：把 <code>133_class.json</code> 的 <code>students</code> 字段返回为逗号分隔的列表。幻灯片 15 在浏览器中展示的结果是：<code>Alice, Bob, Chester, Deepali, Eduardo, Francisco</code>。</p>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L2_Oct22_ServerAuth/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L2_Oct22_ServerAuth/solution1.js">solution1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L2_Oct22_ServerAuth/133_class.json">133_class.json</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：像 <code>fs.readFile(&#39;133_class.json&#39;, …)</code> 这样的相对路径，是相对于你<strong>运行</strong> <code>node</code> 时所在的文件夹解析的，而不是脚本所在的文件夹。在其他目录下运行 <code>solution1.js</code> 会得到 <code>&quot;code&quot;:&quot;ENOENT&quot;</code> 的 404。为安全起见，使用 <code>__dirname + &#39;/133_class.json&#39;</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#122-%E6%BC%94%E7%A4%BA-1%E4%BB%8E-json-%E6%96%87%E4%BB%B6%E6%8F%90%E4%BE%9B%E5%AD%A6%E7%94%9F%E5%90%8D%E5%8D%95%E5%B9%BB%E7%81%AF%E7%89%87-1415--setup1--solution1">演示 1</a></p>
+</blockquote>
+<h2 id="4-web-框架需要什么以及-express">4. Web 框架需要什么，以及 Express</h2>
+<p>一个好的服务端 Web 框架（web framework）需要（幻灯片 20）：</p>
+<ul>
+<li><strong>支持 HTTP</strong>——接受连接、处理请求、发送响应</li>
+<li><strong>路由</strong>（routing）——把 URL 映射到处理该 URL 的服务器函数</li>
+<li><strong>中间件</strong>（middleware）支持——添加数据处理层，便于加入用户会话、安全、压缩等功能</li>
+</ul>
+<p>Node.js <em>能够</em>完成这三项，但使用起来有些困难，因此人们编写了 <strong>Express</strong> 之类的扩展——这也是 Node 需要包管理器的原因。</p>
+<h3 id="41-express-基础">4.1 Express 基础</h3>
+<p><strong>Express.js</strong> 是构建在 Node 之上的一个相当精简的 Web 框架：它可以路由 HTTP 请求、渲染 HTML 并配置中间件。使用 <code>npm install express</code> 将其安装到 <code>node_modules</code> 中。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> expressApp</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">express</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">httpRequest</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">httpResponse</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  httpResponse</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'hello world'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3000</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 84 省略了导入语句；完整文件开头是 <code>var express = require(&#39;express&#39;);</code>。<code>GET /</code> 返回 <code>hello world</code>（200）；任何你没有定义的路由都会返回 Express 默认的 404 页面 <code>Cannot GET /nope</code>。</p>
+<h3 id="42-路由">4.2 路由</h3>
+<p>路由按 <strong>HTTP 方法</strong>注册（幻灯片 86）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">requestProcessFunction</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">post</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">requestProcessFunction</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">put</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">requestProcessFunction</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">delete</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">requestProcessFunction</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">requestProcessFunction</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>urlPath</code> 可以包含<strong>参数</strong>，例如 <code>&#39;/user/:user_id&#39;</code>。</p>
+<h3 id="43-请求与响应对象">4.3 请求与响应对象</h3>
+<p><code>httpRequest</code> 有很多属性（中间件还可以添加更多）：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>包含内容</th>
+<th><code>GET /user/42?foo=9</code> 得到的结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>request.params</code></td>
+<td>URL 路由参数</td>
+<td><code>{ user_id: &#39;42&#39; }</code></td>
+</tr>
+<tr>
+<td><code>request.query</code></td>
+<td>查询字符串参数</td>
+<td><code>{ foo: &#39;9&#39; }</code></td>
+</tr>
+<tr>
+<td><code>request.body</code></td>
+<td>解析后的请求体（例如发送的 JSON 对象）</td>
+<td>对于携带 JSON <code>{&quot;name&quot;:&quot;Ada&quot;}</code> 的 POST 请求得到 <code>{ name: &#39;Ada&#39; }</code>——只有在添加了 <code>express.json()</code> 中间件之后才会有</td>
+</tr>
+</tbody></table>
+<p>注意，所有 params 和 query 的值都是<strong>字符串</strong>（<code>&#39;42&#39;</code>、<code>&#39;9&#39;</code>）。</p>
+<p><code>httpResponse</code> 提供用于设置 HTTP 响应字段的方法：</p>
+<ul>
+<li><code>response.write(content)</code>——逐步构建响应体</li>
+<li><code>response.status(code)</code>——设置状态码</li>
+<li><code>response.end()</code>——结束请求并作出响应（唯一真正的响应！）</li>
+<li><code>response.send(content)</code>——写入内容，然后结束</li>
+</ul>
+<p>幻灯片提到应该链式调用：<code>response.status(code).write(content1).write(content2).end();</code></p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：这个确切的链式调用会抛出 <code>TypeError: response.status(...).write(...).write is not a function</code>。<code>status()</code> 返回响应对象（可链式调用），但 <code>write()</code> 返回的是布尔值。修正方法：<code>response.status(200); response.write(&#39;content1&#39;); response.write(&#39;content2&#39;); response.end();</code>（响应体为 <code>content1content2</code>），或者直接使用 <code>response.status(200).send(...)</code>。</p>
+</blockquote>
+<h3 id="44-中间件">4.4 中间件</h3>
+<p>中间件使其他软件能够在你的处理函数看到请求之前对其进行处理。它是一个带有第三个参数 <code>next</code> 的函数：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">urlPath</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  // Do whatever processing on request (or setting response)</span></span>
+<span class="line"><span style="color:#DCDCAA">  next</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">// pass control to the next handler</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>示例（幻灯片 90）：检查用户是否已登录，否则发送错误且<strong>不</strong>调用 <code>next()</code>；将请求体解析为 JSON 放入 <code>request.body</code>，然后调用 <code>next()</code>；会话、Cookie、压缩、加密。下面是一个登录检查（我的版本）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/secret'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">query</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">token</span><span style="color:#D4D4D4"> !== </span><span style="color:#CE9178">'abc'</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">status</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">401</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Not logged in'</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">  next</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">expressApp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/secret'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'secret data'</span><span style="color:#D4D4D4">); });</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>GET /secret</code> → <code>401 Not logged in</code>；<code>GET /secret?token=abc</code> → <code>200 secret data</code>。</p>
+<h3 id="45-示例服务器幻灯片-9192">4.5 示例服务器（幻灯片 91–92）</h3>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> express</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'express'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> app</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">express</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">// Creating an Express "App"</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">express</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">static</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">__dirname</span><span style="color:#D4D4D4">)); </span><span style="color:#6A9955">// Adding middleware</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) { </span><span style="color:#6A9955">// A simple request handler</span></span>
+<span class="line"><span style="color:#9CDCFE">  response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Simple web server of files from '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">__dirname</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3000</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> () { </span><span style="color:#6A9955">// Start Express on the requests</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Listening at http://localhost:3000 exporting the directory '</span><span style="color:#D4D4D4"> +</span></span>
+<span class="line"><span style="color:#9CDCFE">    __dirname</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>express.static</code> 用一行代码实现了第 3 节的文件服务器（<code>GET /133_class.json</code> 会返回该文件）；未匹配的请求会继续向下传递，因此 <code>GET /</code> 仍然会到达 <code>&#39;/&#39;</code> 路由。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/students/list'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">status</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">in4matx133</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">enrolledStudents</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/students/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">  var</span><span style="color:#9CDCFE"> id</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">request</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">params</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">  var</span><span style="color:#9CDCFE"> user</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">in4matx133</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEnrolled</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">user</span><span style="color:#D4D4D4"> === </span><span style="color:#569CD6">null</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Student with _id:'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">' not found.'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">status</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">400</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Not found'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#9CDCFE">  response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">status</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">user</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>in4matx133</code> 在幻灯片中没有给出；用一个以 <code>133_class.json</code> 为数据源的桩（stub）实现后，<code>/students/list</code> 返回 <code>[&quot;Alice&quot;,&quot;Bob&quot;,&quot;Chester&quot;,&quot;Deepali&quot;,&quot;Eduardo&quot;,&quot;Francisco&quot;]</code>（<code>send</code> 会把数组转换为 JSON），<code>/students/Bob</code> 返回 <code>{&quot;_id&quot;:&quot;Bob&quot;}</code>，而 <code>/students/Zed</code> 会记录 <code>Student with _id:Zed not found.</code> 并返回 <code>400 Not found</code>（404 会更合适）。</p>
+<h2 id="5-express-生成器">5. Express 生成器</h2>
+<p>一个生成应用骨架的工具，骨架中的目录结构将各组件隔离开——不是必需的，但是一个有用的起点。</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#CE9178"> express-generator</span><span style="color:#569CD6"> -g</span><span style="color:#6A9955">   # install the tool globally</span></span>
+<span class="line"><span style="color:#DCDCAA">express</span><span style="color:#CE9178"> myapp</span><span style="color:#6A9955">                      # generate a skeleton (adds boilerplate + common dependencies)</span></span>
+<span class="line"><span style="color:#DCDCAA">cd</span><span style="color:#CE9178"> myapp</span><span style="color:#6A9955">                           # cd into the project directory first</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#6A9955">                        # install dependencies</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> start</span><span style="color:#6A9955">                          # run it</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>各部分的作用：</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>package.json</code>、<code>package-lock.json</code>、<code>node_modules/</code></td>
+<td>库管理与已安装的库</td>
+</tr>
+<tr>
+<td><code>public/</code></td>
+<td>对外公开的图片、样式表和 JavaScript 文件</td>
+</tr>
+<tr>
+<td><code>routes/</code></td>
+<td>处理 URL 映射的文件</td>
+</tr>
+<tr>
+<td><code>views/</code></td>
+<td>需要渲染的页面，使用视图引擎（Pug）编写</td>
+</tr>
+<tr>
+<td><code>app.js</code></td>
+<td>设置中间件、路由器等</td>
+</tr>
+<tr>
+<td><code>bin/www</code></td>
+<td>设置监听的端口；由 <code>npm start</code> 运行的文件</td>
+</tr>
+</tbody></table>
+<p><strong>routes/index.js</strong>（幻灯片 96）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> express</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'express'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> router</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">express</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">Router</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">/* GET home page. */</span></span>
+<span class="line"><span style="color:#9CDCFE">router</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">render</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'index'</span><span style="color:#D4D4D4">, { </span><span style="color:#9CDCFE">title:</span><span style="color:#CE9178"> 'Express'</span><span style="color:#D4D4D4"> });   </span><span style="color:#6A9955">// variable passed to renderer</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">module</span><span style="color:#D4D4D4">.</span><span style="color:#4EC9B0">exports</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">router</span><span style="color:#D4D4D4">;                       </span><span style="color:#6A9955">// so another file can import your router</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>视图与 Pug</strong>（幻灯片 97–98）：<em>视图引擎</em>（view engine）Pug 会根据基于缩进的模板生成 HTML；<code>extends</code> 导入另一个文件，<code>= title</code> 和 <code>#{title}</code> 插入传给渲染器的变量。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">//- layout.pug
+doctype html
+html
+  head
+    title= title
+    link(rel=&#39;stylesheet&#39;, href=&#39;/stylesheets/style.css&#39;)
+  body
+    block content</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">//- index.pug
+extends layout
+block content
+  h1= title
+  p Welcome to #{title}</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用 <code>title: &#39;Express&#39;</code>，在新生成的应用上 <code>GET /</code> 返回的恰好是：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;!</span><span style="color:#569CD6">DOCTYPE</span><span style="color:#9CDCFE"> html</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">title</span><span style="color:#808080">></span><span style="color:#D4D4D4">Express</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">title</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">link</span><span style="color:#9CDCFE"> rel</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"stylesheet"</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/stylesheets/style.css"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span><span style="color:#D4D4D4">Express</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Welcome to Express</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>app.js</strong>（幻灯片 99）——导入路由文件、添加中间件、使用路由：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> indexRouter</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'./routes/index'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> usersRouter</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'./routes/users'</span><span style="color:#D4D4D4">);      </span><span style="color:#6A9955">// import route files</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> app</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">express</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">express</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">());                          </span><span style="color:#6A9955">// to parse content as JSON</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">express</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">urlencoded</span><span style="color:#D4D4D4">({ </span><span style="color:#9CDCFE">extended:</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4"> })); </span><span style="color:#6A9955">// to parse URL-encoded (form) bodies</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">cookieParser</span><span style="color:#D4D4D4">());                          </span><span style="color:#6A9955">// to handle cookies (user state)</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">express</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">static</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">path</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">__dirname</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'public'</span><span style="color:#D4D4D4">))); </span><span style="color:#6A9955">// treat public/ as static content</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">indexRouter</span><span style="color:#D4D4D4">);                        </span><span style="color:#6A9955">// use route files</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'/users'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">usersRouter</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>app.use(&#39;/users&#39;, usersRouter)</code> 挂载路由器，因此 <code>routes/users.js</code> 中的 <code>router.get(&#39;/&#39;)</code> 会响应 <code>GET /users</code>。</p>
+<p><strong>bin/www</strong>（幻灯片 100）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> app</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'../app'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'http'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> port</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">normalizePort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">process</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">env</span><span style="color:#D4D4D4">.</span><span style="color:#4FC1FF">PORT</span><span style="color:#D4D4D4"> || </span><span style="color:#CE9178">'3000'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">set</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'port'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">port</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> server</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createServer</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">port</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">on</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'error'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">onError</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">on</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'listening'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">onListening</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>💡 <strong>关键点</strong>：在生成器的各个文件夹之下，仍然是第 2 节的 <code>http.createServer(...).listen(port)</code>——Express 的 <code>app</code> 只是请求处理函数。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://expressjs.com/en/starter/generator.html">Express: application generator</a> · <a href="https://pugjs.org/api/getting-started.html">Pug: getting started</a></p>
+</blockquote>
+<h2 id="6-身份验证与授权">6. 身份验证与授权</h2>
+<p><strong>身份验证</strong>（authentication）是建立并验证身份：</p>
+<ul>
+<li><strong>身份识别</strong>（identification）——你是谁？（用户名、账号等）</li>
+<li><strong>身份验证</strong>——证明一下！（密码、PIN 等）</li>
+</ul>
+<p><strong>授权</strong>（authorization）发生在之后：一旦知道用户是谁，接下来要问：他们被允许访问或修改什么？</p>
+<ul>
+<li>应用可以<strong>基于角色</strong>预先定义权限：学生可以访问自己的成绩，但不能修改；助教和教授可以访问并修改所有人的成绩。</li>
+<li>或者应用可以<strong>请求用户授予</strong>某些权限：例如 Twitter 应用询问“我可以代表你发推文吗？”</li>
+</ul>
+<p><strong>多因素身份验证</strong>（multi-factor authentication）应当混合使用你<strong>拥有/持有</strong>的东西和你<strong>知道</strong>的东西：</p>
+<table>
+<thead>
+<tr>
+<th>示例</th>
+<th>因素一</th>
+<th>因素二</th>
+<th>是否双因素？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ATM</td>
+<td>ATM 卡（拥有）</td>
+<td>PIN（知道）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>密码 + 通过短信/推送获得的验证码</td>
+<td>密码（知道）</td>
+<td>验证码证明你持有手机（拥有）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>两个密码</td>
+<td>知道</td>
+<td>知道</td>
+<td><strong>否</strong></td>
+</tr>
+</tbody></table>
+<p><strong>两个密码 ≠ 双因素身份验证。</strong></p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E9%97%AE%E9%A2%98-1%E5%A5%BD%E7%9A%84%E5%8F%8C%E5%9B%A0%E7%B4%A0%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E5%B9%BB%E7%81%AF%E7%89%87-26">问题 1</a></p>
+</blockquote>
+<h2 id="7-密码与和第三方共享数据">7. 密码与和第三方共享数据</h2>
+<p><strong>密码协议</strong>：发送登录名和密码；服务器检查它们，允许你进入，然后发送你有权查看的数据（你 ↔ Bank of America）。你必须信任服务器会安全地存储你的密码。</p>
+<p>如果要把你的银行数据交给<strong>第三方</strong>（Mint，一个金融聚合服务），你<em>可以</em>把用户名和密码交给它——为什么这是个坏主意？</p>
+<ul>
+<li>你现在必须信任另一个服务来管理你的密码。</li>
+<li>如果你不希望它拥有完全访问权限呢？例如，Mint 可能只能读取你的储蓄账户，而不能读取支票账户。</li>
+<li>如果你之后想撤销访问权限呢？修改密码可以做到，但这不是个好方案。</li>
+</ul>
+<h2 id="8-oauth-20术语与四个步骤">8. OAuth 2.0：术语与四个步骤</h2>
+<p><strong>OAuth 2.0</strong> 是开放授权（open authorization）协议，它让用户<strong>无需把密码交给</strong>第三方应用，也能授予其访问权限，并允许用户随时<strong>撤销</strong>这些访问权限。</p>
+<p>历史：OAuth 1.0 很复杂（比 2.0 更糟），存在安全漏洞，不应再使用。Google、Twitter 和 Yahoo! 共同提出了 2.0 版本，它与 1.0 <strong>不兼容</strong>。</p>
+<h3 id="81-术语">8.1 术语</h3>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>客户端</strong>（client）</td>
+<td>想要访问资源所有者资源的第三方应用（例如你开发的应用）</td>
+</tr>
+<tr>
+<td><strong>资源所有者</strong>（resource owner，即用户）</td>
+<td>其数据正在被访问的人</td>
+</tr>
+<tr>
+<td><strong>资源服务器</strong>（resource server）</td>
+<td>存储资源的应用（Spotify、Google、Facebook）</td>
+</tr>
+<tr>
+<td><strong>授权与令牌端点</strong>（authorization and token endpoints）</td>
+<td>资源所有者授权请求所用的 URI</td>
+</tr>
+<tr>
+<td><strong>授权码</strong>（authorization code）</td>
+<td>客户端用来请求访问令牌的字符串</td>
+</tr>
+<tr>
+<td><strong>访问令牌</strong>（access token）</td>
+<td>客户端用来访问资源（Spotify 上的歌曲、推文等）的字符串；会在一段时间后<strong>过期</strong></td>
+</tr>
+<tr>
+<td><strong>刷新令牌</strong>（refresh token）</td>
+<td>访问令牌过期后，用来换取新访问令牌的字符串</td>
+</tr>
+</tbody></table>
+<h3 id="82-四个步骤spotify-的授权码流程">8.2 四个步骤（Spotify 的授权码流程）</h3>
+<pre data-language="mermaid"><code class="language-mermaid">sequenceDiagram
+  participant App as 应用（你的服务器）
+  participant Acc as Spotify Accounts Service
+  participant User as 用户
+  participant API as Spotify Web API
+  App-&gt;&gt;Acc: 1. client_id、response_type、redirect_uri、state、scope
+  Acc-&gt;&gt;User: 展示权限范围，必要时提示登录
+  User--&gt;&gt;App: 登录并授权，返回 code、state
+  App-&gt;&gt;Acc: 2. client_id、client_secret、grant_type、code、redirect_uri
+  Acc--&gt;&gt;App: access_token、token_type、expires_in、refresh_token
+  App-&gt;&gt;API: 3. access_token
+  API--&gt;&gt;App: 请求到的数据（JSON 对象）
+  App-&gt;&gt;Acc: 4. refresh token
+  Acc--&gt;&gt;App: 新的 access_token（JSON 对象）</code></pre><ol>
+<li><strong>请求授权</strong>——请用户将你的应用连接到其 Spotify 账户，只请求你需要的数据（个人资料、收听历史等）。</li>
+<li><strong>获取访问令牌和刷新令牌</strong>——这是单独的一步，因为访问令牌会过期；刷新令牌可以换取新的有效令牌。</li>
+<li><strong>调用 API</strong>——在 GET 请求中携带访问令牌访问某个端点，例如 <code>https://api.spotify.com/v1/me</code> 返回 JSON（生日、邮箱、头像）。还有针对艺术家、专辑、曲目等的端点，通常带有子资源：<code>https://api.spotify.com/v1/albums/{id}</code>。</li>
+<li><strong>刷新访问令牌</strong>——Spotify 的令牌在<strong>一小时</strong>后过期；之后每次请求都会返回 <strong>401（Unauthorized）</strong>。为什么要让它过期？<strong>这样用户就可以撤销其授予的权限。</strong></li>
+</ol>
+<h3 id="83-注册你的应用">8.3 注册你的应用</h3>
+<p>在 Spotify 开发者控制台中，你为应用<strong>创建一个新的 ID</strong>（幻灯片 48–49）。它会给你：</p>
+<ul>
+<li><strong>客户端 ID</strong>（Client ID）——你应用的 ID，<strong>不是机密</strong></li>
+<li><strong>客户端密钥</strong>（client secret）——用来获取访问令牌的机密代码</li>
+<li>还必须指定 <strong>重定向 URI</strong>（redirect URI）——Spotify 把用户送回的地址</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://en.wikipedia.org/wiki/OAuth#OAuth_2.0">Wikipedia: OAuth 2.0</a> · <a href="https://developer.spotify.com/documentation/general/guides/authorization-guide/">Spotify: Authorization guide</a> · <a href="https://developer.spotify.com/documentation/web-api/reference/users-profile/get-current-users-profile/">Spotify: Get current user&#39;s profile</a> · <a href="https://developer.spotify.com/documentation/web-api/reference/">Spotify: Web API reference</a> · <a href="https://developer.spotify.com/dashboard/">Spotify developer dashboard</a></p>
+</blockquote>
+<h2 id="9-在你自己的-nodeexpress-服务器中实现-oauth-20">9. 在你自己的 Node/Express 服务器中实现 OAuth 2.0</h2>
+<p>幻灯片以<strong>服务端 JavaScript</strong>（Node.js/Express）的视角讲解这个流程。OAuth 的部分步骤可以在浏览器中完成，但在 <strong>A3</strong> 中，所有浏览器端请求都发往一个 Node.js/Express 服务器，由它与 Spotify 通信。</p>
+<h3 id="91-架构">9.1 架构</h3>
+<ul>
+<li><strong>授权</strong>：页面上的链接指向 <code>https://accounts.spotify.com/authorize/</code>；完成 OAuth 流程后，Spotify 会重定向到<strong>你的 Web 服务器</strong>，服务器拿到令牌后，再重定向回客户端页面。</li>
+<li><strong>API 请求</strong>：浏览器向<strong>你的服务器</strong>发起 HTTP 请求，要求它发起 API 请求；服务器调用 Spotify 并转发响应。</li>
+</ul>
+<h3 id="92-第一步请求授权">9.2 第一步：请求授权</h3>
+<p>创建一个页面，其中有指向 <code>https://accounts.spotify.com/authorize/</code> 的链接，并通过<strong>查询字符串</strong>传递参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client_id</code></td>
+<td>你应用的公开 ID</td>
+</tr>
+<tr>
+<td><code>response_type</code></td>
+<td>字符串 <code>code</code></td>
+</tr>
+<tr>
+<td><code>redirect_uri</code></td>
+<td>返回的地址</td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td>要请求的权限</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">https://accounts.spotify.com/authorize?
+  response_type=code&amp;
+  client_id=6d81b7a55e894abdbf53143fb2901573&amp;
+  scope=user-read-private%20user-read-email&amp;
+  redirect_uri=http%3A%2F%2Flocalhost%3A8888%2Fcallback</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用 <code>encodeURIComponent()</code> 对特殊字符进行转义：<code>&#39;http://localhost:8888/callback&#39;</code> → <code>http%3A%2F%2Flocalhost%3A8888%2Fcallback</code>，权限范围之间的空格 → <code>%20</code>。</p>
+<p><strong>处理响应</strong>：用户点击“好”，浏览器会带着额外的 URL 参数重定向回你的服务器——<code>http://localhost:8888/callback?code=...</code>。在 Express 中，从 <code>req.query</code> 读取（<code>req.query.code</code>）。</p>
+<h3 id="93-第二步用授权码换取访问令牌">9.3 第二步：用授权码换取访问令牌</h3>
+<p>为什么？<strong>任何网站都可以把用户发送到那个 authorize URL</strong>——客户端 ID 是公开的。只有我们的应用知道<strong>客户端密钥</strong>，它能证明该客户端 ID 确实属于我们。</p>
+<p>向 <code>https://accounts.spotify.com/api/token</code> 发起 <strong>POST</strong> 请求：POST 把内容放在<strong>请求体</strong>中（监听你流量的人无法读取），而 GET 把内容放在 URI 中。</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>字段</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>请求体</td>
+<td><code>grant_type</code></td>
+<td>字符串 <code>authorization_code</code></td>
+</tr>
+<tr>
+<td>请求体</td>
+<td><code>code</code></td>
+<td>授权响应中的 code</td>
+</tr>
+<tr>
+<td>请求体</td>
+<td><code>redirect_uri</code></td>
+<td>必须与之前相同</td>
+</tr>
+<tr>
+<td>请求头</td>
+<td><code>Authorization</code></td>
+<td>客户端 ID 与客户端密钥拼接后，转为 Buffer 并进行 base64 编码</td>
+</tr>
+<tr>
+<td>请求头</td>
+<td><code>Content-Type</code></td>
+<td><code>application/x-www-form-urlencoded</code></td>
+</tr>
+</tbody></table>
+<p>构造它们（幻灯片 73）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">params</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> URLSearchParams</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">params</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">append</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'grant_type'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'authorization_code'</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// etc.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">headers</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#CE9178">  'Content-Type'</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> 'application/x-www-form-urlencoded'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">  'Authorization'</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> 'Basic '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">Buffer</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">from</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">my_client_id</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">':'</span><span style="color:#D4D4D4"> +</span></span>
+<span class="line"><span style="color:#9CDCFE">      my_client_secret</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">toString</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'base64'</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片错误：幻灯片 73、75 和 77 的代码中使用了弯引号（<code>‘grant_type’</code>）——应使用直引号。<code>Buffer</code> 只属于 Node；浏览器中有 <code>btoa</code>。</p>
+<p>在下面试一下——浏览器会构建第一步的链接，以及第二步的请求体和请求头（修改 scope 后点击 Run）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;幻灯片 67–73 · 构建 OAuth 请求的各部分（修改 scope 后点击 Run）&quot;, &quot;html&quot;: &quot;&lt;a id=\&quot;auth\&quot; href=\&quot;#\&quot;&gt;Authorize&lt;/a&gt;\n&lt;p&gt;Hover the link to see its URL; the request pieces are in the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// Step 1: the link your page sends the user to (slides 67–68)\nconst client_id = &#39;6d81b7a55e894abdbf53143fb2901573&#39;;\nconst redirect_uri = &#39;http://localhost:8888/callback&#39;;\nconst scope = &#39;user-read-private user-read-email&#39;;\nconst authorizeURL = &#39;https://accounts.spotify.com/authorize?&#39; +\n  &#39;response_type=code&#39; +\n  &#39;&amp;client_id=&#39; + client_id +\n  &#39;&amp;scope=&#39; + encodeURIComponent(scope) +\n  &#39;&amp;redirect_uri=&#39; + encodeURIComponent(redirect_uri);\nconsole.log(authorizeURL);\ndocument.getElementById(&#39;auth&#39;).href = authorizeURL;\n\n// Step 2: what the server sends to /api/token (slides 72–73)\nconst params = new URLSearchParams();\nparams.append(&#39;grant_type&#39;, &#39;authorization_code&#39;);\nparams.append(&#39;code&#39;, &#39;AQD...code-from-callback&#39;);\nparams.append(&#39;redirect_uri&#39;, redirect_uri);\nconsole.log(&#39;body:&#39;, params.toString());\n// Node uses Buffer.from(...).toString(&#39;base64&#39;); the browser equivalent is btoa\nconsole.log(&#39;Authorization: Basic &#39; + btoa(client_id + &#39;:&#39; + &#39;my_client_secret&#39;));&quot;, &quot;height&quot;: 90, &quot;interactive&quot;: true}</code></pre><p>控制台输出：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">https://accounts.spotify.com/authorize?response_type=code&amp;client_id=6d81b7a55e894abdbf53143fb2901573&amp;scope=user-read-private%20user-read-email&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8888%2Fcallback
+body: grant_type=authorization_code&amp;code=AQD...code-from-callback&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8888%2Fcallback
+Authorization: Basic NmQ4MWI3YTU1ZTg5NGFiZGJmNTMxNDNmYjI5MDE1NzM6bXlfY2xpZW50X3NlY3JldA==</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（密钥和授权码都是占位符；Node 的 <code>Buffer</code> 会得到完全相同的字符串。）</p>
+<p><strong>响应体</strong>中包含<strong>访问令牌</strong>、<strong>过期时间</strong>（expires in）和<strong>刷新令牌</strong>。把它们存入数据库；在 A3 中，存入文本文件（做法不规范，但更容易）。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：Base64 是一种<em>编码</em>，不是加密——任何看到该请求头的人都能解码出密钥，因此它只应在你的服务器与 Spotify 之间传输。</p>
+</blockquote>
+<h3 id="94-第三步发起-api-请求">9.4 第三步：发起 API 请求</h3>
+<p>与客户端 ID 和密钥一样，将访问令牌放在请求头中，但不需要转换：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#CE9178">'Authorization'</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">'Bearer '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">access_token</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>然后 GET 某个端点，例如 <code>https://api.spotify.com/v1/me</code> 或 <code>https://api.spotify.com/v1/albums/{id}</code>。</p>
+<h3 id="95-第四步刷新令牌">9.5 第四步：刷新令牌</h3>
+<p>使用与第二步相同的端点（<code>/api/token</code>）和请求头；请求体为 <code>grant_type=refresh_token&amp;refresh_token=...</code>。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.spotify.com/documentation/general/guides/authorization-guide/">Spotify: Authorization guide</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent">MDN: encodeURIComponent()</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams">MDN: URLSearchParams</a> · <a href="https://www.w3schools.com/nodejs/met_buffer_from.asp">w3schools: Buffer.from()</a> · <a href="https://security.stackexchange.com/questions/33837/get-vs-post-which-is-more-secure">Security StackExchange: GET vs POST, which is more secure?</a></p>
+</blockquote>
+<h2 id="10-同源策略">10. 同源策略</h2>
+<p><strong>源</strong>（origin）由协议（scheme）、主机（host）和端口（port）组成。同一域名但<strong>端口不同的站点在技术上是不同的源</strong>，因此浏览器依据<strong>同源策略</strong>（same-origin policy）通常会阻止我们的 live-server 页面（一个端口）读取运行在另一个端口上的脚本的数据（例如 Twitter 代理，或 A3 的 Spotify 服务器）。</p>
+<p>幻灯片 78 的表格，与 <code>http://www.example.com/dir/page.html</code> 进行比较：</p>
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th>同源？</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://www.example.com/dir/page2.html</code></td>
+<td>✅</td>
+<td>协议、主机、端口相同</td>
+</tr>
+<tr>
+<td><code>http://www.example.com/dir2/other.html</code></td>
+<td>✅</td>
+<td>（忽略路径）</td>
+</tr>
+<tr>
+<td><code>http://username:password@www.example.com/dir2/other.html</code></td>
+<td>✅</td>
+<td>（忽略凭据）</td>
+</tr>
+<tr>
+<td><code>http://www.example.com:81/dir/other.html</code></td>
+<td>❌</td>
+<td>端口</td>
+</tr>
+<tr>
+<td><code>https://www.example.com/dir/other.html</code></td>
+<td>❌</td>
+<td>协议</td>
+</tr>
+<tr>
+<td><code>http://en.example.com/dir/other.html</code></td>
+<td>❌</td>
+<td>主机</td>
+</tr>
+<tr>
+<td><code>http://example.com/dir/other.html</code></td>
+<td>❌</td>
+<td>主机（需完全匹配）</td>
+</tr>
+<tr>
+<td><code>http://v2.www.example.com/dir/other.html</code></td>
+<td>❌</td>
+<td>主机（需完全匹配）</td>
+</tr>
+<tr>
+<td><code>http://www.example.com:80/dir/other.html</code></td>
+<td>取决于情况</td>
+<td>显式端口；因浏览器而异</td>
+</tr>
+</tbody></table>
+<p>浏览器的 URL 解析器会把 <code>:80</code>（http 的默认端口）规范化为同一个源；<code>localhost:8080</code> 与 <code>localhost:8888</code> 则返回 <code>false</code>：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;幻灯片 78 · 是否同源？（new URL(...).origin）&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;const base = &#39;http://www.example.com/dir/page.html&#39;;\nconst urls = [\n  &#39;http://www.example.com/dir/page2.html&#39;,\n  &#39;http://www.example.com/dir2/other.html&#39;,\n  &#39;http://username:password@www.example.com/dir2/other.html&#39;,\n  &#39;http://www.example.com:81/dir/other.html&#39;,\n  &#39;https://www.example.com/dir/other.html&#39;,\n  &#39;http://en.example.com/dir/other.html&#39;,\n  &#39;http://example.com/dir/other.html&#39;,\n  &#39;http://v2.www.example.com/dir/other.html&#39;,\n  &#39;http://www.example.com:80/dir/other.html&#39;\n];\nconsole.log(&#39;base origin:&#39;, new URL(base).origin);\nfor (const u of urls) {\n  const o = new URL(u).origin;\n  console.log(o === new URL(base).origin ? &#39;same     &#39; : &#39;DIFFERENT&#39;, o);\n}\n// Lecture setting: live-server on 8080 vs your Node/Express server on 8888\nconsole.log(new URL(&#39;http://localhost:8080/&#39;).origin === new URL(&#39;http://localhost:8888/&#39;).origin);&quot;, &quot;height&quot;: 60}</code></pre><p><strong>但是</strong>，Twitter 代理和 A3 的 Spotify 服务器<strong>允许来自其他端口的连接</strong>——通过 Express 中的 CORS 中间件实现（幻灯片 79）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// CORS</span></span>
+<span class="line"><span style="color:#9CDCFE">app</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">use</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">header</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Access-Control-Allow-Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"*"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">header</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Access-Control-Allow-Methods'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'GET,PUT,POST,DELETE'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">header</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Access-Control-Allow-Headers"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"X-Requested-With"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">method</span><span style="color:#D4D4D4"> === </span><span style="color:#CE9178">'OPTIONS'</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">  next</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>因此，如果它们公开在网上，<strong>任何人</strong>都可以使用你的凭据发起 Twitter/Spotify API 请求。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：同源策略由<strong>浏览器</strong>强制执行。服务器（Node、<code>curl</code>）可以请求任何 URL；这正是 A3 的设计要将 Spotify 调用经由你的服务器转发的原因。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E9%97%AE%E9%A2%98-2%E5%93%AA%E4%BA%9B%E5%8F%AF%E4%BB%A5%E5%90%91-spotify-api-%E5%8F%91%E8%B5%B7-http-%E8%AF%B7%E6%B1%82%E5%B9%BB%E7%81%AF%E7%89%87-58">问题 2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://en.wikipedia.org/wiki/Same-origin_policy">Wikipedia: Same-origin policy</a> · <a href="https://github.com/leftlogic/twitter-proxy">leftlogic/twitter-proxy</a></p>
+</blockquote>
+<h2 id="11-openid-connect">11. OpenID Connect</h2>
+<p>是否见过“使用 Google 登录”按钮（或 Spotify 登录页上的“使用 Facebook/Apple 继续”）？那就是 <strong>OpenID Connect</strong>，它是构建在 OAuth 之上的一个额外层。</p>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无需为每项服务获取单独的 ID</td>
+<td>Facebook/Google/Apple 等会收集（更多）你的个人信息，以及你访问的网站信息</td>
+</tr>
+<tr>
+<td>只需记住和保存一个密码</td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://openid.net/connect/">OpenID Connect</a></p>
+</blockquote>
+<h2 id="12-课堂问题与演示附解答">12. 课堂问题与演示（附解答）</h2>
+<h3 id="121-问题-1好的双因素身份验证幻灯片-26">12.1 问题 1：“好的”双因素身份验证（幻灯片 26）</h3>
+<p>以下哪一项是“好的”双因素身份验证的例子？</p>
+<ul>
+<li>A. 政府机构要求出示出生证明和护照</li>
+<li>B. 商店要求出示会员卡和 PIN</li>
+<li>C. 网站要求输入密码和安全问题</li>
+<li>D. 以上两项</li>
+<li>E. 以上全部</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：B。</strong>好的双因素身份验证会混合你<em>拥有</em>的因素和你<em>知道</em>的因素。A 是两样你拥有的东西（两份证件）；C 是两样你知道的东西——即“两个密码 ≠ 双因素身份验证”的情形。只有 B 将卡片（拥有）与 PIN（知道）配对，因此 D 和 E 都排除。（幻灯片没有显示公布的投票结果；这直接由幻灯片 25 推出。）返回<a href="#6-%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81%E4%B8%8E%E6%8E%88%E6%9D%83">第 6 节</a>。</p>
+<h3 id="122-演示-1从-json-文件提供学生名单幻灯片-1415--setup1--solution1">12.2 演示 1：从 JSON 文件提供学生名单（幻灯片 14–15 · setup1 → solution1）</h3>
+<p>任务（<code>setup1.js</code> 中的注释）：在 Node 中创建一个网页，返回 <code>133_class.json</code> 的 <code>&quot;students&quot;</code> 字段，格式为逗号分隔的列表。</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "students"</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"Alice"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Bob"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Chester"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Deepali"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Eduardo"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Francisco"</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  "quarter"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Fall"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "year"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">2019</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>起始代码（<code>setup1.js</code>）——一个对所有请求都返回固定文本的服务器：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'http'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> fs</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">require</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'fs'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> server</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createServer</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'here'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"&#x3C;strong>Bold text&#x3C;/strong>"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">8080</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution1.js</code>）：在处理函数中读取文件、解析，然后用 <code>join</code> 连接数组：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> server</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createServer</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">req</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">res</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">fs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">readFile</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'133_class.json'</span><span style="color:#D4D4D4">, (</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">      res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">404</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">      res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#4FC1FF">JSON</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">stringify</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#C586C0">      return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#9CDCFE">    res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">writeHead</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> students</span><span style="color:#D4D4D4"> = </span><span style="color:#4FC1FF">JSON</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">parse</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">).</span><span style="color:#9CDCFE">students</span></span>
+<span class="line"><span style="color:#9CDCFE">    res</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">students</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">', '</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#D4D4D4">  });</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">server</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">listen</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">8080</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在包含 JSON 文件的文件夹中运行 <code>node solution1.js</code>，然后访问 <code>localhost:8080</code>：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Alice, Bob, Chester, Deepali, Eduardo, Francisco</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>要点：<code>res.end</code> 必须放在回调<strong>内部</strong>（放在外部的话，会在文件被读取之前就已响应）；<code>join(&#39;, &#39;)</code> 相当于 Python 的 <code>&#39;, &#39;.join(...)</code>。从其他目录运行时会返回 404 <code>ENOENT</code>——请使用 <code>__dirname</code>。返回<a href="#3-%E4%BD%BF%E7%94%A8-node-%E8%AF%BB%E5%8F%96%E6%96%87%E4%BB%B6">第 3 节</a>。</p>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L2_Oct22_ServerAuth/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L2_Oct22_ServerAuth/solution1.js">solution1.js</a></p>
+</blockquote>
+<h3 id="123-问题-2哪些可以向-spotify-api-发起-http-请求幻灯片-58">12.3 问题 2：哪些可以向 Spotify API 发起 HTTP 请求？（幻灯片 58）</h3>
+<p>以下哪些可以向 Spotify API 发起 HTTP 请求？（假设浏览器使用默认设置。）</p>
+<ol>
+<li>一个打开着 spotify.com 的浏览器</li>
+<li>一个在 localhost:8888 上运行、带有客户端 JavaScript 的浏览器</li>
+<li>一个在 localhost:8888 上运行、带有服务端 JavaScript 的浏览器</li>
+<li>一个运行在 Spotify 域中的服务器</li>
+</ol>
+<ul>
+<li>A. 4</li>
+<li>B. 1、4</li>
+<li>C. 1、2、4</li>
+<li>D. 1、3、4</li>
+<li>E. 1、2、3、4</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：D（1、3、4）</strong>——这是讲座模型给出的答案；幻灯片没有显示公布的结果。</p>
+<ul>
+<li>（1）✅ 被视为同源（“Spotify 域”；严格来说，根据幻灯片 78，<code>spotify.com</code> ≠ <code>api.spotify.com</code>）。</li>
+<li>（2）❌ 来自 <code>localhost:8888</code> 的客户端 JS 属于另一个源；浏览器会阻止它。</li>
+<li>（3）✅ 浏览器请求的是<em>你的</em>服务器，由服务器发起请求——服务器不受该策略约束（<a href="#91-%E6%9E%B6%E6%9E%84">A3 架构</a>）。</li>
+<li>（4）✅ 一个服务器，无论如何都与其在同一域中。</li>
+</ul>
+<p>陷阱在于 (2) 与 (3)：端口相同，但发起者不同。（服务器可以通过 CORS 头选择允许其他源，见幻灯片 79；此题假设它没有这样做。）返回<a href="#10-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5">第 10 节</a>。</p>
+<h2 id="13-速查与必记的-5-个要点">13. 速查与必记的 5 个要点</h2>
+<p><strong>Node 与 Express</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http.createServer((req, res) =&gt; {...}).listen(8080)</code></td>
+<td>Node 服务器；<code>res.writeHead(200)</code>、<code>res.end(body)</code></td>
+</tr>
+<tr>
+<td><code>fs.readFile(path, (err, data) =&gt; {...})</code></td>
+<td>异步读取；<code>data</code> 是 Buffer；使用 <code>__dirname</code></td>
+</tr>
+<tr>
+<td><code>app.get/post/put/delete/all(path, fn)</code></td>
+<td>Express 路由；<code>&#39;/user/:user_id&#39;</code> 用于参数</td>
+</tr>
+<tr>
+<td><code>req.params</code>、<code>req.query</code>、<code>req.body</code></td>
+<td>路由参数、查询字符串、解析后的请求体（<code>express.json()</code>）</td>
+</tr>
+<tr>
+<td><code>res.status(c)</code>、<code>res.write(x)</code>、<code>res.end()</code>、<code>res.send(x)</code></td>
+<td><code>write</code> 返回布尔值，因此不要在它之后链式调用</td>
+</tr>
+<tr>
+<td><code>app.use((req, res, next) =&gt; {...})</code></td>
+<td>中间件；调用 <code>next()</code> 继续</td>
+</tr>
+<tr>
+<td><code>express.static(dir)</code>、<code>express.Router()</code>、<code>res.render(view, vars)</code></td>
+<td>静态文件、路由文件、Pug 视图</td>
+</tr>
+<tr>
+<td><code>npm install express-generator -g</code> → <code>express</code> → <code>npm install</code> → <code>npm start</code></td>
+<td>生成器骨架</td>
+</tr>
+</tbody></table>
+<p><strong>OAuth 2.0（Spotify）</strong></p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>请求</th>
+<th>关键字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 授权</td>
+<td>链接 → <code>accounts.spotify.com/authorize?...</code></td>
+<td><code>client_id</code>、<code>response_type=code</code>、<code>redirect_uri</code>、<code>scope</code> → 带着 <code>?code=</code> 返回</td>
+</tr>
+<tr>
+<td>2. 令牌</td>
+<td>POST <code>accounts.spotify.com/api/token</code></td>
+<td>请求体 <code>grant_type=authorization_code</code>、<code>code</code>、<code>redirect_uri</code>；请求头 <code>Authorization: Basic base64(id:secret)</code>、<code>Content-Type: application/x-www-form-urlencoded</code></td>
+</tr>
+<tr>
+<td>3. API 调用</td>
+<td>GET <code>api.spotify.com/v1/me</code> 等</td>
+<td>请求头 <code>Authorization: Bearer &lt;access_token&gt;</code></td>
+</tr>
+<tr>
+<td>4. 刷新</td>
+<td>POST <code>accounts.spotify.com/api/token</code></td>
+<td>请求体 <code>grant_type=refresh_token</code>、<code>refresh_token</code>；请求头相同</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>Node.js 是服务端 JavaScript：<code>console.log</code> 输出到终端；它有文件和端口，但没有 DOM。</li>
+<li>身份验证 = 证明你是谁；授权 = 你可以做什么。好的双因素身份验证 = <em>拥有</em> + <em>知道</em>。</li>
+<li>OAuth：授权（得到 code）→ 用 code + <strong>客户端密钥</strong>请求令牌 → 使用 <code>Bearer</code> 调用 API → 过期后刷新（1 小时，之后返回 401）。过期机制让用户可以撤销权限。</li>
+<li>客户端 ID 是公开的；密钥必须留在你的服务器上——这就是 A3 要经由 Node/Express 转发的原因。</li>
+<li>源 = 协议 + 主机 + 端口。浏览器强制执行同源策略，服务器不受其约束；CORS 让服务器选择允许跨源访问。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 8 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>AJAX、Fetch 与 Promise</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 10 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Angular 中的组件</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" title="上一篇: AJAX、Fetch 与 Promise ([)" aria-label="上一篇: 第 8 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 8 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 9 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" title="下一篇: Angular 中的组件 (])" aria-label="下一篇: 第 10 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 10 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

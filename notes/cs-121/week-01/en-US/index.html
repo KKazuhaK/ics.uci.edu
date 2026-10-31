@@ -1,0 +1,619 @@
+<!DOCTYPE html><html lang="en-US"><head><title>CS 121 Course Intro, IR and the Web, Architecture | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="How the course works, what information retrieval is, types of search engines, databases vs. search engines, relevance and retrieval models, classic vs. web IR, and search engine architecture."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-01/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-01/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-01/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413978" data-source-url="/~kazuhak/notes/cs-121/week-01/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-01/zh-CN/" data-next-url="/~kazuhak/notes/cs-121/week-02/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 1</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-01/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 1 · Information Retrieval Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents CS 121 Week 1 notes in a structured reading format so you can review text processing, the web graph, SEO, web crawling, and how search engines index and rank pages week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 22, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-1-course-introduction-ir-and-the-web-architecture">CS 121: Information Retrieval — Week 1: Course Introduction, IR and the Web, Architecture</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-how-the-course-works">1. How the Course Works</a></li>
+<li><a href="#2-what-is-information-retrieval">2. What Is Information Retrieval?</a></li>
+<li><a href="#3-types-of-ir-and-types-of-search-engines">3. Types of IR and Types of Search Engines</a></li>
+<li><a href="#4-why-web-search-engines-matter">4. Why Web Search Engines Matter</a></li>
+<li><a href="#5-database-engines-vs-search-engines">5. Database Engines vs. Search Engines</a></li>
+<li><a href="#6-the-core-issue-relevance-and-retrieval-models">6. The Core Issue: Relevance and Retrieval Models</a></li>
+<li><a href="#7-classic-ir-vs-web-ir">7. Classic IR vs. Web IR</a></li>
+<li><a href="#8-search-engineers-and-the-job-market">8. Search Engineers and the Job Market</a></li>
+<li><a href="#9-the-search-workflow-from-the-users-side">9. The Search Workflow from the User&#39;s Side</a></li>
+<li><a href="#10-search-engine-architecture">10. Search Engine Architecture</a></li>
+<li><a href="#11-in-class-notes--assignment-tips">11. In-class Notes &amp; Assignment Tips</a></li>
+<li><a href="#12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Sep 30<br>Built from the Lecture 1, 2 and 3 slides (the YuJa videos are not included). Organized by concept, not by lecture.<br>Slides credit Profs. C. Lopes, A. Krone-Martins, C. Manning, P. Nayak, H. Schütze and others, and Addison Wesley.<br>📖 Readings this week: <a href="https://canvas.eee.uci.edu/courses/87165/files/37013271">Basic computing skills booklet (Canvas)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., <em>Search Engines: IR in Practice</em>, Ch 1–2</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Quiz 0 is on Canvas (ungraded, &quot;no wrong answers if you provide reasonable answers&quot;; used to calibrate the course; access code given in class, L1 p54).<br>Sign and upload the Course Policies document on time for 1 bonus point (L1 p30, L3 p2, p33).<br>Assignment 1 (tokenizer from scratch) is introduced in L3; its deadline is Friday, Oct 9.<br>Holiday: Veteran&#39;s Day, Nov 11 — no in-person class.</p>
+</blockquote>
+<hr>
+<h2 id="1-how-the-course-works">1. How the Course Works</h2>
+<p>CS 121 is a <strong>flipped class</strong>. The content comes as pre-recorded videos on YuJa (posted Mondays or Wednesdays, slides linked from the Canvas Syllabus table). The Wednesday session (5:00–7:50 pm, HIB 100) is a quick review of the week&#39;s topics, and most of it is for you and your group to work on the assignments and ask questions in the room (L1 p4–9). Videos and slides stay online all quarter.</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Rule (L1 p3–23)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>People</td>
+<td>Prof. Alberto Krone-Martins; TAs Ken (Yuangang) Li, Yi-Hung Chou, Yunyan Ding; Readers Jasmine Kaur Marwaha, WanRong Wu</td>
+</tr>
+<tr>
+<td>Attendance</td>
+<td>Wednesday lectures are mandatory: 7 of 9</td>
+</tr>
+<tr>
+<td>Discussion</td>
+<td>Fridays with the TAs — not mandatory; use it for assignments and quiz doubts</td>
+</tr>
+<tr>
+<td>Office hours</td>
+<td>Wednesdays 3:00–4:30 pm, DBH 5226, from Oct 7; ~15 min one-to-one slots booked on Calendly up to 4 h ahead; walk-ins welcome without a guarantee; Zoom only on request after booking (e.g. sickness)</td>
+</tr>
+<tr>
+<td>EdDiscussion</td>
+<td>Student-to-student forum; bonus points for <strong>non-anonymous</strong> participation</td>
+</tr>
+<tr>
+<td>Contacting TAs/readers</td>
+<td>In discussion sessions, or properly formatted e-mails (see the Course Policy document)</td>
+</tr>
+<tr>
+<td>Assignments</td>
+<td>Three, not equal weights — <strong>50%</strong> of the grade</td>
+</tr>
+<tr>
+<td>Quizzes + Final</td>
+<td>Four graded quizzes + the final, equal weights — <strong>50%</strong>; quizzes in class, on your laptop</td>
+</tr>
+<tr>
+<td>Dropping</td>
+<td>The lowest quiz is dropped, so there is no make-up quiz; the in-person final <strong>cannot</strong> be dropped (date TBA)</td>
+</tr>
+<tr>
+<td>Quizzes are cumulative</td>
+<td>Study regularly</td>
+</tr>
+<tr>
+<td>Letter grades</td>
+<td>The cut-offs may be adjusted if necessary; it&#39;s impossible to know beforehand if or how</td>
+</tr>
+<tr>
+<td>Deadlines</td>
+<td>Irvine time</td>
+</tr>
+</tbody></table>
+<p>The course goals (L1 p15–18): know the fundamentals of IR, have techniques to find information spread among <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">10^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> documents, and practice web crawling and building your own simple search engine from scratch. It answers three questions: <em>What is information retrieval? How do you build its most important blocks? How do you do IR on the web?</em></p>
+<p>The tone (L1 p24): creativity, and constructive discussion on EdDiscussion — &quot;sometimes there is more than one right answer… but there are many wrong answers!&quot; Students who need disability accommodations should contact the Disability Services Center, (949) 824-7494, as soon as possible (L1 p25).</p>
+<p>Books (L1 p13–14): the required book is Croft, Metzler &amp; Strohman, <em>Search Engines: Information Retrieval in Practice</em> (free PDF). The &quot;required&quot; book in quotes is Manning, Raghavan &amp; Schütze, <em>Introduction to Information Retrieval</em>. The Canvas front page lists it as recommended.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: On L1 p19–21 the final is listed as &quot;Thursday, June 8&quot; — that&#39;s left over from an older offering. The later frames (p22–23) say <strong>date and time TBA</strong>.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al. (PDF)</a> · <a href="https://nlp.stanford.edu/IR-book/information-retrieval-book.html">Manning et al., <em>Introduction to Information Retrieval</em></a></p>
+</blockquote>
+<hr>
+<h2 id="2-what-is-information-retrieval">2. What Is Information Retrieval?</h2>
+<p>The course&#39;s working definition (L1 p36 · L2 p4 · L2 p19):</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Information retrieval is <strong>the activity of searching and extracting information from a collection of information resources</strong>. In this class, that means <em>textual</em> information from <em>text documents</em>.</p>
+</blockquote>
+<p>The classic, broader definition (Salton, 1968; L2 p20): IR is a field concerned with the <strong>structure, analysis, organization, storage, searching, and retrieval</strong> of information. Its primary focus is text — scholarly papers, books, news, e-mail, web pages — but IR also covers other media: audio, images, video.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §1.1 What Is Information Retrieval? (book p. 1)</a></p>
+</blockquote>
+<hr>
+<h2 id="3-types-of-ir-and-types-of-search-engines">3. Types of IR and Types of Search Engines</h2>
+<p>IR is more than search. The slides list four kinds of task (L1 p37 · L2 p21) and five kinds of search engine (L1 p38 · L2 p22). This course does <strong>search</strong>, on the <strong>web</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Types of IR</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Search</strong> (this course)</td>
+<td>Find documents for a query</td>
+</tr>
+<tr>
+<td>Filtering or tracking</td>
+<td>Detect documents of interest (e.g. as they arrive)</td>
+</tr>
+<tr>
+<td>Classification</td>
+<td>Label documents with pre-existing labels</td>
+</tr>
+<tr>
+<td>Question answering</td>
+<td>Go beyond finding documents: find <em>answers</em></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Types of search engines</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Web search</strong> (this course)</td>
+</tr>
+<tr>
+<td>Vertical search</td>
+</tr>
+<tr>
+<td>Enterprise search</td>
+</tr>
+<tr>
+<td>Desktop search</td>
+</tr>
+<tr>
+<td>Peer-to-peer search</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §1.3 Search Engines (book p. 6)</a></p>
+</blockquote>
+<hr>
+<h2 id="4-why-web-search-engines-matter">4. Why Web Search Engines Matter</h2>
+<p>&quot;How often do you use web search engines?&quot; (L2 p6). The slides&#39; case (L2 p7–10, p17):</p>
+<ul>
+<li><strong>Without search engines the Web wouldn&#39;t scale.</strong> Nobody has an incentive to create content that can&#39;t be found. Taxonomies and bookmarks can&#39;t keep up with the Web&#39;s size (&quot;or can they?&quot;).</li>
+<li><strong>The Web is a technology artifact and a social environment.</strong> For most people, Internet = Web, or even Internet = Google search.</li>
+<li><strong>Search makes aggregation of interest possible</strong>, which creates incentives for niche players, and makes &quot;unlimited selection&quot; stores possible (Amazon, Netflix).</li>
+<li>A Pew Research Center study on search engine use (2012) found users more satisfied than ever with result quality, but many were anxious about search engines and other sites collecting personal information.</li>
+<li>Web search and IR are essential to modern life and central to your future professional life, in industry and academia.</li>
+</ul>
+<p><strong>Search is also the money.</strong> Search turned out to be the first, and best, mechanism for advertising on the Web (L2 p11–16). Slide 11 asks you to guess Google&#39;s 2019 global ad revenue (&quot;??????????&quot;); slide 12 then gives a global figure instead: web advertising revenue of USD 633 billion in 2026 (the sentence &quot;(2027 estimated&quot; is cut off on the slide).</p>
+<table>
+<thead>
+<tr>
+<th>Figure (L2 p13–16)</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>US web advertising revenue, 2025</td>
+<td>USD 294.59B, +14% over 2024 (the 2000–2025 chart rises from near zero, steeply after ~2016)</td>
+</tr>
+<tr>
+<td>Worldwide digital advertising (Statista; PwC, Omdia)</td>
+<td>266 (2018), 310, 343, 448, 484, 522*, 562*, 599*, 633* (2026), 663* (2027) — billion USD, * = forecast</td>
+</tr>
+<tr>
+<td>By 2027</td>
+<td>more than USD 663B worldwide</td>
+</tr>
+<tr>
+<td>US online ad revenue by type, 2025</td>
+<td><strong>Search 38.8%</strong>, Display 27.7%, Video 26.5%, Other 4.2%, Audio 2.8%</td>
+</tr>
+</tbody></table>
+<p>The business model for ads has changed over time (L2 p14), but search is still the largest slice of US online ad revenue.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.statista.com/topics/1176/online-advertising/">Statista: Digital advertising industry in the U.S.</a> · <a href="https://www.statista.com/statistics/190458/categorie-breakdown-of-us-online-advertising-revenue-2010/">Statista: US online ad revenue by type</a></p>
+</blockquote>
+<hr>
+<h2 id="5-database-engines-vs-search-engines">5. Database Engines vs. Search Engines</h2>
+<p>&quot;What is the difference between a database search and a search engine?&quot; (L1 p39 · L2 p23). The slides answer with two kinds of request (L1 p40–41 · L2 p24):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Database engine</th>
+<th>Search engine</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Example</td>
+<td>&quot;Find accounts whose balance is greater than <code>$100</code>&quot;</td>
+<td>&quot;Canvas UCI&quot;, &quot;Find how to merge two lists in Python&quot;, &quot;Find the graph of y=log(x)&quot;</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>Well-structured, well-defined; not just text but numbers</td>
+<td>Text, with vague and varied information needs</td>
+</tr>
+<tr>
+<td>Query</td>
+<td>Formal language and logic</td>
+<td>Informal, ad-hoc</td>
+</tr>
+<tr>
+<td>Meaning</td>
+<td><strong>Semantics are well-defined</strong></td>
+<td>The engine must infer the meaning of words and sentences — <strong>semantics are inferred</strong></td>
+</tr>
+</tbody></table>
+<p>(L1&#39;s version adds the &quot;semantics&quot; row; L2&#39;s version stops at the first three.)</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: A database query has exactly one right answer set — every row matching <code>balance &gt; 100</code>. A search query has no such answer; the engine has to <em>guess</em> what the user meant and rank documents by how well they fit. That guess is the subject of the next section.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-database-query-or-search-query-l1-p3941--l2-p2324">Worked Example 12.1</a></p>
+</blockquote>
+<hr>
+<h2 id="6-the-core-issue-relevance-and-retrieval-models">6. The Core Issue: Relevance and Retrieval Models</h2>
+<p><strong>Relevance</strong> is what a search engine is really computing (L1 p42–43 · L2 p25). Textual similarity between query and document is only the first ingredient — <em>databases stop there</em>. A search engine also uses context:</p>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Examples from the slides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Textual similarity</td>
+<td>query words vs. document words (&quot;databases stop here!!&quot;)</td>
+</tr>
+<tr>
+<td>Document context</td>
+<td>origin, author, popularity, …</td>
+</tr>
+<tr>
+<td>User context</td>
+<td>geographic location, prior queries, age, preferred language, …</td>
+</tr>
+<tr>
+<td>Query context</td>
+<td>special symbols</td>
+</tr>
+</tbody></table>
+<p>A <strong>retrieval model</strong> is defined behind every notion of relevance (L1 p44 · L2 p26). It&#39;s the conceptual design of <em>what to pay attention to</em> when matching a query and a document — for example, grammar vs. raw text, and which parts of the context count. A good retrieval model finds the documents relevant to <strong>the person who submitted the query</strong>, and it is the basis for the ranking algorithms.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: &quot;Relevant&quot; means relevant <em>to that user</em>, not &quot;contains the query words&quot;. Two people typing the same query can deserve different results (location, language, prior queries).</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §1.2 The Big Issues (book p. 4)</a></p>
+</blockquote>
+<hr>
+<h2 id="7-classic-ir-vs-web-ir">7. Classic IR vs. Web IR</h2>
+<p><strong>Classic IR</strong> (L3 p4–5) assumes a <strong>fixed document collection</strong> (the corpus), and the goal is to retrieve the information relevant to an information need. Formally: for each query <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span></span></span></span> and stored document <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span></span></span></span> there is a relevance score <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span>, and the system maximizes it. Context is ignored, the user is ignored, and the corpus is static.</p>
+<p><strong>Web IR</strong> breaks every one of those assumptions (L3 p6):</p>
+<table>
+<thead>
+<tr>
+<th>Classic assumption</th>
+<th>On the Web</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>The corpus is stored centrally</td>
+<td>The Web is huge — it can&#39;t be stored in any centralized memory</td>
+<td>Corpus is not centralized</td>
+</tr>
+<tr>
+<td>The corpus is static</td>
+<td>The Web changes all the time</td>
+<td>Must update constantly</td>
+</tr>
+<tr>
+<td>Context is ignored</td>
+<td>There is information to avoid (spam, manipulation) — <em>adversarial IR</em></td>
+<td>Context can&#39;t be ignored</td>
+</tr>
+<tr>
+<td>The user is ignored</td>
+<td>One interface serves hugely divergent needs</td>
+<td>User can&#39;t be ignored</td>
+</tr>
+</tbody></table>
+<p><strong>Web search engines</strong> are the practical application of IR (L3 p7). They must crawl terabytes to petabytes of web pages and answer queries in under a second — though indexing can take &quot;a bit&quot; longer. Besides the IR issues, the big design issues are:</p>
+<ul>
+<li><strong>Performance</strong>: response time, query throughput, indexing speed</li>
+<li><strong>Speed of discovering and integrating new documents</strong></li>
+<li><strong>Coverage</strong></li>
+<li><strong>Freshness</strong></li>
+<li><strong>Spam</strong></li>
+</ul>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Sub-second <em>queries</em>, slower <em>indexing</em>: the expensive work (crawling, processing, indexing) is done ahead of time so the query path stays fast. That split is exactly the two halves of the architecture in <a href="#10-search-engine-architecture">section 10</a>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#122-which-classic-ir-assumption-breaks-l3-p46">Worked Example 12.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §1.3 Search Engines (book p. 6)</a></p>
+</blockquote>
+<hr>
+<h2 id="8-search-engineers-and-the-job-market">8. Search Engineers and the Job Market</h2>
+<p>Search engineers (L3 p8) either <strong>develop and maintain search engines</strong> or <strong>design and optimize content for search engines</strong>. The slides back the job market with IEEE Spectrum charts built from Hired data (L3 p9–10). Hired reports growth in demand only for each year&#39;s top ten specialties, so a 0% means &quot;not in that year&#39;s top ten&quot;.</p>
+<table>
+<thead>
+<tr>
+<th>Growth in demand, by specialty</th>
+<th>2018</th>
+<th>2019</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AR/VR</td>
+<td>0%</td>
+<td>1,400%</td>
+</tr>
+<tr>
+<td>Gaming</td>
+<td>0%</td>
+<td>146%</td>
+</tr>
+<tr>
+<td>Computer Vision</td>
+<td>0%</td>
+<td>146%</td>
+</tr>
+<tr>
+<td><strong>Search</strong></td>
+<td>0%</td>
+<td><strong>137%</strong></td>
+</tr>
+<tr>
+<td>Machine Learning</td>
+<td>27%</td>
+<td>89%</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>132%</td>
+<td>49%</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>38%</td>
+<td>45%</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>4%</td>
+<td>17%</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>33%</td>
+<td>17%</td>
+</tr>
+<tr>
+<td>Blockchain</td>
+<td>517%</td>
+<td>9%</td>
+</tr>
+<tr>
+<td>Full-stack</td>
+<td>7%</td>
+<td>5%</td>
+</tr>
+<tr>
+<td>Embedded</td>
+<td>76%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>Mobile</td>
+<td>15%</td>
+<td>0%</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Software engineering salaries (USD)</th>
+<th>London</th>
+<th>New York</th>
+<th>SF Bay Area</th>
+<th>Toronto</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Search</strong></td>
+<td>92,000</td>
+<td>136,000</td>
+<td><strong>165,000</strong></td>
+<td>102,000</td>
+</tr>
+<tr>
+<td>NLP</td>
+<td>101,000</td>
+<td>—</td>
+<td>164,000</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>103,000</td>
+<td>127,000</td>
+<td>163,000</td>
+<td>95,000</td>
+</tr>
+<tr>
+<td>Machine Learning</td>
+<td>99,000</td>
+<td>138,000</td>
+<td>162,000</td>
+<td>104,000</td>
+</tr>
+</tbody></table>
+<p>(NLP shows <code>$0,000</code> for New York and Toronto on the chart — no data.) In this data, Search is among the fastest-growing specialties in 2019 and the best-paid of the four in the Bay Area.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://spectrum.ieee.org/view-from-the-valley/at-work/tech-careers/software-engineering-salaries-jump-demand-for-arvr-expertise-skyrockets">IEEE Spectrum: software engineering salaries and demand by specialty</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §1.4 Search Engineers (book p. 9)</a></p>
+</blockquote>
+<hr>
+<h2 id="9-the-search-workflow-from-the-users-side">9. The Search Workflow from the User&#39;s Side</h2>
+<p>&quot;The story from the perspective of the user&quot; (L1 p45–49 · L3 p11–14) is built up in four frames. A dashed line separates what the user sees from what runs behind it:</p>
+<ol>
+<li><strong>The user</strong> types a query into a search box (Go / Search).</li>
+<li>The query goes to a <strong>database of pages</strong>, and the <strong>search results</strong> page comes back.</li>
+<li>A second store, the <strong>ad indices</strong>, feeds the results page too — the sponsored results next to the organic ones.</li>
+<li>Behind it all, the <strong>web spider</strong> (crawler) walks <strong>the Web</strong> — pages linking to pages — and hands pages to the <strong>indexer</strong>, which builds the <strong>indices</strong> the queries run against.</li>
+</ol>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The user only ever touches the query side. Everything left of the dashed line — crawling, indexing — happened before the query was typed, which is why the results come back in under a second.</p>
+</blockquote>
+<hr>
+<h2 id="10-search-engine-architecture">10. Search Engine Architecture</h2>
+<p>&quot;The underlying architecture…&quot; (L1 p50–52 · L3 p15–29). This diagram comes back at the start of most later decks as a &quot;you are here&quot; map, so learn it now. It has two halves:</p>
+<ul>
+<li><strong>Preprocessing steps</strong> (left; offline, before any query): Web Pages → <strong>Text Acquisition</strong> → Local Document Store → <strong>Text Transformation/Processing</strong> → <strong>Index Creation</strong> → Index.</li>
+<li><strong>Querying process</strong> (right; online, per query): User ↔ <strong>UI</strong> ↔ <strong>Ranking</strong> ↔ Index, with <strong>Evaluation</strong> watching the UI, writing to a <strong>Log</strong>, and feeding back into Ranking.</li>
+</ul>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart BT
+  wp[&quot;Web Pages&quot;] --&gt; ta[&quot;Text Acquisition&quot;]
+  ta --&gt; ds[(&quot;Local Document Store&quot;)]
+  ds --&gt; tt[&quot;Text Transformation/Processing&quot;]
+  tt --&gt; ic[&quot;Index Creation&quot;]
+  ic --&gt; ix[(&quot;Index&quot;)]
+  ix &lt;--&gt; rk[&quot;Ranking&quot;]
+  rk &lt;--&gt; ui[&quot;UI&quot;]
+  ui &lt;--&gt; user[&quot;User&quot;]
+  ui --&gt; ev[&quot;Evaluation&quot;]
+  ev --&gt; lg[(&quot;Log&quot;)]
+  ev --&gt; rk</code></pre><p>What each block does (L3 p17–27):</p>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Responsibilities</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Text Acquisition</strong></td>
+<td>Crawler; feeds; data dumps; text conversion (e.g. PDF → text); the document store</td>
+</tr>
+<tr>
+<td><strong>Text Transformation</strong></td>
+<td>Parser = tokenizer + structure; <strong>stopping</strong> (removing words like &quot;the&quot;, &quot;of&quot;); <strong>stemming</strong> (grouping similar words, e.g. fishes → fish); link extraction and analysis (how popular a link is); information extraction (text structure); classifier (topic, non-content, spam, …)</td>
+</tr>
+<tr>
+<td><strong>Index Creation</strong></td>
+<td>Corpus statistics; <strong>term weighting</strong> (how important a word is in documents); <strong>index inversion</strong> (doc → term becomes term → doc); index distribution (essential for large indexes)</td>
+</tr>
+<tr>
+<td><strong>User Interaction</strong> (UI)</td>
+<td>Query input (keywords, operators such as AND); query transformation (spell checking, query suggestion and expansion); results output (page summaries, highlighting important words)</td>
+</tr>
+<tr>
+<td><strong>Ranking</strong></td>
+<td>Relevance scoring (how well each doc matches the query); performance optimization (lower response time); distribution — a query broker allocates queries to different processors</td>
+</tr>
+<tr>
+<td><strong>Evaluation</strong></td>
+<td>Logging (improves the engine in the long run); ranking analysis (does the ranking work for its users, judged by their behavior?); performance analysis (people expect fast answers, so performance is monitored and improved)</td>
+</tr>
+</tbody></table>
+<p>L3 p29 ends the build by circling groups of blocks: Web Pages + Text Acquisition; Text Transformation + Index Creation; Index + Ranking; Evaluation; and (in blue) UI + the user.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: <strong>Index inversion</strong> is the heart of the left half. A document naturally maps to its terms (doc → term). Search needs the opposite — given a term, which documents contain it (term → doc). Building that inverted index is what makes sub-second queries possible.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Stopping and stemming are <em>text transformation</em>, not index creation, and spell checking / query expansion belong to <em>user interaction</em>, not ranking. Quizzes like to ask which block a task lives in — use the table above.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft Ch 2 Architecture of a Search Engine (book p. 13)</a> · Croft §2.3.1–2.3.6 cover the six blocks (book pp. 17–27)</p>
+</blockquote>
+<hr>
+<h2 id="11-in-class-notes--assignment-tips">11. In-class Notes &amp; Assignment Tips</h2>
+<p>From L1 p26–30, p53 and L3 p30–32:</p>
+<ul>
+<li><strong>All assignments are in Python.</strong> A1 is individual. A2 and A3 are in groups of 1–4 students, with no changes in the requirements. In A3, different majors get different constraints (stated in the assignment prompt).</li>
+<li><strong>Get an openlab account</strong> — not formally required, but essentially a requirement for a good experience in Assignment 2. You&#39;ll also need the command line.</li>
+<li><strong>Assignment 1: Tokenizer from scratch.</strong> Write it in Python 3.6+, preferably 3.10, since that&#39;s what the openlab.ics.uci.edu machines have. It will help with the next two assignments.<ul>
+<li>&quot;At certain points, the assignment may seem underspecified — this is by design.&quot; Make your own choices and assumptions, and be ready to defend them.</li>
+<li><strong>Your program must run</strong>: executable from the command line, taking the file names as command-line arguments.</li>
+</ul>
+</li>
+<li>Sign and upload the Course Policies document on time: 1 bonus point.</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.ics.uci.edu/~lab/students/acct_activate.php">openlab account activation</a> · <a href="https://canvas.eee.uci.edu/courses/87165/files/37013271">Basic computing skills booklet (Canvas)</a></p>
+</blockquote>
+<hr>
+<h2 id="12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</h2>
+<h3 id="121-database-query-or-search-query-l1-p3941--l2-p2324">12.1 Database query or search query? (L1 p39–41 · L2 p23–24)</h3>
+<p>For each request, decide whether it&#39;s a database query or a search-engine query, and say why:</p>
+<ol>
+<li>&quot;Find accounts whose balance is greater than <code>$100</code>&quot;</li>
+<li>&quot;Canvas UCI&quot;</li>
+<li>&quot;Find how to merge two lists in Python&quot;</li>
+<li>&quot;Find the graph of y=log(x)&quot;</li>
+</ol>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> (1) is a <strong>database</strong> query: the data is structured (an accounts table with a numeric balance), the condition is formal logic (<code>balance &gt; 100</code>), and the semantics are well-defined — every matching row is correct, none is missing. (2)–(4) are <strong>search</strong> queries: they are informal and ad hoc, and the engine must infer what they mean. Does &quot;Canvas UCI&quot; want the login page or the help pages? Which programming idiom counts as &quot;merge&quot;? A page <em>about</em> log(x), or a plot? There is no single correct answer set, only a ranking by relevance. Back to <a href="#5-database-engines-vs-search-engines">section 5</a>.</p>
+<h3 id="122-which-classic-ir-assumption-breaks-l3-p46">12.2 Which classic IR assumption breaks? (L3 p4–6)</h3>
+<p>Classic IR maximizes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span> over a fixed corpus, ignoring context and the user. For each fact about the Web, name the assumption it breaks: (a) the Web can&#39;t fit in any centralized memory; (b) pages change all the time; (c) some pages are written to game the ranking; (d) one search box serves everyone.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> (a) The corpus is centralized → <strong>not centralized</strong>. (b) The corpus is static → <strong>not static</strong>: the engine must update constantly. (c) Context is ignored → it <strong>can&#39;t be</strong>: this is <em>adversarial IR</em>, with information to avoid. (d) The user is ignored → it <strong>can&#39;t be</strong>: hugely divergent needs share one interface. Back to <a href="#7-classic-ir-vs-web-ir">section 7</a>.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Information retrieval</td>
+<td>Searching and extracting information from a collection of information resources (here: text documents)</td>
+</tr>
+<tr>
+<td>Corpus</td>
+<td>The document collection</td>
+</tr>
+<tr>
+<td>Relevance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></td>
+<td>How well document <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span></span></span></span> satisfies the need behind query <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi></mrow><annotation encoding="application/x-tex">Q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span></span></span></span></td>
+</tr>
+<tr>
+<td>Retrieval model</td>
+<td>What to pay attention to when matching a query and a document; the basis for ranking</td>
+</tr>
+<tr>
+<td>Adversarial IR</td>
+<td>Retrieval where some content is designed to manipulate the engine (spam)</td>
+</tr>
+<tr>
+<td>Stopping / stemming</td>
+<td>Drop very common words / group word variants (fishes → fish)</td>
+</tr>
+<tr>
+<td>Index inversion</td>
+<td>doc → term becomes term → doc</td>
+</tr>
+<tr>
+<td>Query broker</td>
+<td>Distributes queries to different processors</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Architecture half</th>
+<th>Blocks</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Preprocessing (offline)</td>
+<td>Text Acquisition → Document Store → Text Transformation → Index Creation → Index</td>
+</tr>
+<tr>
+<td>Querying (online)</td>
+<td>UI ↔ Ranking ↔ Index; Evaluation + Log feeding back into Ranking</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>IR in this course = searching and extracting information from a collection of <strong>text documents</strong>, done on the <strong>Web</strong>.</li>
+<li>Databases answer well-defined queries over structured data; search engines <strong>infer</strong> meaning from vague queries and <strong>rank</strong> by relevance.</li>
+<li>Relevance = textual similarity <strong>plus</strong> document, user and query context — databases stop at the first.</li>
+<li>The Web breaks all four classic IR assumptions: not centralized, not static, adversarial (context matters), and the user matters.</li>
+<li>Know which architecture block does what — Text Acquisition, Text Transformation (tokenize, stop, stem), Index Creation (term weighting, inversion), UI, Ranking, Evaluation.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><span data-astro-cid-gxyjxt6l></span><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/week-02/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 2 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>The Web Corpus, SEO, Web Crawling</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 1</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-01/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/cs-121/week-02/en-US/" title="Next: The Web Corpus, SEO, Web Crawling (])" aria-label="Next: Week 2" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 2</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

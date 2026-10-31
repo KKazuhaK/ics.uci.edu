@@ -1,0 +1,967 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 JavaScript 2 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Variables and types, control flow and strings, arrays, objects and JSON, functions as objects, callbacks, forEach/map/filter/reduce, and scope, hoisting, let vs. var."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413982" data-source-url="/~kazuhak/notes/in4matx-133/lec-05/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-04/en-US/" data-next-url="/~kazuhak/notes/in4matx-133/lec-06/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 5</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 5 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 5 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-5-javascript-2">IN4MATX 133: User Interface Software — Lecture 5: Javascript 2</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-the-role-of-javascript">1. The role of JavaScript</a></li>
+<li><a href="#2-loading-printing-and-syntax">2. Loading, printing and syntax</a></li>
+<li><a href="#3-variables-and-types">3. Variables and types</a></li>
+<li><a href="#4-conditionals-loops-and-strings">4. Conditionals, loops and strings</a></li>
+<li><a href="#5-arrays">5. Arrays</a></li>
+<li><a href="#6-objects-and-json">6. Objects and JSON</a></li>
+<li><a href="#7-functions">7. Functions</a></li>
+<li><a href="#8-functions-are-objects">8. Functions are objects</a></li>
+<li><a href="#9-passing-functions-and-callbacks">9. Passing functions and callbacks</a></li>
+<li><a href="#10-foreach-map-filter-and-reduce">10. forEach, map, filter and reduce</a></li>
+<li><a href="#11-scope-hoisting-let-and-var">11. Scope, hoisting, let and var</a></li>
+<li><a href="#12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Thursday 10/8<br>Built from the Lecture 5 slides (62 pages) and the demo repo folder <code>W2_L2_Oct8_JavaScript</code>. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: A1 is due Monday at 11:59pm.<br>A2 is posted: start it early, students have found it much more challenging than A1. Questions go in the <code>#assignment2</code> Slack channel, and the lecture slides with all A2-related content are already posted.</p>
+</blockquote>
+<p>Slides 53–62 come after the closing slide (&quot;Some useful JavaScript methods and important notes&quot;); their content is folded into the sections below, marked &quot;(appendix)&quot;.</p>
+<hr>
+<h2 id="1-the-role-of-javascript">1. The role of JavaScript</h2>
+<p>The three web languages each have one job (slides 5–6):</p>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Kind</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTML</td>
+<td>Markup language</td>
+<td>Specify how content is rendered</td>
+</tr>
+<tr>
+<td>CSS</td>
+<td>Styling language</td>
+<td>Visually style content</td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td>Programming language</td>
+<td>Dynamically manipulate content</td>
+</tr>
+</tbody></table>
+<p><strong>Why JavaScript?</strong> It makes pages <strong>dynamic</strong>, <strong>personalized</strong>, and able to <strong>interact with other sources</strong>, like databases and APIs (slide 7). Slide 8 shows GitHub&#39;s &quot;Top 10 programming languages on GitHub 2023–2025&quot; chart: JavaScript was #1 until 2025, when TypeScript (JavaScript with types, <a href="/~kazuhak/notes/in4matx-133/lec-07/en-US/">Lecture 7</a>) took the top spot, with Python and JavaScript next.</p>
+<p>Despite the name, JavaScript is not Java (slides 9–10), and it shares more with Python (slide 11):</p>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Interpreted language</td>
+<td>Compiled language (into bytecode)</td>
+</tr>
+<tr>
+<td>Executed by a JavaScript engine</td>
+<td>Run in a Java Virtual Machine (JVM)</td>
+</tr>
+<tr>
+<td>Engine runs the same code that a programmer writes</td>
+<td>Bytecode is unreadable by people</td>
+</tr>
+<tr>
+<td>Standardized through ECMAScript, but discrepancies exist</td>
+<td>&quot;Write once, deploy anywhere&quot;</td>
+</tr>
+<tr>
+<td>Debugging dependent on execution environment</td>
+<td>Bugs found at compile time</td>
+</tr>
+<tr>
+<td>Used in every browser without a plugin</td>
+<td>Requires a plugin to be run in most browsers</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Python</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Dynamically</strong> typed</td>
+<td><strong>Dynamically</strong> typed</td>
+</tr>
+<tr>
+<td>Widely used for <strong>front-end</strong> web development</td>
+<td>Widely used for <strong>back-end</strong> web development</td>
+</tr>
+<tr>
+<td>Relies on <strong>semicolons</strong> <code>;</code> and <strong>curly braces</strong> <code>{ }</code> for code blocks</td>
+<td>Relies on <strong>indentation</strong> for code blocks</td>
+</tr>
+</tbody></table>
+<p>Slide 12&#39;s message: <strong>JavaScript is just a programming language.</strong></p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://octoverse.github.com/">GitHub Octoverse (language rankings)</a> · <a href="https://www.freecodecamp.org/news/python-vs-javascript-what-are-the-key-differences-between-the-two-popular-programming-languages/">freeCodeCamp: Python vs JavaScript</a></p>
+</blockquote>
+<hr>
+<h2 id="2-loading-printing-and-syntax">2. Loading, printing and syntax</h2>
+<p><strong>Loading.</strong> Like an external stylesheet, a script is linked from the page (slide 13):</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"test.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Printing.</strong> <code>console.log</code> writes to the <strong>JavaScript Console</strong>, not the page (slide 14):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, world!"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>It won&#39;t be visible in the page; open the developer tools to see it (slide 14&#39;s screenshot: Safari&#39;s Develop menu → JavaScript Console).</p>
+<p><strong>Syntax</strong> (slide 15): JavaScript has functions and objects; they <strong>look like Java but act differently</strong>. It uses object-oriented principles such as encapsulation. If you get lost, ask: how does this relate to languages and OOP principles I already know, and where <em>specifically</em> is it different?</p>
+<p>The repo&#39;s <code>lecture.html</code> loads <code>lecture.js</code>, which runs every snippet of this lecture in the console.</p>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/lectureExamples/lecture.html">lecture.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/lectureExamples/lecture.js">lecture.js</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.crockford.com/javascript/javascript.html">Douglas Crockford on JavaScript</a></p>
+</blockquote>
+<hr>
+<h2 id="3-variables-and-types">3. Variables and types</h2>
+<p>Variables are <strong>dynamically typed</strong>: the value has a type, the variable doesn&#39;t, so the same variable can hold a string and then a number. <code>typeof</code> tells you the current type. A declared but <strong>unassigned variable has the value <code>undefined</code></strong> (slide 16):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'hello'</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//value is a string</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//string</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//value is now a Number</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//number</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hoursSlept</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">hoursSlept</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// undefined</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>lecture.js</code> adds a follow-up: <code>hoursSlept += 2;</code> on that unassigned variable logs <strong><code>NaN</code></strong> (<code>undefined + 2</code>). Uncommenting <code>hoursSlept = 2;</code> first gives <code>4</code>.</p>
+<p><strong>Type coercion</strong> (slide 17). JavaScript converts types silently:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'40'</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//'402'</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'40'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//36</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> num</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> str</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'10'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//comparisons: these will all be booleans (true/false)</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//true</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> === </span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//false</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">''</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//true</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>+</code> with a string <strong>concatenates</strong>, so <code>&#39;40&#39; + 2</code> is the string <code>&#39;402&#39;</code>.</li>
+<li>Minus isn&#39;t defined for strings, so JavaScript knows to convert <code>&#39;40&#39;</code> to a number: <code>36</code>.</li>
+<li><code>==</code> converts both sides before comparing (<code>10 == &#39;10&#39;</code>, even <code>&#39;&#39; == 0</code>). <code>===</code> is <strong>strict</strong>: also compares the type. Use <code>===</code>.</li>
+</ul>
+<p><strong>null, undefined and NaN</strong> (appendix, slides 54–56):</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+<th><code>typeof</code></th>
+<th>Falsy?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>null</code></td>
+<td>a nonexistent object: an object, just uninitialized</td>
+<td><code>object</code></td>
+<td>yes, but <code>null == false</code> is <code>false</code></td>
+</tr>
+<tr>
+<td><code>undefined</code></td>
+<td>an undefined primitive value (like a number or string is a primitive)</td>
+<td><code>undefined</code></td>
+<td>yes, but <code>undefined == false</code> is <code>false</code></td>
+</tr>
+<tr>
+<td><code>NaN</code></td>
+<td>Not a Number: the result of any computation on <code>undefined</code>, or any other impossible computation</td>
+<td><code>number</code> (despite the name)</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'12'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// 7</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'word'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// NaN</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">undefined</span><span style="color:#D4D4D4"> * </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// NaN</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#569CD6"> NaN</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// number</span></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">NaN</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"It's not falsy!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The <code>if(NaN)</code> block prints <strong>nothing</strong>: <code>NaN</code> is falsy. (<code>!nullObj</code> and <code>!undefinedObj</code> are both true, so slides 54–55&#39;s <code>&quot;It&#39;s falsy&quot;</code> lines do print.)</p>
+<p>Step through the slide code (edit and Run to try your own):</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 16–17 · lecture.js (variables and types)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var x = &#39;hello&#39;; //value is a string\nconsole.log(typeof x); //string\nx = 42; //value is now a Number\nconsole.log(typeof x); //number\n\nvar hoursSlept;\nconsole.log(hoursSlept);\n//hoursSlept = 2; // try uncommenting this\nhoursSlept += 2;\nconsole.log(hoursSlept);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Coercion: + joins strings, - converts to numbers.&quot;, &quot;js&quot;: &quot;\nconsole.log(&#39;40&#39; + 2); //&#39;402&#39;\nconsole.log(&#39;40&#39; - 4); //36&quot;}, {&quot;note&quot;: &quot;== converts before comparing; === also compares the type.&quot;, &quot;js&quot;: &quot;\nvar num = 10;\nvar str = &#39;10&#39;;\nconsole.log(num == str); //true\nconsole.log(num === str); //false\nconsole.log(&#39;&#39; == 0); //true&quot;}, {&quot;note&quot;: &quot;Slides 54–56: null, undefined and NaN.&quot;, &quot;js&quot;: &quot;\nvar nullObj = null;\nconsole.log(typeof nullObj); //object\nconsole.log(nullObj == false); //false\nconsole.log(typeof undefined); //undefined\nconsole.log(&#39;12&#39; - 5); // 7\nconsole.log(&#39;word&#39; - 5); // NaN\nconsole.log(undefined * 3); // NaN\nconsole.log(typeof NaN); // number\nif(NaN) {\n  console.log(\&quot;It&#39;s not falsy!\&quot;);\n}&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>&#39;40&#39; + 2</code> is <code>&#39;402&#39;</code> but <code>&#39;40&#39; - 4</code> is <code>36</code>. Values read from a page or a form are strings, so &quot;adding&quot; them concatenates. And <code>==</code> hides type mismatches: <code>&#39;&#39; == 0</code> is <code>true</code>.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://codeburst.io/understanding-null-undefined-and-nan-b603cb74b44c">codeburst: Understanding null, undefined and NaN</a></p>
+</blockquote>
+<hr>
+<h2 id="4-conditionals-loops-and-strings">4. Conditionals, loops and strings</h2>
+<p><code>if</code> / <code>else if</code> / <code>else</code> and the C-style <code>for</code> loop look like C++ (slide 18):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4.4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is bigger than 5'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is between 3 and 5'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is less than 3'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output: <code>i is between 3 and 5</code>, then <code>0 1 2 3 4</code> on separate lines. (<code>lecture.js</code> logs <code>i</code> inside the loop instead of <code>x</code>, so the repo prints <code>4.4</code> five times; the slide&#39;s <code>x</code> is what&#39;s meant.)</p>
+<p><strong>Methods</strong> are called with dot notation (slide 19).; <code>toUpperCase()</code> returns a new string, so assign it back:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> className</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'in4matx 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toUpperCase</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> part</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">substring</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">part</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'MATX'</span><span style="color:#D4D4D4">) >= </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//whether the substring appears</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output (matches the console screenshot on slide 19): <code>in4matx 133</code>, <code>IN4MATX 133</code>, <code>N4M</code> (<code>substring(1, 4)</code> = indices 1–3, end excluded, like Python&#39;s <code>s[1:4]</code>), <code>true</code> (<code>indexOf</code> returns the position, or <code>-1</code> if absent).</p>
+<p><strong>String formatting</strong> (slide 20): wrap the string in <strong>backticks</strong> instead of quotes, and insert variables with <code>${...}</code>, like a Python f-string:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> className</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'in4matx 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`the class name is: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">className</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// the class name is: in4matx 133</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 18–20 · lecture.js (conditionals, loops, string methods, template literals)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var i = 4.4;\n\nif(i &gt; 5) {\n\tconsole.log(&#39;i is bigger than 5&#39;);\n} else if(i &gt;= 3) {\n\tconsole.log(&#39;i is between 3 and 5&#39;);\n} else {\n\tconsole.log(&#39;i is less than 3&#39;);\n}\n\nfor(var x = 0; x &lt; 5; x++) {\n\tconsole.log(x);\n}\n\nvar className = &#39;in4matx 133&#39;;\nconsole.log(className);\nclassName = className.toUpperCase();\nconsole.log(className);\nvar part = className.substring(1, 4);\nconsole.log(part);\nconsole.log(className.indexOf(&#39;MATX&#39;) &gt;= 0); //whether the substring appears\nconsole.log(`the class name is: ${className}`);&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>${…}</code> only works inside backticks. In <code>&#39;single&#39;</code> or <code>&quot;double&quot;</code> quotes it is printed literally.</p>
+</blockquote>
+<hr>
+<h2 id="5-arrays">5. Arrays</h2>
+<p>Arrays are similar to Java&#39;s (and Python lists), but <strong>can mix different types</strong> and nest (slide 21). Access and assign with <code>[]</code>; <strong>assigning out of bounds automatically grows the array</strong>, leaving empty slots:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> letters</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'a'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'b'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'c'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> numbers</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> things</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'raindrops'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2.5</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">, [</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">]]; </span><span style="color:#6A9955">//arrays can be nested</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> empty</span><span style="color:#D4D4D4"> = [];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> blank5</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Array</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//empty array with 5 items</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//access using [] notation like Java</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> "b"</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">things</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">][</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 8</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign using [] notation like Java</span></span>
+<span class="line"><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'z'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//=> ['z', 'b', 'c']</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assigning out of bounds automatically grows the array</span></span>
+<span class="line"><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'g'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    //=> [ 'z', 'b', 'c', , , , , , , , 'g' ]</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//=> 11</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Consoles print the gap as <code>&lt;7 empty items&gt;</code> (Node) or <code>empty × 7</code> (Chrome); reading an empty slot gives <code>undefined</code> (Python would raise <code>IndexError</code>).</p>
+<p>Arrays have their own methods (slide 22):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Make a new array</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'i'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'n'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'f'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'x'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//add item to end of the array</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'133'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> ['i','n','f','x','133']</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//combine elements into a string</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> str</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'-'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> "i-n-f-x-133"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//get index of an element (first occurrence)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> oIndex</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'x'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> 3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//remove 1 element starting at oIndex</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">splice</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">oIndex</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> ['i','n','f','133']</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>More useful array methods (appendix, slide 57):</p>
+<ul>
+<li>Arrays have stack functions: <code>.push()</code> and <code>.pop()</code> add and remove the <strong>last</strong> item.</li>
+<li><code>.concat()</code> combines arrays: <code>[1, 2].concat([3, 4])</code> → <code>[ 1, 2, 3, 4 ]</code>.</li>
+<li><code>.sort()</code> sorts &quot;alphabetically/numerically by default&quot;, but can take a <strong>comparator</strong>. For example, sort by the <code>count</code> attribute of an object:</li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sort</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">count</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">count</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The comparator returns a negative number if <code>a</code> goes first, positive if <code>b</code> does.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 21–22 · lecture.js (arrays)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var letters = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;];\nvar things = [&#39;raindrops&#39;, 2.5, true, [5, 9, 8]]; //arrays can be nested\n\nconsole.log( letters[1] ); //=&gt; \&quot;b\&quot;\nconsole.log( things[3][2] ); //=&gt; 8\n\nletters[0] = &#39;z&#39;;\nconsole.log( letters ); //=&gt; [&#39;z&#39;, &#39;b&#39;, &#39;c&#39;]&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Assigning out of bounds grows the array; the gap is empty slots.&quot;, &quot;js&quot;: &quot;\nletters[10] = &#39;g&#39;;\nconsole.log( letters );\nconsole.log( letters.length ); //=&gt; 11&quot;}, {&quot;note&quot;: &quot;push, join, indexOf, splice (slide 22).&quot;, &quot;js&quot;: &quot;\nvar array = [&#39;i&#39;,&#39;n&#39;,&#39;f&#39;,&#39;x&#39;];\narray.push(&#39;133&#39;);\nconsole.log(array);\nvar str = array.join(&#39;-&#39;);\nconsole.log(str);\nvar oIndex = array.indexOf(&#39;x&#39;); //=&gt; 3\narray.splice(oIndex, 1);\nconsole.log(array);&quot;}, {&quot;note&quot;: &quot;Slide 57: pop, concat, and sort with and without a comparator.&quot;, &quot;js&quot;: &quot;\nconsole.log(array.pop(), array);\nconsole.log([1, 2].concat([3, 4]));\nconsole.log([10, 9, 1].sort()); // compares as strings!\nconsole.log([10, 9, 1].sort(function(a, b) { return a - b; }));&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: the default <code>.sort()</code> compares elements <strong>as strings</strong>, even numbers: <code>[10, 9, 1].sort()</code> gives <code>[ 1, 10, 9 ]</code>. Pass <code>function(a, b) { return a - b; }</code> to sort numbers.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-demo-1-sum-and-count-evens-slide-23--setup1--solution1">Demo 1</a> (push, sum, count evens) · <a href="#122-question-1-what-will-be-shown-in-the-console-slides-2426">Question 1</a> (trace an array)</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://medium.com/@DaphneWatson/10-useful-javascript-array-methods-8ffe22e7a959">Medium: 10 useful JavaScript array methods</a></p>
+</blockquote>
+<hr>
+<h2 id="6-objects-and-json">6. Objects and JSON</h2>
+<p>A JavaScript <strong>object</strong> is an unordered set of key–value pairs: like a HashMap in Java or a <strong>dictionary in Python</strong>. They&#39;re sometimes called <strong>associative arrays</strong> (slide 27). Quotes around keys are optional:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4"> = {</span><span style="color:#9CDCFE">alice:</span><span style="color:#B5CEA8">40</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">bob:</span><span style="color:#B5CEA8">35</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">charles:</span><span style="color:#B5CEA8">13</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">extensions</span><span style="color:#D4D4D4"> = {</span><span style="color:#CE9178">'daniel'</span><span style="color:#9CDCFE">:</span><span style="color:#B5CEA8">1622</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'in4matx'</span><span style="color:#9CDCFE">:</span><span style="color:#B5CEA8">9937</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">num_words</span><span style="color:#D4D4D4"> = {</span><span style="color:#B5CEA8">1</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'one'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'two'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'three'</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">things</span><span style="color:#D4D4D4"> = {</span><span style="color:#9CDCFE">num:</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">dog:</span><span style="color:#CE9178">'woof'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">list:</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">]}</span></span>
+<span class="line"><span style="color:#9CDCFE">empty</span><span style="color:#D4D4D4"> = {}</span></span>
+<span class="line"><span style="color:#9CDCFE">empty</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Object</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//empty object</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Bracket access</strong> (slide 28): values (or <em>properties</em>) are referenced with the <code>array[]</code> syntax. Unlike Python, a missing key is <strong>not an error</strong>; it gives <code>undefined</code>. Assigning to a new key adds it:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//access ("look up") values</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 40</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'bob'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 35</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'charles'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 13</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//keys not in the object have undefined values</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'fred'</span><span style="color:#D4D4D4">]); </span><span style="color:#6A9955">//=> undefined</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign values</span></span>
+<span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">41</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 41</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'fred'</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">19</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//adds the key and assigns</span></span>
+<span class="line"><span style="color:#6A9955">                   //a value to it</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Dot notation</strong> (slide 29) does the same thing and chains into nested objects and arrays:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> person</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  firstName:</span><span style="color:#CE9178"> 'Alice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  lastName:</span><span style="color:#CE9178"> 'Smith'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  favorites:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    food:</span><span style="color:#CE9178"> 'pizza'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    numbers:</span><span style="color:#D4D4D4"> [</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">firstName</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//get value of 'firstName' key</span></span>
+<span class="line"><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">lastName</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'Jones'</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//set value of 'lastName' key</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">firstName</span><span style="color:#D4D4D4">+</span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">lastName</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Alice Jones"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> topic</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'food'</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> favFood</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">food</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//object in the object</span></span>
+<span class="line"><span style="color:#6A9955">              //object         //value</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> firstNumber</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">]; </span><span style="color:#6A9955">//12</span></span>
+<span class="line"><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//push 7 onto the Array</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With the key in a variable (the slide&#39;s <code>topic</code>), use brackets: <code>person.favorites[topic]</code>; <code>.topic</code> would look for a key named <code>topic</code>.</p>
+<p><strong>Useful object methods</strong> (appendix, slide 58): <code>Object.keys(obj)</code> returns an array of the keys (order is not guaranteed), <code>Object.values(obj)</code> an array of the values, <code>Object.entries(obj)</code> an array of <code>[key, value]</code> pairs:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4"> = { </span><span style="color:#9CDCFE">pet1:</span><span style="color:#CE9178"> 'Dog'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pet2:</span><span style="color:#CE9178"> 'Cat'</span><span style="color:#D4D4D4"> };</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Object</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">entries</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#6A9955">// [ ["pet1", "Dog"], ["pet2", "Cat"] ]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 27–29, 58 · lecture.js (objects)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;ages = {alice:40, bob:35, charles:13}\n\nconsole.log( ages[&#39;alice&#39;] ); //=&gt; 40\nconsole.log( ages[&#39;fred&#39;]); //=&gt; undefined\nages[&#39;alice&#39;] = 41;\nconsole.log( ages[&#39;alice&#39;] ); //=&gt; 41\nages[&#39;fred&#39;] = 19; //adds the key\n\nvar person = {\n  firstName: &#39;Alice&#39;,\n  lastName: &#39;Smith&#39;,\n  favorites: {\n    food: &#39;pizza&#39;,\n    numbers: [12, 42]\n  }\n};\nperson.lastName = &#39;Jones&#39;;\nconsole.log(person.firstName+&#39; &#39;+person.lastName); //\&quot;Alice Jones\&quot;\nconsole.log(person.favorites.food);\nperson.favorites.numbers.push(7);\nconsole.log(person.favorites.numbers);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 58: Object.keys / values / entries.&quot;, &quot;js&quot;: &quot;\nconsole.log(Object.keys(ages));\nconsole.log(Object.values(ages));\nobj = { pet1: &#39;Dog&#39;, pet2: &#39;Cat&#39; };\nconsole.log(Object.entries(obj));&quot;}]}</code></pre><p><strong>JSON</strong> (JavaScript Object Notation, slide 30) is the text format based on this object syntax, used in many APIs to send and receive data. In JSON the keys <strong>must</strong> be in double quotes:</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "first_name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Alice"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "last_name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Smith"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "age"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">40</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "pets"</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"rover"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"fluffy"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"mittens"</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  "favorites"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "music"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"jazz"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "food"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"pizza"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "numbers"</span><span style="color:#D4D4D4">: [</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.w3schools.com/js/js_json.asp">w3schools: JSON</a> · <a href="https://codeburst.io/useful-javascript-array-and-object-methods-6c7971d93230">codeburst: Useful JavaScript array and object methods</a></p>
+</blockquote>
+<hr>
+<h2 id="7-functions">7. Functions</h2>
+<p>Functions in JavaScript are like static methods in Java (slide 31): no class needed, <strong>no access modifier or return type</strong>, and <strong>parameters have no type</strong> (they are comma-separated):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//JavaScript</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> msg</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"IN4MATX 133"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The slide sets this beside the Java version, <code>public static String sayHello(String name)</code> called from <code>main</code>.)</p>
+<p><strong>All parameters are optional</strong> (slide 32). A missing argument is <code>undefined</code>; extra arguments are ignored. No error either way:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//expected; parameter is assigned a value</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"In4MATX 133"</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Hello, IN4MATX 133"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//parameter not assigned value (left undefined)</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//"Hello, undefined"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//extra parameters (values) are not assigned</span></span>
+<span class="line"><span style="color:#6A9955">//to variables, so are ignored</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"IN4MATX"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"133"</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Hello, IN4MATX"</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Real outputs: <code>Hello, In4MATX 133</code> (the slide&#39;s comment capitalizes it differently from the argument), <code>Hello, undefined</code>, <code>Hello, IN4MATX</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: calling with the wrong number of arguments is not an error in JavaScript (Python and C++ would refuse). A forgotten argument shows up later as <code>undefined</code> or <code>NaN</code>.</p>
+</blockquote>
+<hr>
+<h2 id="8-functions-are-objects">8. Functions are objects</h2>
+<p>&quot;Now for the confusing part…&quot; (slide 33): <strong>a function is a value</strong>, just like an array. The slides put the two side by side:</p>
+<table>
+<thead>
+<tr>
+<th>With an array (slide 34–36, left)</th>
+<th>With a function (right)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>var other = myArray;</code> then <code>other[1]</code> → <code>&#39;b&#39;</code></td>
+<td><code>var other = sayHello;</code> then <code>other(&#39;everyone&#39;)</code> → prints <code>Hello, everyone</code></td>
+</tr>
+<tr>
+<td>second variable, same array</td>
+<td><code>var greet = sayHello2;</code> second variable, same function object</td>
+</tr>
+<tr>
+<td><code>obj.array = myArray;</code> then <code>obj.array[0]</code> → <code>&#39;a&#39;</code></td>
+<td><code>obj.sayHi = sayHello;</code> then <code>obj.sayHi(&#39;all&#39;)</code> → prints <code>Hello, all</code></td>
+</tr>
+<tr>
+<td><code>obj.otherArray = [1,2,3]</code> (assign a literal)</td>
+<td><code>obj.otherFunc = function() {…}</code> (assign a function literal)</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//assign function to variable</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello2</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//second variable, same object</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> greet</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sayHello2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//execute object named `greet`</span></span>
+<span class="line"><span style="color:#DCDCAA">greet</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'everyone'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    //prints "Hello, everyone"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> obj</span><span style="color:#D4D4D4"> = {}</span></span>
+<span class="line"><span style="color:#6A9955">//assign function to object</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sayHi</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sayHello</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//access with dot notation</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sayHi</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'all'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//prints "Hello all"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign literal (anonymous value)</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">otherFunc</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello world!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The last line is <strong>how &quot;non-static&quot; methods are made</strong> (slide 36): a function stored as a property of an object, called through that object. (Real output of <code>obj.sayHi(&#39;all&#39;)</code> is <code>Hello, all</code>, with the comma.)</p>
+<p><strong>Anonymous values</strong> (slides 37–39). <code>[4,5,6]</code> passed straight to <code>console.log</code> is an anonymous value: it has no variable name. Functions can be anonymous too:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//named function</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous function (no name!)</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous function (value) assigned to variable</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous functions often follow an "arrow" (abbreviated) syntax</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4"> = (</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'IN4MATX 133'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The middle block is only an illustration: a nameless <code>function(person) {…}</code> on its own line is a <strong>SyntaxError</strong> (&quot;Function statements require a function name&quot;). Anonymous functions are always used as values: assigned, stored, or passed.</p>
+<p><strong>The <code>this</code> keyword</strong> (slide 40): <code>this</code> usually refers to the object that the method was called on. The slide&#39;s example:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> alice</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  first:</span><span style="color:#CE9178"> 'Alice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  last:</span><span style="color:#CE9178"> 'Jones'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#DCDCAA">  sayHello</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4">()</span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">alice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//=> "Hello, I'm Alice"</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide bug: as written this prints <strong><code>Hello, I&#39;m undefined</code></strong>, because an arrow function has no <code>this</code> of its own (it uses the surrounding one, here the global <code>window</code>). With <code>sayHello: function() {…}</code> it prints <code>Hello, I&#39;m Alice</code>. What arrows do &quot;preserve&quot; is the <code>this</code> of an enclosing method, for arrows written <em>inside</em> it. Step 3 below shows both.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 31–41 · lecture.js (functions are values)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;function sayHello(name) {\n    return \&quot;Hello, \&quot;+name;\n}\nconsole.log(sayHello(\&quot;In4MATX 133\&quot;));\nconsole.log(sayHello());\nconsole.log(sayHello(\&quot;IN4MATX\&quot;,\&quot;133\&quot;));&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;A function is a value: store it in another variable or an object property.&quot;, &quot;js&quot;: &quot;\nvar other = sayHello;\nconsole.log(other(&#39;everyone&#39;));\nvar obj = {};\nobj.sayHi = sayHello;\nconsole.log(obj.sayHi(&#39;all&#39;));\nobj.otherFunc = function() {\n    return \&quot;Hello world!\&quot;;\n}\nconsole.log(obj.otherFunc());&quot;}, {&quot;note&quot;: &quot;Arrow syntax (slide 39).&quot;, &quot;js&quot;: &quot;\nvar sayHello2 = (person) =&gt; {\n   console.log(\&quot;Hello, \&quot;+person);\n}\nsayHello2(&#39;IN4MATX 133&#39;);&quot;}, {&quot;note&quot;: &quot;Slide 40&#39;s code as written: an arrow method does NOT get the object as this.&quot;, &quot;js&quot;: &quot;\nvar alice = {\n  first: &#39;Alice&#39;,\n  sayHello:()=&gt; {\n    console.log(\&quot;Hello, I&#39;m \&quot; + this.first);\n  }\n};\nalice.sayHello();\nvar alice2 = {\n  first: &#39;Alice&#39;,\n  sayHello: function() {\n    console.log(\&quot;Hello, I&#39;m \&quot; + this.first);\n  }\n};\nalice2.sayHello();&quot;}, {&quot;note&quot;: &quot;Passing functions (slide 41): no parentheses when passing.&quot;, &quot;js&quot;: &quot;\nvar doAtOnce = function(funcA, funcB) {\n    funcA();\n    console.log(&#39; and &#39;);\n    funcB();\n    console.log(&#39; at the same time! &#39;);\n}\nvar patHead = function(name) {\n    console.log(\&quot;pat your head\&quot;);\n}\nvar rubBelly = function(name) {\n    console.log(\&quot;rub your belly\&quot;);\n}\ndoAtOnce(patHead, rubBelly);&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: don&#39;t write object methods as arrow functions if they use <code>this</code>; use <code>function</code> (or the shorthand <code>sayHello() {…}</code>).</p>
+</blockquote>
+<hr>
+<h2 id="9-passing-functions-and-callbacks">9. Passing functions and callbacks</h2>
+<p>Since functions are objects, they can be <strong>passed like variables</strong> (slide 41). Pass the function <strong>without parentheses</strong>: <code>patHead</code> is the function, <code>patHead()</code> would call it now and pass its result.</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//anonymous function syntax</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> doAtOnce</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">funcA</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">funcB</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">    funcA</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">' and '</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    funcB</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">' at the same time! '</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> patHead</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"pat your head"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> rubBelly</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"rub your belly"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">doAtOnce</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">patHead</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">rubBelly</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output: <code>pat your head</code>, <code>and</code>, <code>rub your belly</code>, <code>at the same time!</code>.</p>
+<p>A <strong>callback function</strong> is a function passed to <em>another</em> function for it to &quot;call back to&quot; and execute (slide 42):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doLater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">callback</span><span style="color:#D4D4D4">) {   </span><span style="color:#6A9955">// takes in a callback</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"I'm waiting a bit..."</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Okay, time to work!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">  callback</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doHomework</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">doLater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">doHomework</span><span style="color:#D4D4D4">);           </span><span style="color:#6A9955">// pass in the callback function</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With a <code>doHomework</code> that logs something, the two waiting lines print first, then the homework line.</p>
+<p>The browser&#39;s <code>setTimeout(callback, ms)</code> is a callback API: it calls the function after <code>ms</code> milliseconds. The in-class demo on slide 43 uses it to print a message 5 seconds later and alternate &quot;tick&quot;/&quot;tock&quot; every second (see <a href="#123-demo-2-hello-from-the-future-and-tick-tock-slide-43--setup2--solution2">Demo 2</a>).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-demo-2-hello-from-the-future-and-tick-tock-slide-43--setup2--solution2">Demo 2</a> (setTimeout callbacks)</p>
+</blockquote>
+<hr>
+<h2 id="10-foreach-map-filter-and-reduce">10. forEach, map, filter and reduce</h2>
+<p>Arrays take callbacks for the common loops (the <strong>functional programming</strong> tools).</p>
+<p><strong>forEach</strong> (slide 44): to iterate through each item, call <code>forEach</code> and pass it a function to call on each array item:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Iterate through an array</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'a'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'b'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'c'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> printItem</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`item: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">item</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">printItem</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// printItem is the callback</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous function</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`item: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">item</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Each prints <code>item: a</code>, <code>item: b</code>, <code>item: c</code>.</p>
+<p><strong>map</strong> (slide 45) applies the function to each element and returns a <strong>new array</strong> of the values it returned:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> squared</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">map</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#6A9955">//array becomes [1,4,9]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The slide defines <code>squared</code> but then passes an identical anonymous function; <code>array.map(squared)</code> does the same.)</p>
+<p><strong>filter</strong> (slide 46) returns a new array of <strong>only the elements for which the function returns true</strong>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> isACrowd</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">filter</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}); </span><span style="color:#6A9955">//returns [3,4,5]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>reduce</strong> (slide 47) applies the function to each element to update an <strong>accumulator</strong>. The callback gets <code>(accumulator, current)</code> and must <strong>return</strong> the updated accumulator; the second argument to <code>reduce</code> is the starting value:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> sum</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">reduce</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> newTotal</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> newTotal</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//returns 1+2+3+4=10</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Python</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>arr.forEach(f)</code></td>
+<td><code>for x in arr: f(x)</code></td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><code>arr.map(f)</code></td>
+<td><code>[f(x) for x in arr]</code></td>
+<td>new array, same length</td>
+</tr>
+<tr>
+<td><code>arr.filter(f)</code></td>
+<td><code>[x for x in arr if f(x)]</code></td>
+<td>new array, maybe shorter</td>
+</tr>
+<tr>
+<td><code>arr.reduce(f, init)</code></td>
+<td><code>functools.reduce(f, arr, init)</code></td>
+<td>one value</td>
+</tr>
+</tbody></table>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 44–47 · lecture.js (forEach, map, filter, reduce)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var array = [&#39;a&#39;,&#39;b&#39;,&#39;c&#39;];\narray.forEach(function(item) {\n   console.log(`item: ${item}`);\n});&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;map returns a NEW array of what the callback returns.&quot;, &quot;js&quot;: &quot;\nvar nums = [1,2,3];\nvar squares = nums.map(function(n) {\n   return n*n;\n});\nconsole.log(squares, nums);&quot;}, {&quot;note&quot;: &quot;filter keeps the elements whose callback returns true.&quot;, &quot;js&quot;: &quot;\nvar isACrowd = [3,1,4,2,5].filter(function(n) {\n   return n &gt;= 3;\n});\nconsole.log(isACrowd);&quot;}, {&quot;note&quot;: &quot;reduce threads an accumulator through the array, starting at 0.&quot;, &quot;js&quot;: &quot;\nvar sum = [1,2,3,4].reduce(function(total, current) {\n   var newTotal = total + current;\n   return newTotal;\n}, 0);\nconsole.log(sum);&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>map</code> and <code>filter</code> don&#39;t change the original array; use the returned one. And a <code>map</code>/<code>filter</code>/<code>reduce</code> callback that forgets <code>return</code> produces <code>undefined</code>s.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#124-question-2-which-will-set-max-to-the-max-slides-4850">Question 2</a> (forEach vs reduce vs for)</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.w3schools.com/jsref/jsref_reduce.asp">w3schools: Array reduce()</a></p>
+</blockquote>
+<hr>
+<h2 id="11-scope-hoisting-let-and-var">11. Scope, hoisting, let and var</h2>
+<p>All appendix slides (59–62).</p>
+<p><strong>Scoping</strong> (slide 59): variables are scoped to wherever they are defined, so a variable defined within a function is only visible within that function:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> globalScopedVar</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm global!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> func</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6"> var</span><span style="color:#9CDCFE"> funcScopedVar</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm only visible in this function!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0"> return</span><span style="color:#9CDCFE"> funcScopedVar</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">funcScopedVar</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//undefined</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Correction: the last line doesn&#39;t print <code>undefined</code>; it throws <strong><code>ReferenceError: funcScopedVar is not defined</code></strong>, which stops the script. The point stands: the name doesn&#39;t exist outside <code>func</code>.</p>
+<p><strong>Hoisting</strong> (slides 60–61). A function can be <strong>declared</strong> (<code>function name() {}</code>) or <strong>expressed</strong> (<code>var name = function() {}</code>); both are called the same way, <code>name()</code>, but are treated differently in scoping. Variable and function declarations get <strong>hoisted</strong>: they execute before the rest of the code. Assignment occurs later, where you specify it:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">bar</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">() {}</span></span>
+<span class="line"><span style="color:#6A9955">//=> is interpreted as</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">() {}</span></span>
+<span class="line"><span style="color:#DCDCAA">bar</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">foo</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>So a declared function can be called above its definition. With an expression, only the <code>var</code> is hoisted: calling it early fails with <code>TypeError: early is not a function</code>, because the variable is still <code>undefined</code>.</p>
+<p><strong>let and var</strong> (slide 62):</p>
+<ul>
+<li><code>var</code> is scoped to the <strong>function body</strong>, while <code>let</code> is scoped to the <strong>immediate brackets</strong> <code>{ }</code> (like a C++ or Go block variable).</li>
+<li>Both are hoisted, but <code>let</code> is not initialized and produces reference errors if used before its line (<code>ReferenceError: Cannot access &#39;t&#39; before initialization</code>).</li>
+<li>The slide says that in strict mode, <code>let</code> variables cannot be redeclared. In fact a <code>let</code> redeclared in the same scope is an error in any mode (<code>Identifier &#39;b&#39; has already been declared</code>), while <code>var a = 1; var a = 2;</code> is allowed.</li>
+</ul>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 59–62 · scope, hoisting, let vs var&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;console.log(foo); // hoisted, not yet assigned\nbar();            // hoisted declaration: works\nvar foo = 42;\nfunction bar() { console.log(\&quot;bar ran\&quot;); }\nconsole.log(foo);\n\ntry { early(); } catch (e) { console.log(e.name + \&quot;: \&quot; + e.message); }\nvar early = function() {}; // expression: only the var is hoisted\n\nfunction scopes() {\n  if (true) { var v = &#39;var&#39;; let l = &#39;let&#39;; }\n  console.log(v);        // var: function-scoped\n  console.log(typeof l); // let: gone outside the { }\n}\nscopes();\n\ntry { console.log(t); } catch (e) { console.log(e.name + \&quot;: \&quot; + e.message); }\nlet t = 1;\n\nfunction func() {\n  var funcScopedVar = \&quot;I&#39;m only visible in this function!\&quot;;\n  return funcScopedVar;\n}\nconsole.log(funcScopedVar); // slide 59 says undefined; it throws&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: a <code>var</code> declared inside an <code>if</code> or <code>for</code> block is still visible in the whole function. Prefer <code>let</code> (and <code>const</code>) for block scoping.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://stackoverflow.com/questions/7609276/javascript-function-order-why-does-it-matter">Stack Overflow: JavaScript function order (hoisting)</a> · <a href="https://stackoverflow.com/questions/762011/what-is-the-difference-between-let-and-var">Stack Overflow: let vs var</a></p>
+</blockquote>
+<blockquote>
+<p>➡️ <strong>Next</strong>: <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/">Lecture 6</a> uses all of this to select and edit page elements (the DOM), react to events, and install packages with npm.</p>
+</blockquote>
+<hr>
+<h2 id="12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</h2>
+<h3 id="121-demo-1-sum-and-count-evens-slide-23--setup1--solution1">12.1 Demo 1: Sum and count evens (slide 23 · setup1 → solution1)</h3>
+<p>Slide 23 (&quot;Array methods: setup1.js&quot;) is the live demo. The task, from <code>setup1.js</code>:</p>
+<ul>
+<li>add a 4 to the end of the list and print it again</li>
+<li>calculate and print out the sum of all of the numbers in the array</li>
+<li>count how many even numbers are in the array</li>
+</ul>
+<p>Starter:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Array is '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'4'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// what's wrong with this...?</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (<code>solution1.js</code>): what&#39;s wrong is that <code>&#39;4&#39;</code> is a <strong>string</strong>. Push the number, then two loops:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Array is now '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> sum</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">	sum</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Sum is '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">sum</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">evens</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">	if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] % </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">		evens</span><span style="color:#D4D4D4"> += </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'There are '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">evens</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">' even numbers in the array.'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output (the same four lines as slide 23&#39;s console screenshot):</p>
+<div class="code-wrap"><pre><code>Array is 6,2,8,1,2,5,3
+Array is now 6,2,8,1,2,5,3,4
+Sum is 31
+There are 5 even numbers in the array.</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With the setup&#39;s <code>push(&#39;4&#39;)</code>, the sum loop reaches <code>27 + &#39;4&#39;</code> and turns into string concatenation: <strong><code>Sum is 274</code></strong>. With the callbacks from <a href="#10-foreach-map-filter-and-reduce">section 10</a> this is <code>array.reduce((t, n) =&gt; t + n, 0)</code> and <code>array.filter(n =&gt; n % 2 == 0).length</code>.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 1 · solution1.js (plus the setup&#39;s push(&#39;4&#39;) bug)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var array = [6, 2, 8, 1, 2, 5, 3];\nconsole.log(&#39;Array is &#39; + array);\n\n/*TODO:\n- add a 4 to the end of the list and print it again\n- calculate and print out the sum of all of the numbers in the array\n- count how many even numbers are in the array\n*/\n\narray.push(4);\nconsole.log(&#39;Array is now &#39; + array);\n\nvar sum = 0;\n\nfor(var i=0; i&lt;array.length; i++) {\n\tsum += array[i];\n}\n\nconsole.log(&#39;Sum is &#39; + sum);\n\nevens = 0;\nfor(var i=0;i&lt;array.length; i++) {\n\tif(array[i] % 2 == 0) {\n\t\tevens += 1;\n\t}\n}\nconsole.log(&#39;There are &#39; + evens + &#39; even numbers in the array.&#39;);\n\n\n\n// The setup&#39;s version: push a STRING &#39;4&#39;\nvar bad = [6, 2, 8, 1, 2, 5, 3];\nbad.push(&#39;4&#39;);\nvar badSum = 0;\nfor(var i=0; i&lt;bad.length; i++) { badSum += bad[i]; }\nconsole.log(&#39;Sum with push(\\&#39;4\\&#39;) is &#39; + badSum);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/solution1.js">solution1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/solution1.html">solution1.html</a></p>
+</blockquote>
+<p>Back to <a href="#5-arrays">5. Arrays</a>.</p>
+<h3 id="122-question-1-what-will-be-shown-in-the-console-slides-2426">12.2 Question 1: What will be shown in the console? (slides 24–26)</h3>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'1'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'fish'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'dog'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'2'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'*'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> <code>number*fish*2*-1*dog*0</code></li>
+<li><strong>B</strong> <code>undefined*fish*2*undefined*dog*2</code></li>
+<li><strong>C</strong> <code>string*fish*2*24*dog*2</code></li>
+<li><strong>D</strong> <code>undefined*fish*2*undefined*dog*2</code></li>
+<li><strong>E</strong> <code>number*fish*-2*blue*3*dog*2</code></li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: E</strong> (highlighted on slide 26) — <code>number*fish*-2*blue*3*dog*2</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>Array afterwards</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>array[5] = &#39;dog&#39;</code></td>
+<td><code>[ &#39;1&#39;, &#39;fish&#39;, 2, &#39;blue&#39;, &lt;1 empty item&gt;, &#39;dog&#39; ]</code> (grows; index 4 empty)</td>
+</tr>
+<tr>
+<td><code>array.push(&#39;2&#39;)</code></td>
+<td><code>[ … , &#39;dog&#39;, &#39;2&#39; ]</code>, length 7</td>
+</tr>
+<tr>
+<td><code>array[2] = array[6] - 4</code></td>
+<td><code>&#39;2&#39; - 4</code> → <code>-2</code> (minus converts the string)</td>
+</tr>
+<tr>
+<td><code>array[0] = typeof array[2]</code></td>
+<td><code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>array[4] = array.indexOf(&#39;blue&#39;)</code></td>
+<td><code>3</code> (fills the hole)</td>
+</tr>
+</tbody></table>
+<p>Traps: B and D (identical on the slide) assume <code>undefined</code> everywhere; C treats <code>-</code> like <code>+</code> (<code>&#39;24&#39;</code>); A misplaces <code>&#39;blue&#39;</code>, which stays at index 3.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 1 · q1.js (logs the array after every line)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;source&quot;: &quot;none&quot;, &quot;js&quot;: &quot;var array = [&#39;1&#39;, &#39;fish&#39;, 2, &#39;blue&#39;];\n\narray[5] = &#39;dog&#39;;\nconsole.log(array);\n\narray.push(&#39;2&#39;);\nconsole.log(array);\n\narray[2] = array[array.length - 1] - 4;\nconsole.log(array);\n\narray[0] = typeof array[2];\nconsole.log(array);\n\narray[4] = array.indexOf(&#39;blue&#39;);\nconsole.log(array);\n\nconsole.log(array.join(&#39;*&#39;));&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q1/q1.html">q1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>Back to <a href="#5-arrays">5. Arrays</a>.</p>
+<h3 id="123-demo-2-hello-from-the-future-and-tick-tock-slide-43--setup2--solution2">12.3 Demo 2: Hello from the future and tick-tock (slide 43 · setup2 → solution2)</h3>
+<p>Slide 43 (&quot;Callback functions&quot;) shows <code>solution2.html</code> open with an empty console: the demo was run live. The task, from <code>setup2.js</code>:</p>
+<ul>
+<li>use <code>setTimeout()</code> to print &quot;Hello from the future!&quot; 5 seconds after the page is loaded</li>
+<li>alternate logging &quot;ticks&quot; and &quot;tocks&quot; every one second, creating a <strong>named</strong> function for tick and an <strong>anonymous</strong> function for tock</li>
+</ul>
+<p><code>setTimeout</code> takes two arguments: a callback function, and the time in ms until the function should be called. Starter:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> helloFromTheFuture</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (<code>solution2.js</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">helloFromTheFuture</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> tick</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'tick'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'tock'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">		setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tick</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tick</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>helloFromTheFuture</code> is passed without parentheses. <code>tick</code> logs, then schedules the anonymous arrow function; that logs <code>tock</code> and schedules <code>tick</code> again, so they alternate forever. First ~6 seconds:</p>
+<div class="code-wrap"><pre><code>tick
+tock
+tick
+tock
+Hello from the future!
+tick</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>At 5 s the hello timer and the third <code>tick</code> are both due; hello was scheduled first, so it wins.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 2 · solution2.js (wait ~5 s for the future)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;/*TODO:\n- use setTimeout() to print \&quot;Hello from the future!\&quot; 5 seconds after the page is loaded\n- alternate logging \&quot;ticks\&quot; and \&quot;tocks\&quot; every one second, creating a named function for tick and an anonymous function for tock\nsetTimeout takes two arguments: a callback function, time in MS until function should be called\nhttps://www.w3schools.com/jsref/met_win_settimeout.asp\n*/\n\nfunction helloFromTheFuture() {\n\tconsole.log(\&quot;Hello from the future!\&quot;);\n}\n\nsetTimeout(helloFromTheFuture, 5000);\n\nfunction tick() {\n\tconsole.log(&#39;tick&#39;);\n\tsetTimeout(() =&gt; {\n\t\tconsole.log(&#39;tock&#39;);\n\t\tsetTimeout(tick, 1000);\n\t}, 1000);\n}\n\nsetTimeout(tick, 1000);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/setup2.html">setup2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/solution2.html">solution2.html</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.w3schools.com/jsref/met_win_settimeout.asp">w3schools: setTimeout() (linked in setup2.js)</a></p>
+</blockquote>
+<p>Back to <a href="#9-passing-functions-and-callbacks">9. Passing functions and callbacks</a>.</p>
+<h3 id="124-question-2-which-will-set-max-to-the-max-slides-4850">12.4 Question 2: Which will set max to the max? (slides 48–50)</h3>
+<p>Which will set <code>max</code> to the max of array <code>numbers</code>? (Whitespace does not matter in JavaScript.)</p>
+<ul>
+<li><strong>A</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY;</span></span>
+<span class="line"><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>B</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> =</span></span>
+<span class="line"><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">reduce</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}, </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>C</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>D</strong> Two of the above</li>
+<li><strong>E</strong> All of the above</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: D</strong> (highlighted on slide 50) — A and B work; C doesn&#39;t.</p>
+<ul>
+<li><strong>A</strong> works: the callback updates the outer <code>max</code> for every element.</li>
+<li><strong>B</strong> works: the accumulator (also named <code>max</code>, shadowing the outer one) starts at <code>-Infinity</code> and each call returns the larger value.</li>
+<li><strong>C</strong> is broken: the loop never reads <code>numbers[i]</code>. It compares <code>num</code>, which doesn&#39;t exist here, so it throws <strong><code>ReferenceError: num is not defined</code></strong>. The fix is <code>if(numbers[i] &gt; max) { max = numbers[i]; }</code>.</li>
+</ul>
+<p>With <code>q2.js</code>&#39;s <code>numbers = [1, 5, 10, 30, 6, 500]</code> the output is <code>A: 500</code>, <code>B: 500</code>, then the error:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 2 · q2.js (C throws)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;source&quot;: &quot;none&quot;, &quot;js&quot;: &quot;var numbers = [1, 5, 10, 30, 6, 500];\n\n// ----- A ------\nvar max = Number.NEGATIVE_INFINITY;\n\nnumbers.forEach(function(num) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n});\n\nconsole.log(`A: ${max}`);\n\n\n// ----- B ------\nvar max = numbers.reduce(function(max, num) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n\treturn max;\n}, Number.NEGATIVE_INFINITY);\n\nconsole.log(`B: ${max}`);\n\n\n// ----- C ------\nvar max = Number.NEGATIVE_INFINITY;\n\nfor(var i=0;i &lt; numbers.length; i++) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n}\n\nconsole.log(`C: ${max}`);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q2/q2.html">q2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q2/q2.js">q2.js</a></p>
+</blockquote>
+<p>Back to <a href="#10-foreach-map-filter-and-reduce">10. forEach, map, filter and reduce</a>.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Types and comparisons</strong></p>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>typeof &#39;hi&#39;</code> / <code>typeof 42</code></td>
+<td><code>&#39;string&#39;</code> / <code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>typeof null</code> / <code>typeof undefined</code> / <code>typeof NaN</code></td>
+<td><code>&#39;object&#39;</code> / <code>&#39;undefined&#39;</code> / <code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;40&#39; + 2</code> / <code>&#39;40&#39; - 4</code></td>
+<td><code>&#39;402&#39;</code> / <code>36</code></td>
+</tr>
+<tr>
+<td><code>10 == &#39;10&#39;</code> / <code>10 === &#39;10&#39;</code> / <code>&#39;&#39; == 0</code></td>
+<td><code>true</code> / <code>false</code> / <code>true</code></td>
+</tr>
+<tr>
+<td><code>undefined * 3</code>, <code>&#39;word&#39; - 5</code></td>
+<td><code>NaN</code></td>
+</tr>
+<tr>
+<td>falsy</td>
+<td><code>null</code>, <code>undefined</code>, <code>NaN</code>, <code>0</code>, <code>&#39;&#39;</code>, <code>false</code></td>
+</tr>
+</tbody></table>
+<p><strong>Strings and arrays</strong></p>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>s.toUpperCase()</code>, <code>s.substring(1, 4)</code>, <code>s.indexOf(&#39;x&#39;)</code></td>
+<td>new string; slice [1,4); position or <code>-1</code></td>
+</tr>
+<tr>
+<td><code>`text ${v}`</code></td>
+<td>template literal</td>
+</tr>
+<tr>
+<td><code>a.push(x)</code> / <code>a.pop()</code></td>
+<td>add / remove last</td>
+</tr>
+<tr>
+<td><code>a.join(&#39;-&#39;)</code></td>
+<td>elements → one string</td>
+</tr>
+<tr>
+<td><code>a.indexOf(x)</code></td>
+<td>first index or <code>-1</code></td>
+</tr>
+<tr>
+<td><code>a.splice(i, n)</code></td>
+<td>remove <code>n</code> items from index <code>i</code> (in place)</td>
+</tr>
+<tr>
+<td><code>a.concat(b)</code></td>
+<td>new combined array</td>
+</tr>
+<tr>
+<td><code>a.sort((x, y) =&gt; x - y)</code></td>
+<td>numeric sort (default sorts as strings)</td>
+</tr>
+</tbody></table>
+<p><strong>Objects</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>o[&#39;key&#39;]</code> / <code>o.key</code></td>
+<td>read (missing → <code>undefined</code>)</td>
+</tr>
+<tr>
+<td><code>o.key = v</code></td>
+<td>set or add</td>
+</tr>
+<tr>
+<td><code>Object.keys(o)</code> / <code>Object.values(o)</code> / <code>Object.entries(o)</code></td>
+<td>arrays of keys / values / <code>[key, value]</code></td>
+</tr>
+</tbody></table>
+<p><strong>Functions and callbacks</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>function f(a) {…}</code></td>
+<td>declaration (hoisted)</td>
+</tr>
+<tr>
+<td><code>var f = function(a) {…}</code></td>
+<td>expression (only the <code>var</code> hoisted)</td>
+</tr>
+<tr>
+<td><code>var f = (a) =&gt; {…}</code></td>
+<td>arrow function (no own <code>this</code>)</td>
+</tr>
+<tr>
+<td><code>g(f)</code> vs <code>g(f())</code></td>
+<td>pass the function vs pass its result</td>
+</tr>
+<tr>
+<td><code>a.forEach(f)</code> / <code>a.map(f)</code> / <code>a.filter(f)</code> / <code>a.reduce(f, init)</code></td>
+<td>loop / transform / keep / accumulate</td>
+</tr>
+<tr>
+<td><code>setTimeout(f, ms)</code></td>
+<td>call <code>f</code> after <code>ms</code> milliseconds</td>
+</tr>
+<tr>
+<td><code>var</code> / <code>let</code></td>
+<td>function scope / block scope</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li><code>+</code> with a string concatenates, <code>-</code> converts to numbers: <code>&#39;40&#39; + 2</code> is <code>&#39;402&#39;</code>, <code>&#39;2&#39; - 4</code> is <code>-2</code>. Use <code>===</code>, not <code>==</code>.</li>
+<li>Assigning past the end of an array grows it with empty slots; reading a missing index or object key gives <code>undefined</code>, never an error.</li>
+<li>Functions are values: store them in variables and object properties, and pass them <strong>without parentheses</strong> as callbacks.</li>
+<li><code>map</code> and <code>filter</code> return new arrays; <code>reduce</code> needs the callback to <code>return</code> the accumulator and a starting value.</li>
+<li><code>var</code> is function-scoped and hoisted as <code>undefined</code>; <code>let</code> is block-scoped and throws if used before its line. Arrow functions don&#39;t get their own <code>this</code>.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-04/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 4</span><span class="pager-title" data-astro-cid-gxyjxt6l>Responsive Design &amp; JavaScript 1</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 6 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>DOM Manipulation &amp; Package Management</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-04/en-US/" title="Previous: Responsive Design &amp; JavaScript 1 ([)" aria-label="Previous: Lecture 4" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 4</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 5</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" title="Next: DOM Manipulation &amp; Package Management (])" aria-label="Next: Lecture 6" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 6</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

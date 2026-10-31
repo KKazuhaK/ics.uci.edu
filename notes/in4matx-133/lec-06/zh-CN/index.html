@@ -1,0 +1,806 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 DOM 操作与包管理 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="文档对象模型（DOM）、选择与修改元素、改变 DOM 树、事件与监听器、脚本加载顺序、客户端校验，以及包管理器与 npm。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413983" data-source-url="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-06/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 6 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 6 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 6 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 17 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-6dom-操作与包管理">IN4MATX 133: User Interface Software — Lecture 6：DOM 操作与包管理</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E7%9A%84-javascript">1. 客户端与服务器端的 JavaScript</a></li>
+<li><a href="#2-%E6%96%87%E6%A1%A3%E5%AF%B9%E8%B1%A1%E6%A8%A1%E5%9E%8Bdom">2. 文档对象模型（DOM）</a></li>
+<li><a href="#3-%E5%9C%A8%E9%A1%B5%E9%9D%A2%E4%B8%AD%E5%8A%A0%E5%85%A5-javascript">3. 在页面中加入 JavaScript</a></li>
+<li><a href="#4-%E9%80%89%E5%8F%96%E5%85%83%E7%B4%A0">4. 选取元素</a></li>
+<li><a href="#5-%E7%BC%96%E8%BE%91%E5%85%83%E7%B4%A0">5. 编辑元素</a></li>
+<li><a href="#6-%E4%BF%AE%E6%94%B9-dom-%E6%A0%91">6. 修改 DOM 树</a></li>
+<li><a href="#7-%E4%BA%8B%E4%BB%B6%E4%B8%8E%E7%9B%91%E5%90%AC%E5%99%A8">7. 事件与监听器</a></li>
+<li><a href="#8-%E6%96%87%E6%A1%A3%E5%B0%B1%E7%BB%AA%E4%B8%8E%E8%84%9A%E6%9C%AC%E9%A1%BA%E5%BA%8F">8. 文档就绪与脚本顺序</a></li>
+<li><a href="#9-%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E7%94%A8%E9%80%94%E9%AA%8C%E8%AF%81%E4%B8%8E%E6%94%B6%E9%9B%86%E6%95%B0%E6%8D%AE">9. 客户端的用途：验证与收集数据</a></li>
+<li><a href="#10-%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8">10. 包管理器</a></li>
+<li><a href="#11-npm">11. npm</a></li>
+<li><a href="#12-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">12. 课堂问题与演示（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">13. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，10/13（周二）。内容整理自 Lecture 6 的幻灯片（共 53 页）和示例仓库文件夹 <code>W3_L1_Oct13_DOM</code>。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：尽快开始做 A2：大约 2 周后截止，有专门的 <code>#a2</code> Slack 频道，学生反映难度较大，所以千万不要拖到最后。<br>A2 会用到三讲的内容：Lec 5（10/8，JavaScript 基础）、本讲（10/13，用 JavaScript 修改页面内容 + npm）以及 Lec 7（10/15，TypeScript 对象 + Vega-Lite 图表）。</p>
+</blockquote>
+<hr>
+<h2 id="1-客户端与服务器端的-javascript">1. 客户端与服务器端的 JavaScript</h2>
+<p>到目前为止（<a href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/">Lecture 5</a>），JavaScript 看起来和其他语言没什么区别。它之所以席卷了 Web，是因为它<strong>内置了大量用于编辑网页的函数</strong>。今天它运行在两个地方：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>客户端（你的浏览器）</th>
+<th>服务器端（Web 服务器）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户可见吗？</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>修改何时发生</td>
+<td>在浏览器中实时发生</td>
+<td>在服务器上，响应 HTTP 请求时发生</td>
+</tr>
+<tr>
+<td>作用</td>
+<td>编辑正在渲染的内容；触发或响应事件</td>
+<td>以编程方式操作文件系统；动态生成页面或视图；传输、存储数据或与数据交互</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>AJAX、Angular、React、Vue.js</td>
+<td>Node、ASP.NET</td>
+</tr>
+</tbody></table>
+<p>浏览器发送<strong>请求（request）</strong>，服务器返回<strong>响应（response）</strong>（幻灯片 8 展示了一个服务器文件夹，里面有 <code>index.html</code>、<code>css/style.css</code>、<code>js/app.js</code>）。幻灯片的警告：如果两边都有 JavaScript，跟踪代码的执行可能会很混乱。</p>
+<h3 id="11-window-对象仅客户端">1.1 window 对象（仅客户端）</h3>
+<p>在客户端，<code>window</code> 就是浏览器本身；你可以读取它的属性并调用它的函数：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* example properties */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerWidth</span><span style="color:#D4D4D4">;   </span><span style="color:#6A9955">//viewport width</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> height</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHeight</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//viewport height</span></span>
+<span class="line"><span style="color:#6A9955">/* example functions */</span></span>
+<span class="line"><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Boo!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> confirmed</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">confirm</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Are you sure?"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> quest</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">prompt</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"What is your quest?"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片把 alert/confirm/prompt 弹窗标为<strong>不好的做法</strong>：应该把消息或输入框放在页面上。（幻灯片的小错误：prompt 那一行以弯引号 <code>?”);</code> 结尾，这是语法错误；上面的版本改用了直引号 <code>&quot;</code>。）</p>
+<p><strong>服务器端没有 <code>window</code></strong>：在服务器上没有可以滚动的页面，也没有人可以弹窗提醒。客户端与服务器之间的通信会在 A3 中再讲。</p>
+<p>在这个演示中，弹窗以控制台输出的形式显示。<code>confirm</code> 返回 <code>true</code>，<code>prompt</code> 返回 <code>&quot;&quot;</code>（空字符串）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 10 · the window object (alerts go to the console here)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;/* example properties */\nvar width = window.innerWidth;   //viewport width\nvar height = window.innerHeight; //viewport height\nconsole.log(width &gt; 0, height &gt; 0);\n\n/* example functions */\nwindow.alert(\&quot;Boo!\&quot;);\nvar confirmed = window.confirm(\&quot;Are you sure?\&quot;);\nvar quest = window.prompt(\&quot;What is your quest?\&quot;);\nconsole.log(confirmed, JSON.stringify(quest));&quot;, &quot;height&quot;: 60}</code></pre><hr>
+<h2 id="2-文档对象模型dom">2. 文档对象模型（DOM）</h2>
+<p>DOM 是“获取、修改、添加或删除 HTML 元素的标准”。你写的 HTML 会被浏览器解析并<strong>转换成 DOM</strong>，之后客户端 JavaScript 就可以编辑 DOM。服务器端 JavaScript 也许能决定发送什么 HTML，但它<strong>不会编辑 DOM</strong>。</p>
+<p>页面加载时，浏览器会为页面构建一棵 DOM。DOM 是一棵<strong>树</strong>：HTML 元素是节点（文本和属性也作为节点挂在元素下面）。通过它，JavaScript 可以<strong>响应事件</strong>，并<strong>修改结构、样式和内容</strong>。幻灯片中的树如下：</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TB
+  doc[&quot;document&quot;] --&gt; html[&quot;Root element: #lt;html#gt;&quot;]
+  html --&gt; head[&quot;Element: #lt;head#gt;&quot;] &amp; body[&quot;Element: #lt;body#gt;&quot;]
+  head --&gt; title[&quot;Element: #lt;title#gt;&quot;] --&gt; t1[&quot;Text: #quot;My title#quot;&quot;]
+  body --&gt; h1[&quot;Element: #lt;h1#gt;&quot;] --&gt; t2[&quot;Text: #quot;A heading#quot;&quot;]
+  body --&gt; a[&quot;Element: #lt;a#gt;&quot;]
+  a --&gt; href[&quot;Attribute: href&quot;]
+  a --&gt; t3[&quot;Text: #quot;Link text#quot;&quot;]</code></pre><blockquote>
+<p>💡 <strong>关键点</strong>：本讲后面所有的 DOM 调用都是树操作：找到一个节点、修改一个节点，或者添加/移动/删除子节点。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://css-tricks.com/dom/">CSS-Tricks: What is the DOM?</a> · <a href="https://en.wikipedia.org/wiki/Document_Object_Model">Wikipedia: Document Object Model</a></p>
+</blockquote>
+<hr>
+<h2 id="3-在页面中加入-javascript">3. 在页面中加入 JavaScript</h2>
+<p>你可以在 <code>&lt;script&gt;</code> 标签中直接写 JavaScript。用 <code>onclick</code> 属性绑定处理函数虽然可行，但幻灯片指出这是<strong>不好的风格</strong>：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">    function</span><span style="color:#DCDCAA"> buttonClicked</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#DCDCAA">      alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Button Clicked!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--Bad style! Don't do this--></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> onclick</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"</span><span style="color:#DCDCAA">buttonClicked</span><span style="color:#CE9178">()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>和 CSS 一样，更好的做法是<strong>加载外部脚本</strong>（与 Lecture 5 的“Loading JavaScript”相同）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"js/script.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>绑定点击处理函数更好的方式是 <code>addEventListener</code>（<a href="#7-%E4%BA%8B%E4%BB%B6%E4%B8%8E%E7%9B%91%E5%90%AC%E5%99%A8">第 7 节</a>）。把脚本放在 <code>&lt;head&gt;</code> 中，只有在脚本等待页面加载完成的情况下才能正常工作（<a href="#8-%E6%96%87%E6%A1%A3%E5%B0%B1%E7%BB%AA%E4%B8%8E%E8%84%9A%E6%9C%AC%E9%A1%BA%E5%BA%8F">第 8 节</a>）。</p>
+<hr>
+<h2 id="4-选取元素">4. 选取元素</h2>
+<p>要修改一个元素，首先需要拿到它的引用，办法是在 <code>document</code> 上调用<strong>选择器函数</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//element with id="foo"</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> fooElem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'foo'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//elements with class="row"</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> rowElems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByClassName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'row'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//&#x3C;li> elements</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> liElems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'li'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>注意这些名字。<code>getElementById</code> 是单数，返回<strong>一个元素</strong>（或 <code>null</code>）。<code>getElementsBy…</code> 是复数，返回一个<strong>集合</strong>（<code>HTMLCollection</code>），即使只匹配到一个元素也是如此。要使用其中的某个元素，需要用下标访问，比如 <code>liElems[0]</code>。</p>
+<p>幻灯片 17 对 <code>&lt;div id=&quot;foo&quot;&gt;This is a div with ID &#39;foo&#39;.&lt;/div&gt;</code> 运行了第一段代码。控制台输出该 div 的 <code>innerHTML</code>，即 <code>This is a div with ID &#39;foo&#39;.</code>（幻灯片的小错误：幻灯片代码里有弯引号 <code>‘foo&#39;</code> / <code>“foo”</code>，这是 JavaScript 语法错误；还有 <code>console.Log</code>，会抛出 <code>TypeError: console.Log is not a function</code>。下面仓库中的版本使用 <code>&#39;foo&#39;</code> 和 <code>console.log</code>。）</p>
+<p><strong>最简单的方法是复用 CSS 选择器。</strong><a href="/~kazuhak/notes/in4matx-133/lec-03/zh-CN/">Lecture 3</a> 中的任何选择器都可以使用。<code>.selectExample &gt; p</code> 是子选择器：只匹配 <code>.selectExample</code> 的<em>直接</em>子元素 <code>&lt;p&gt;</code>，不包括孙子元素。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/*easiest to select by reusing CSS selectors! */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cssSelector</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'.selectExample > p'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//selects FIRST element that matches css selector</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cssSelector</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//matches ALL elements that match css selector</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelectorAll</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cssSelector</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">elems</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这个 <code>forEach</code> 循环来自 lectureExamples.js。在仓库的页面上它会输出一次 <code>CSS selector example!!</code>。<code>.selectExample</code> 里的第二个段落位于嵌套的 <code>&lt;div&gt;</code> 内，属于孙子元素，所以不会被匹配。</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>返回值</th>
+<th>有 <code>forEach</code> 吗？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getElementById</code></td>
+<td>一个元素或 <code>null</code></td>
+<td>不适用</td>
+</tr>
+<tr>
+<td><code>getElementsByClassName</code>、<code>getElementsByTagName</code></td>
+<td><code>HTMLCollection</code>（实时更新）</td>
+<td><strong>没有</strong>，所以要用 <code>for</code> 循环</td>
+</tr>
+<tr>
+<td><code>querySelector</code></td>
+<td>第一个匹配项或 <code>null</code></td>
+<td>不适用</td>
+</tr>
+<tr>
+<td><code>querySelectorAll</code></td>
+<td><code>NodeList</code></td>
+<td><strong>有</strong></td>
+</tr>
+</tbody></table>
+<p>仓库自带的注释（solution1.js）说的是同一件事：“HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method but NodeList, which querySelector returns, does”。这里指的其实是 <code>querySelectorAll</code>。在 Chromium 中，对 HTMLCollection 执行 <code>typeof collection.forEach</code> 得到 <code>undefined</code>，对 NodeList 则得到 <code>function</code>。</p>
+<p>下面可以试试你自己的选择器；修改 JS 后点击 Run：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 16–18 · lectureExamples.html / .js (Selecting elements 1–2)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;div id=\&quot;foo\&quot;&gt;This is a div with ID &#39;foo&#39;.&lt;/div&gt;\n&lt;ol&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n&lt;/ol&gt;\n&lt;div class=\&quot;selectExample\&quot;&gt;\n    &lt;p&gt;CSS selector example!!&lt;/p&gt;\n    &lt;div&gt;&lt;p&gt;Here&#39;s another paragraph that will not be selected... because it&#39;s not a direct descendent!&lt;/p&gt;&lt;/div&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;//element with id=\&quot;foo\&quot;\nvar fooElem = document.getElementById(&#39;foo&#39;);\nconsole.log(fooElem.innerHTML);\n\n//&lt;li&gt; elements\nvar liElems = document.getElementsByTagName(&#39;li&#39;);\nconsole.log(liElems.length);\n\n/*easiest to select by reusing CSS selectors! */\nvar cssSelector = &#39;.selectExample &gt; p&#39;;\nvar elem = document.querySelector(cssSelector);\nvar elems = document.querySelectorAll(cssSelector);\nelems.forEach((elem) =&gt; {\n    console.log(elem.innerHTML);\n});\nconsole.log(elems.length);&quot;, &quot;height&quot;: 200}</code></pre><blockquote>
+<p>🧪 <strong>示例文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.html">lectureExamples.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：对集合直接写属性（<code>getElementsByClassName(&quot;para&quot;).innerHTML = …</code>）不会报错，也不会改变页面上的任何内容。必须先用下标取元素：<code>[0].innerHTML</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E9%97%AE%E9%A2%98-1%E5%93%AA%E6%AE%B5%E4%BB%A3%E7%A0%81%E8%83%BD%E4%BF%AE%E6%94%B9-p%E5%B9%BB%E7%81%AF%E7%89%87-23">问题 1</a> 考的正是这一点。</p>
+</blockquote>
+<hr>
+<h2 id="5-编辑元素">5. 编辑元素</h2>
+<p>拿到元素之后，通过<strong>设置它的属性</strong>来修改它。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* properties to access the CONTENT of the element */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p.queryTest'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//the text content of the elem</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm different!"</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//change the content</span></span>
+<span class="line"><span style="color:#6A9955">//content including tags</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm &#x3C;strong>different&#x3C;/strong>"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">parentNode</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//get the parent node</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>textContent</code> 是纯文本。字符串中的标签<strong>不会</strong>被解析，而是原样显示在页面上（在 Chromium 中存储的 HTML 是 <code>I&#39;m &amp;lt;strong&amp;gt;different&amp;lt;/strong&amp;gt;</code>）。</li>
+<li><code>innerHTML</code> 会被当作 HTML 解析，所以 <code>different</code> 会变成粗体。</li>
+<li><code>parentNode</code> 沿着树向上移动。这里它是 <code>&lt;body&gt;</code>，其 <code>tagName</code> 为 <code>BODY</code>。</li>
+</ul>
+<p>（幻灯片的小错误：<code>‘p.queryTest’</code> 用了弯引号；请使用 <code>&#39;p.queryTest&#39;</code>。）</p>
+<p>你还可以<strong>添加或移除 class、ID 以及行内样式</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elements</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"h1"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">elements</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  elements</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"title"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  elements</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">style</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"blue"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用仓库中的 CSS <code>.title { font-style: italic; }</code> 后，标题 “Hello, IN4MATX 133!” 会变成<strong>蓝色斜体</strong>。这是幻灯片里的截图，我运行 lectureExamples.html 得到的结果也是如此。<code>classList.add</code> 把样式保留在 CSS 文件里，而 <code>style.color</code> 则是在元素上写入行内样式。这里用 <code>for</code> 循环，是因为结果是一个 <code>HTMLCollection</code>（<a href="#4-%E9%80%89%E5%8F%96%E5%85%83%E7%B4%A0">第 4 节</a>）。</p>
+<p>一步步来看：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 19–20 · lectureExamples.js (Editing elements 1–2)&quot;, &quot;css&quot;: &quot;.title {\n    font-style: italic;\n}&quot;, &quot;html&quot;: &quot;&lt;h1&gt;Hello, IN4MATX 133!&lt;/h1&gt;\n&lt;p class=\&quot;queryTest\&quot;&gt;Editing inner HTML...&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var elem = document.querySelector(&#39;p.queryTest&#39;);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;textContent replaces the text; tags in the string would show literally.&quot;, &quot;js&quot;: &quot;\nelem.textContent = \&quot;I&#39;m different!\&quot;; //change the content&quot;}, {&quot;note&quot;: &quot;innerHTML parses the string as HTML, so &lt;strong&gt; becomes bold.&quot;, &quot;js&quot;: &quot;\nelem.innerHTML = \&quot;I&#39;m &lt;strong&gt;different&lt;/strong&gt;\&quot;;\nvar parent = elem.parentNode; //get the parent node\nconsole.log(parent.tagName);&quot;}, {&quot;note&quot;: &quot;Add the class \&quot;title\&quot; (italic, from the CSS) and an inline blue color to every h1.&quot;, &quot;js&quot;: &quot;\nvar elements = document.getElementsByTagName(\&quot;h1\&quot;);\nfor(var i = 0; i &lt; elements.length; i++) {\n    elements[i].classList.add(\&quot;title\&quot;);\n    elements[i].style.color=\&quot;blue\&quot;;\n}&quot;}], &quot;height&quot;: 150}</code></pre><blockquote>
+<p>🧪 <strong>示例文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.css">lectureExamples.css</a></p>
+</blockquote>
+<hr>
+<h2 id="6-修改-dom-树">6. 修改 DOM 树</h2>
+<p>除了编辑已经存在的元素，你还可以创建新节点，并把它们附加、插入、替换或删除：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//create a new &#x3C;p> (not yet in the tree)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> newP</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm new!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//create Node of textContent only</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> newText</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"I'm blank"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> div</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'div#container'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//add element INSIDE (at end)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//add node BEFORE element (new, old)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insertBefore</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"First!"</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//replace node (new, old)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">replaceChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'boo'</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">newText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//remove node</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">removeChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>你创建的节点<strong>在被 append 或 insert 到某处之前，并不会出现在页面上</strong>。按顺序执行这些调用，<code>div.innerHTML</code> 的变化如下（Chromium 的输出）：</p>
+<table>
+<thead>
+<tr>
+<th>执行后</th>
+<th><code>div.innerHTML</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>appendChild(newP)</code></td>
+<td><code>&lt;p&gt;I&#39;m new!&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td><code>appendChild(newText)</code></td>
+<td><code>&lt;p&gt;I&#39;m new!&lt;/p&gt;I&#39;m blank</code></td>
+</tr>
+<tr>
+<td><code>insertBefore(&quot;First!&quot;, newP)</code></td>
+<td><code>First!&lt;p&gt;I&#39;m new!&lt;/p&gt;I&#39;m blank</code></td>
+</tr>
+<tr>
+<td><code>replaceChild(&#39;boo&#39;, newText)</code></td>
+<td><code>First!&lt;p&gt;I&#39;m new!&lt;/p&gt;boo</code></td>
+</tr>
+<tr>
+<td><code>removeChild(p)</code></td>
+<td><code>First!boo</code></td>
+</tr>
+</tbody></table>
+<p>参数顺序是个陷阱：<code>insertBefore</code> 和 <code>replaceChild</code> 都是 <strong>(new, old)</strong>。仓库的 lectureExamples.js 把第一个 <code>appendChild</code> 之后的所有调用都注释掉了，所以它的页面只显示 “I&#39;m new!”。下面的演示会把它们全部运行一遍：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 21 · Changing the DOM, one call per step&quot;, &quot;html&quot;: &quot;&lt;div id=\&quot;container\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;//create a new &lt;p&gt; (not yet in the tree)\nvar newP = document.createElement(&#39;p&#39;);\nnewP.textContent = \&quot;I&#39;m new!\&quot;;\n//create Node of textContent only\nvar newText = document.createTextNode(\&quot;I&#39;m blank\&quot;);\nvar div = document.querySelector(&#39;div#container&#39;);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;appendChild adds the new p inside the div, at the end.&quot;, &quot;js&quot;: &quot;\ndiv.appendChild(newP); //add element INSIDE (at end)\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;A text node is appended after the p.&quot;, &quot;js&quot;: &quot;\ndiv.appendChild(newText);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;insertBefore(new, old) puts \&quot;First!\&quot; before the p.&quot;, &quot;js&quot;: &quot;\ndiv.insertBefore(document.createTextNode(\&quot;First!\&quot;), newP);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;replaceChild(new, old) swaps \&quot;I&#39;m blank\&quot; for \&quot;boo\&quot;.&quot;, &quot;js&quot;: &quot;\ndiv.replaceChild(document.createTextNode(&#39;boo&#39;), newText);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;removeChild removes the p; only the two text nodes are left.&quot;, &quot;js&quot;: &quot;\ndiv.removeChild(div.querySelector(&#39;p&#39;));\nconsole.log(div.innerHTML);&quot;}], &quot;height&quot;: 120}</code></pre><p>课堂上的 <strong>DOM 操作演示</strong>（幻灯片 22：<code>setup1.html</code>、<code>setup1.css</code>、<code>setup1.js</code>）用定时器把第 4–6 节的内容串了起来。详见 <a href="#122-%E6%BC%94%E7%A4%BA-1%E7%94%A8%E5%AE%9A%E6%97%B6%E5%99%A8%E4%BF%AE%E6%94%B9%E9%A1%B5%E9%9D%A2%E5%B9%BB%E7%81%AF%E7%89%87-22--setup1--solution1">演示 1</a>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#122-%E6%BC%94%E7%A4%BA-1%E7%94%A8%E5%AE%9A%E6%97%B6%E5%99%A8%E4%BF%AE%E6%94%B9%E9%A1%B5%E9%9D%A2%E5%B9%BB%E7%81%AF%E7%89%87-22--setup1--solution1">演示 1</a></p>
+</blockquote>
+<hr>
+<h2 id="7-事件与监听器">7. 事件与监听器</h2>
+<p><em>如何让页面具有交互性？</em> 你给元素附加一个<strong>监听器（listener）</strong>：当该元素触发事件时被调用的函数。通常它是一个匿名回调函数（回调在 <a href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/">Lecture 5</a> 中讲过）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//often use an anonymous callback function</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'click'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(){</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'clicky clicky!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>回调函数会收到一个 <strong>event</strong> 参数。它有时很有用，但通常可以忽略，因为 JavaScript 的所有参数都是可选的。<code>event.target</code> 是触发事件的元素：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'click'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'You clicked me!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">   //get what was clicked;</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> clickedElem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>你可以给同一个元素添加多个监听器，它们会按添加的顺序依次运行。在仓库的页面上，点击一次 <code>#buttonTest</code> 会先输出 <code>clicky clicky!</code>，再输出 <code>You clicked me!</code>，后面跟着按钮元素本身。</p>
+<p>幻灯片上列出的事件类型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>触发时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&#39;click&#39;</code></td>
+<td>鼠标点击或按钮被点击</td>
+</tr>
+<tr>
+<td><code>&#39;dblclick&#39;</code></td>
+<td>双击</td>
+</tr>
+<tr>
+<td><code>&#39;hover&#39;</code></td>
+<td>鼠标悬停（见下面幻灯片的小错误）</td>
+</tr>
+<tr>
+<td><code>&#39;focus&#39;</code></td>
+<td>元素获得焦点（幻灯片标注这一项很重要）</td>
+</tr>
+<tr>
+<td><code>&#39;mouseenter&#39;</code> / <code>&#39;mouseleave&#39;</code></td>
+<td>鼠标移入 / 离开元素</td>
+</tr>
+<tr>
+<td><code>&#39;mousedown&#39;</code></td>
+<td>鼠标按键被按下</td>
+</tr>
+<tr>
+<td><code>&#39;keydown&#39;</code></td>
+<td>键盘按键被按下</td>
+</tr>
+</tbody></table>
+<p>幻灯片的小错误：<strong>并不存在 <code>&#39;hover&#39;</code> 事件</strong>。我在 Chromium 中附加了一个 <code>&#39;hover&#39;</code> 监听器并把鼠标悬停在元素上，它从未触发，而 <code>&#39;mouseenter&#39;</code> 会触发。请使用 <code>mouseenter</code>/<code>mouseleave</code>（或者用 CSS 的 <code>:hover</code> 选择器来设置样式）。</p>
+<p>点击按钮，观察控制台：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 27–28 · lectureExamples.js (Listeners 1–2) — click the button&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;button id=\&quot;buttonTest\&quot;&gt;click me!&lt;/button&gt;&quot;, &quot;js&quot;: &quot;var elem = document.getElementById(&#39;buttonTest&#39;);\n\n//often use an anonymous callback function\nelem.addEventListener(&#39;click&#39;, function(){\n    console.log(&#39;clicky clicky!&#39;);\n});\n\nelem.addEventListener(&#39;click&#39;, function(event) {\n    console.log(&#39;You clicked me!&#39;);\n    // get what was clicked\n    var clickedElem = event.target;\n    console.log(clickedElem);\n});&quot;, &quot;height&quot;: 80}</code></pre><blockquote>
+<p>🧪 <strong>示例文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a>（“Listeners (1)” 和 “Listeners (2)” 部分）</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.mozilla.org/en-US/docs/Web/Events">MDN: Event reference</a></p>
+</blockquote>
+<hr>
+<h2 id="8-文档就绪与脚本顺序">8. 文档就绪与脚本顺序</h2>
+<p>你的脚本应该<strong>等页面加载完成后再运行</strong>。否则它要访问的元素可能还不存在：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">  alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Page loaded!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>lectureExamples.js 就是这样工作的：尽管它是在 <code>&lt;head&gt;</code> 中加载的，整个脚本主体都放在一个 <code>DOMContentLoaded</code> 监听器里。没有这个监听器的话，<code>&lt;head&gt;</code> 中的脚本会在 <code>&lt;body&gt;</code> 被解析之前运行。在这样的脚本顶层，<code>document.querySelector(&#39;h1&#39;)</code> 返回 <code>null</code>；放在监听器内部则能找到标题。示例文件使用较老的 <code>&lt;body onload=&quot;runJS()&quot;&gt;</code> 来达到同样的目的。</p>
+<p><strong>引入 JavaScript。</strong>当脚本使用 document ready 时，惯例是把它加载在 <code>&lt;head&gt;</code> 中。<strong>顺序很重要</strong>，尤其是对库来说：要在使用 Math.js 的脚本<em>之前</em>先加载 Math.js。</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.0.0/math.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"index.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片中第一个 <code>src</code> 以弯引号 <code>“</code> 开头；它必须是直引号 <code>&quot;</code>。）</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：选择器报 <code>Cannot read properties of null</code>，几乎总是意味着脚本运行时元素还不存在。把你的代码包在 <code>DOMContentLoaded</code> 里。</p>
+</blockquote>
+<hr>
+<h2 id="9-客户端的用途验证与收集数据">9. 客户端的用途：验证与收集数据</h2>
+<p><strong>验证数据。</strong>在把表单发送给服务器<em>之前</em>先检查字段。用户能立刻得到反馈，也减少了与服务器之间的来回通信：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> validateForm</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">  var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">forms</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">"myForm"</span><span style="color:#D4D4D4">][</span><span style="color:#CE9178">"fname"</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">==</span><span style="color:#569CD6">null</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">==</span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">    alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Name must be filled out"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">form</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"myForm"</span><span style="color:#9CDCFE"> onsubmit</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"</span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> validateForm</span><span style="color:#CE9178">()"</span><span style="color:#9CDCFE"> method</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"post"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">label</span><span style="color:#808080">></span><span style="color:#D4D4D4">Name: </span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">label</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> type</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"text"</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"fname"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> type</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"submit"</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Submit"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">form</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>onsubmit</code> 处理函数中的 <code>return false</code> 会<strong>取消提交</strong>。字段为空时，它会弹出 <code>Name must be filled out</code>，页面保持不变。<code>document.forms[&quot;myForm&quot;][&quot;fname&quot;]</code> 先按 <code>name</code> 找到表单，再按 <code>name</code> 找到输入框。</p>
+<p>两种情况都一步步看一遍（先为空，再填写），或者你自己在输入框里输入后点击 Submit。这个演示不会真正发送表单；它会输出 <code>[form submitted]</code>：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 32 \u00b7 validating a form before it is sent \u2014 step through, or type and press Submit&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;form name=\&quot;myForm\&quot; onsubmit=\&quot;return validateForm()\&quot; method=\&quot;post\&quot;&gt;\n&lt;label&gt;Name: &lt;/label&gt;\n&lt;input type=\&quot;text\&quot; name=\&quot;fname\&quot;&gt;\n&lt;input type=\&quot;submit\&quot; value=\&quot;Submit\&quot;&gt;\n&lt;/form&gt;&quot;, &quot;js&quot;: &quot;function validateForm() {\n    var x = document.forms[\&quot;myForm\&quot;][\&quot;fname\&quot;].value;\n    if(x==null || x==\&quot;\&quot;) {\n        alert(\&quot;Name must be filled out\&quot;);\n        return false;\n    }\n}&quot;, &quot;height&quot;: 80, &quot;steps&quot;: [{&quot;note&quot;: &quot;Submit with the field empty: validateForm alerts and returns false, so the submit is cancelled.&quot;, &quot;js&quot;: &quot;\n// simulate pressing Submit with an empty field\ndocument.forms[\&quot;myForm\&quot;].requestSubmit();&quot;}, {&quot;note&quot;: &quot;Fill in a name and submit again: validateForm returns nothing, so the form would be sent.&quot;, &quot;js&quot;: &quot;\ndocument.forms[\&quot;myForm\&quot;][\&quot;fname\&quot;].value = \&quot;Peter\&quot;;\ndocument.forms[\&quot;myForm\&quot;].requestSubmit();&quot;}]}</code></pre><p><strong>收集并使用信息。</strong>客户端代码可以读取只有浏览器才知道的信息，比如用户的位置：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"demo"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getLocation</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">navigator</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">geolocation</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        navigator</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">geolocation</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getCurrentPosition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">showPosition</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">        x</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"Geolocation is not supported by this browser."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> showPosition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    x</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"Latitude: "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">coords</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">latitude</span><span style="color:#D4D4D4"> +</span></span>
+<span class="line"><span style="color:#CE9178">    "&#x3C;br>Longitude: "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">coords</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">longitude</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>getCurrentPosition</code> 接收 <code>showPosition</code> 作为回调，稍后用位置信息调用它。幻灯片想强调的是：<strong>这是客户端的行为</strong>，是用户的浏览器（和设备）知道位置。（这里没有运行，因为它需要弹出位置权限提示。）</p>
+<hr>
+<h2 id="10-包管理器">10. 包管理器</h2>
+<p><em>换个话题。</em>到目前为止，我们用两种方式导入包（<a href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/">Lecture 4</a> 在引入 Bootstrap 时用过）：</p>
+<ul>
+<li>通过 <strong>CDN</strong>，在 <code>&lt;head&gt;</code> 中粘贴一个 <code>&lt;script&gt;</code> 标签，例如 <code>&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.0.0/math.min.js&quot;&gt;&lt;/script&gt;</code>；</li>
+<li><strong>从源头下载</strong>（例如下载 Bootstrap，而不是使用 CDN）。</li>
+</ul>
+<p><strong>包管理器（package manager）</strong>提供了一种在你的电脑上安装软件的简便方式，既能装新程序，也能装库。它们还能让你轻松地把软件更新到最新版本。难点在于包会依赖其他包，而且常常依赖不同的版本，包管理器应该替你处理好这些。它们本质上就是<strong>所有内容都免费的应用商店</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统级</td>
+<td>apt-get（Unix）、homebrew（macOS）、winget（Windows）</td>
+</tr>
+<tr>
+<td>语言级</td>
+<td>pip（Python）、npm（JavaScript）、yarn（同样是 JavaScript）、RubyGems（Ruby）</td>
+</tr>
+</tbody></table>
+<p><strong>为什么有这么多？</strong>保持特定语言或领域的环境有一定价值。某些语言搭配某些文件格式效果更好，大多数管理器由社区驱动，而且每个新的管理器都在解决前人留下的某个问题。幻灯片的结论是：“很多都只是借口；现实中，它常常是一团令人沮丧的乱麻。”</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.quora.com/Why-do-so-many-different-programming-languages-have-their-own-package-manager">Quora: Why do so many programming languages have their own package manager?</a></p>
+</blockquote>
+<hr>
+<h2 id="11-npm">11. npm</h2>
+<h3 id="111-npm-与-yarn">11.1 npm 与 Yarn</h3>
+<ul>
+<li><strong>npm</strong> 是作为 <strong>Node.js</strong>（服务器端 JavaScript）的包管理器推出的。</li>
+<li><strong>Yarn</strong> 出现得更晚，由 Facebook 开源发布。它使用<strong>同一个注册表（registry）</strong>（即包的列表）。</li>
+<li>两者都有大量用于构建网页和 Web 界面的实用库，既适用于服务器端 JavaScript，也适用于客户端 JavaScript。它们偶尔也被用来安装系统级软件。</li>
+<li>“包（package）”和“库（library）”经常被混用，这可能会造成误导。</li>
+</ul>
+<p>一些常见的 Web 库：</p>
+<table>
+<thead>
+<tr>
+<th>库</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Moment.js*</td>
+<td>管理时间和时区（*幻灯片链接了一篇文章，说你现在可能已经不需要它了）</td>
+</tr>
+<tr>
+<td>Math.js</td>
+<td>各种数学运算、单位换算等</td>
+</tr>
+<tr>
+<td>Express</td>
+<td>把你的网站路由到不同内容（其他页面或文件）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://momentjs.com/docs/">Moment.js docs</a> · <a href="https://dockyard.com/blog/2020/02/14/you-probably-don-t-need-moment-js-anymore">DockYard: You probably don&#39;t need Moment.js anymore</a> · <a href="http://mathjs.org/docs/">Math.js docs</a> · <a href="https://expressjs.com/">Express</a></p>
+</blockquote>
+<h3 id="112-npm-的三个文件与-git">11.2 npm 的三个文件与 git</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>它是什么</th>
+<th>提交到 git 吗？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>package.json</code></td>
+<td>本项目安装的库；按惯例放在项目根文件夹</td>
+<td><strong>是</strong></td>
+</tr>
+<tr>
+<td><code>package-lock.json</code></td>
+<td><em>你的</em>库所需要的各个库的具体版本（“库的库”）</td>
+<td><strong>是</strong></td>
+</tr>
+<tr>
+<td><code>node_modules/</code></td>
+<td>所有已安装的库本身</td>
+<td><strong>否</strong>：把它加入 <code>.gitignore</code></td>
+</tr>
+</tbody></table>
+<p><code>.gitignore</code> 列出不应被提交的文件。你提交这两个 JSON 文件，是为了让别人能安装与你<strong>相同版本的包</strong>。你不提交 <code>node_modules/</code>，是因为它既冗余（<code>package.json</code> 已经说明了要下载什么），又庞大（里面装的是包本身）。</p>
+<h3 id="113-使用-npm">11.3 使用 npm</h3>
+<p>npm 在你操作系统的命令行中运行，要在项目的<strong>根目录</strong>下执行：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">cd</span><span style="color:#CE9178"> path/to/project</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#CE9178"> packagename</span><span style="color:#6A9955">   # installs into this project's node_modules/</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> update</span><span style="color:#6A9955">                # get the latest versions (important for security patches)</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>克隆项目。</strong>比如要运行课程网页：先安装 npm，克隆仓库，然后在根目录运行不带包名的 <code>npm install</code>。这会把项目依赖的所有库（列在 <code>package.json</code> 中）安装到 <code>node_modules/</code>。</p>
+<p><strong>全局包（global package）</strong>就是你电脑上的软件，通常是命令行程序：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> packagename</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>全局包是程序而不是库，所以<strong>不会被添加到 <code>package.json</code> 或 <code>node_modules/</code></strong>，尽管你的项目运行时可能依赖它们。它们常常和操作系统级包管理器提供的东西重叠。<strong>A2 只需要全局包。</strong></p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.npmjs.com/get-npm">npm: Get npm</a></p>
+</blockquote>
+<h3 id="114-packagejson-与版本范围">11.4 package.json 与版本范围</h3>
+<p>“除非你清楚自己在做什么，否则不要手动编辑！”幻灯片中的例子（一个旧的课程网站，一个 Angular 项目）：</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"inf133-wi22"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "version"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"0.0.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "scripts"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "ng"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "start"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng serve"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "build"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng build"</span></span>
+<span class="line"><span style="color:#D4D4D4">  },</span></span>
+<span class="line"><span style="color:#9CDCFE">  "dependencies"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/animations"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/common"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/compiler"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/core"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/forms"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/platform-browser"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/platform-browser-dynamic"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/router"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "bibtex-parse-js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"0.0.24"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "component"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^1.1.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "core-js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^2.5.4"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "moment"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^2.24.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "ngx-moment"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^3.4.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "rxjs"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~6.3.3"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "tslib"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^1.10.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "zone.js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~0.8.26"</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片的小错误：<code>“inf133-wi22&quot;</code> 以弯引号开头，而且 <code>&quot;build&quot;: &quot;ng build&quot;</code> 后面多了一个逗号。这两处都是无效的 JSON，所以上面已经修正。）</p>
+<table>
+<thead>
+<tr>
+<th>前缀</th>
+<th>含义</th>
+<th><code>&quot;~7.2.0&quot;</code> / <code>&quot;^1.1.0&quot;</code> 接受的版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>^</code></td>
+<td>“兼容于”</td>
+<td><code>^1.1.0</code> → 1.X.X</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>“大致等同于”</td>
+<td><code>~7.2.0</code> → 7.2.X</td>
+</tr>
+<tr>
+<td>无</td>
+<td>恰好是该版本</td>
+<td><code>&quot;0.0.24&quot;</code></td>
+</tr>
+<tr>
+<td><code>&gt;</code>、<code>&lt;</code>、<code>&gt;=</code>、<code>=</code></td>
+<td>显式比较</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><code>scripts</code> 给出可以通过 npm 运行的命令名（例如 <code>npm start</code> 会运行 <code>ng serve</code>）。在一个空项目里，<code>npm install moment</code>（npm 10.9.4）会在 <code>package.json</code> 中写入 <code>&quot;moment&quot;: &quot;^2.31.0&quot;</code>，创建 <code>package-lock.json</code>，并下载到 <code>node_modules/</code>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E9%97%AE%E9%A2%98-2npm-install-%E4%B8%8E-npm-install--g%E5%B9%BB%E7%81%AF%E7%89%87-49">问题 2</a></p>
+</blockquote>
+<hr>
+<h2 id="12-课堂问题与演示附解答">12. 课堂问题与演示（附解答）</h2>
+<h3 id="121-问题-1哪段代码能修改-p幻灯片-23">12.1 问题 1：哪段代码能修改 p？（幻灯片 23）</h3>
+<p>下面哪段代码可以把 <code>p</code> 修改为显示 “1, 2, 3, 4, 5”？</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"para"</span><span style="color:#9CDCFE"> id</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"intro"</span><span style="color:#808080">></span><span style="color:#D4D4D4">1, 2, 3</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> <code>document.getElementById(&quot;intro&quot;).append(&quot;, 4, 5&quot;);</code></li>
+<li><strong>B</strong> <code>document.getElementsByClassName(“para&quot;).innerHTML = &quot;1, 2, 3, 4, 5&quot;;</code></li>
+<li><strong>C</strong> <code>document.getElementsByTagName(“p&quot;)[0].innerHTML = &quot;1, 2, 3, 4, 5&quot;;</code></li>
+<li><strong>D</strong> 以上有两个</li>
+<li><strong>E</strong> 以上全部</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案：D</strong>（A 和 C；幻灯片 25 的揭晓页高亮了 A、C 和 D）。</p>
+<ul>
+<li><strong>A 可行。</strong><code>getElementById</code> 返回该元素，<code>append</code> 在末尾追加文本，得到 <code>1, 2, 3, 4, 5</code>。</li>
+<li><strong>B 静默失败。</strong><code>getElementsByClassName</code> 返回一个 <code>HTMLCollection</code>。对集合设置 <code>.innerHTML</code> 只是给它创建了一个没用的属性，所以 <code>&lt;p&gt;</code> 仍然显示 <code>1, 2, 3</code>，而且不会抛出错误。</li>
+<li><strong>C 可行。</strong>它同样是集合，但 <code>[0]</code> 从中取出第一个 <code>&lt;p&gt;</code>，然后设置它的 <code>innerHTML</code>。</li>
+</ul>
+<p>（幻灯片中 B 和 C 的字符串以弯引号 <code>“</code> 开头，在真实代码里会是语法错误。仓库的 <code>q1.js</code> 使用直引号；答案按直引号来算。）把 q1.js 中的每个选项分别取消注释后运行，输出与下面这段检查相同：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 1 · each option run on a fresh copy of the p (q1.js)&quot;, &quot;html&quot;: &quot;&lt;p class=\&quot;para\&quot; id=\&quot;intro\&quot;&gt;1, 2, 3&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var p = document.getElementById(\&quot;intro\&quot;);\n\n// A\ndocument.getElementById(\&quot;intro\&quot;).append(\&quot;, 4, 5\&quot;);\nconsole.log(\&quot;A:\&quot;, p.innerHTML);\np.innerHTML = \&quot;1, 2, 3\&quot;; // reset\n\n// B\ndocument.getElementsByClassName(\&quot;para\&quot;).innerHTML = \&quot;1, 2, 3, 4, 5\&quot;;\nconsole.log(\&quot;B:\&quot;, p.innerHTML);\np.innerHTML = \&quot;1, 2, 3\&quot;; // reset\n\n// C\ndocument.getElementsByTagName(\&quot;p\&quot;)[0].innerHTML = \&quot;1, 2, 3, 4, 5\&quot;;\nconsole.log(\&quot;C:\&quot;, p.innerHTML);&quot;, &quot;height&quot;: 60}</code></pre><blockquote>
+<p>🧪 <strong>示例文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/q1/q1.html">q1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>回到 <a href="#4-%E9%80%89%E5%8F%96%E5%85%83%E7%B4%A0">4. 选取元素</a>。</p>
+<h3 id="122-演示-1用定时器修改页面幻灯片-22--setup1--solution1">12.2 演示 1：用定时器修改页面（幻灯片 22 · setup1 → solution1）</h3>
+<p>起始页面显示 “Hello, IN4MATX 133!” 和 “Fill in this paragraph and add another one.”。任务来自 <code>setup1.js</code>：</p>
+<ul>
+<li>1 秒后，给 h1 标签添加 “title” 类，并把它的颜色改为蓝色。</li>
+<li>2 秒后，把第一个段落（id 为 “first”）的文本改为 “Lorem ipsum amet”。</li>
+<li>3 秒后，给 div（id 为 “body”）添加一个新段落，文本为 “A new paragraph!”</li>
+</ul>
+<p>起始代码（<code>setup1.html</code> 通过 <code>&lt;body onload=&quot;runJS()&quot;&gt;</code> 调用 <code>runJS()</code>；<code>setup1.css</code> 定义了 <code>.title { font-style: italic; }</code> 和 <code>#body { font-family: &#39;Arial&#39;; }</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> runJS</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeTitleBlue</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addLoremIpsum</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addNewParagraph</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（来自 <code>solution1.js</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> runJS</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeTitleBlue</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">addLoremIpsum</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">addNewParagraph</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeTitleBlue</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> h1Tags</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'h1'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    // interesting note: HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method</span></span>
+<span class="line"><span style="color:#6A9955">    // but NodeList, which querySelector returns, does</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C; </span><span style="color:#9CDCFE">h1Tags</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        h1Tags</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'title'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        h1Tags</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">style</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addLoremIpsum</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> firstTag</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'first'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    firstTag</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'Lorem ipsum'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addNewParagraph</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> div</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'body'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> newEl</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    newEl</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'A new paragraph'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    newEl</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'title'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newEl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>要点：</p>
+<ul>
+<li><code>setTimeout(fn, ms)</code> 接收的是函数<strong>本身</strong>（<code>makeTitleBlue</code>，而不是 <code>makeTitleBlue()</code>），并在 <code>ms</code> 毫秒后调用它。</li>
+<li>每一步都是第 4–6 节中的一种操作：按标签选取并循环、按 id 选取并设置 <code>textContent</code>，以及创建、设置再 <code>appendChild</code>。</li>
+</ul>
+<p>3.5 秒后，页面显示蓝色的 “Hello, IN4MATX 133!”、“Lorem ipsum” 和 “A new paragraph”。仓库里有两个小出入：解答写的是 <code>&#39;Lorem ipsum&#39;</code> 和 <code>&#39;A new paragraph&#39;</code>（任务描述是 “Lorem ipsum amet” 和 “A new paragraph!”），而且它还把新段落设为了斜体。另外，<code>solution1.html</code> 链接了 <code>solution1.css</code>，但仓库里没有这个文件（404），所以在仓库页面上标题是<strong>蓝色但不是斜体</strong>。使用 <code>setup1.css</code>（如下面的演示）时，标题和新段落是斜体，div 使用 Arial 字体。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 1 · solution1.js (runJS() called directly instead of body onload)&quot;, &quot;css&quot;: &quot;.title {\n    font-style: italic;\n}\n\n#body {\n    font-family: &#39;Arial&#39;;\n}&quot;, &quot;html&quot;: &quot;&lt;h1&gt;Hello, IN4MATX 133!&lt;/h1&gt;\n&lt;div id=\&quot;body\&quot;&gt;\n    &lt;p id=\&quot;first\&quot;&gt;Fill in this paragraph and add another one.&lt;/p&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;\nfunction runJS() {\n    setTimeout(makeTitleBlue, 1000);\n\n    setTimeout(addLoremIpsum, 2000);\n\n    setTimeout(addNewParagraph, 3000);\n}\n\nfunction makeTitleBlue () {\n    var h1Tags = document.getElementsByTagName(&#39;h1&#39;);\n    // interesting note: HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method\n    // but NodeList, which querySelector returns, does\n    for(var i = 0; i&lt; h1Tags.length; i++) {\n        h1Tags[i].classList.add(&#39;title&#39;);\n        h1Tags[i].style.color = &#39;blue&#39;;\n    }\n}\n\nfunction addLoremIpsum () {\n    var firstTag = document.getElementById(&#39;first&#39;);\n    firstTag.textContent = &#39;Lorem ipsum&#39;;\n}\n\nfunction addNewParagraph () {\n    var div = document.getElementById(&#39;body&#39;);\n    var newEl = document.createElement(&#39;p&#39;);\n    newEl.textContent = &#39;A new paragraph&#39;;\n    newEl.classList.add(&#39;title&#39;);\n    div.appendChild(newEl);\n}\n\nrunJS(); // in the repo: &lt;body onload=\&quot;runJS()\&quot;&gt;&quot;, &quot;height&quot;: 160}</code></pre><blockquote>
+<p>🧪 <strong>示例文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.css">setup1.css</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/solution1.html">solution1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/solution1.js">solution1.js</a></p>
+</blockquote>
+<p>回到 <a href="#6-%E4%BF%AE%E6%94%B9-dom-%E6%A0%91">6. 修改 DOM 树</a>。</p>
+<h3 id="123-问题-2npm-install-与-npm-install--g幻灯片-49">12.3 问题 2：npm install 与 npm install -g（幻灯片 49）</h3>
+<p>哪个是正确的？四种效果如下：</p>
+<ol>
+<li>把包下载到 <code>node_modules</code></li>
+<li>把包添加到 <code>package.json</code></li>
+<li>把包的依赖添加到 <code>package-lock.json</code></li>
+<li>该包可以作为命令行程序使用</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th><code>npm install packagename</code></th>
+<th><code>npm install -g packagename</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>1, 2, 3, 4</td>
+<td>1, 4</td>
+</tr>
+<tr>
+<td>B</td>
+<td>1, 2, 3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>C</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>D</td>
+<td>1, 2, 3</td>
+<td>2, 3, 4</td>
+</tr>
+<tr>
+<td>E</td>
+<td>1</td>
+<td>1, 4</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案：B</strong>（幻灯片 51 揭晓）。</p>
+<ul>
+<li><strong>本地安装</strong>会改动项目：下载到 <code>node_modules/</code>（1），在 <code>package.json</code> 中记录该包（2），并在 <code>package-lock.json</code> 中锁定它的依赖（3）。我测试 <code>npm install moment</code> 时这三件事都发生了。</li>
+<li><strong>全局安装</strong>是“只是你电脑上的软件”：它给你一个命令行程序（4），并且<strong>不会改动</strong>项目的任何文件。这就排除了 A 和 E（全局安装不使用项目的 <code>node_modules</code>）以及 D（全局安装不会编辑 <code>package.json</code> 或 lock 文件）。C 没有考虑到本地安装还会更新那两个 JSON 文件。</li>
+</ul>
+<p>回到 <a href="#11-npm">11. npm</a>。</p>
+<hr>
+<h2 id="13-速查与必记的-5-个要点">13. 速查与必记的 5 个要点</h2>
+<p><strong>选取</strong></p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>document.getElementById(&#39;foo&#39;)</code></td>
+<td>一个元素 / <code>null</code></td>
+</tr>
+<tr>
+<td><code>document.getElementsByClassName(&#39;row&#39;)</code></td>
+<td><code>HTMLCollection</code>（用下标访问；没有 <code>forEach</code>）</td>
+</tr>
+<tr>
+<td><code>document.getElementsByTagName(&#39;li&#39;)</code></td>
+<td><code>HTMLCollection</code></td>
+</tr>
+<tr>
+<td><code>document.querySelector(&#39;.a &gt; p&#39;)</code></td>
+<td>第一个匹配项 / <code>null</code></td>
+</tr>
+<tr>
+<td><code>document.querySelectorAll(&#39;.a &gt; p&#39;)</code></td>
+<td><code>NodeList</code>（有 <code>forEach</code>）</td>
+</tr>
+</tbody></table>
+<p><strong>编辑与修改树</strong></p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>el.textContent = &quot;…&quot;</code></td>
+<td>设置纯文本（标签原样显示）</td>
+</tr>
+<tr>
+<td><code>el.innerHTML = &quot;…&quot;</code></td>
+<td>设置内容，并按 HTML 解析</td>
+</tr>
+<tr>
+<td><code>el.parentNode</code></td>
+<td>父节点</td>
+</tr>
+<tr>
+<td><code>el.classList.add(&quot;title&quot;)</code></td>
+<td>添加一个 class</td>
+</tr>
+<tr>
+<td><code>el.style.color = &quot;blue&quot;</code></td>
+<td>行内样式</td>
+</tr>
+<tr>
+<td><code>document.createElement(&#39;p&#39;)</code> / <code>createTextNode(&quot;…&quot;)</code></td>
+<td>新节点，尚未加入树中</td>
+</tr>
+<tr>
+<td><code>parent.appendChild(node)</code></td>
+<td>添加到内部末尾</td>
+</tr>
+<tr>
+<td><code>parent.insertBefore(new, old)</code></td>
+<td>添加到 <code>old</code> 之前</td>
+</tr>
+<tr>
+<td><code>parent.replaceChild(new, old)</code></td>
+<td>替换</td>
+</tr>
+<tr>
+<td><code>parent.removeChild(node)</code></td>
+<td>删除</td>
+</tr>
+</tbody></table>
+<p><strong>事件</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>el.addEventListener(&#39;click&#39;, function(event) {…})</code></td>
+<td>响应事件；<code>event.target</code> = 事件来源</td>
+</tr>
+<tr>
+<td><code>document.addEventListener(&#39;DOMContentLoaded&#39;, …)</code></td>
+<td>页面解析完成后运行</td>
+</tr>
+<tr>
+<td><code>click</code>、<code>dblclick</code>、<code>focus</code>、<code>mouseenter</code>、<code>mouseleave</code>、<code>mousedown</code>、<code>keydown</code></td>
+<td>常见类型（没有 <code>hover</code> 事件）</td>
+</tr>
+</tbody></table>
+<p><strong>npm</strong></p>
+<table>
+<thead>
+<tr>
+<th>命令 / 文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm install</code></td>
+<td>把 <code>package.json</code> 中的所有内容安装到 <code>node_modules/</code></td>
+</tr>
+<tr>
+<td><code>npm install pkg</code></td>
+<td>添加 <code>pkg</code>：node_modules + package.json + package-lock.json</td>
+</tr>
+<tr>
+<td><code>npm install -g pkg</code></td>
+<td>全局安装一个命令行程序；不涉及项目文件</td>
+</tr>
+<tr>
+<td><code>npm update</code></td>
+<td>更新到允许的最新版本（安全补丁）</td>
+</tr>
+<tr>
+<td><code>^1.1.0</code> / <code>~7.2.0</code></td>
+<td>1.X.X / 7.2.X</td>
+</tr>
+<tr>
+<td>提交</td>
+<td><code>package.json</code>、<code>package-lock.json</code>；<code>.gitignore</code> 忽略 <code>node_modules/</code></td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li><code>getElementsBy…</code> 返回的是<strong>集合</strong>：设置 <code>innerHTML</code> 之前要先用下标（<code>[0]</code>）取元素。直接对集合设置属性什么也不会发生，也不会报错。</li>
+<li><code>textContent</code> 只处理文本，而 <code>innerHTML</code> 会解析标签。</li>
+<li><code>insertBefore</code> 和 <code>replaceChild</code> 的参数是 <strong>(new, old)</strong>，而且创建出来的节点在 append 或 insert 之前是看不见的。</li>
+<li><code>&lt;head&gt;</code> 中的脚本必须等待 <code>DOMContentLoaded</code>，而且库必须在使用它们的脚本之前加载。</li>
+<li><code>npm install pkg</code> 会更新 <code>node_modules</code> + <code>package.json</code> + <code>package-lock.json</code>，而 <code>-g</code> 只安装命令行程序。提交那两个 JSON 文件，永远不要提交 <code>node_modules/</code>。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 5 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>JavaScript（二）</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 7 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>TypeScript 与数据可视化工具</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" title="上一篇: JavaScript（二） ([)" aria-label="上一篇: 第 5 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 6 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" title="下一篇: TypeScript 与数据可视化工具 (])" aria-label="下一篇: 第 7 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 7 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

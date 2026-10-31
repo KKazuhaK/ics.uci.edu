@@ -1,0 +1,1054 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 43 Quality Assurance and Software Testing | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="How do we know the software works? Verification vs. validation, the four QA technique families, the basic testing process, IEEE testing terminology (mistake/fault/error/failure), the three levels of testing (unit/integration/system), six ways to choose test cases, test oracles, and how to know when we're done testing."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-07/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-07/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-07/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413994" data-source-url="/~kazuhak/notes/in4matx-43/week-07/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-43/week-06/en-US/" data-next-url="/~kazuhak/notes/in4matx-43/week-08/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 7</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 7 · Software Engineering Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 43 Week 7 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on May 21, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--week-7-lecture-notes">Informatics 43 — Week 7 Lecture Notes</h1>
+<blockquote>
+<p>Covers <strong>Lecture 13 &amp; Lecture 14</strong>: <em>&quot;How do we know the software works? (Parts 1 &amp; 2)&quot;</em></p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-where-we-are--from-building-to-verifying">Where We Are — From Building to Verifying</a></li>
+<li><a href="#2-a-second-look-at-failures">A Second Look at Failures</a></li>
+<li><a href="#3-the-failure-case-studies">The Failure Case Studies</a></li>
+<li><a href="#4-nasas-cardinal-rules-for-safety">NASA&#39;s Cardinal Rules for Safety</a></li>
+<li><a href="#5-the-power-of-ten--rules-for-safety-critical-code">The Power of Ten — Rules for Safety-Critical Code</a></li>
+<li><a href="#6-quality-assurance--verification-vs-validation">Quality Assurance — Verification vs. Validation</a></li>
+<li><a href="#7-qa-techniques--a-mixed-toolbox">QA Techniques — A Mixed Toolbox</a></li>
+<li><a href="#8-the-basic-testing-process">The Basic Testing Process</a></li>
+<li><a href="#9-a-concrete-example-python-unittest">A Concrete Example: Python <code>unittest</code></a></li>
+<li><a href="#10-testing-goals-and-the-dijkstra-quote">Testing Goals and the Dijkstra Quote</a></li>
+<li><a href="#11-testing-terminology-ieee-61012-90">Testing Terminology (IEEE 610.12-90)</a></li>
+<li><a href="#12-who-does-the-testing">Who Does the Testing?</a></li>
+<li><a href="#13-the-three-levels-of-testing">The Three Levels of Testing</a></li>
+<li><a href="#14-levels-of-testing-in-practice--the-todolist-example">Levels of Testing in Practice — The ToDoList Example</a></li>
+<li><a href="#15-how-to-choose-test-cases--the-sweet-spot-problem">How to Choose Test Cases — The Sweet-Spot Problem</a></li>
+<li><a href="#16-six-ways-to-choose-test-cases">Six Ways to Choose Test Cases</a></li>
+<li><a href="#17-test-oracles--knowing-if-the-output-is-right">Test Oracles — Knowing If the Output Is Right</a></li>
+<li><a href="#18-all-software-has-bugs">All Software Has Bugs</a></li>
+<li><a href="#19-how-do-we-know-when-were-done-testing">How Do We Know When We&#39;re Done Testing?</a></li>
+<li><a href="#20-quiz-7-study-guide">Quiz 7 Study Guide</a></li>
+<li><a href="#21-wrap-up-and-memory-framework">Wrap-Up and Memory Framework</a></li>
+</ol>
+<hr>
+<h2 id="1-where-we-are--from-building-to-verifying">1. Where We Are — From Building to Verifying</h2>
+<p>Week 6 closed with <strong>user-centered design</strong> — interviews, personas, scenarios, storyboards, mockups, design guidelines, heuristic evaluation, and user testing — eight methods organized around a single claim: <em>it&#39;s all about the user</em>. The promise of doing UCD well was concrete and measurable: <strong>sales increase, performance increases, traffic counts increase</strong>, frustration decreases.</p>
+<p>Week 7 asks the question one step further down the pipeline. We have designed the system around the user. We have implemented it. Now:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">How</mtext><mtext> </mtext><mtext mathvariant="bold">do</mtext><mtext> </mtext><mtext mathvariant="bold">we</mtext><mtext> </mtext><mtext mathvariant="bold">know</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">software</mtext><mtext> </mtext><mtext mathvariant="bold">actually</mtext><mtext> </mtext></mrow><mtext mathvariant="italic">works</mtext><mtext mathvariant="bold">?</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{How do we know the software actually } \textit{works}\textbf{?}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">How do we know the software actually </span></span><span class="mord text"><span class="mord textit">works</span></span><span class="mord text"><span class="mord textbf">?</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The full progression we are building up is now:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Architecture</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Design</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">User-Centered</mtext><mtext> </mtext><mtext mathvariant="bold">Methods</mtext></mrow><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Code</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">QA</mtext><mtext> </mtext><mtext mathvariant="bold">&amp;</mtext><mtext> </mtext><mtext mathvariant="bold">Testing</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} \;\longrightarrow\; \textbf{Architecture} \;\longrightarrow\; \textbf{Design} \;\longrightarrow\; \textbf{User-Centered Methods} \;\longrightarrow\; \textbf{Code} \;\longrightarrow\; \textbf{QA \&amp; Testing}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Architecture</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Design</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">User-Centered Methods</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Code</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">QA &amp; Testing</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Two lectures cover the territory. <strong>Lecture 13</strong> motivates <em>why</em> QA matters (a second look at failure case studies), defines <strong>Quality Assurance</strong> as verification + validation, lists the four QA technique families, and then drills into testing itself: the basic process, the four IEEE terms (mistake/fault/error/failure), who does it, and the three levels (unit/functional/system). <strong>Lecture 14</strong> opens the testing toolbox: <em>how to choose test cases</em>, <em>how to know if the output is right</em> (test oracles), <em>all software has bugs</em>, and <em>when are we done testing</em>.</p>
+<hr>
+<h2 id="2-a-second-look-at-failures">2. A Second Look at Failures</h2>
+<p>We have seen failure case studies before — usability failures in Week 6, requirements failures earlier in the course. Lecture 13 returns to failures from a new angle: <strong>most large software failures are QA failures</strong>. The systems were built; they shipped; and somewhere between requirements and release, the work of verifying that the system actually behaved correctly was either skipped, rushed, or done badly.</p>
+<p>The gallery in this lecture is not chosen to scare students. It is chosen to make one point:</p>
+<blockquote>
+<p><strong>Bad software is not a hypothetical risk.</strong> Real airliners have crashed, real spacecraft have been lost, real cars have killed people, and real billions of dollars have been spent fixing things that should have been correct in the first place — all because nobody verified the software thoroughly enough.</p>
+</blockquote>
+<p>The argument across the gallery is also that <em>severity scales with consequence</em>, not with code size. A two-digit year field cost the world $300 billion. A single sensor reading killed two planes full of people. The cost of a missing QA practice is not proportional to how clever the bug was.</p>
+<hr>
+<h2 id="3-the-failure-case-studies">3. The Failure Case Studies</h2>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>What went wrong</th>
+<th>The QA lesson</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Boeing 737 Max</strong></td>
+<td>The MCAS flight-control software trusted a single angle-of-attack sensor and could push the nose down without pilot consent. Two crashes (Lion Air 610, Ethiopian 302), 346 deaths</td>
+<td>Safety-critical systems must not allow a <em>single</em> event to trigger a hazardous action; QA failures get embedded in business priorities — &quot;safety doesn&#39;t come first, money does&quot;</td>
+</tr>
+<tr>
+<td><strong>Toyota &quot;Unintended Acceleration&quot;</strong></td>
+<td>Drivers reported cars accelerating uncommanded. Investigations pointed to software defects in throttle control — the code was tangled (no high cohesion / low coupling), and although it <em>did</em> produce internal error codes, nothing was done with them: there was no fail-safe / &quot;safe mode&quot; to fall back into</td>
+<td>Software complexity without <strong>robustness</strong> is dangerous; this is exactly the failure mode NASA&#39;s second cardinal rule (§4) exists to prevent</td>
+</tr>
+<tr>
+<td><strong>Apollo 8 / Margaret Hamilton</strong></td>
+<td>Hamilton&#39;s team at MIT wrote the on-board flight software with an explicit <em>priority-display</em> / error-recovery design — when the computer was overloaded, it would shed low-priority tasks rather than crash. This design saved Apollo 11&#39;s landing. (The famous photo shows Hamilton standing next to a stack of code listings taller than she is.)</td>
+<td>Good QA practice — defensive design, error handling, priority management — <em>prevented</em> a disaster</td>
+</tr>
+<tr>
+<td><strong>Mars Polar Lander</strong></td>
+<td>The lander crashed into the Martian surface in 1999. The leading cause: spurious signals when the legs deployed were interpreted as touchdown, so the engines were cut off ~40 m above the surface</td>
+<td>Software interpreted sensor input incorrectly; the spec did not anticipate a transient signal</td>
+</tr>
+<tr>
+<td><strong>Y2K</strong></td>
+<td>Two-digit year fields (<code>MM/DD/YY</code>) made it ambiguous whether <code>00</code> meant 2000 or 1900. Some systems wrapped, some renamed <code>1999</code> to <code>19100</code>. Worldwide remediation cost ~<strong>$300 billion</strong>; the eventual day-of impact was relatively minor <em>because</em> of that effort</td>
+<td>A &quot;small&quot; data-definition shortcut, multiplied across millions of programs and decades, becomes a civilization-scale bug</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The Boeing 737 Max quote from IEEE Spectrum is worth keeping in mind for the quiz: <em>&quot;The 737 Max saga teaches us not only about the <strong>limits of technology</strong> and the <strong>risks of complexity</strong>, it teaches us about our real priorities. Today, <strong>safety doesn&#39;t come first — money comes first</strong>, and safety&#39;s only utility in that regard is in helping to keep the money coming.&quot;</em></p>
+</blockquote>
+<p>The Apollo 8 case is the positive counter-example in the set. The other four show what happens without rigorous QA; Apollo 8 shows what disciplined engineering looks like — and that even with primitive hardware, <em>correct software is possible if you treat verification as a first-class engineering activity</em>.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/apollo-8-margaret-hamilton-code-stack.jpg" alt="Black-and-white NASA photograph of Margaret Hamilton standing next to a stack of printouts of the Apollo Guidance Computer source code that is taller than she is."></p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/y2k-french-station-jan-1900.jpg" alt="Photograph of an LED departure board at École Centrale de Nantes displaying "BIENVENUE A L'ECOLE CENTRALE DE NANTES — 12 HEURES 09 — 3 JANVIER 1900", a Y2K rollover bug in action."></p>
+<hr>
+<h2 id="4-nasas-cardinal-rules-for-safety">4. NASA&#39;s Cardinal Rules for Safety</h2>
+<p>NASA&#39;s full safety-critical software standard runs 388 pages. The lecture extracts the two &quot;cardinal rules&quot; that summarize the philosophy:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Plain English</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>No single event or action shall be allowed to initiate a potentially hazardous event.</strong></td>
+<td>Hazardous actions must require <em>multiple</em> independent triggers. A single sensor glitch, a single button press, a single message must never be enough to cause harm</td>
+</tr>
+<tr>
+<td><strong>When an unsafe condition or command is detected, the system shall (a) inhibit the potentially hazardous event sequence, and (b) initiate procedures to bring the system to a predetermined &quot;safe&quot; state.</strong></td>
+<td>Detection isn&#39;t enough — the system must also <em>stop</em> the hazard and actively <em>move toward</em> safety</td>
+</tr>
+</tbody></table>
+<p>Notice how the Boeing 737 Max failure violates the first rule directly: a single angle-of-attack sensor was sufficient to trigger the MCAS pitch-down command. Multiple sensors, cross-checking, and pilot override would have satisfied the rule.</p>
+<blockquote>
+<p>A simple everyday illustration of rule #2 is a <strong>traffic light</strong>. The normal modes are red and green, but the light cannot be allowed to fail <em>stuck on green</em> — that&#39;s a hazardous state. When something goes wrong, the system falls back to a predetermined safe state: <strong>all directions blink red</strong>, and drivers default to treating the intersection as a stop sign. That is exactly the cardinal-rule pattern: detect → inhibit the hazard → enter a safe state.</p>
+</blockquote>
+<blockquote>
+<p>Cardinal rules like these are not testing techniques; they are <strong>design constraints</strong> that make testable correctness possible. You cannot test your way out of an architecture that lets one bad reading kill people.</p>
+</blockquote>
+<hr>
+<h2 id="5-the-power-of-ten--rules-for-safety-critical-code">5. The Power of Ten — Rules for Safety-Critical Code</h2>
+<p>A complementary list, <strong>&quot;The Power of Ten — Rules for Developing Safety Critical Code&quot;</strong> (Holzmann, IEEE Computer, June 2006), gives coding-level discipline for safety-critical systems. Holzmann wrote these at <strong>NASA&#39;s Jet Propulsion Laboratory</strong>, where the target was spacecraft software — code that has to run for years without supervision in an environment where <strong>cosmic rays can flip bits at random</strong> and there is no chance to roll out a patch. That context is why the rules read as draconian: every one closes off a specific class of bug that the JPL team had seen in flight software.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Restrict to simple control flow constructs</td>
+<td>No <code>goto</code>, no <code>setjmp/longjmp</code>, no recursion — keeps the call graph analyzable</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Give all loops a fixed upper-bound</td>
+<td>Makes it possible to prove loop termination</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Do not use dynamic memory allocation after initialization</td>
+<td>Avoids leaks, fragmentation, and use-after-free in long-running systems</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Limit functions to no more than 60 lines of text</td>
+<td>A function should fit on one screen — keeps reviewers able to reason about it</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Use minimally two assertions per function on average</td>
+<td>Document and check assumptions at runtime</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Declare data objects at the smallest possible level of scope</td>
+<td>Limits the blast radius of any one variable</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Check the return value of non-void functions, and check the validity of function parameters</td>
+<td>Never silently ignore errors or invalid input</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Limit the use of the preprocessor to file inclusion and simple macros</td>
+<td>Macros that hide control flow defeat static analysis</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Limit the use of pointers; no more than two levels of dereferencing per expression</td>
+<td>Aliasing is the source of many of the worst safety bugs</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Compile with all warnings enabled, and use one or more source code analyzers</td>
+<td>Free QA — the compiler and tools already know about most common mistakes</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>These rules are draconian on purpose. They are aimed at code that flies airplanes and spacecraft, not at a personal project. But the underlying logic — <em>make code analyzable, make assumptions explicit, fail loudly rather than quietly</em> — generalizes to any project where correctness matters.</p>
+</blockquote>
+<hr>
+<h2 id="6-quality-assurance--verification-vs-validation">6. Quality Assurance — Verification vs. Validation</h2>
+<p>The lecture&#39;s operational definition of QA is:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Quality</mtext><mtext> </mtext><mtext mathvariant="bold">Assurance</mtext></mrow><mo>=</mo><mrow><mtext mathvariant="bold">all</mtext><mtext> </mtext><mtext mathvariant="bold">activities</mtext><mtext> </mtext><mtext mathvariant="bold">designed</mtext><mtext> </mtext><mtext mathvariant="bold">to</mtext><mtext> </mtext><mtext mathvariant="bold">measure</mtext><mtext> </mtext><mtext mathvariant="bold">and</mtext><mtext> </mtext><mtext mathvariant="bold">improve</mtext><mtext> </mtext><mtext mathvariant="bold">quality</mtext><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">a</mtext><mtext> </mtext><mtext mathvariant="bold">product</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Quality Assurance} = \textbf{all activities designed to measure and improve quality in a product}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Quality Assurance</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">all activities designed to measure and improve quality in a product</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>QA decomposes into two sister activities. Both are needed; they answer different questions.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Question it answers</th>
+<th>What it compares</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Verification</strong></td>
+<td><em>&quot;Are we building the system <strong>right</strong>?&quot;</em></td>
+<td>System against <strong>Specifications</strong> — does the system conform to what the spec says it should do?</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td><em>&quot;Are we building the <strong>right</strong> system?&quot;</em></td>
+<td>System (and the spec itself) against <strong>Requirements</strong> — does the spec, and the system that implements it, actually serve the user&#39;s purpose?</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/verification-validation-diagram.png" alt="Three-block diagram contrasting verification and validation: an arrow labelled "Validation" runs between Requirements and System, and an arrow labelled "Verification" runs between Specifications and System."></p>
+<p>The diagram in the slide shows three boxes — Requirements, Specifications, System — connected by two arrows:</p>
+<ul>
+<li><strong>Verification</strong> arrow: between Specifications and System (does the built thing match the written spec?)</li>
+<li><strong>Validation</strong> arrow: from System back to Requirements (does the built thing fulfill the actual need?)</li>
+</ul>
+<blockquote>
+<p>A system can be <strong>verified but not validated</strong>: it perfectly implements the spec, but the spec captured the wrong requirements, so the product is useless. A system can also be <strong>validated but not verified</strong>: it happens to satisfy users, but does not conform to its own spec, so it&#39;s brittle and hard to maintain. Good QA needs both.</p>
+</blockquote>
+<p>This V&amp;V framing is also useful as a mental model for <strong>what</strong> QA activities are <em>for</em>. Reviews of a requirements document are validation (does the spec match what users need?). Unit tests of a function are verification (does the function match its spec?). Beta testing is mostly validation (do real users get what they need from the running system?).</p>
+<hr>
+<h2 id="7-qa-techniques--a-mixed-toolbox">7. QA Techniques — A Mixed Toolbox</h2>
+<p>Lecture 13 lists four families of QA technique. The lecture&#39;s punchline is the box at the bottom of the slide: <strong>&quot;Use a mixture of techniques!&quot;</strong> No single technique catches all faults; each has a sweet spot.</p>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>What it is</th>
+<th>Strength</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Formal methods</strong></td>
+<td>Mathematical proofs that the program meets its specification</td>
+<td>Highest assurance; works for small, critical components</td>
+</tr>
+<tr>
+<td><strong>Static analysis of program properties</strong></td>
+<td>Tools that inspect the source code (or bytecode) without running it — type checkers, linters, dataflow analyzers, security scanners</td>
+<td>Cheap, fast, finds whole classes of bugs (null derefs, unused variables, simple races)</td>
+</tr>
+<tr>
+<td><strong>Reviews and inspections</strong></td>
+<td>Humans reading the code/document together and looking for defects</td>
+<td>Catches issues that automated tools cannot — design smells, naming confusions, misunderstood requirements</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>Running the program on chosen inputs and comparing to expected outputs</td>
+<td>The most common in industry; concrete, repeatable, and produces evidence of behavior</td>
+</tr>
+</tbody></table>
+<p>Testing is the rest of this week&#39;s focus and most of next week&#39;s. Reviews and static analysis are touched on briefly; formal methods are mentioned mainly so you know they exist and that for the most safety-critical systems they are non-optional.</p>
+<hr>
+<h2 id="8-the-basic-testing-process">8. The Basic Testing Process</h2>
+<p>The lecture lays out the testing process as a tight loop:</p>
+<ol>
+<li><strong>Devise a test case (input)</strong> — pick the input(s) to feed into the unit under test</li>
+<li><strong>Create the expected output</strong> — write down what the <em>correct</em> output for that input should be</li>
+<li><strong>Run the test case</strong> — execute the unit on the chosen input</li>
+<li><strong>Capture the actual output</strong> — record what the unit actually produced</li>
+<li><strong>Compare actual output to expected output</strong></li>
+<li><em>Lather, rinse, and repeat</em></li>
+</ol>
+<p>Step 5 is the decision rule, and it has exactly two outcomes:</p>
+<table>
+<thead>
+<tr>
+<th>Comparison</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Actual output <strong>=</strong> expected output</td>
+<td>Test case <strong>SUCCEEDS</strong> / <strong>PASSES</strong></td>
+</tr>
+<tr>
+<td>Actual output <strong>≠</strong> expected output</td>
+<td>Test case <strong>FAILS</strong> (report the failure)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Two subtleties hide inside this six-step loop. <strong>(1)</strong> Step 2 (the expected output) is <em>not</em> trivial — it requires you to know, ahead of time, what the right answer is. The mechanism for knowing the right answer is called a <strong>test oracle</strong>, and Lecture 14 returns to it. <strong>(2)</strong> Most of this loop is <strong>automated</strong> in modern practice — test frameworks run thousands of cases automatically and compare actual vs. expected on each one. Human time is spent designing the test cases, not running them.</p>
+</blockquote>
+<hr>
+<h2 id="9-a-concrete-example-python-unittest">9. A Concrete Example: Python <code>unittest</code></h2>
+<p>The lecture shows a minimal example using Python&#39;s standard <code>unittest</code> framework. It is worth walking through because every term in Lecture 13 maps onto a piece of this code.</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> unittest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> TestStringMethods</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">unittest</span><span style="color:#D4D4D4">.</span><span style="color:#4EC9B0">TestCase</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> test_upper</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.assertEqual(</span><span style="color:#CE9178">'foo'</span><span style="color:#D4D4D4">.upper(), </span><span style="color:#CE9178">'FOO'</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> test_isupper</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.assertTrue(</span><span style="color:#CE9178">'FOO'</span><span style="color:#D4D4D4">.isupper())</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.assertFalse(</span><span style="color:#CE9178">'Foo'</span><span style="color:#D4D4D4">.isupper())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> test_split</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#D4D4D4">        s = </span><span style="color:#CE9178">'hello world'</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.assertEqual(s.split(), [</span><span style="color:#CE9178">'hello'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'world'</span><span style="color:#D4D4D4">])</span></span>
+<span class="line"><span style="color:#6A9955">        # check that s.split fails when the separator is not a string</span></span>
+<span class="line"><span style="color:#C586C0">        with</span><span style="color:#569CD6"> self</span><span style="color:#D4D4D4">.assertRaises(</span><span style="color:#4EC9B0">TypeError</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#D4D4D4">            s.split(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#9CDCFE"> __name__</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">'__main__'</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#D4D4D4">    unittest.main()</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Running this produces:</p>
+<div class="code-wrap"><pre><code>...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>Code element</th>
+<th>Map to terminology</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>class TestStringMethods(unittest.TestCase)</code></td>
+<td>A test suite — a collection of test cases</td>
+</tr>
+<tr>
+<td><code>def test_upper(self)</code></td>
+<td>An individual test case (devise input, create expected output, compare)</td>
+</tr>
+<tr>
+<td><code>self.assertEqual(&#39;foo&#39;.upper(), &#39;FOO&#39;)</code></td>
+<td>The compare step — actual output is <code>&#39;foo&#39;.upper()</code>, expected output is <code>&#39;FOO&#39;</code></td>
+</tr>
+<tr>
+<td><code>self.assertTrue(...)</code> / <code>self.assertFalse(...)</code></td>
+<td>Specialized comparisons for boolean expected outputs</td>
+</tr>
+<tr>
+<td><code>with self.assertRaises(TypeError):</code></td>
+<td>Negative test — the expected output is <em>an exception</em>; the test passes when the exception is raised</td>
+</tr>
+<tr>
+<td><code>Ran 3 tests in 0.000s — OK</code></td>
+<td>Three test cases passed; no failures</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Note how short the code is. The <code>unittest</code> framework hides the loop machinery; the engineer writes only the (input, expected-output) pairs. This is what &quot;much of the testing process is automated&quot; actually looks like in practice.</p>
+</blockquote>
+<hr>
+<h2 id="10-testing-goals-and-the-dijkstra-quote">10. Testing Goals and the Dijkstra Quote</h2>
+<p>The lecture summarizes the goals of testing as:</p>
+<ol>
+<li><strong>Find and fix failures/faults/errors.</strong></li>
+<li><strong>Improve confidence</strong> that the system performs <em>as specified</em> (verification) and <em>as desired</em> (validation).</li>
+<li>Do both of the above in a way that is <strong>accurate</strong>, <strong>thorough</strong>, <strong>repeatable</strong>, and <strong>systematic</strong>.</li>
+</ol>
+<p>Note that the slide draws a line through &quot;Complete&quot; and replaces it with &quot;Thorough.&quot; That is not a typo — it is the key insight, made explicit by the famous Dijkstra quote in the red box at the bottom of the slide:</p>
+<blockquote>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">&quot;Program</mtext><mtext> </mtext><mtext mathvariant="bold">testing</mtext><mtext> </mtext><mtext mathvariant="bold">can</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">used</mtext><mtext> </mtext><mtext mathvariant="bold">to</mtext><mtext> </mtext><mtext mathvariant="bold">show</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">presence</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">bugs,</mtext><mtext> </mtext><mtext mathvariant="bold">but</mtext><mtext> </mtext><mtext mathvariant="bold">never</mtext><mtext> </mtext><mtext mathvariant="bold">to</mtext><mtext> </mtext><mtext mathvariant="bold">show</mtext><mtext> </mtext><mtext mathvariant="bold">their</mtext><mtext> </mtext><mtext mathvariant="bold">absence.&quot;</mtext></mrow><mtext>  </mtext><mo stretchy="false">[</mo><mtext>Dijkstra</mtext><mo stretchy="false">]</mo></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;}\;[\text{Dijkstra}]}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">[</span><span class="mord text"><span class="mord">Dijkstra</span></span><span class="mclose">]</span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+</blockquote>
+<p>Why? Because for any non-trivial program, the input space is enormous (often infinite). You cannot run the program on every input — you can only run it on a sample. Any test you write that <em>passes</em> tells you the program is correct <strong>on that input</strong>. It tells you <em>nothing</em> about the inputs you did not test. Bugs in untested inputs are still there, waiting.</p>
+<p>This is why testing can never be &quot;complete&quot; in any logical sense. The best testing can do is be <strong>thorough enough</strong> that the bugs left are too rare or too obscure to matter in practice. &quot;Thorough&quot; is an engineering judgment; &quot;complete&quot; is a mathematical impossibility.</p>
+<blockquote>
+<p>⚠️ The Dijkstra quote is an <strong>attendance-quiz topic</strong> in this lecture. Memorize the wording: <em>&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;</em></p>
+</blockquote>
+<hr>
+<h2 id="11-testing-terminology-ieee-61012-90">11. Testing Terminology (IEEE 610.12-90)</h2>
+<p>The IEEE Standard Glossary of Software Engineering Terminology (IEEE 610.12-90) distinguishes four terms that everyday speech tends to collapse into &quot;bug.&quot; On the quiz, knowing the differences is non-negotiable.</p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+<th>What you point at</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Mistake</strong></td>
+<td>A <em>human action</em> that produces an incorrect result</td>
+<td>The person (coder or user)</td>
+</tr>
+<tr>
+<td><strong>Fault / Bug</strong></td>
+<td>An incorrect step, process, or data definition in a computer program</td>
+<td>A specific location <strong>in the code</strong></td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>A difference between a computed result and the correct result</td>
+<td>An <em>internal</em> or <em>external</em> state during execution</td>
+</tr>
+<tr>
+<td><strong>Failure</strong></td>
+<td>The (incorrect) result of a fault</td>
+<td>The <em>externally visible</em> unexpected behavior or output</td>
+</tr>
+</tbody></table>
+<p>The common industry term <strong>&quot;defect&quot;</strong> usually means <strong>fault</strong>.</p>
+<blockquote>
+<p>The chain of causation is: <strong>Mistake → Fault → Error → Failure.</strong> A programmer makes a mistake (typed <code>&lt;</code> instead of <code>&lt;=</code>), which embeds a fault (the wrong operator in the code). At runtime, that fault produces an error (the comparison computes the wrong boolean), which propagates to a failure (the user sees the wrong screen, or the system crashes).</p>
+</blockquote>
+<p>A useful illustration: a developer misreads a spec and writes <code>count &gt; 0</code> when the spec says &quot;non-negative.&quot; That is the <strong>mistake</strong>. The line of code <code>if (count &gt; 0)</code> is the <strong>fault</strong>. When the program runs with <code>count == 0</code>, the comparison returns <code>false</code> when it should have returned <code>true</code> — that internal wrong value is the <strong>error</strong>. Eventually a function that depended on it returns the wrong total, which the user sees on screen — that visible incorrect output is the <strong>failure</strong>.</p>
+<hr>
+<h2 id="12-who-does-the-testing">12. Who Does the Testing?</h2>
+<p>Testing is not the job of one role. Different testers find different bugs.</p>
+<table>
+<thead>
+<tr>
+<th>Who</th>
+<th>When / How</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Programmers</strong></td>
+<td>Write unit tests as they code (often: before they code, in test-driven development); run them on every change. Catch low-level faults early</td>
+</tr>
+<tr>
+<td><strong>Testers</strong> (dedicated QA staff)</td>
+<td>Design and run more rigorous test suites — integration tests, regression tests, scripted system tests. Often write tests against the spec without looking at the code</td>
+</tr>
+<tr>
+<td><strong>Users</strong></td>
+<td>Test the system in something closer to real-world conditions, in several flavors:</td>
+</tr>
+<tr>
+<td>↳ Acceptance testing</td>
+<td>Customer or customer&#39;s representative verifies that the system meets contracted requirements before it is accepted</td>
+</tr>
+<tr>
+<td>↳ Alpha testing</td>
+<td>Internal use, typically still by the developing organization, in a controlled environment</td>
+</tr>
+<tr>
+<td>↳ Beta testing</td>
+<td>Real, external users with a pre-release build, in real-world conditions</td>
+</tr>
+<tr>
+<td>↳ Crowdsourcing / bug bounties</td>
+<td>Pay outside testers (security researchers, the public) per bug found. Common for security-sensitive systems</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The reason &quot;who&quot; matters: <strong>each tester has different blind spots</strong>. Programmers know how the code is supposed to work, so they unconsciously test the cases they already wrote for. Independent testers don&#39;t share those assumptions and find different bugs. Real users hit input combinations no engineer would think to try.</p>
+</blockquote>
+<hr>
+<h2 id="13-the-three-levels-of-testing">13. The Three Levels of Testing</h2>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/test-pyramid-cohn.png" alt="Mike Cohn's test pyramid showing Unit Tests at the wide base, Integration Tests in the middle, and System Tests at the narrow top, with left axis "more isolation → more integration" and right axis "faster → slower". Source: M. Cohn, Succeeding with Agile, 2009."></p>
+<p>Testing also varies by <em>scope</em>. The slide presents the classic three levels, often visualized as a <strong>testing pyramid</strong> — many tests at the bottom (cheap, fast), few at the top (expensive, slow).</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>What it tests</th>
+<th>Where it sits on the pyramid</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Unit testing</strong></td>
+<td>A single code unit (function, class, module) in isolation</td>
+<td>Bottom — many tests, fast, highly isolated</td>
+</tr>
+<tr>
+<td><strong>Functional / integration testing</strong></td>
+<td>The <em>interfaces</em> among integrated units — what happens when modules call each other</td>
+<td>Middle — fewer tests, slower, more integrated</td>
+</tr>
+<tr>
+<td><strong>System / acceptance testing</strong></td>
+<td>The complete, assembled system against its requirements</td>
+<td>Top — few tests, slowest, full integration</td>
+</tr>
+</tbody></table>
+<p>The pyramid&#39;s axes give the two trade-offs:</p>
+<table>
+<thead>
+<tr>
+<th>Axis</th>
+<th>Bottom (unit)</th>
+<th>Top (system)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Isolation ↔ Integration</strong></td>
+<td>More isolation</td>
+<td>More integration</td>
+</tr>
+<tr>
+<td><strong>Speed</strong></td>
+<td>Faster</td>
+<td>Slower</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The pyramid is normative as well as descriptive: you should have <em>many</em> fast unit tests, <em>some</em> integration tests, and <em>a few</em> end-to-end system tests. Projects that invert the pyramid — relying on end-to-end tests to catch low-level bugs — end up with slow, flaky test suites that nobody trusts.</p>
+</blockquote>
+<hr>
+<h2 id="14-levels-of-testing-in-practice--the-todolist-example">14. Levels of Testing in Practice — The ToDoList Example</h2>
+<p>The lecture grounds the three levels in a concrete example: a <code>ToDoList</code> application.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/todolist-three-levels-of-testing.png" alt="Three side-by-side red panels for a ToDo list app. Left: ToDoListItem class with its fields and methods, marked Unit testing (ToDoListItem.setPriority()). Middle: List DB containing a ToDoList of items with addItem/editItem/deleteItem/markDone, marked Functional/integration testing (ToDoList.editItem()). Right: ToDoListApp wrapping ListDB, UI, Calendar, Settings, Notifications, marked System/acceptance testing (Create/Edit/Delete a list)."></p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Application:  ToDoListApp
+              ├── ListDB
+              ├── UI
+              ├── Calendar
+              ├── Settings
+              └── Notifications
+
+ListDB:       Stores ToDoList objects
+              └── ToDoList
+                    ├── items: List&lt;ToDoListItem&gt;
+                    ├── addItem(), editItem(), deleteItem(), markDone(), ...
+
+ToDoListItem: ├── description: String
+              ├── dateCreated: Date
+              ├── priority: int
+              ├── done: boolean
+              └── editDescription(), setPriority(), markDone()</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Each testing level targets a different layer of this design:</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Concrete example from the slide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Unit testing</strong></td>
+<td><code>ToDoListItem.setPriority()</code> — test that the single method correctly updates the <code>priority</code> field on a single item</td>
+</tr>
+<tr>
+<td><strong>Functional / integration testing</strong></td>
+<td><code>ToDoList.editItem()</code> — test that editing an item <em>through the <code>ToDoList</code> interface</em> correctly updates the underlying <code>ToDoListItem</code> and persists</td>
+</tr>
+<tr>
+<td><strong>System / acceptance testing</strong></td>
+<td>High-level user workflows: <em>Create a new list</em>, <em>Edit list info</em>, <em>Edit list item</em>, <em>Delete list</em>. Tests the whole app — UI, DB, calendar, notifications — end-to-end</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The mapping is mechanical: <strong>a class method → unit test; a class-to-class interface → integration test; a user-facing workflow → system test</strong>. When you write a new feature, you should think about which level each new test belongs to.</p>
+</blockquote>
+<hr>
+<h2 id="15-how-to-choose-test-cases--the-sweet-spot-problem">15. How to Choose Test Cases — The Sweet-Spot Problem</h2>
+<p>Lecture 14 opens with a deceptively simple function:</p>
+<div class="code-wrap"><pre data-language="c" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> multiplier</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> a * b;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>How many test cases does this function have? On a 32-bit <code>int</code>, the input space is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>32</mn></msup><mo>×</mo><msup><mn>2</mn><mn>32</mn></msup><mo>=</mo><msup><mn>2</mn><mn>64</mn></msup><mo>≈</mo><mn>1.8</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>19</mn></msup></mrow><annotation encoding="application/x-tex">2^{32} \times 2^{32} = 2^{64} \approx 1.8 \times 10^{19}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">32</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">32</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">64</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">19</span></span></span></span></span></span></span></span></span></span></span></span> pairs. Even at a billion tests per second, exhaustive testing would take ~580 years.</p>
+<p>This is the basic tension of testing: the input space is effectively infinite, but the time and budget for testing are very finite.</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Test</mtext><mtext> </mtext><mtext mathvariant="bold">design</mtext><mtext> </mtext><mtext mathvariant="bold">=</mtext><mtext> </mtext><mtext mathvariant="bold">picking</mtext><mtext> </mtext><mtext mathvariant="bold">a</mtext><mtext> </mtext><mtext mathvariant="bold">small</mtext><mtext> </mtext><mtext mathvariant="bold">sample</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">inputs</mtext><mtext> </mtext><mtext mathvariant="bold">that</mtext><mtext> </mtext><mtext mathvariant="bold">finds</mtext><mtext> </mtext><mtext mathvariant="bold">as</mtext><mtext> </mtext><mtext mathvariant="bold">many</mtext><mtext> </mtext><mtext mathvariant="bold">bugs</mtext><mtext> </mtext><mtext mathvariant="bold">as</mtext><mtext> </mtext><mtext mathvariant="bold">possible.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Test design = picking a small sample of inputs that finds as many bugs as possible.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Test design = picking a small sample of inputs that finds as many bugs as possible.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The slide visualizes this as a curve of <strong>confidence in the module being tested</strong> (y-axis) vs. <strong>number of test cases with correct outputs</strong> (x-axis):</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/sweet-spot-curve.png" alt="Concave curve showing Confidence in module being tested rising with the Number of test cases with correct outputs. A red arrow midway up the curve labels the inflection point "Sweet spot?"."></p>
+<ul>
+<li>The curve starts low and rises steeply at first — each new test case adds a lot of confidence.</li>
+<li>The curve flattens out as you add more cases — diminishing returns.</li>
+<li>The <strong>sweet spot</strong> is the point where the curve has flattened enough that additional tests aren&#39;t buying much new confidence.</li>
+</ul>
+<blockquote>
+<p>The sweet spot is an engineering judgment, not a fixed number. For a safety-critical system, the curve flattens later (and the budget for chasing diminishing returns is higher). For a small internal tool, the sweet spot comes much earlier.</p>
+</blockquote>
+<p>The rest of the lecture is about <em>how to pick</em> those test cases so each one is worth the time — so each new test case is buying as much confidence as possible.</p>
+<hr>
+<h2 id="16-six-ways-to-choose-test-cases">16. Six Ways to Choose Test Cases</h2>
+<p>The lecture lists six concrete strategies for choosing test cases. Some are based on the spec, some on the code, some on the history of the project itself.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Strategy</th>
+<th>What it uses</th>
+<th>Lecture status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Intuition</strong></td>
+<td>The tester&#39;s experience and gut feeling about what might break</td>
+<td>Mentioned, not preferred — useful but not systematic</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Specification (black-box testing)</strong></td>
+<td>The <em>specification</em> of what the program should do, without looking at the code</td>
+<td>Two systematic sub-strategies follow:</td>
+</tr>
+<tr>
+<td>2a</td>
+<td>Equivalence-class partitioning</td>
+<td>Group inputs into classes that the spec treats the same; pick one representative per class</td>
+<td>Black-box, systematic</td>
+</tr>
+<tr>
+<td>2b</td>
+<td>Boundary-value analysis</td>
+<td>Pick inputs <em>at the edges</em> of equivalence classes (zero, max, off-by-one) — bugs cluster at boundaries</td>
+<td>Black-box, systematic</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Code (white-box testing)</strong></td>
+<td>The <em>source code itself</em>, to ensure every part is exercised</td>
+<td>One sub-strategy:</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>Path analysis</td>
+<td>Ensure each path through the control flow graph is tested at least once</td>
+<td>White-box, systematic</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Existing test cases (regression testing)</strong></td>
+<td>The test suite from previous versions — re-run every existing test on the new version to make sure nothing that used to work has broken</td>
+<td>Defensive — catches <em>new</em> bugs in <em>old</em> features</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Faults</strong></td>
+<td>Known fault patterns (common bug taxonomies, things this team has gotten wrong before)</td>
+<td>Often part of &quot;intuition&quot; in practice, but can be made systematic</td>
+</tr>
+</tbody></table>
+<p>The three big categories worth keeping straight for the quiz:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Looks at</th>
+<th>Strengths</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Black-box (specification-based)</strong></td>
+<td>What the program <em>should</em> do</td>
+<td>Independent of implementation; catches missing features, misread specs</td>
+</tr>
+<tr>
+<td><strong>White-box (code-based)</strong></td>
+<td>What the program <em>does</em></td>
+<td>Catches dead code, untested branches, implementation-specific bugs</td>
+</tr>
+<tr>
+<td><strong>Regression</strong></td>
+<td>What the program <em>used to</em> do</td>
+<td>Catches new code breaking old behavior</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Lecture 14 doesn&#39;t drill into the techniques themselves — that&#39;s next week (&quot;Testing, part 3: Black-box testing&quot;). The point of slide 36 is the <em>vocabulary</em>: black-box vs. white-box, equivalence partitioning vs. boundary values vs. path analysis vs. regression. Be able to name and briefly describe each.</p>
+</blockquote>
+<hr>
+<h2 id="17-test-oracles--knowing-if-the-output-is-right">17. Test Oracles — Knowing If the Output Is Right</h2>
+<p>Going back to step 5 of the basic testing process: <em>compare actual output to expected output</em>. This raises a question that sounds trivial but isn&#39;t:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">How</mtext><mtext> </mtext><mtext mathvariant="bold">do</mtext><mtext> </mtext><mtext mathvariant="bold">we</mtext><mtext> </mtext><mtext mathvariant="bold">know</mtext><mtext> </mtext><mtext mathvariant="bold">what</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext></mrow><mtext mathvariant="italic">expected</mtext><mrow><mtext> </mtext><mtext mathvariant="bold">output</mtext><mtext> </mtext><mtext mathvariant="bold">should</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">first</mtext><mtext> </mtext><mtext mathvariant="bold">place?</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{How do we know what the } \textit{expected} \textbf{ output should be in the first place?}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">How do we know what the </span></span><span class="mord text"><span class="mord textit">expected</span></span><span class="mord text"><span class="mord textbf"> output should be in the first place?</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The mechanism that answers this question is called a <strong>test oracle</strong>.</p>
+<blockquote>
+<p><strong>Test Oracle</strong>: a mechanism for deciding whether a test case execution succeeds or fails — i.e., what the correct output is for a given input.</p>
+</blockquote>
+<p>The slide notes that <strong>oracles are difficult to automate</strong>. Why? Consider the cosine example:</p>
+<blockquote>
+<p>Your test execution shows <code>cos(0.5) = 0.87758256189</code>. <strong>Oracle?</strong></p>
+</blockquote>
+<p>How do we <em>decide</em> whether <code>0.87758256189</code> is correct? Several oracle strategies are possible, each with trade-offs:</p>
+<table>
+<thead>
+<tr>
+<th>Oracle strategy</th>
+<th>How it works for <code>cos(0.5)</code></th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Manual computation</strong></td>
+<td>Compute <code>cos(0.5)</code> by hand or on paper</td>
+<td>Impossible for non-trivial cases; doesn&#39;t scale</td>
+</tr>
+<tr>
+<td><strong>Reference implementation</strong></td>
+<td>Compare against a trusted library (<code>math.cos</code> in some other language)</td>
+<td>What if both implementations have the same bug? Who validates the reference?</td>
+</tr>
+<tr>
+<td><strong>Algebraic identity</strong></td>
+<td>Check that <code>cos(x)^2 + sin(x)^2 ≈ 1</code></td>
+<td>Indirect — passes the identity does not prove the value is right, just consistent</td>
+</tr>
+<tr>
+<td><strong>Domain knowledge</strong></td>
+<td>We know <code>cos(0) = 1</code> and <code>cos(π/2) = 0</code>, and <code>0.5</code> is in between, so the answer should be near <code>0.88</code></td>
+<td>Sanity check, not a real oracle</td>
+</tr>
+<tr>
+<td><strong>Specification / formal definition</strong></td>
+<td>Compute from the Taylor series to verify</td>
+<td>Theoretically rigorous, often impractical</td>
+</tr>
+<tr>
+<td><strong>Human expert</strong></td>
+<td>A mathematician or domain expert eyeballs the output</td>
+<td>Doesn&#39;t automate, doesn&#39;t scale</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The cosine example is intentionally simple. The point is that <strong>even for a function with a precise mathematical definition, deciding what the right answer is requires real work</strong>. For most software — UI flows, business rules, machine learning models — the oracle problem is much harder, because the &quot;correct&quot; behavior may not have a closed-form definition at all.</p>
+</blockquote>
+<p>In practice, oracles in test code look like the <code>assertEqual</code> calls in the <code>unittest</code> example from §9: the test author <strong>hard-codes the expected output</strong> alongside the input. That&#39;s a perfectly valid oracle as long as the author wrote down the <em>right</em> expected value — which puts the burden of correctness on whoever wrote the test.</p>
+<p>⚠️ <strong>Test oracles are also an attendance-quiz topic</strong> (&quot;Systematic Testing and Oracles&quot;) in this lecture.</p>
+<hr>
+<h2 id="18-all-software-has-bugs">18. All Software Has Bugs</h2>
+<p>Lecture 14 makes a sobering claim, which it backs up with both a quote and a counter-example:</p>
+<blockquote>
+<p><em>&quot;All nontrivial code has defects, and the probability of nontrivial defects increases with code size. The more code you use to solve a problem, the harder it gets for someone else to understand what you did and to maintain your code when you have moved on to write still larger programs.&quot;</em><br>— Holzmann, <em>Code Inflation</em>, IEEE Software, 2015</p>
+</blockquote>
+<p>The counter-example is concrete and deliberately startling:</p>
+<blockquote>
+<p><strong>Q</strong>: What is the required period of <em>failure-free operation</em> for conventional takeoffs and landings of the <strong>F-35 Joint Strike Fighter</strong>?<br>(a) 6,000 years   (b) 600 years   (c) 60 years   (d) <strong>6 hours</strong></p>
+</blockquote>
+<p>The answer is <strong>(d) 6 hours</strong>. The most expensive weapons program in human history sets its software reliability target at <em>six hours</em> between failures — and a recent government report stated that <strong>even that target had not yet been realized</strong>. If a multi-billion-dollar fighter jet cannot be expected to run six hours without a software failure, the idea that ordinary software is bug-free is a fantasy.</p>
+<p>The contrast with consumer-scale targets is instructive. <strong>Uber</strong>, for example, publishes availability goals roughly along the lines of:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Overall availability</td>
+<td><strong>99.99%</strong></td>
+</tr>
+<tr>
+<td>Cumulative downtime per year</td>
+<td>~ <strong>1 hour</strong></td>
+</tr>
+<tr>
+<td>Downtime per week</td>
+<td>~ <strong>1 minute</strong></td>
+</tr>
+<tr>
+<td>Failure rate</td>
+<td>~ <strong>1 failure per 10,000 runs</strong></td>
+</tr>
+</tbody></table>
+<p>Those numbers sound aggressive until you compare them against what they actually allow — <em>an hour of broken service every year</em> — and notice that even hitting them is hard. Reliability is always a budget, never a guarantee.</p>
+<p>The slide on &quot;bizarre bugs&quot; reinforces the same point from a different angle: real bug trackers contain entries like <em>&quot;OpenOffice will not print on Tuesdays&quot;</em> (Ubuntu bug #248619). The bug was real, reproducible, and eventually traced to a date-handling issue. Bugs in production are stranger than test cases would lead you to expect.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/bug-ubuntu-prints-on-tuesdays.png" alt="Screenshot of Ubuntu Launchpad bug #248619, reported 2008-07-15 by jgallo, titled "file incorrectly labeled as Erlang JAM file (OOo does not print on Tuesdays)". Both file (Debian) and file (Ubuntu) rows show status "Fix Released" with importance High."></p>
+<p>The takeaway is not nihilism. It is calibration:</p>
+<table>
+<thead>
+<tr>
+<th>Wrong belief</th>
+<th>Better belief</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&quot;If I test enough, my software will be bug-free.&quot;</td>
+<td>&quot;My software will have bugs. Testing reduces their number and severity.&quot;</td>
+</tr>
+<tr>
+<td>&quot;A bug means I&#39;m a bad engineer.&quot;</td>
+<td>&quot;A bug means I&#39;m an engineer. Good engineers measure, fix, and prevent recurrence.&quot;</td>
+</tr>
+<tr>
+<td>&quot;Defects scale linearly with code size.&quot;</td>
+<td>&quot;Defects scale <em>worse</em> than linearly with code size — small, simple code is easier to keep correct.&quot;</td>
+</tr>
+</tbody></table>
+<p>This is also one of the strongest arguments for the <strong>Power of Ten</strong> rules (§5) and for design principles like high cohesion / low coupling: less code, simpler code, more local code → fewer bugs, easier verification.</p>
+<hr>
+<h2 id="19-how-do-we-know-when-were-done-testing">19. How Do We Know When We&#39;re Done Testing?</h2>
+<p>Since we can never be <em>complete</em> (Dijkstra), and since all software has bugs, &quot;done&quot; must be defined operationally. The lecture gives four working answers — labeled (I) through (IV) — that real projects use, alone or in combination. (The slide deck happens to skip directly from II to IV; (III), described from lecture audio, is the <strong>fault seeding</strong> technique below.)</p>
+<h3 id="191-i-fixed-time--fixed-budget">19.1 (I) Fixed time / fixed budget</h3>
+<blockquote>
+<p><em>Aim to reveal as many faults as possible in a fixed period of time with a fixed budget.</em><br><em>Target specific areas of the system.</em><br><em>Aim to meet the quality requirements established for the project.</em></p>
+</blockquote>
+<p>In this model, testing stops when the time or money allocated to it runs out — what matters is that the <em>limited</em> budget is spent on the <em>highest-risk</em> areas (areas with high complexity, high churn, high user-facing impact, or weak prior coverage).</p>
+<h3 id="192-ii-problem-find-rate-stabilizes-near-zero">19.2 (II) Problem-find rate stabilizes near zero</h3>
+<p>The slide shows a curve of <strong>number of problems found per hour</strong> over <strong>days of testing</strong>: a rapid ramp-up, a peak, then a slow decay toward zero. When the find rate flattens to near-zero, you&#39;ve extracted most of the easy bugs and additional testing is not buying much.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/bug-find-rate-curve.png" alt="Line chart of Number of problems found per hour over time, ramping up to a peak around Day 2 and then declining toward zero by Day 5. A blue arrow at the right marks the inflection point with the caption "Could stop testing when the problem find rate stabilizes to near zero"."></p>
+<blockquote>
+<p>Risk: a low find rate can also mean <em>your testers are bad at finding bugs</em>, not that the system is bug-free. This metric must be combined with code coverage and other signals to be trustworthy.</p>
+</blockquote>
+<h3 id="193-iii-fault-seeding-defect-injection--mutation-testing">19.3 (III) Fault seeding (defect injection / mutation testing)</h3>
+<p>A clever twist on (II) that turns the &quot;are we done?&quot; question into something measurable. The idea:</p>
+<ol>
+<li>Deliberately <strong>inject (seed) a set of known artificial bugs</strong> into the code — small mutations like flipping <code>&lt;</code> to <code>&lt;=</code>, swapping <code>+</code> and <code>-</code>, returning the wrong variable.</li>
+<li>Run the existing test suite <strong>without telling the testers</strong> which bugs are real and which are seeded.</li>
+<li>Count how many of the seeded bugs the test suite caught.</li>
+</ol>
+<p>The intuition is statistical: if the seeded bugs are <em>similar in kind</em> to the real bugs that remain in the code, then <strong>the fraction of seeded bugs caught is an estimate of the fraction of real bugs caught</strong>. If your suite caught 90% of the seeded faults, you can reasonably believe it&#39;s catching roughly 90% of the real ones too, and infer how many bugs are still left undiscovered.</p>
+<table>
+<thead>
+<tr>
+<th>Strength</th>
+<th>Weakness</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gives a <em>quantitative</em> answer to &quot;how good is my test suite?&quot;</td>
+<td>Only as accurate as the assumption that seeded bugs resemble real ones</td>
+</tr>
+<tr>
+<td>Forces the team to confront blind spots — bugs that <em>no</em> test catches</td>
+<td>Generating realistic seeded bugs is itself non-trivial</td>
+</tr>
+<tr>
+<td>Forms the basis of modern <strong>mutation testing</strong> tools (PIT for Java, Stryker for JS, mutmut for Python)</td>
+<td>Automated mutation testing can be slow on large codebases</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Conceptually, fault seeding answers a different question than (I) or (II). Those ask <em>&quot;have we tested enough?&quot;</em> using time or trends. Seeding asks <em>&quot;is the test suite itself any good?&quot;</em> — and that&#39;s often the more honest question.</p>
+</blockquote>
+<h3 id="194-iv-industry-survey-exit-criteria-kassab-et-al-2017">19.4 (IV) Industry-survey exit criteria (Kassab et al., 2017)</h3>
+<p>The lecture shows results from a 103-project industry survey (Kassab, DeFranco, Laplante, <em>Software Testing: The State of the Practice</em>, IEEE Software 34(5), 2017) on which exit criteria are actually used:</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-7/exit-criteria-kassab-2017.png" alt="Horizontal bar chart (Figure 6 from Kassab et al. 2017) showing how 103 projects answered Yes/No for six possible exit criteria for test completion. "Each requirement has been tested at least once" is the most common Yes (~65%); "The planned test budget is depleted" is the least common Yes (~10%)."></p>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Used in practice?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Each requirement has been tested at least once</strong></td>
+<td>✅ Most common — ~65% Yes</td>
+</tr>
+<tr>
+<td><strong>All planned test activities have been performed</strong></td>
+<td>✅ ~60% Yes</td>
+</tr>
+<tr>
+<td>The delivery time has been reached</td>
+<td>Mixed — ~40% Yes</td>
+</tr>
+<tr>
+<td>Sufficient defects have been found to have trust in the software</td>
+<td>❌ ~25% Yes (most: No)</td>
+</tr>
+<tr>
+<td>The values specified in the metrics have been reached</td>
+<td>❌ ~20% Yes</td>
+</tr>
+<tr>
+<td><strong>The planned test budget is depleted</strong></td>
+<td>❌ ~10% Yes</td>
+</tr>
+</tbody></table>
+<p>The survey&#39;s headline finding (and the one most worth remembering):</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">The</mtext><mtext> </mtext><mtext mathvariant="bold">most</mtext><mtext> </mtext><mtext mathvariant="bold">common</mtext><mtext> </mtext><mtext mathvariant="bold">real-world</mtext><mtext> </mtext><mtext mathvariant="bold">exit</mtext><mtext> </mtext><mtext mathvariant="bold">criterion</mtext><mtext> </mtext><mtext mathvariant="bold">is:</mtext><mtext> </mtext><mtext mathvariant="bold">&quot;each</mtext><mtext> </mtext><mtext mathvariant="bold">requirement</mtext><mtext> </mtext><mtext mathvariant="bold">has</mtext><mtext> </mtext><mtext mathvariant="bold">been</mtext><mtext> </mtext><mtext mathvariant="bold">tested</mtext><mtext> </mtext><mtext mathvariant="bold">at</mtext><mtext> </mtext><mtext mathvariant="bold">least</mtext><mtext> </mtext><mtext mathvariant="bold">once.&quot;</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{The most common real-world exit criterion is: &quot;each requirement has been tested at least once.&quot;}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">The most common real-world exit criterion is: &quot;each requirement has been tested at least once.&quot;</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>This is a <em>requirement-coverage</em> criterion. It is concrete, easy to measure, and pragmatic — you can&#39;t ship before every requirement has at least one test backing it. It does not guarantee bug-free software (nothing does), but it ties testing back to the spec, which closes the verification loop.</p>
+<blockquote>
+<p>The contrast with &quot;the planned test budget is depleted&quot; (only 10% Yes) is reassuring — most projects don&#39;t simply ship when they run out of money. The contrast with &quot;sufficient defects have been found to have trust&quot; (only 25% Yes) is the discouraging side: most teams <em>don&#39;t</em> have a defect-density threshold they hold themselves to.</p>
+</blockquote>
+<hr>
+<h2 id="20-quiz-7-study-guide">20. Quiz 7 Study Guide</h2>
+<p>Quiz 7 has been postponed to the following week, but the substantive content of Lectures 13 &amp; 14 is fair game. Focus areas:</p>
+<h3 id="201-vocabulary-you-must-be-able-to-define">20.1 Vocabulary you must be able to define</h3>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>One-sentence definition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Quality Assurance (QA)</strong></td>
+<td>All activities designed to measure and improve quality in a product</td>
+</tr>
+<tr>
+<td><strong>Verification</strong></td>
+<td>Does the system conform to specifications? (&quot;Building the system right&quot;)</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Does the system serve its purpose? (&quot;Building the right system&quot;)</td>
+</tr>
+<tr>
+<td><strong>Mistake</strong></td>
+<td>A <em>human action</em> that produces an incorrect result</td>
+</tr>
+<tr>
+<td><strong>Fault / Bug / Defect</strong></td>
+<td>An incorrect step, process, or data definition in the code</td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>A difference between a computed result and the correct result (internal or external)</td>
+</tr>
+<tr>
+<td><strong>Failure</strong></td>
+<td>The externally visible incorrect result of a fault</td>
+</tr>
+<tr>
+<td><strong>Test case</strong></td>
+<td>An input + expected output pair used to exercise the system</td>
+</tr>
+<tr>
+<td><strong>Test oracle</strong></td>
+<td>A mechanism for deciding whether a test case execution succeeds or fails</td>
+</tr>
+<tr>
+<td><strong>Unit testing</strong></td>
+<td>Testing of a single code unit</td>
+</tr>
+<tr>
+<td><strong>Integration / functional testing</strong></td>
+<td>Testing of interfaces among integrated units</td>
+</tr>
+<tr>
+<td><strong>System / acceptance testing</strong></td>
+<td>Testing of the complete system against requirements</td>
+</tr>
+<tr>
+<td><strong>Black-box testing</strong></td>
+<td>Test design based on the specification, not the code</td>
+</tr>
+<tr>
+<td><strong>White-box testing</strong></td>
+<td>Test design based on the source code itself</td>
+</tr>
+<tr>
+<td><strong>Regression testing</strong></td>
+<td>Re-running existing tests on a new version to ensure old features still work</td>
+</tr>
+</tbody></table>
+<h3 id="202-the-four-qa-techniques">20.2 The four QA techniques</h3>
+<p>Formal methods, static analysis, reviews and inspections, testing — <em>use a mixture</em>.</p>
+<h3 id="203-the-four-whos">20.3 The four &quot;who&quot;s</h3>
+<p>Programmers, testers, users (acceptance / alpha / beta / crowdsourcing-bug-bounties).</p>
+<h3 id="204-the-three-levels-of-testing">20.4 The three levels of testing</h3>
+<p>Unit → functional/integration → system/acceptance. Be able to give a one-sentence definition of each and a concrete example (the ToDoList walkthrough is the canonical one).</p>
+<h3 id="205-the-dijkstra-quote-attendance-quiz-topic">20.5 The Dijkstra quote (attendance-quiz topic)</h3>
+<blockquote>
+<p><em>&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;</em></p>
+</blockquote>
+<p>Be able to write it down, and to explain <em>why</em>: the input space is too large to exhaust, so testing samples; samples can find bugs but cannot prove no bugs exist.</p>
+<h3 id="206-test-cases-and-oracles-attendance-quiz-topic">20.6 Test cases and oracles (attendance-quiz topic)</h3>
+<p>How to choose test cases (intuition, black-box [equivalence partitioning, boundary values], white-box [path analysis], regression, faults). What a test oracle is and why automating it is hard (cosine example).</p>
+<h3 id="207-when-are-we-done-testing">20.7 When are we done testing?</h3>
+<p>Be able to list the main approaches: fixed time/budget, target specific areas, meet quality requirements, find-rate stabilization, <strong>fault seeding</strong> (inject known bugs, measure what fraction the suite catches → estimate what fraction of real bugs remain), and — the most common in practice — <em>each requirement tested at least once</em>.</p>
+<h3 id="208-failure-case-studies-and-safety-rules">20.8 Failure case studies and safety rules</h3>
+<p>Recognize Boeing 737 Max, Toyota Unintended Acceleration, Apollo 8 / Margaret Hamilton (positive example), Mars Polar Lander, Y2K. Know <strong>NASA&#39;s two cardinal rules</strong> and the general spirit of <strong>The Power of Ten</strong> (don&#39;t memorize all ten, but understand: simple control flow, fixed loop bounds, no dynamic allocation, small functions, assertions, scoped data, check return values, simple preprocessor, limit pointers, warnings + analyzers).</p>
+<hr>
+<h2 id="21-wrap-up-and-memory-framework">21. Wrap-Up and Memory Framework</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 7 knowledge structure
+|
++-- Where we are
+|   +-- Requirements -&gt; Architecture -&gt; Design -&gt; User methods
+|       -&gt; Code -&gt; QA &amp; TESTING
+|   +-- Question this week: how do we know the software works?
+|
++-- Why QA matters (Lecture 13)
+|   +-- Failure case studies:
+|   |   +-- Boeing 737 Max  -&gt; single sensor; safety vs. money
+|   |   +-- Toyota          -&gt; uncommanded acceleration
+|   |   +-- Apollo 8        -&gt; Hamilton; defensive design (POSITIVE)
+|   |   +-- Mars Polar Lander -&gt; spurious touchdown signal
+|   |   +-- Y2K             -&gt; 2-digit year; $300B remediation
+|   +-- NASA&#39;s Cardinal Rules for Safety:
+|   |   +-- No single event triggers a hazard
+|   |   +-- On unsafe condition: inhibit + go to safe state
+|   +-- The Power of Ten (Holzmann, IEEE 2006):
+|       +-- 10 rules for safety-critical code
+|       +-- simple control flow, bounded loops, no dynamic alloc,
+|           small fns, 2 assertions/fn, smallest scope, check
+|           return values, limited preprocessor, limited pointers,
+|           all warnings + analyzers
+|
++-- Quality Assurance (Lecture 13)
+|   +-- QA = all activities to measure &amp; improve quality
+|   +-- Verification: build the system right (vs. spec)
+|   +-- Validation:   build the right system (vs. requirements)
+|   +-- Four QA technique families:
+|       +-- Formal methods
+|       +-- Static analysis
+|       +-- Reviews and inspections
+|       +-- Testing                 &lt;-- focus of weeks 7-8
+|       (use a mixture!)
+|
++-- Testing basics (Lecture 13)
+|   +-- Basic process: input -&gt; expected -&gt; run -&gt; actual -&gt;
+|       compare -&gt; pass/fail -&gt; repeat (mostly automated)
+|   +-- Goals: find faults; improve confidence (verification +
+|       validation); be accurate / THOROUGH / repeatable /
+|       systematic
+|   +-- Dijkstra: &quot;testing shows presence of bugs, never absence&quot;
+|   +-- Terminology (IEEE 610.12-90):
+|   |   +-- Mistake  = human action
+|   |   +-- Fault    = code defect      (= &quot;bug&quot; = &quot;defect&quot;)
+|   |   +-- Error    = wrong computed value
+|   |   +-- Failure  = visible wrong output
+|   |   (chain: Mistake -&gt; Fault -&gt; Error -&gt; Failure)
+|   +-- Who tests:
+|   |   +-- Programmers (unit tests, TDD)
+|   |   +-- Testers / QA staff
+|   |   +-- Users: acceptance / alpha / beta / bug bounty
+|   +-- Three levels (pyramid: many fast unit, few slow system):
+|       +-- Unit:        a single function/class
+|       +-- Integration: interfaces among units
+|       +-- System:      complete system vs. requirements
+|       (ToDoList example: setPriority -&gt; editItem -&gt; &quot;create list&quot;)
+|
++-- Test design (Lecture 14)
+|   +-- Problem: input space ~ infinite, budget finite
+|   |   -&gt; pick test cases that buy max confidence
+|   |   -&gt; &quot;sweet spot&quot; on the confidence-vs-tests curve
+|   +-- Six ways to choose test cases:
+|   |   +-- 1. Intuition
+|   |   +-- 2. Specification = BLACK-BOX:
+|   |   |       +-- Equivalence-class partitioning
+|   |   |       +-- Boundary-value analysis
+|   |   +-- 3. Code = WHITE-BOX:
+|   |   |       +-- Path analysis
+|   |   +-- 4. Existing tests = REGRESSION TESTING
+|   |   +-- 5. Faults
+|   +-- Test oracles:
+|   |   +-- Mechanism to decide pass/fail
+|   |   +-- Hard to automate (cosine example: is 0.87758... right?)
+|   |   +-- Strategies: hard-coded expected, reference impl,
+|   |       algebraic identity, domain knowledge, spec, expert
+|   +-- All software has bugs:
+|       +-- Holzmann: &quot;All nontrivial code has defects...&quot;
+|       +-- F-35 reliability target: 6 hours (not yet met!)
+|       +-- Uber availability target: 99.99% (~1 hr/yr downtime)
+|       +-- Bizarre bugs (OOo won&#39;t print on Tuesdays)
+|
++-- When are we done? (Lecture 14)
+|   +-- (I)   Fixed time/budget; target high-risk areas; meet
+|   |         quality requirements
+|   +-- (II)  Stop when find-rate stabilizes near zero
+|   +-- (III) FAULT SEEDING / defect injection:
+|   |         inject known artificial bugs -&gt; measure what
+|   |         fraction the test suite catches -&gt; estimate what
+|   |         fraction of REAL bugs remain. Basis of mutation
+|   |         testing (PIT, Stryker, mutmut).
+|   +-- (IV)  Kassab industry survey: most common exit criterion
+|             in practice = &quot;each requirement tested at least
+|             once&quot; (~65% Yes), then &quot;all planned activities done&quot;
+|
++-- Quiz 7 prep (postponed one week)
+    +-- All four IEEE terms (mistake/fault/error/failure)
+    +-- Verification vs. validation
+    +-- Four QA techniques
+    +-- Three levels of testing + example
+    +-- Dijkstra quote (memorize wording)
+    +-- Black-box vs. white-box vs. regression
+    +-- Test oracles (what &amp; why hard to automate)
+    +-- Fault seeding as a way to evaluate the test suite itself
+    +-- &quot;Each requirement tested at least once&quot; as the most
+        common exit criterion in industry</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="106"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 106 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="one-sentence-summary">One-sentence summary</h3>
+<blockquote>
+<p>Quality assurance answers <em>&quot;how do we know the software works?&quot;</em> through a mixture of <strong>formal methods, static analysis, reviews, and testing</strong>; testing in particular runs the program on chosen inputs and compares actual to expected outputs across three nested levels (<strong>unit, integration, system</strong>), is staffed by programmers, dedicated testers, and users (<strong>alpha, beta, bug bounties</strong>), and uses systematic test-case design (<strong>black-box equivalence partitioning and boundary values, white-box path analysis, regression</strong>) plus a <strong>test oracle</strong> to decide pass/fail — but as <strong>Dijkstra</strong> reminds us, <em>&quot;program testing can be used to show the presence of bugs, but never to show their absence,&quot;</em> so the working definition of &quot;done&quot; in industry is operational: most often, <strong>each requirement has been tested at least once</strong>.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-06/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 6</span><span class="pager-title" data-astro-cid-gxyjxt6l>User-Centered Design and Usability</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-08/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 8 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Test Case Selection — Black-Box, White-Box, and Other QA Techniques</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-06/en-US/" title="Previous: User-Centered Design and Usability ([)" aria-label="Previous: Week 6" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 6</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 7</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-08/en-US/" title="Next: Test Case Selection — Black-Box, White-Box, and Other QA Techniques (])" aria-label="Next: Week 8" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 8</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

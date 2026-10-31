@@ -1,0 +1,967 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 JavaScript（二） | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="变量与类型、控制流与字符串、数组、对象与 JSON、函数即对象、回调、forEach/map/filter/reduce，以及作用域、提升与 let/var 的区别。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413982" data-source-url="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-05/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 5 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 5 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 5 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 17 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-5javascript-2">IN4MATX 133: User Interface Software — Lecture 5：JavaScript 2</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-javascript-%E7%9A%84%E8%A7%92%E8%89%B2">1. JavaScript 的角色</a></li>
+<li><a href="#2-%E5%8A%A0%E8%BD%BD%E8%BE%93%E5%87%BA%E4%B8%8E%E8%AF%AD%E6%B3%95">2. 加载、输出与语法</a></li>
+<li><a href="#3-%E5%8F%98%E9%87%8F%E4%B8%8E%E7%B1%BB%E5%9E%8B">3. 变量与类型</a></li>
+<li><a href="#4-%E6%9D%A1%E4%BB%B6%E5%BE%AA%E7%8E%AF%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2">4. 条件、循环与字符串</a></li>
+<li><a href="#5-%E6%95%B0%E7%BB%84">5. 数组</a></li>
+<li><a href="#6-%E5%AF%B9%E8%B1%A1%E4%B8%8E-json">6. 对象与 JSON</a></li>
+<li><a href="#7-%E5%87%BD%E6%95%B0">7. 函数</a></li>
+<li><a href="#8-%E5%87%BD%E6%95%B0%E4%B9%9F%E6%98%AF%E5%AF%B9%E8%B1%A1">8. 函数也是对象</a></li>
+<li><a href="#9-%E4%BC%A0%E9%80%92%E5%87%BD%E6%95%B0%E4%B8%8E%E5%9B%9E%E8%B0%83">9. 传递函数与回调</a></li>
+<li><a href="#10-foreachmapfilter-%E4%B8%8E-reduce">10. forEach、map、filter 与 reduce</a></li>
+<li><a href="#11-%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%8F%98%E9%87%8F%E6%8F%90%E5%8D%87let-%E4%B8%8E-var">11. 作用域、变量提升、let 与 var</a></li>
+<li><a href="#12-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">12. 课堂问题与演示（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">13. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周四 10/8。内容整理自 Lecture 5 的幻灯片（共 62 页）和 demo 仓库文件夹 <code>W2_L2_Oct8_JavaScript</code>。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：A1 的截止时间是周一晚上 11:59。<br>A2 已经发布：尽早开始，同学们普遍觉得它比 A1 难得多。有问题请发到 <code>#assignment2</code> Slack 频道，包含 A2 全部相关内容的课件已经上传。</p>
+</blockquote>
+<p>幻灯片 53–62 位于结尾页（“Some useful JavaScript methods and important notes”）之后；它们的内容已并入下面各节，并标注为“（附录）”。</p>
+<hr>
+<h2 id="1-javascript-的角色">1. JavaScript 的角色</h2>
+<p>三种网页语言各司其职（幻灯片 5–6）：</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTML</td>
+<td>标记语言（markup language）</td>
+<td>指定内容如何呈现</td>
+</tr>
+<tr>
+<td>CSS</td>
+<td>样式语言（styling language）</td>
+<td>为内容设置视觉样式</td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td>编程语言</td>
+<td>动态地操作内容</td>
+</tr>
+</tbody></table>
+<p><strong>为什么要用 JavaScript？</strong>它让页面变得<strong>动态</strong>、<strong>个性化</strong>，并且能够与<strong>其他数据源</strong>（如数据库和 API）<strong>交互</strong>（幻灯片 7）。幻灯片 8 展示了 GitHub 的“2023–2025 年 GitHub 十大编程语言”图表：JavaScript 在 2025 年之前一直排名第一，2025 年 TypeScript（带类型的 JavaScript，见 <a href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/">Lecture 7</a>）升到第一，Python 和 JavaScript 紧随其后。</p>
+<p>尽管名字相似，JavaScript 并不是 Java（幻灯片 9–10），它和 Python 反而有更多共同点（幻灯片 11）：</p>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解释型语言</td>
+<td>编译型语言（编译成字节码）</td>
+</tr>
+<tr>
+<td>由 JavaScript 引擎执行</td>
+<td>在 Java 虚拟机（JVM）中运行</td>
+</tr>
+<tr>
+<td>引擎直接运行程序员写的代码</td>
+<td>字节码人类无法阅读</td>
+</tr>
+<tr>
+<td>通过 ECMAScript 标准化，但各实现之间仍有差异</td>
+<td>“Write once, deploy anywhere”（一次编写，到处部署）</td>
+</tr>
+<tr>
+<td>调试取决于执行环境</td>
+<td>错误在编译时发现</td>
+</tr>
+<tr>
+<td>所有浏览器都内置支持，无需插件</td>
+<td>在大多数浏览器中需要插件才能运行</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Python</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>动态</strong>类型</td>
+<td><strong>动态</strong>类型</td>
+</tr>
+<tr>
+<td>广泛用于<strong>前端</strong>网页开发</td>
+<td>广泛用于<strong>后端</strong>网页开发</td>
+</tr>
+<tr>
+<td>用<strong>分号</strong> <code>;</code> 和<strong>花括号</strong> <code>{ }</code> 划分代码块</td>
+<td>用<strong>缩进</strong>划分代码块</td>
+</tr>
+</tbody></table>
+<p>幻灯片 12 的结论：<strong>JavaScript 只是一门编程语言。</strong></p>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://octoverse.github.com/">GitHub Octoverse (language rankings)</a> · <a href="https://www.freecodecamp.org/news/python-vs-javascript-what-are-the-key-differences-between-the-two-popular-programming-languages/">freeCodeCamp: Python vs JavaScript</a></p>
+</blockquote>
+<hr>
+<h2 id="2-加载输出与语法">2. 加载、输出与语法</h2>
+<p><strong>加载。</strong>和外部样式表一样，脚本通过链接引入页面（幻灯片 13）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"test.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>输出。</strong><code>console.log</code> 写入的是 <strong>JavaScript Console（控制台）</strong>，而不是页面（幻灯片 14）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, world!"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>它不会显示在页面中；需要打开开发者工具才能看到（幻灯片 14 的截图：Safari 的 Develop 菜单 → JavaScript Console）。</p>
+<p><strong>语法</strong>（幻灯片 15）：JavaScript 有函数和对象；它们<strong>看起来像 Java，但行为不同</strong>。它使用封装（encapsulation）等面向对象原则。如果感到困惑，可以问自己：这和我已经掌握的语言与 OOP 原则有什么联系？<em>具体</em>不同在哪里？</p>
+<p>仓库中的 <code>lecture.html</code> 会加载 <code>lecture.js</code>，后者在控制台中运行本讲的所有代码片段。</p>
+<blockquote>
+<p>🧪 <strong>Demo 文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/lectureExamples/lecture.html">lecture.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/lectureExamples/lecture.js">lecture.js</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.crockford.com/javascript/javascript.html">Douglas Crockford on JavaScript</a></p>
+</blockquote>
+<hr>
+<h2 id="3-变量与类型">3. 变量与类型</h2>
+<p>变量是<strong>动态类型</strong>的：类型属于值，而不属于变量，所以同一个变量可以先存字符串、再存数字。<code>typeof</code> 可以告诉你当前的类型。已声明但<strong>未赋值的变量，其值为 <code>undefined</code></strong>（幻灯片 16）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'hello'</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//value is a string</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//string</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//value is now a Number</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//number</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hoursSlept</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">hoursSlept</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// undefined</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>lecture.js</code> 还有一个后续例子：对这个未赋值的变量执行 <code>hoursSlept += 2;</code>，会输出 <strong><code>NaN</code></strong>（<code>undefined + 2</code>）。如果先取消注释 <code>hoursSlept = 2;</code>，结果则是 <code>4</code>。</p>
+<p><strong>类型转换（type coercion）</strong>（幻灯片 17）。JavaScript 会悄悄地转换类型：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'40'</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//'402'</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'40'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//36</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> num</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> str</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'10'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//comparisons: these will all be booleans (true/false)</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//true</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> === </span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//false</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">''</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//true</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>+</code> 遇到字符串时会<strong>拼接</strong>，所以 <code>&#39;40&#39; + 2</code> 是字符串 <code>&#39;402&#39;</code>。</li>
+<li>字符串没有定义减法，所以 JavaScript 知道要把 <code>&#39;40&#39;</code> 转换成数字：结果为 <code>36</code>。</li>
+<li><code>==</code> 会先转换两边的类型再比较（<code>10 == &#39;10&#39;</code>，甚至 <code>&#39;&#39; == 0</code>）。<code>===</code> 是<strong>严格</strong>比较：同时比较类型。请使用 <code>===</code>。</li>
+</ul>
+<p><strong>null、undefined 与 NaN</strong>（附录，幻灯片 54–56）：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+<th><code>typeof</code></th>
+<th>是否为 falsy？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>null</code></td>
+<td>一个不存在的对象：它是对象，只是未初始化</td>
+<td><code>object</code></td>
+<td>是，但 <code>null == false</code> 为 <code>false</code></td>
+</tr>
+<tr>
+<td><code>undefined</code></td>
+<td>一个未定义的原始值（就像数字或字符串是原始值）</td>
+<td><code>undefined</code></td>
+<td>是，但 <code>undefined == false</code> 为 <code>false</code></td>
+</tr>
+<tr>
+<td><code>NaN</code></td>
+<td>Not a Number：对 <code>undefined</code> 做任何运算或任何其他不可能的运算的结果</td>
+<td><code>number</code>（尽管名字如此）</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'12'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// 7</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'word'</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// NaN</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">undefined</span><span style="color:#D4D4D4"> * </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// NaN</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">typeof</span><span style="color:#569CD6"> NaN</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">// number</span></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">NaN</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"It's not falsy!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>if(NaN)</code> 代码块<strong>什么都不会打印</strong>：<code>NaN</code> 是 falsy。（<code>!nullObj</code> 和 <code>!undefinedObj</code> 都为 true，所以幻灯片 54–55 中的 <code>&quot;It&#39;s falsy&quot;</code> 那几行会正常打印。）</p>
+<p>逐步运行幻灯片中的代码（可以编辑后点击 Run 试试你自己的代码）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 16–17 · lecture.js (variables and types)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var x = &#39;hello&#39;; //value is a string\nconsole.log(typeof x); //string\nx = 42; //value is now a Number\nconsole.log(typeof x); //number\n\nvar hoursSlept;\nconsole.log(hoursSlept);\n//hoursSlept = 2; // try uncommenting this\nhoursSlept += 2;\nconsole.log(hoursSlept);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Coercion: + joins strings, - converts to numbers.&quot;, &quot;js&quot;: &quot;\nconsole.log(&#39;40&#39; + 2); //&#39;402&#39;\nconsole.log(&#39;40&#39; - 4); //36&quot;}, {&quot;note&quot;: &quot;== converts before comparing; === also compares the type.&quot;, &quot;js&quot;: &quot;\nvar num = 10;\nvar str = &#39;10&#39;;\nconsole.log(num == str); //true\nconsole.log(num === str); //false\nconsole.log(&#39;&#39; == 0); //true&quot;}, {&quot;note&quot;: &quot;Slides 54–56: null, undefined and NaN.&quot;, &quot;js&quot;: &quot;\nvar nullObj = null;\nconsole.log(typeof nullObj); //object\nconsole.log(nullObj == false); //false\nconsole.log(typeof undefined); //undefined\nconsole.log(&#39;12&#39; - 5); // 7\nconsole.log(&#39;word&#39; - 5); // NaN\nconsole.log(undefined * 3); // NaN\nconsole.log(typeof NaN); // number\nif(NaN) {\n  console.log(\&quot;It&#39;s not falsy!\&quot;);\n}&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>&#39;40&#39; + 2</code> 是 <code>&#39;402&#39;</code>，但 <code>&#39;40&#39; - 4</code> 是 <code>36</code>。从页面或表单读到的值都是字符串，所以“相加”实际上是拼接。而且 <code>==</code> 会掩盖类型不匹配：<code>&#39;&#39; == 0</code> 为 <code>true</code>。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://codeburst.io/understanding-null-undefined-and-nan-b603cb74b44c">codeburst: Understanding null, undefined and NaN</a></p>
+</blockquote>
+<hr>
+<h2 id="4-条件循环与字符串">4. 条件、循环与字符串</h2>
+<p><code>if</code> / <code>else if</code> / <code>else</code> 以及 C 风格的 <code>for</code> 循环和 C++ 很像（幻灯片 18）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4.4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is bigger than 5'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is between 3 and 5'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'i is less than 3'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出：<code>i is between 3 and 5</code>，然后 <code>0 1 2 3 4</code> 各占一行。（<code>lecture.js</code> 在循环里输出的是 <code>i</code> 而不是 <code>x</code>，所以仓库里的代码会把 <code>4.4</code> 打印五次；幻灯片上的 <code>x</code> 才是本意。）</p>
+<p><strong>方法</strong>用点号记法调用（幻灯片 19）；<code>toUpperCase()</code> 返回一个新字符串，所以要把结果赋值回去：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> className</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'in4matx 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toUpperCase</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> part</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">substring</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">part</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">className</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'MATX'</span><span style="color:#D4D4D4">) >= </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//whether the substring appears</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出（与幻灯片 19 的控制台截图一致）：<code>in4matx 133</code>、<code>IN4MATX 133</code>、<code>N4M</code>（<code>substring(1, 4)</code> 取下标 1–3，不含结束位置，类似 Python 的 <code>s[1:4]</code>）、<code>true</code>（<code>indexOf</code> 返回位置，若不存在则返回 <code>-1</code>）。</p>
+<p><strong>字符串格式化</strong>（幻灯片 20）：用<strong>反引号</strong>代替引号包住字符串，并用 <code>${...}</code> 插入变量，类似 Python 的 f-string：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> className</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'in4matx 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`the class name is: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">className</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// the class name is: in4matx 133</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 18–20 · lecture.js (conditionals, loops, string methods, template literals)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var i = 4.4;\n\nif(i &gt; 5) {\n\tconsole.log(&#39;i is bigger than 5&#39;);\n} else if(i &gt;= 3) {\n\tconsole.log(&#39;i is between 3 and 5&#39;);\n} else {\n\tconsole.log(&#39;i is less than 3&#39;);\n}\n\nfor(var x = 0; x &lt; 5; x++) {\n\tconsole.log(x);\n}\n\nvar className = &#39;in4matx 133&#39;;\nconsole.log(className);\nclassName = className.toUpperCase();\nconsole.log(className);\nvar part = className.substring(1, 4);\nconsole.log(part);\nconsole.log(className.indexOf(&#39;MATX&#39;) &gt;= 0); //whether the substring appears\nconsole.log(`the class name is: ${className}`);&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>${…}</code> 只在反引号内有效。在 <code>&#39;单引号&#39;</code> 或 <code>&quot;双引号&quot;</code> 中，它会被原样打印出来。</p>
+</blockquote>
+<hr>
+<h2 id="5-数组">5. 数组</h2>
+<p>数组和 Java 的数组（以及 Python 的 list）类似，但<strong>可以混合不同类型</strong>，也可以嵌套（幻灯片 21）。用 <code>[]</code> 访问和赋值；<strong>越界赋值会自动扩展数组</strong>，中间留下空槽：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> letters</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'a'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'b'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'c'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> numbers</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> things</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'raindrops'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2.5</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">, [</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">]]; </span><span style="color:#6A9955">//arrays can be nested</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> empty</span><span style="color:#D4D4D4"> = [];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> blank5</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Array</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//empty array with 5 items</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//access using [] notation like Java</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> "b"</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">things</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">][</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 8</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign using [] notation like Java</span></span>
+<span class="line"><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'z'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//=> ['z', 'b', 'c']</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assigning out of bounds automatically grows the array</span></span>
+<span class="line"><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'g'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    //=> [ 'z', 'b', 'c', , , , , , , , 'g' ]</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">letters</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//=> 11</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>控制台会把空档显示为 <code>&lt;7 empty items&gt;</code>（Node）或 <code>empty × 7</code>（Chrome）；读取空槽得到 <code>undefined</code>（Python 则会抛出 <code>IndexError</code>）。</p>
+<p>数组有自己的方法（幻灯片 22）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Make a new array</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'i'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'n'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'f'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'x'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//add item to end of the array</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'133'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> ['i','n','f','x','133']</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//combine elements into a string</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> str</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'-'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">str</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> "i-n-f-x-133"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//get index of an element (first occurrence)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> oIndex</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'x'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> 3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//remove 1 element starting at oIndex</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">splice</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">oIndex</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//=> ['i','n','f','133']</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>更多有用的数组方法（附录，幻灯片 57）：</p>
+<ul>
+<li>数组具有栈的操作：<code>.push()</code> 和 <code>.pop()</code> 分别在<strong>末尾</strong>添加和移除元素。</li>
+<li><code>.concat()</code> 用于合并数组：<code>[1, 2].concat([3, 4])</code> → <code>[ 1, 2, 3, 4 ]</code>。</li>
+<li><code>.sort()</code> 默认“按字母顺序/数值顺序”排序，但可以传入一个<strong>比较函数（comparator）</strong>。例如，按对象的 <code>count</code> 属性排序：</li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sort</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">count</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">count</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>比较函数在 <code>a</code> 应排在前面时返回负数，在 <code>b</code> 应排在前面时返回正数。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 21–22 · lecture.js (arrays)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var letters = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;];\nvar things = [&#39;raindrops&#39;, 2.5, true, [5, 9, 8]]; //arrays can be nested\n\nconsole.log( letters[1] ); //=&gt; \&quot;b\&quot;\nconsole.log( things[3][2] ); //=&gt; 8\n\nletters[0] = &#39;z&#39;;\nconsole.log( letters ); //=&gt; [&#39;z&#39;, &#39;b&#39;, &#39;c&#39;]&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Assigning out of bounds grows the array; the gap is empty slots.&quot;, &quot;js&quot;: &quot;\nletters[10] = &#39;g&#39;;\nconsole.log( letters );\nconsole.log( letters.length ); //=&gt; 11&quot;}, {&quot;note&quot;: &quot;push, join, indexOf, splice (slide 22).&quot;, &quot;js&quot;: &quot;\nvar array = [&#39;i&#39;,&#39;n&#39;,&#39;f&#39;,&#39;x&#39;];\narray.push(&#39;133&#39;);\nconsole.log(array);\nvar str = array.join(&#39;-&#39;);\nconsole.log(str);\nvar oIndex = array.indexOf(&#39;x&#39;); //=&gt; 3\narray.splice(oIndex, 1);\nconsole.log(array);&quot;}, {&quot;note&quot;: &quot;Slide 57: pop, concat, and sort with and without a comparator.&quot;, &quot;js&quot;: &quot;\nconsole.log(array.pop(), array);\nconsole.log([1, 2].concat([3, 4]));\nconsole.log([10, 9, 1].sort()); // compares as strings!\nconsole.log([10, 9, 1].sort(function(a, b) { return a - b; }));&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：默认的 <code>.sort()</code> 会把元素<strong>当作字符串</strong>比较，数字也不例外：<code>[10, 9, 1].sort()</code> 得到 <code>[ 1, 10, 9 ]</code>。要对数字排序，请传入 <code>function(a, b) { return a - b; }</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E6%BC%94%E7%A4%BA-1%E6%B1%82%E5%92%8C%E5%B9%B6%E7%BB%9F%E8%AE%A1%E5%81%B6%E6%95%B0%E5%B9%BB%E7%81%AF%E7%89%87-23--setup1--solution1">演示 1</a>（push、求和、统计偶数）· <a href="#122-%E9%97%AE%E9%A2%98-1%E6%8E%A7%E5%88%B6%E5%8F%B0%E4%BC%9A%E6%98%BE%E7%A4%BA%E4%BB%80%E4%B9%88%E5%B9%BB%E7%81%AF%E7%89%87-2426">问题 1</a>（追踪一个数组）</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://medium.com/@DaphneWatson/10-useful-javascript-array-methods-8ffe22e7a959">Medium: 10 useful JavaScript array methods</a></p>
+</blockquote>
+<hr>
+<h2 id="6-对象与-json">6. 对象与 JSON</h2>
+<p>JavaScript 的<strong>对象（object）</strong>是一组无序的键值对：类似 Java 中的 HashMap 或 <strong>Python 中的字典</strong>。它们有时也被称为<strong>关联数组（associative arrays）</strong>（幻灯片 27）。键两边的引号是可选的：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4"> = {</span><span style="color:#9CDCFE">alice:</span><span style="color:#B5CEA8">40</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">bob:</span><span style="color:#B5CEA8">35</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">charles:</span><span style="color:#B5CEA8">13</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">extensions</span><span style="color:#D4D4D4"> = {</span><span style="color:#CE9178">'daniel'</span><span style="color:#9CDCFE">:</span><span style="color:#B5CEA8">1622</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'in4matx'</span><span style="color:#9CDCFE">:</span><span style="color:#B5CEA8">9937</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">num_words</span><span style="color:#D4D4D4"> = {</span><span style="color:#B5CEA8">1</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'one'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'two'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178">'three'</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">things</span><span style="color:#D4D4D4"> = {</span><span style="color:#9CDCFE">num:</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">dog:</span><span style="color:#CE9178">'woof'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">list:</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">]}</span></span>
+<span class="line"><span style="color:#9CDCFE">empty</span><span style="color:#D4D4D4"> = {}</span></span>
+<span class="line"><span style="color:#9CDCFE">empty</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Object</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//empty object</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>方括号访问</strong>（幻灯片 28）：值（或称<em>属性</em>）用 <code>array[]</code> 语法引用。与 Python 不同，访问不存在的键<strong>不会报错</strong>，而是得到 <code>undefined</code>。给一个新键赋值就会添加它：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//access ("look up") values</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 40</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'bob'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 35</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'charles'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 13</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//keys not in the object have undefined values</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'fred'</span><span style="color:#D4D4D4">]); </span><span style="color:#6A9955">//=> undefined</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign values</span></span>
+<span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">41</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'alice'</span><span style="color:#D4D4D4">] ); </span><span style="color:#6A9955">//=> 41</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">ages</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'fred'</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">19</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//adds the key and assigns</span></span>
+<span class="line"><span style="color:#6A9955">                   //a value to it</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>点号记法</strong>（幻灯片 29）效果相同，并且可以链式访问嵌套的对象和数组：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> person</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  firstName:</span><span style="color:#CE9178"> 'Alice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  lastName:</span><span style="color:#CE9178"> 'Smith'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  favorites:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    food:</span><span style="color:#CE9178"> 'pizza'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    numbers:</span><span style="color:#D4D4D4"> [</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">firstName</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//get value of 'firstName' key</span></span>
+<span class="line"><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">lastName</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'Jones'</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//set value of 'lastName' key</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">firstName</span><span style="color:#D4D4D4">+</span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">lastName</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Alice Jones"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> topic</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'food'</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> favFood</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">food</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//object in the object</span></span>
+<span class="line"><span style="color:#6A9955">              //object         //value</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> firstNumber</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">]; </span><span style="color:#6A9955">//12</span></span>
+<span class="line"><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">favorites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//push 7 onto the Array</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>当键存储在变量里时（幻灯片中的 <code>topic</code>），要用方括号：<code>person.favorites[topic]</code>；<code>.topic</code> 会去找名为 <code>topic</code> 的键。</p>
+<p><strong>常用的对象方法</strong>（附录，幻灯片 58）：<code>Object.keys(obj)</code> 返回键组成的数组（顺序不保证），<code>Object.values(obj)</code> 返回值组成的数组，<code>Object.entries(obj)</code> 返回 <code>[key, value]</code> 对组成的数组：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4"> = { </span><span style="color:#9CDCFE">pet1:</span><span style="color:#CE9178"> 'Dog'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pet2:</span><span style="color:#CE9178"> 'Cat'</span><span style="color:#D4D4D4"> };</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Object</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">entries</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#6A9955">// [ ["pet1", "Dog"], ["pet2", "Cat"] ]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 27–29, 58 · lecture.js (objects)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;ages = {alice:40, bob:35, charles:13}\n\nconsole.log( ages[&#39;alice&#39;] ); //=&gt; 40\nconsole.log( ages[&#39;fred&#39;]); //=&gt; undefined\nages[&#39;alice&#39;] = 41;\nconsole.log( ages[&#39;alice&#39;] ); //=&gt; 41\nages[&#39;fred&#39;] = 19; //adds the key\n\nvar person = {\n  firstName: &#39;Alice&#39;,\n  lastName: &#39;Smith&#39;,\n  favorites: {\n    food: &#39;pizza&#39;,\n    numbers: [12, 42]\n  }\n};\nperson.lastName = &#39;Jones&#39;;\nconsole.log(person.firstName+&#39; &#39;+person.lastName); //\&quot;Alice Jones\&quot;\nconsole.log(person.favorites.food);\nperson.favorites.numbers.push(7);\nconsole.log(person.favorites.numbers);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 58: Object.keys / values / entries.&quot;, &quot;js&quot;: &quot;\nconsole.log(Object.keys(ages));\nconsole.log(Object.values(ages));\nobj = { pet1: &#39;Dog&#39;, pet2: &#39;Cat&#39; };\nconsole.log(Object.entries(obj));&quot;}]}</code></pre><p><strong>JSON</strong>（JavaScript Object Notation，幻灯片 30）是基于这种对象语法的文本格式，许多 API 用它来发送和接收数据。在 JSON 中，键<strong>必须</strong>用双引号括起来：</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "first_name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Alice"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "last_name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Smith"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "age"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">40</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "pets"</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"rover"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"fluffy"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"mittens"</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  "favorites"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "music"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"jazz"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "food"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"pizza"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "numbers"</span><span style="color:#D4D4D4">: [</span><span style="color:#B5CEA8">12</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.w3schools.com/js/js_json.asp">w3schools: JSON</a> · <a href="https://codeburst.io/useful-javascript-array-and-object-methods-6c7971d93230">codeburst: Useful JavaScript array and object methods</a></p>
+</blockquote>
+<hr>
+<h2 id="7-函数">7. 函数</h2>
+<p>JavaScript 中的函数类似 Java 的静态方法（幻灯片 31）：不需要类，<strong>没有访问修饰符，也没有返回类型</strong>，并且<strong>参数没有类型</strong>（参数之间用逗号分隔）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//JavaScript</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> msg</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"IN4MATX 133"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片把它和 Java 版本并排展示：<code>public static String sayHello(String name)</code>，从 <code>main</code> 中调用。）</p>
+<p><strong>所有参数都是可选的</strong>（幻灯片 32）。缺少的参数是 <code>undefined</code>；多余的参数会被忽略。两种情况都不会报错：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//expected; parameter is assigned a value</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"In4MATX 133"</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Hello, IN4MATX 133"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//parameter not assigned value (left undefined)</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//"Hello, undefined"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//extra parameters (values) are not assigned</span></span>
+<span class="line"><span style="color:#6A9955">//to variables, so are ignored</span></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"IN4MATX"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"133"</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//"Hello, IN4MATX"</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>实际输出：<code>Hello, In4MATX 133</code>（幻灯片注释里的大小写和传入的参数不一致）、<code>Hello, undefined</code>、<code>Hello, IN4MATX</code>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在 JavaScript 中，传入错误数量的参数不是错误（Python 和 C++ 会拒绝）。忘记传的参数会在之后以 <code>undefined</code> 或 <code>NaN</code> 的形式冒出来。</p>
+</blockquote>
+<hr>
+<h2 id="8-函数也是对象">8. 函数也是对象</h2>
+<p>“接下来是令人困惑的部分……”（幻灯片 33）：<strong>函数是一个值</strong>，和数组一样。幻灯片把两者并排对比：</p>
+<table>
+<thead>
+<tr>
+<th>数组（幻灯片 34–36，左侧）</th>
+<th>函数（右侧）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>var other = myArray;</code> 然后 <code>other[1]</code> → <code>&#39;b&#39;</code></td>
+<td><code>var other = sayHello;</code> 然后 <code>other(&#39;everyone&#39;)</code> → 输出 <code>Hello, everyone</code></td>
+</tr>
+<tr>
+<td>第二个变量，指向同一个数组</td>
+<td><code>var greet = sayHello2;</code> 第二个变量，指向同一个函数对象</td>
+</tr>
+<tr>
+<td><code>obj.array = myArray;</code> 然后 <code>obj.array[0]</code> → <code>&#39;a&#39;</code></td>
+<td><code>obj.sayHi = sayHello;</code> 然后 <code>obj.sayHi(&#39;all&#39;)</code> → 输出 <code>Hello, all</code></td>
+</tr>
+<tr>
+<td><code>obj.otherArray = [1,2,3]</code>（赋值一个字面量）</td>
+<td><code>obj.otherFunc = function() {…}</code>（赋值一个函数字面量）</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//assign function to variable</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello2</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//second variable, same object</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> greet</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sayHello2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//execute object named `greet`</span></span>
+<span class="line"><span style="color:#DCDCAA">greet</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'everyone'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    //prints "Hello, everyone"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> obj</span><span style="color:#D4D4D4"> = {}</span></span>
+<span class="line"><span style="color:#6A9955">//assign function to object</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sayHi</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sayHello</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//access with dot notation</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sayHi</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'all'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//prints "Hello all"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//assign literal (anonymous value)</span></span>
+<span class="line"><span style="color:#9CDCFE">obj</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">otherFunc</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello world!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>最后一段代码就是<strong>“非静态”方法的创建方式</strong>（幻灯片 36）：把函数存为对象的属性，并通过该对象调用。（<code>obj.sayHi(&#39;all&#39;)</code> 的实际输出是 <code>Hello, all</code>，带逗号。）</p>
+<p><strong>匿名值（anonymous values）</strong>（幻灯片 37–39）。直接传给 <code>console.log</code> 的 <code>[4,5,6]</code> 就是匿名值：它没有变量名。函数也可以是匿名的：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//named function</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous function (no name!)</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous function (value) assigned to variable</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//anonymous functions often follow an "arrow" (abbreviated) syntax</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> sayHello</span><span style="color:#D4D4D4"> = (</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, "</span><span style="color:#D4D4D4">+</span><span style="color:#9CDCFE">person</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'IN4MATX 133'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>中间那段代码只是用来说明：单独一行没有名字的 <code>function(person) {…}</code> 会触发 <strong>SyntaxError</strong>（“Function statements require a function name”）。匿名函数总是作为值使用：被赋值、被存储或被传递。</p>
+<p><strong><code>this</code> 关键字</strong>（幻灯片 40）：<code>this</code> 通常指调用该方法的那个对象。幻灯片中的例子：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> alice</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  first:</span><span style="color:#CE9178"> 'Alice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  last:</span><span style="color:#CE9178"> 'Jones'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#DCDCAA">  sayHello</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4">()</span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello, I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">alice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sayHello</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//=> "Hello, I'm Alice"</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片中的错误：按原样运行会输出 <strong><code>Hello, I&#39;m undefined</code></strong>，因为箭头函数没有自己的 <code>this</code>（它使用外层的 <code>this</code>，这里是全局的 <code>window</code>）。如果改成 <code>sayHello: function() {…}</code>，则输出 <code>Hello, I&#39;m Alice</code>。箭头函数所“保留”的，是外层方法的 <code>this</code>，前提是箭头函数写在该方法<em>内部</em>。下面的第 3 步同时展示了这两种情况。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 31–41 · lecture.js (functions are values)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;function sayHello(name) {\n    return \&quot;Hello, \&quot;+name;\n}\nconsole.log(sayHello(\&quot;In4MATX 133\&quot;));\nconsole.log(sayHello());\nconsole.log(sayHello(\&quot;IN4MATX\&quot;,\&quot;133\&quot;));&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;A function is a value: store it in another variable or an object property.&quot;, &quot;js&quot;: &quot;\nvar other = sayHello;\nconsole.log(other(&#39;everyone&#39;));\nvar obj = {};\nobj.sayHi = sayHello;\nconsole.log(obj.sayHi(&#39;all&#39;));\nobj.otherFunc = function() {\n    return \&quot;Hello world!\&quot;;\n}\nconsole.log(obj.otherFunc());&quot;}, {&quot;note&quot;: &quot;Arrow syntax (slide 39).&quot;, &quot;js&quot;: &quot;\nvar sayHello2 = (person) =&gt; {\n   console.log(\&quot;Hello, \&quot;+person);\n}\nsayHello2(&#39;IN4MATX 133&#39;);&quot;}, {&quot;note&quot;: &quot;Slide 40&#39;s code as written: an arrow method does NOT get the object as this.&quot;, &quot;js&quot;: &quot;\nvar alice = {\n  first: &#39;Alice&#39;,\n  sayHello:()=&gt; {\n    console.log(\&quot;Hello, I&#39;m \&quot; + this.first);\n  }\n};\nalice.sayHello();\nvar alice2 = {\n  first: &#39;Alice&#39;,\n  sayHello: function() {\n    console.log(\&quot;Hello, I&#39;m \&quot; + this.first);\n  }\n};\nalice2.sayHello();&quot;}, {&quot;note&quot;: &quot;Passing functions (slide 41): no parentheses when passing.&quot;, &quot;js&quot;: &quot;\nvar doAtOnce = function(funcA, funcB) {\n    funcA();\n    console.log(&#39; and &#39;);\n    funcB();\n    console.log(&#39; at the same time! &#39;);\n}\nvar patHead = function(name) {\n    console.log(\&quot;pat your head\&quot;);\n}\nvar rubBelly = function(name) {\n    console.log(\&quot;rub your belly\&quot;);\n}\ndoAtOnce(patHead, rubBelly);&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：如果对象方法里用到了 <code>this</code>，就不要把它写成箭头函数；请使用 <code>function</code>（或简写形式 <code>sayHello() {…}</code>）。</p>
+</blockquote>
+<hr>
+<h2 id="9-传递函数与回调">9. 传递函数与回调</h2>
+<p>由于函数是对象，它们可以像变量一样被<strong>传递</strong>（幻灯片 41）。传递函数时<strong>不要加括号</strong>：<code>patHead</code> 是函数本身，而 <code>patHead()</code> 会立刻调用它并传入其返回值。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//anonymous function syntax</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> doAtOnce</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">funcA</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">funcB</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">    funcA</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">' and '</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    funcB</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">' at the same time! '</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> patHead</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"pat your head"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> rubBelly</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"rub your belly"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">doAtOnce</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">patHead</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">rubBelly</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出：<code>pat your head</code>、<code>and</code>、<code>rub your belly</code>、<code>at the same time!</code>。</p>
+<p><strong>回调函数（callback function）</strong>是传给<em>另一个</em>函数、由后者“回头调用”并执行的函数（幻灯片 42）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doLater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">callback</span><span style="color:#D4D4D4">) {   </span><span style="color:#6A9955">// takes in a callback</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"I'm waiting a bit..."</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Okay, time to work!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">  callback</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doHomework</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">doLater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">doHomework</span><span style="color:#D4D4D4">);           </span><span style="color:#6A9955">// pass in the callback function</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>假设 <code>doHomework</code> 会输出一些内容，则先打印两行等待信息，再打印作业那一行。</p>
+<p>浏览器的 <code>setTimeout(callback, ms)</code> 就是一个回调 API：它在 <code>ms</code> 毫秒之后调用传入的函数。幻灯片 43 的课堂演示用它在 5 秒后打印一条消息，并每秒交替输出 “tick”/“tock”（见<a href="#123-%E6%BC%94%E7%A4%BA-2%E6%9D%A5%E8%87%AA%E6%9C%AA%E6%9D%A5%E7%9A%84%E9%97%AE%E5%80%99%E4%B8%8E-tick-tock%E5%B9%BB%E7%81%AF%E7%89%87-43--setup2--solution2">演示 2</a>）。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E6%BC%94%E7%A4%BA-2%E6%9D%A5%E8%87%AA%E6%9C%AA%E6%9D%A5%E7%9A%84%E9%97%AE%E5%80%99%E4%B8%8E-tick-tock%E5%B9%BB%E7%81%AF%E7%89%87-43--setup2--solution2">演示 2</a>（setTimeout 回调）</p>
+</blockquote>
+<hr>
+<h2 id="10-foreachmapfilter-与-reduce">10. forEach、map、filter 与 reduce</h2>
+<p>数组的常见循环操作都接受回调函数（即<strong>函数式编程</strong>工具）。</p>
+<p><strong>forEach</strong>（幻灯片 44）：要遍历每个元素，调用 <code>forEach</code> 并传入一个函数，它会对每个数组元素调用该函数：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Iterate through an array</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'a'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'b'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'c'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> printItem</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`item: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">item</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">printItem</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// printItem is the callback</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous function</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">`item: </span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">item</span><span style="color:#569CD6">}</span><span style="color:#CE9178">`</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两种写法都会输出 <code>item: a</code>、<code>item: b</code>、<code>item: c</code>。</p>
+<p><strong>map</strong>（幻灯片 45）对每个元素应用该函数，并返回由其返回值组成的<strong>新数组</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#DCDCAA"> squared</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">map</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#6A9955">//array becomes [1,4,9]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片定义了 <code>squared</code>，但随后传入的是一个相同的匿名函数；<code>array.map(squared)</code> 效果一样。）</p>
+<p><strong>filter</strong>（幻灯片 46）返回一个新数组，<strong>只包含使函数返回 true 的元素</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> isACrowd</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">filter</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}); </span><span style="color:#6A9955">//returns [3,4,5]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>reduce</strong>（幻灯片 47）对每个元素应用函数来更新一个<strong>累加器（accumulator）</strong>。回调接收 <code>(accumulator, current)</code>，并且必须<strong>返回</strong>更新后的累加器；<code>reduce</code> 的第二个参数是初始值：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">,</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> sum</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">reduce</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> newTotal</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> newTotal</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//returns 1+2+3+4=10</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Python</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>arr.forEach(f)</code></td>
+<td><code>for x in arr: f(x)</code></td>
+<td><code>undefined</code></td>
+</tr>
+<tr>
+<td><code>arr.map(f)</code></td>
+<td><code>[f(x) for x in arr]</code></td>
+<td>新数组，长度相同</td>
+</tr>
+<tr>
+<td><code>arr.filter(f)</code></td>
+<td><code>[x for x in arr if f(x)]</code></td>
+<td>新数组，可能更短</td>
+</tr>
+<tr>
+<td><code>arr.reduce(f, init)</code></td>
+<td><code>functools.reduce(f, arr, init)</code></td>
+<td>一个值</td>
+</tr>
+</tbody></table>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 44–47 · lecture.js (forEach, map, filter, reduce)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var array = [&#39;a&#39;,&#39;b&#39;,&#39;c&#39;];\narray.forEach(function(item) {\n   console.log(`item: ${item}`);\n});&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;map returns a NEW array of what the callback returns.&quot;, &quot;js&quot;: &quot;\nvar nums = [1,2,3];\nvar squares = nums.map(function(n) {\n   return n*n;\n});\nconsole.log(squares, nums);&quot;}, {&quot;note&quot;: &quot;filter keeps the elements whose callback returns true.&quot;, &quot;js&quot;: &quot;\nvar isACrowd = [3,1,4,2,5].filter(function(n) {\n   return n &gt;= 3;\n});\nconsole.log(isACrowd);&quot;}, {&quot;note&quot;: &quot;reduce threads an accumulator through the array, starting at 0.&quot;, &quot;js&quot;: &quot;\nvar sum = [1,2,3,4].reduce(function(total, current) {\n   var newTotal = total + current;\n   return newTotal;\n}, 0);\nconsole.log(sum);&quot;}]}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>map</code> 和 <code>filter</code> 不会修改原数组；请使用它们返回的数组。另外，<code>map</code>/<code>filter</code>/<code>reduce</code> 的回调如果忘了写 <code>return</code>，得到的就全是 <code>undefined</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#124-%E9%97%AE%E9%A2%98-2%E5%93%AA%E4%B8%AA%E8%83%BD%E6%8A%8A-max-%E8%AE%BE%E4%B8%BA%E6%9C%80%E5%A4%A7%E5%80%BC%E5%B9%BB%E7%81%AF%E7%89%87-4850">问题 2</a>（forEach、reduce 与 for 的对比）</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.w3schools.com/jsref/jsref_reduce.asp">w3schools: Array reduce()</a></p>
+</blockquote>
+<hr>
+<h2 id="11-作用域变量提升let-与-var">11. 作用域、变量提升、let 与 var</h2>
+<p>以下全部是附录幻灯片（59–62）。</p>
+<p><strong>作用域（scoping）</strong>（幻灯片 59）：变量的作用域限于它被定义的位置，所以在函数内部定义的变量只在该函数内可见：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> globalScopedVar</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm global!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> func</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6"> var</span><span style="color:#9CDCFE"> funcScopedVar</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm only visible in this function!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0"> return</span><span style="color:#9CDCFE"> funcScopedVar</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">funcScopedVar</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//undefined</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>更正：最后一行并不会打印 <code>undefined</code>；它会抛出 <strong><code>ReferenceError: funcScopedVar is not defined</code></strong>，并终止脚本。要点依然成立：在 <code>func</code> 之外，这个名字并不存在。</p>
+<p><strong>变量提升（hoisting）</strong>（幻灯片 60–61）。函数可以被<strong>声明</strong>（<code>function name() {}</code>），也可以被<strong>表达</strong>（<code>var name = function() {}</code>）；两者的调用方式都是 <code>name()</code>，但在作用域处理上有所不同。变量声明和函数声明会被<strong>提升（hoisted）</strong>：它们先于其余代码执行。赋值则发生在你写下它的位置：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">bar</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">() {}</span></span>
+<span class="line"><span style="color:#6A9955">//=> is interpreted as</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">() {}</span></span>
+<span class="line"><span style="color:#DCDCAA">bar</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">foo</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>所以，用声明方式定义的函数可以在定义之前被调用。对于函数表达式，只有 <code>var</code> 被提升：过早调用会失败并报 <code>TypeError: early is not a function</code>，因为此时该变量仍是 <code>undefined</code>。</p>
+<p><strong>let 与 var</strong>（幻灯片 62）：</p>
+<ul>
+<li><code>var</code> 的作用域是<strong>函数体</strong>，而 <code>let</code> 的作用域是<strong>最近的花括号</strong> <code>{ }</code>（类似 C++ 或 Go 的块级变量）。</li>
+<li>两者都会被提升，但 <code>let</code> 不会被初始化，如果在声明那一行之前使用，会产生引用错误（<code>ReferenceError: Cannot access &#39;t&#39; before initialization</code>）。</li>
+<li>幻灯片说在严格模式（strict mode）下 <code>let</code> 变量不能被重复声明。实际上，在同一作用域内重复声明 <code>let</code> 在任何模式下都是错误（<code>Identifier &#39;b&#39; has already been declared</code>），而 <code>var a = 1; var a = 2;</code> 是允许的。</li>
+</ul>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 59–62 · scope, hoisting, let vs var&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;console.log(foo); // hoisted, not yet assigned\nbar();            // hoisted declaration: works\nvar foo = 42;\nfunction bar() { console.log(\&quot;bar ran\&quot;); }\nconsole.log(foo);\n\ntry { early(); } catch (e) { console.log(e.name + \&quot;: \&quot; + e.message); }\nvar early = function() {}; // expression: only the var is hoisted\n\nfunction scopes() {\n  if (true) { var v = &#39;var&#39;; let l = &#39;let&#39;; }\n  console.log(v);        // var: function-scoped\n  console.log(typeof l); // let: gone outside the { }\n}\nscopes();\n\ntry { console.log(t); } catch (e) { console.log(e.name + \&quot;: \&quot; + e.message); }\nlet t = 1;\n\nfunction func() {\n  var funcScopedVar = \&quot;I&#39;m only visible in this function!\&quot;;\n  return funcScopedVar;\n}\nconsole.log(funcScopedVar); // slide 59 says undefined; it throws&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：在 <code>if</code> 或 <code>for</code> 块内用 <code>var</code> 声明的变量，在整个函数中仍然可见。请优先使用 <code>let</code>（和 <code>const</code>）获得块级作用域。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://stackoverflow.com/questions/7609276/javascript-function-order-why-does-it-matter">Stack Overflow: JavaScript function order (hoisting)</a> · <a href="https://stackoverflow.com/questions/762011/what-is-the-difference-between-let-and-var">Stack Overflow: let vs var</a></p>
+</blockquote>
+<blockquote>
+<p>➡️ <strong>下一讲</strong>：<a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/">Lecture 6</a> 会用到以上所有内容来选取和编辑页面元素（DOM）、响应事件，并用 npm 安装包。</p>
+</blockquote>
+<hr>
+<h2 id="12-课堂问题与演示附解答">12. 课堂问题与演示（附解答）</h2>
+<h3 id="121-演示-1求和并统计偶数幻灯片-23--setup1--solution1">12.1 演示 1：求和并统计偶数（幻灯片 23 · setup1 → solution1）</h3>
+<p>幻灯片 23（“Array methods: setup1.js”）是现场演示。来自 <code>setup1.js</code> 的任务：</p>
+<ul>
+<li>在列表末尾添加一个 4，并再次打印</li>
+<li>计算并打印数组中所有数字的和</li>
+<li>统计数组中有多少个偶数</li>
+</ul>
+<p>起始代码：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Array is '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'4'</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// what's wrong with this...?</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution1.js</code>）：问题在于 <code>&#39;4&#39;</code> 是一个<strong>字符串</strong>。应当 push 数字，然后用两个循环：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Array is now '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> sum</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">	sum</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Sum is '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">sum</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">evens</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">	if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] % </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">		evens</span><span style="color:#D4D4D4"> += </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'There are '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">evens</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">' even numbers in the array.'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出（与幻灯片 23 控制台截图中的四行相同）：</p>
+<div class="code-wrap"><pre><code>Array is 6,2,8,1,2,5,3
+Array is now 6,2,8,1,2,5,3,4
+Sum is 31
+There are 5 even numbers in the array.</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>如果用 setup 里的 <code>push(&#39;4&#39;)</code>，求和循环执行到 <code>27 + &#39;4&#39;</code> 时会变成字符串拼接：<strong><code>Sum is 274</code></strong>。用 <a href="#10-foreachmapfilter-%E4%B8%8E-reduce">第 10 节</a>的回调，这两步可以写成 <code>array.reduce((t, n) =&gt; t + n, 0)</code> 和 <code>array.filter(n =&gt; n % 2 == 0).length</code>。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 1 · solution1.js (plus the setup&#39;s push(&#39;4&#39;) bug)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;var array = [6, 2, 8, 1, 2, 5, 3];\nconsole.log(&#39;Array is &#39; + array);\n\n/*TODO:\n- add a 4 to the end of the list and print it again\n- calculate and print out the sum of all of the numbers in the array\n- count how many even numbers are in the array\n*/\n\narray.push(4);\nconsole.log(&#39;Array is now &#39; + array);\n\nvar sum = 0;\n\nfor(var i=0; i&lt;array.length; i++) {\n\tsum += array[i];\n}\n\nconsole.log(&#39;Sum is &#39; + sum);\n\nevens = 0;\nfor(var i=0;i&lt;array.length; i++) {\n\tif(array[i] % 2 == 0) {\n\t\tevens += 1;\n\t}\n}\nconsole.log(&#39;There are &#39; + evens + &#39; even numbers in the array.&#39;);\n\n\n\n// The setup&#39;s version: push a STRING &#39;4&#39;\nvar bad = [6, 2, 8, 1, 2, 5, 3];\nbad.push(&#39;4&#39;);\nvar badSum = 0;\nfor(var i=0; i&lt;bad.length; i++) { badSum += bad[i]; }\nconsole.log(&#39;Sum with push(\\&#39;4\\&#39;) is &#39; + badSum);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo 文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/solution1.js">solution1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo1/solution1.html">solution1.html</a></p>
+</blockquote>
+<p>返回 <a href="#5-%E6%95%B0%E7%BB%84">5. 数组</a>。</p>
+<h3 id="122-问题-1控制台会显示什么幻灯片-2426">12.2 问题 1：控制台会显示什么？（幻灯片 24–26）</h3>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'1'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'fish'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'dog'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'2'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'*'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> <code>number*fish*2*-1*dog*0</code></li>
+<li><strong>B</strong> <code>undefined*fish*2*undefined*dog*2</code></li>
+<li><strong>C</strong> <code>string*fish*2*24*dog*2</code></li>
+<li><strong>D</strong> <code>undefined*fish*2*undefined*dog*2</code></li>
+<li><strong>E</strong> <code>number*fish*-2*blue*3*dog*2</code></li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：E</strong>（幻灯片 26 中高亮）——<code>number*fish*-2*blue*3*dog*2</code>。</p>
+<table>
+<thead>
+<tr>
+<th>代码行</th>
+<th>执行后的数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>array[5] = &#39;dog&#39;</code></td>
+<td><code>[ &#39;1&#39;, &#39;fish&#39;, 2, &#39;blue&#39;, &lt;1 empty item&gt;, &#39;dog&#39; ]</code>（数组扩展；下标 4 为空）</td>
+</tr>
+<tr>
+<td><code>array.push(&#39;2&#39;)</code></td>
+<td><code>[ … , &#39;dog&#39;, &#39;2&#39; ]</code>，长度为 7</td>
+</tr>
+<tr>
+<td><code>array[2] = array[6] - 4</code></td>
+<td><code>&#39;2&#39; - 4</code> → <code>-2</code>（减号会转换字符串）</td>
+</tr>
+<tr>
+<td><code>array[0] = typeof array[2]</code></td>
+<td><code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>array[4] = array.indexOf(&#39;blue&#39;)</code></td>
+<td><code>3</code>（填上了空洞）</td>
+</tr>
+</tbody></table>
+<p>陷阱：B 和 D（在幻灯片上完全相同）假设所有位置都是 <code>undefined</code>；C 把 <code>-</code> 当成了 <code>+</code>（得到 <code>&#39;24&#39;</code>）；A 把 <code>&#39;blue&#39;</code> 的位置弄错了，它仍然在下标 3。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 1 · q1.js (logs the array after every line)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;source&quot;: &quot;none&quot;, &quot;js&quot;: &quot;var array = [&#39;1&#39;, &#39;fish&#39;, 2, &#39;blue&#39;];\n\narray[5] = &#39;dog&#39;;\nconsole.log(array);\n\narray.push(&#39;2&#39;);\nconsole.log(array);\n\narray[2] = array[array.length - 1] - 4;\nconsole.log(array);\n\narray[0] = typeof array[2];\nconsole.log(array);\n\narray[4] = array.indexOf(&#39;blue&#39;);\nconsole.log(array);\n\nconsole.log(array.join(&#39;*&#39;));&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo 文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q1/q1.html">q1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>返回 <a href="#5-%E6%95%B0%E7%BB%84">5. 数组</a>。</p>
+<h3 id="123-演示-2来自未来的问候与-tick-tock幻灯片-43--setup2--solution2">12.3 演示 2：来自未来的问候与 tick-tock（幻灯片 43 · setup2 → solution2）</h3>
+<p>幻灯片 43（“Callback functions”）展示了打开的 <code>solution2.html</code>，控制台是空的：这个演示是现场运行的。来自 <code>setup2.js</code> 的任务：</p>
+<ul>
+<li>使用 <code>setTimeout()</code> 在页面加载 5 秒后打印 “Hello from the future!”</li>
+<li>每隔一秒交替输出 “tick” 和 “tock”，其中 tick 用<strong>具名</strong>函数，tock 用<strong>匿名</strong>函数</li>
+</ul>
+<p><code>setTimeout</code> 接受两个参数：一个回调函数，以及距离调用该函数的时间（毫秒）。起始代码：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> helloFromTheFuture</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution2.js</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">helloFromTheFuture</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> tick</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'tick'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'tock'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">		setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tick</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tick</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>helloFromTheFuture</code> 传入时不加括号。<code>tick</code> 先输出，然后安排那个匿名箭头函数；后者输出 <code>tock</code> 并再次安排 <code>tick</code>，于是它们会永远交替下去。前约 6 秒的输出：</p>
+<div class="code-wrap"><pre><code>tick
+tock
+tick
+tock
+Hello from the future!
+tick</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在第 5 秒时，hello 定时器和第三个 <code>tick</code> 同时到期；hello 是先安排的，所以它先执行。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 2 · solution2.js (wait ~5 s for the future)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;js&quot;: &quot;/*TODO:\n- use setTimeout() to print \&quot;Hello from the future!\&quot; 5 seconds after the page is loaded\n- alternate logging \&quot;ticks\&quot; and \&quot;tocks\&quot; every one second, creating a named function for tick and an anonymous function for tock\nsetTimeout takes two arguments: a callback function, time in MS until function should be called\nhttps://www.w3schools.com/jsref/met_win_settimeout.asp\n*/\n\nfunction helloFromTheFuture() {\n\tconsole.log(\&quot;Hello from the future!\&quot;);\n}\n\nsetTimeout(helloFromTheFuture, 5000);\n\nfunction tick() {\n\tconsole.log(&#39;tick&#39;);\n\tsetTimeout(() =&gt; {\n\t\tconsole.log(&#39;tock&#39;);\n\t\tsetTimeout(tick, 1000);\n\t}, 1000);\n}\n\nsetTimeout(tick, 1000);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo 文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/setup2.html">setup2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/demo2/solution2.html">solution2.html</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>深入阅读</strong>：<a href="https://www.w3schools.com/jsref/met_win_settimeout.asp">w3schools: setTimeout() (linked in setup2.js)</a></p>
+</blockquote>
+<p>返回 <a href="#9-%E4%BC%A0%E9%80%92%E5%87%BD%E6%95%B0%E4%B8%8E%E5%9B%9E%E8%B0%83">9. 传递函数与回调</a>。</p>
+<h3 id="124-问题-2哪个能把-max-设为最大值幻灯片-4850">12.4 问题 2：哪个能把 max 设为最大值？（幻灯片 48–50）</h3>
+<p>下面哪一个会把 <code>max</code> 设为数组 <code>numbers</code> 的最大值？（JavaScript 中空白字符无关紧要。）</p>
+<ul>
+<li><strong>A</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY;</span></span>
+<span class="line"><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>B</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> =</span></span>
+<span class="line"><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">reduce</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}, </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>C</strong></li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Number</span><span style="color:#D4D4D4">.NEGATIVE_INFINITY;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">numbers</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">max</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">num</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>D</strong> 上述中的两个</li>
+<li><strong>E</strong> 上述全部</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：D</strong>（幻灯片 50 中高亮）——A 和 B 可行；C 不行。</p>
+<ul>
+<li><strong>A</strong> 可行：回调会针对每个元素更新外层的 <code>max</code>。</li>
+<li><strong>B</strong> 可行：累加器（同样叫 <code>max</code>，遮蔽了外层的 <code>max</code>）从 <code>-Infinity</code> 开始，每次调用都返回较大的那个值。</li>
+<li><strong>C</strong> 有问题：循环从未读取 <code>numbers[i]</code>。它比较的是 <code>num</code>，而这里并不存在这个变量，所以会抛出 <strong><code>ReferenceError: num is not defined</code></strong>。修正方法是 <code>if(numbers[i] &gt; max) { max = numbers[i]; }</code>。</li>
+</ul>
+<p>用 <code>q2.js</code> 中的 <code>numbers = [1, 5, 10, 30, 6, 500]</code>，输出为 <code>A: 500</code>、<code>B: 500</code>，随后报错：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 2 · q2.js (C throws)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;height&quot;: 60, &quot;source&quot;: &quot;none&quot;, &quot;js&quot;: &quot;var numbers = [1, 5, 10, 30, 6, 500];\n\n// ----- A ------\nvar max = Number.NEGATIVE_INFINITY;\n\nnumbers.forEach(function(num) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n});\n\nconsole.log(`A: ${max}`);\n\n\n// ----- B ------\nvar max = numbers.reduce(function(max, num) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n\treturn max;\n}, Number.NEGATIVE_INFINITY);\n\nconsole.log(`B: ${max}`);\n\n\n// ----- C ------\nvar max = Number.NEGATIVE_INFINITY;\n\nfor(var i=0;i &lt; numbers.length; i++) {\n\tif(num &gt; max) {\n\t\tmax = num;\n\t}\n}\n\nconsole.log(`C: ${max}`);&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo 文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q2/q2.html">q2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L2_Oct8_JavaScript/q2/q2.js">q2.js</a></p>
+</blockquote>
+<p>返回 <a href="#10-foreachmapfilter-%E4%B8%8E-reduce">10. forEach、map、filter 与 reduce</a>。</p>
+<hr>
+<h2 id="13-速查与必记的-5-个要点">13. 速查与必记的 5 个要点</h2>
+<p><strong>类型与比较</strong></p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>typeof &#39;hi&#39;</code> / <code>typeof 42</code></td>
+<td><code>&#39;string&#39;</code> / <code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>typeof null</code> / <code>typeof undefined</code> / <code>typeof NaN</code></td>
+<td><code>&#39;object&#39;</code> / <code>&#39;undefined&#39;</code> / <code>&#39;number&#39;</code></td>
+</tr>
+<tr>
+<td><code>&#39;40&#39; + 2</code> / <code>&#39;40&#39; - 4</code></td>
+<td><code>&#39;402&#39;</code> / <code>36</code></td>
+</tr>
+<tr>
+<td><code>10 == &#39;10&#39;</code> / <code>10 === &#39;10&#39;</code> / <code>&#39;&#39; == 0</code></td>
+<td><code>true</code> / <code>false</code> / <code>true</code></td>
+</tr>
+<tr>
+<td><code>undefined * 3</code>, <code>&#39;word&#39; - 5</code></td>
+<td><code>NaN</code></td>
+</tr>
+<tr>
+<td>falsy 值</td>
+<td><code>null</code>, <code>undefined</code>, <code>NaN</code>, <code>0</code>, <code>&#39;&#39;</code>, <code>false</code></td>
+</tr>
+</tbody></table>
+<p><strong>字符串与数组</strong></p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>s.toUpperCase()</code>, <code>s.substring(1, 4)</code>, <code>s.indexOf(&#39;x&#39;)</code></td>
+<td>新字符串；切片 [1,4)；位置或 <code>-1</code></td>
+</tr>
+<tr>
+<td><code>`text ${v}`</code></td>
+<td>模板字面量（template literal）</td>
+</tr>
+<tr>
+<td><code>a.push(x)</code> / <code>a.pop()</code></td>
+<td>在末尾添加 / 移除</td>
+</tr>
+<tr>
+<td><code>a.join(&#39;-&#39;)</code></td>
+<td>把元素合成一个字符串</td>
+</tr>
+<tr>
+<td><code>a.indexOf(x)</code></td>
+<td>第一个下标或 <code>-1</code></td>
+</tr>
+<tr>
+<td><code>a.splice(i, n)</code></td>
+<td>从下标 <code>i</code> 开始移除 <code>n</code> 个元素（原地修改）</td>
+</tr>
+<tr>
+<td><code>a.concat(b)</code></td>
+<td>返回合并后的新数组</td>
+</tr>
+<tr>
+<td><code>a.sort((x, y) =&gt; x - y)</code></td>
+<td>数值排序（默认按字符串排序）</td>
+</tr>
+</tbody></table>
+<p><strong>对象</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>o[&#39;key&#39;]</code> / <code>o.key</code></td>
+<td>读取（不存在 → <code>undefined</code>）</td>
+</tr>
+<tr>
+<td><code>o.key = v</code></td>
+<td>设置或添加</td>
+</tr>
+<tr>
+<td><code>Object.keys(o)</code> / <code>Object.values(o)</code> / <code>Object.entries(o)</code></td>
+<td>键 / 值 / <code>[key, value]</code> 组成的数组</td>
+</tr>
+</tbody></table>
+<p><strong>函数与回调</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>function f(a) {…}</code></td>
+<td>声明（会被提升）</td>
+</tr>
+<tr>
+<td><code>var f = function(a) {…}</code></td>
+<td>表达式（只有 <code>var</code> 被提升）</td>
+</tr>
+<tr>
+<td><code>var f = (a) =&gt; {…}</code></td>
+<td>箭头函数（没有自己的 <code>this</code>）</td>
+</tr>
+<tr>
+<td><code>g(f)</code> 与 <code>g(f())</code></td>
+<td>传递函数本身 与 传递它的返回值</td>
+</tr>
+<tr>
+<td><code>a.forEach(f)</code> / <code>a.map(f)</code> / <code>a.filter(f)</code> / <code>a.reduce(f, init)</code></td>
+<td>遍历 / 转换 / 筛选 / 累积</td>
+</tr>
+<tr>
+<td><code>setTimeout(f, ms)</code></td>
+<td><code>ms</code> 毫秒后调用 <code>f</code></td>
+</tr>
+<tr>
+<td><code>var</code> / <code>let</code></td>
+<td>函数作用域 / 块级作用域</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li><code>+</code> 遇到字符串会拼接，<code>-</code> 会转换成数字：<code>&#39;40&#39; + 2</code> 是 <code>&#39;402&#39;</code>，<code>&#39;2&#39; - 4</code> 是 <code>-2</code>。请使用 <code>===</code>，而不是 <code>==</code>。</li>
+<li>在数组末尾之后赋值会用空槽扩展数组；读取不存在的下标或对象的键会得到 <code>undefined</code>，不会报错。</li>
+<li>函数是值：可以把它们存入变量和对象属性，并<strong>不加括号</strong>地作为回调传递。</li>
+<li><code>map</code> 和 <code>filter</code> 返回新数组；<code>reduce</code> 要求回调 <code>return</code> 累加器，并需要一个初始值。</li>
+<li><code>var</code> 是函数作用域，且被提升为 <code>undefined</code>；<code>let</code> 是块级作用域，在声明行之前使用会抛出错误。箭头函数没有自己的 <code>this</code>。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 4 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>响应式设计与 JavaScript（一）</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 6 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>DOM 操作与包管理</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/" title="上一篇: 响应式设计与 JavaScript（一） ([)" aria-label="上一篇: 第 4 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 4 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 5 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" title="下一篇: DOM 操作与包管理 (])" aria-label="下一篇: 第 6 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 6 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

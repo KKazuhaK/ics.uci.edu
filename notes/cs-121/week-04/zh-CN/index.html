@@ -1,0 +1,1094 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>CS 121 字符编码、文档存储、重复检测与 Zipf 定律 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="文档转换与字符编码（Unicode、UTF-8）、文档存储（TREC Web 格式、压缩、BigTable）、精确与近似重复检测（校验和、n-gram 指纹、Simhash）、去除网页噪声，以及文本统计与 Zipf 定律。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413980" data-source-url="/~kazuhak/notes/cs-121/week-04/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-04/en-US/" data-prev-url="/~kazuhak/notes/cs-121/week-03/zh-CN/" data-next-url="/~kazuhak/notes/cs-121/week-05/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 4 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 4 周 · 信息检索课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 CS 121 第 4 周 的课程笔记，适合按周复习文本处理、网络图、SEO、网络爬虫，以及搜索引擎如何索引网页并为其排序。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 28 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-4网页爬取文本处理">CS 121: Information Retrieval — Week 4：网页爬取、文本处理</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E4%BB%8E%E5%A4%9A%E7%A7%8D%E6%A0%BC%E5%BC%8F%E5%88%B0%E6%96%87%E6%9C%AC%E7%9A%84%E8%BD%AC%E6%8D%A2">1. 从多种格式到文本的转换</a></li>
+<li><a href="#2-%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81">2. 字符编码</a></li>
+<li><a href="#3-unicode-%E4%B8%8E-utf-8">3. Unicode 与 UTF-8</a></li>
+<li><a href="#4-%E6%96%87%E6%A1%A3%E5%AD%98%E5%82%A8">4. 文档存储</a></li>
+<li><a href="#5-trec-web-%E6%A0%BC%E5%BC%8F">5. TREC Web 格式</a></li>
+<li><a href="#6-%E5%8E%8B%E7%BC%A9%E4%B8%8E-bigtable">6. 压缩与 BigTable</a></li>
+<li><a href="#7-%E7%B2%BE%E7%A1%AE%E9%87%8D%E5%A4%8D%E6%A0%A1%E9%AA%8C%E5%92%8C%E4%B8%8E-crc">7. 精确重复：校验和与 CRC</a></li>
+<li><a href="#8-%E8%BF%91%E4%BC%BC%E9%87%8D%E5%A4%8D%E4%B8%8E-n-gram-%E6%8C%87%E7%BA%B9">8. 近似重复与 N-gram 指纹</a></li>
+<li><a href="#9-simhash">9. Simhash</a></li>
+<li><a href="#10-%E5%8E%BB%E9%99%A4%E5%99%AA%E5%A3%B0%E6%9F%A5%E6%89%BE%E5%86%85%E5%AE%B9%E5%9D%97">10. 去除噪声：查找内容块</a></li>
+<li><a href="#11-%E6%96%87%E6%9C%AC%E7%BB%9F%E8%AE%A1%E4%B8%8E-zipf-%E5%AE%9A%E5%BE%8B">11. 文本统计与 Zipf 定律</a></li>
+<li><a href="#12-%E7%A4%BA%E4%BE%8B%E9%A2%98%E9%99%84%E8%A7%A3%E7%AD%94">12. 示例题（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%BB%B6%E4%BA%8B">13. 速查与必记的 5 件事</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 21<br>整理自 Lecture 10、11 和 12 的幻灯片（YuJa 视频未收录）。<strong>暂定版</strong>：课堂用的 Lecture 9.5 幻灯片尚未发布，因此其中的课堂重点和提示暂缺。按概念组织，而不是按讲次组织。<br>幻灯片致谢 Profs. C. Lopes、A. Krone-Martins、C. Manning、P. Nayak、H. Schütze 等教授；教材插图致谢 Addison Wesley。<br>📖 本周阅读：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al.，<em>Search Engines: IR in Practice</em>，第 3 章 Crawls and Feeds，以及第 4 章 Processing Text 中直到 §4.4（含）的部分</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：Online <strong>Quiz 1</strong> 于 10 月 21 日（周三）课上用笔记本电脑完成（晚 7:00 开放，时长 30 分钟）。<br><strong>Assignment 2</strong>（网络爬虫）截止时间为 <strong>10 月 30 日（周五）晚 9:00</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="1-从多种格式到文本的转换">1. 从多种格式到文本的转换</h2>
+<p>本周沿着一个页面从爬虫到索引的路径展开。在架构图上（L11 p3 · L12 p2、p31；在<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#10-%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84">第 1 周第 10 节</a>中有解释），路径是 <strong>文本获取 → 本地文档库 → 文本转换/处理</strong>：先把页面转换为文本（§1–3），再存储它（§4–6），然后剔除重复和噪声（§7–10），最后开始研究词本身（§11）。</p>
+<p>&quot;文本预处理&quot;从<strong>转换</strong>开始（L10 p2–5，每帧一条要点）：</p>
+<ul>
+<li>文本以<strong>数百种互不兼容的文件格式</strong>存储：纯文本、RTF、HTML、XML、Microsoft Word、ODF、PDF。</li>
+<li><strong>其他并非专门用于文本的文件类型</strong>也很重要：PowerPoint、Excel、Keynote、Pages。</li>
+<li>你通常会使用<strong>转换工具或库</strong>。它会<strong>把文档内容转换为带标签的文本格式，例如 HTML 或 XML</strong>，并<strong>保留一部分重要的格式信息</strong>。</li>
+<li>有些转换器<strong>不保留格式</strong>，例如 Unix 工具 <code>pdftotxt</code>、<code>pdf2ps</code> + <code>pdf2ascii</code>。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5 The Conversion Problem（书中第 49 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="2-字符编码">2. 字符编码</h2>
+<p><strong>字形</strong>（glyph，源自希腊语 γλυφή，意为&quot;雕刻&quot;）是你看到的符号，它们编码字母或含义（L10 p6–7）。<strong>字符编码</strong>是<strong>比特与字形之间的映射</strong>，也就是从文件中的比特得到屏幕上字符的方式，它<strong>可能是造成不兼容的主要原因</strong>。</p>
+<ul>
+<li><strong>ASCII</strong>（自 1963 年起）是英语的基础编码：用 <strong>7 位</strong>表示 <strong>128</strong> 个字母、数字、特殊字符和控制字符，并额外加一位以便以字节存储。</li>
+<li><strong>其他语言的字形要多得多</strong>（L10 p8–9）：中文有 <strong>40,000</strong> 多个字符，其中常用的超过 <strong>3,000</strong> 个。</li>
+<li>许多语言有<strong>多种编码方案</strong>，例如 CJK（中日韩）系列、印地语和阿拉伯语。使用这些旧方案时你<strong>必须指定编码</strong>，因为<strong>文件不是自描述的</strong>，而且<strong>一个文件中无法同时包含多种语言</strong>。</li>
+<li><strong>Unicode</strong> 开发于 80 年代末，用于解决这些问题。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5.1 Character Encodings（书中第 50 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="3-unicode-与-utf-8">3. Unicode 与 UTF-8</h2>
+<p><strong>Unicode</strong> 是一种<strong>从数字到字形的单一映射</strong>，它尽量包含所有通用语言中的常用字形（L10 p10–11）。利用其保留的（私用）区域，甚至可以书写自创文字：幻灯片展示了一行这样的文字，旁边是一张注明来源于 Wikipedia 的图片。</p>
+<p>Unicode <strong>解决了&quot;数字 → 字形&quot;的问题</strong>，但<strong>没有唯一确定&quot;比特 → 字形&quot;的映射</strong>。这正是 <strong>UTF-8、UTF-16、UTF-32</strong> 编码所做的：它们把数字（<strong>码位</strong>，code point）转换为字节。</p>
+<p>为什么要有多种编码？出于<strong>兼容性和空间</strong>的考虑（L10 p12）：</p>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>每个字符的字节数</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UTF-8</td>
+<td>英文为 1（与 ASCII 相同），最多 <strong>4</strong>（例如某些繁体中文字符）</td>
+<td>可变长度：占用空间少，但字符串操作更难（第 <em>i</em> 个字符不在第 <em>i</em> 个字节处）</td>
+</tr>
+<tr>
+<td>UTF-32</td>
+<td>始终为 <strong>4</strong></td>
+<td>内存占用更多，与 ASCII 不向后兼容，但宽度固定</td>
+</tr>
+</tbody></table>
+<p>你可以<strong>两者混用</strong>：许多应用在内部使用 <strong>UTF-32</strong>（便于快速随机查找），在磁盘上使用 <strong>UTF-8</strong>（占用空间更少）。</p>
+<p><strong>UTF-8 的工作原理</strong>（L10 p13）。码位所在的范围决定表中的行；每个 <code>x</code> 依次由码位的比特填充，高位在前：</p>
+<table>
+<thead>
+<tr>
+<th>十进制</th>
+<th>十六进制</th>
+<th>编码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–127</td>
+<td>0–7F</td>
+<td><code>0xxxxxxx</code></td>
+</tr>
+<tr>
+<td>128–2047</td>
+<td>80–7FF</td>
+<td><code>110xxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>2048–55295</td>
+<td>800–D7FF</td>
+<td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>55296–57343</td>
+<td>D800–DFFF</td>
+<td>未定义</td>
+</tr>
+<tr>
+<td>57344–65535</td>
+<td>E000–FFFF</td>
+<td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>65536–1114111</td>
+<td>10000–10FFFF</td>
+<td><code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+</tbody></table>
+<p>幻灯片的例子：希腊字母 <strong>π 的码位是 960</strong>，二进制为 <code>00000011 11000000</code>（十六进制 3C0）。960 位于第二行，因此编码形式是 <code>110xxxxx 10xxxxxx</code>：<strong>高 5 位</strong>放入第一个字节，<strong>接下来的 6 位</strong>放入第二个字节。结果为 <strong><code>11001111 10000000</code> = <code>CF 80</code></strong>。你可以逐步演示，也可以输入其他字符：</p>
+<pre data-language="viz" data-viz="utf8-encode"><code>{&quot;title&quot;: &quot;π 的 UTF-8 编码（L10 p13）&quot;, &quot;text&quot;: &quot;π&quot;, &quot;interactive&quot;: true}</code></pre><p>前导位决定长度（<code>110</code> 表示 2 个字节，<code>1110</code> 表示 3 个，<code>11110</code> 表示 4 个）；后续字节以 <code>10</code> 开头，因此 ASCII 字节（<code>0xxxxxxx</code>）永远不会是多字节字符的一部分。Python 的结果与此一致：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"π"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-8"</span><span style="color:#D4D4D4">).hex(</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">))       </span><span style="color:#6A9955"># cf 80</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"π"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-32-be"</span><span style="color:#D4D4D4">).hex(</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">))   </span><span style="color:#6A9955"># 00 00 03 c0</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"中"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-8"</span><span style="color:#D4D4D4">)))           </span><span style="color:#6A9955"># 3</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%CF%80-%E7%9A%84-utf-8-%E7%BC%96%E7%A0%81l10-p13">例题 12.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5.1 Character Encodings（书中第 50 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="4-文档存储">4. 文档存储</h2>
+<p>转换之后，你需要<strong>存储</strong>文档（L11 p4–5）。保留转换后文本的理由：</p>
+<ul>
+<li>当页面未更新时，它<strong>节省重新爬取的时间</strong>；</li>
+<li>它能<strong>高效访问文本</strong>，用于<strong>摘要生成</strong>、额外信息抽取等。</li>
+</ul>
+<p>数据库系统可以为某些应用提供文档存储，但<strong>网络搜索引擎使用定制的文档存储系统</strong>。</p>
+<p>搜索引擎文档库的要求（L11 p6）：</p>
+<table>
+<thead>
+<tr>
+<th>要求</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>随机访问</strong></td>
+<td>通过<strong>URL</strong> 请求文档内容；通常用<strong>URL 上的哈希函数</strong>定位文档</td>
+</tr>
+<tr>
+<td><strong>压缩与大文件</strong></td>
+<td>减少存储需求，并保持访问效率</td>
+</tr>
+<tr>
+<td><strong>更新</strong></td>
+<td>处理大量新增和修改的文档；添加新的<strong>锚文本</strong>（指向该页面的链接的文本，之后在其他页面上发现）</td>
+</tr>
+</tbody></table>
+<p><strong>大文件</strong>（L11 p7）：网页很小，因此把<strong>许多页面存入较少的大文件</strong>，而不是每个文档一个文件。这样可以<strong>避免文件 I/O 开销</strong>（每页的打开/关闭），并且<strong>相对于读取时间降低寻道时间</strong>——一次寻道，然后进行长时间的顺序读取。<strong>复合文档格式</strong>在一个文件中存储多个文档，例如 <strong>TREC Web</strong>。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6 Storing the Documents（书中第 52 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.1 Using a Database System（书中第 53 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.2 Random Access（书中第 53 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.4 Update（书中第 56 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="5-trec-web-格式">5. TREC Web 格式</h2>
+<p>一个文件，包含两个被爬取的页面（L11 p8）：</p>
+<div class="code-collapse is-collapsed"><pre data-language="xml" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span><span style="color:#D4D4D4">WTX001-B01-10</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">http://www.example.com/test.html 204.244.59.33 19970101013145 text/html 440</span></span>
+<span class="line"><span style="color:#D4D4D4">HTTP/1.0 200 OK</span></span>
+<span class="line"><span style="color:#D4D4D4">Date: Wed, 01 Jan 1997 01:21:13 GMT</span></span>
+<span class="line"><span style="color:#D4D4D4">Server: Apache/1.0.3</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-type: text/html</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-length: 270</span></span>
+<span class="line"><span style="color:#D4D4D4">Last-modified: Mon, 25 Nov 1996 05:31:24 GMT</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical Fish Store</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">Coming soon!</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span><span style="color:#D4D4D4">WTX001-B01-109</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">http://www.example.com/fish.html 204.244.59.33 19970101013149 text/html 440</span></span>
+<span class="line"><span style="color:#D4D4D4">HTTP/1.0 200 OK</span></span>
+<span class="line"><span style="color:#D4D4D4">Date: Wed, 01 Jan 1997 01:21:19 GMT</span></span>
+<span class="line"><span style="color:#D4D4D4">Server: Apache/1.0.3</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-type: text/html</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-length: 270</span></span>
+<span class="line"><span style="color:#D4D4D4">Last-modified: Mon, 25 Nov 1996 05:31:24 GMT</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span><span style="color:#D4D4D4">Fish Information</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">This page will soon contain interesting</span></span>
+<span class="line"><span style="color:#D4D4D4">information about tropical fish.</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（33 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>接下来的五张幻灯片逐一拆解其中的一部分（L11 p9–13）：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>位置</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>文档块</strong></td>
+<td><code>&lt;DOC&gt;</code> … <code>&lt;/DOC&gt;</code></td>
+<td>每个被爬取的页面一个；每个文件中有很多个</td>
+</tr>
+<tr>
+<td><strong>头部</strong></td>
+<td><code>&lt;DOCHDR&gt;</code> … <code>&lt;/DOCHDR&gt;</code></td>
+<td>爬取记录：URL、服务器 IP、爬取时间戳（<code>19970101013145</code>）、类型，然后是 HTTP 响应头</td>
+</tr>
+<tr>
+<td><strong>内容</strong></td>
+<td><code>&lt;HTML&gt;</code> … <code>&lt;/HTML&gt;</code></td>
+<td>页面本身</td>
+</tr>
+<tr>
+<td><strong>文档标识符</strong></td>
+<td><code>&lt;DOCNO&gt;</code></td>
+<td>唯一 ID（<code>WTX001-B01-10</code>、<code>WTX001-B01-109</code>）</td>
+</tr>
+<tr>
+<td><strong>修改标记</strong></td>
+<td><code>Last-modified:</code></td>
+<td>服务器声明页面最后修改的时间——重新爬取时用来比较的依据（<a href="/~kazuhak/notes/cs-121/week-03/zh-CN/#8-%E4%BD%95%E6%97%B6%E9%87%8D%E6%96%B0%E7%88%AC%E5%8F%96%E6%96%B0%E9%B2%9C%E5%BA%A6%E4%B8%8E%E5%B9%B4%E9%BE%84">第 3 周第 8 节</a>）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：这就是&quot;大文件&quot;思想的实际应用：爬虫把 <code>&lt;DOC&gt;</code> 块追加到一个大文件中，而一个从 <code>DOCNO</code>（或 URL 哈希）到字节偏移量的小索引提供了随机访问。</p>
+</blockquote>
+<hr>
+<h2 id="6-压缩与-bigtable">6. 压缩与 BigTable</h2>
+<h3 id="61-压缩">6.1 压缩</h3>
+<p><strong>文本高度冗余（或可预测）</strong>（L11 p14–15；幻灯片展示了 Shannon 1951 年论文 &quot;Prediction and Entropy of Printed English&quot; 的搜索结果）。<strong>无损</strong>压缩利用这种冗余，在<strong>不丢失任何内容</strong>的前提下使文件变小；索引也可以压缩。</p>
+<ul>
+<li>常见算法可将 HTML 和 XML 文本压缩 <strong>80%</strong>：例如 <strong>DEFLATE</strong>（zip、gzip）和 <strong>LZW</strong>（Unix <code>compress</code>、PDF）。</li>
+<li>大文件可以<strong>分块</strong>压缩，这样读取一个文档时无需解压整个文件。</li>
+</ul>
+<h3 id="62-bigtable">6.2 BigTable</h3>
+<p><strong>BigTable</strong> 是 Google 的文档存储系统（L11 p16），专门用于在<strong>廉价计算机</strong>上<strong>存储、查找和更新</strong>网页并处理大型集合。图中显示一个<strong>逻辑表</strong>被切分为许多<strong>子表</strong>（tablet），每个子表由一台服务器持有。</p>
+<p>组织方式（L11 p18–19）：</p>
+<ul>
+<li>在逻辑上按<strong>行</strong>组织；<strong>一行存储单个网页的数据</strong>。</li>
+<li><strong>列可以有多个时间戳</strong>（版本）。<strong>行键、列键和时间戳共同指向一个单元格。</strong></li>
+<li>一行可以有<strong>极多的列</strong>：所有行具有<strong>相同的列组</strong>，但<strong>并非所有行都有相同的列</strong>——这对减少磁盘读取很重要。</li>
+<li>行按<strong>行键</strong>划分为子表（例如以某个字母开头的 URL 位于同一子表中），这使得找到正确的服务器变得简单。</li>
+</ul>
+<p>幻灯片中 <code>www.example.com</code> 的行：</p>
+<table>
+<thead>
+<tr>
+<th>行键</th>
+<th><code>text</code></th>
+<th><code>anchor:other.com</code></th>
+<th><code>anchor:null.com</code></th>
+<th><code>title</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>www.example.com</code></td>
+<td>document text</td>
+<td>example</td>
+<td>click here</td>
+<td>example site</td>
+</tr>
+</tbody></table>
+<p><code>anchor:</code> 是一个列组；每个链接来源站点都有自己的一列，保存其锚文本——即 §4 中的&quot;添加新锚文本&quot;更新。</p>
+<p>优缺点（L11 p17）：</p>
+<ul>
+<li><strong>没有查询语言</strong>：不需要优化复杂查询。</li>
+<li><strong>只支持行级事务。</strong></li>
+<li>子表存放在一个可供所有 BigTable 服务器访问的<strong>复制文件系统</strong>中。</li>
+<li>对子表的任何更改都会记录在<strong>事务日志</strong>中，该日志同样位于共享文件系统上。</li>
+<li>如果子表服务器崩溃，<strong>另一台服务器会从文件系统读取子表数据和日志并接管</strong>。</li>
+<li>子表可以被压缩。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.3 Compression and Large Files（书中第 54 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.5 BigTable（书中第 57 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="7-精确重复校验和与-crc">7. 精确重复：校验和与 CRC</h2>
+<p>第 3 周提出了这个问题（约 30% 的页面是重复的；精确副本用哈希，近似副本用指纹——<a href="/~kazuhak/notes/cs-121/week-03/zh-CN/#7-%E9%87%8D%E5%A4%8D%E5%86%85%E5%AE%B9%E6%95%B0%E6%8D%AE%E5%99%AA%E5%A3%B0%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%84%9A%E6%9C%AC%E4%B8%8E%E6%B7%B1%E7%BD%91">第 3 周第 7 节</a>）。L11–L12 给出了算法。</p>
+<p>重复与近似重复来自<strong>副本、版本、抄袭、垃圾信息和镜像站点</strong>；在大型爬取中，<strong>30%</strong> 的页面与其他页面完全相同或近似相同（<strong>Fetterly et al., 2003</strong>）（L11 p21）。它们在爬取、索引和搜索过程中<strong>消耗大量资源</strong>，而对大多数用户来说几乎没有价值（但在某些用例中可能有价值；幻灯片上的 &quot;buy&quot; 是 &quot;but&quot; 的笔误）。</p>
+<p><strong>精确重复检测相对容易</strong>（L11 p22–24）。<strong>校验和</strong>是由文档内容计算出的一个值，例如<strong>文件中所有字节的和</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>T</th>
+<th>r</th>
+<th>o</th>
+<th>p</th>
+<th>i</th>
+<th>c</th>
+<th>a</th>
+<th>l</th>
+<th>（空格）</th>
+<th>f</th>
+<th>i</th>
+<th>s</th>
+<th>h</th>
+<th>和</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>54</td>
+<td>72</td>
+<td>6F</td>
+<td>70</td>
+<td>69</td>
+<td>63</td>
+<td>61</td>
+<td>6C</td>
+<td>20</td>
+<td>66</td>
+<td>69</td>
+<td>73</td>
+<td>68</td>
+<td>508</td>
+</tr>
+</tbody></table>
+<p>所有数值均为十六进制：508（十六进制）= <strong>1,288</strong>（十进制）。</p>
+<ul>
+<li>文本不同的文件<strong>可能具有相同的校验和</strong>——字节求和忽略顺序，因此同一组字节的任何重新排列都会产生碰撞。</li>
+<li><strong>循环冗余校验（CRC）</strong>还会考虑字节的<strong>位置</strong>。它<strong>仍然可能发生碰撞，但非常罕见</strong>。其他函数包括 <strong>BLAKE2/3、MD5、SHA1、SHA2</strong> 等。</li>
+<li>无论使用哪种方法，都<strong>需要足够快</strong>——因为它要对每个页面运行。</li>
+</ul>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> zlib</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> s </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#569CD6">b</span><span style="color:#CE9178">"Tropical fish"</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">b</span><span style="color:#CE9178">"Tropical fihs"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(s, </span><span style="color:#DCDCAA">sum</span><span style="color:#D4D4D4">(s), </span><span style="color:#DCDCAA">hex</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">sum</span><span style="color:#D4D4D4">(s)), </span><span style="color:#DCDCAA">hex</span><span style="color:#D4D4D4">(zlib.crc32(s)))</span></span>
+<span class="line"><span style="color:#6A9955"># b'Tropical fish' 1288 0x508 0x18f14f94</span></span>
+<span class="line"><span style="color:#6A9955"># b'Tropical fihs' 1288 0x508 0x3ba24de2</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>交换两个字母会保持字节和不变，但会改变 CRC。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#122-%E5%AD%97%E8%8A%82%E5%92%8C%E6%A0%A1%E9%AA%8C%E5%92%8Cl11-p24">例题 12.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates（书中第 60 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="8-近似重复与-n-gram-指纹">8. 近似重复与 N-gram 指纹</h2>
+<p><strong>近似重复检测更难</strong>（L11 p25–27）。两个文本相同但广告或格式不同的页面是近似重复吗？近似重复由两个文档之间某种相似度度量的<strong>阈值</strong>来定义——例如，若 D1 与 D2 <strong>超过 90% 的词相同</strong>，则 D1 是 D2 的近似重复。&quot;你能看出如何在这里用到作业 1 吗？&quot;——作业 1 的分词和词频统计，恰恰是词重叠度量所需要的。</p>
+<p>两种场景（L11 p28–29）：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>任务</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>搜索</strong></td>
+<td>找出一个文档 D 的近似重复</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> 次比较</td>
+</tr>
+<tr>
+<td><strong>发现</strong></td>
+<td>找出集合中<strong>所有</strong>近似重复的<strong>文档对</strong></td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 次比较</td>
+</tr>
+</tbody></table>
+<p>普通的信息检索技术适用于搜索；对于发现任务，则需要称为<strong>指纹</strong>（fingerprint）的紧凑表示。</p>
+<p><strong>指纹算法</strong>（L11 p30；框出的部分）：</p>
+<ol>
+<li><strong>把文档解析为词</strong>；去除标点、HTML 标签和多余的空白。</li>
+<li><strong>将词分组为连续的 n-gram</strong>（某个 n 值）——通常是重叠的。</li>
+<li><strong>选出部分 n-gram</strong> 来代表文档。</li>
+<li><strong>对选中的 n-gram 取哈希</strong>——检索更快，表示更小。</li>
+<li><strong>存储哈希值</strong>，通常存放在倒排索引中。</li>
+<li><strong>通过指纹的重叠程度比较文档。</strong></li>
+</ol>
+<p>幻灯片的例子（L11 p31–34），每帧展示一个阶段：</p>
+<ul>
+<li>(a) 文本：&quot;Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species.&quot;</li>
+<li>(b) 3-gram：tropical fish include、fish include fish、include fish found、……、salt water species——18 个词得到 <strong>16</strong> 个 3-gram。</li>
+<li>(c) 哈希值：<code>938 664 463 822 492 798 78 969 143 236 913 908 694 553 870 779</code>。</li>
+<li>(d) 使用 <strong>0 mod 4</strong> 选出：<code>664 492 236 908</code>。</li>
+</ul>
+<p>（示例先对每个 n-gram 取哈希，再进行选择；这与列表中先选择（第 3 步）后哈希（第 4 步）的思路相同。）逐步查看这 16 个 n-gram；也可以编辑文本，使用演示用的哈希：</p>
+<pre data-language="viz" data-viz="shingle-fingerprint"><code>{&quot;title&quot;: &quot;热带鱼文本的 N-gram 指纹（L11 p30–34）&quot;, &quot;interactive&quot;: true}</code></pre><p><strong>比较两个指纹</strong>（L11 p35–38）。给定指纹 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>A</mi></msub></mrow><annotation encoding="application/x-tex">F_A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">F_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，相似度是交集大小与并集大小之比：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi></mrow><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><mspace width="2em"/><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>≥</mo><mi>τ</mi><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><mtext>A and B are near duplicates</mtext></mrow><annotation encoding="application/x-tex">S_{A,B} = \frac{|F_A \cap F_B|}{|F_A \cup F_B|} \qquad S_{A,B} \ge \tau \implies \text{A and B are near duplicates}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">A and B are near duplicates</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><mi>F</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|F|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord">∣</span></span></span></span> 是集合中哈希值的个数（幻灯片写作 card），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span> 是<strong>你</strong>自己选择的阈值：在你所定义的阈值下，它们即为近似重复。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：&quot;0 mod p&quot; 的选择只保留大约 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">1/p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/</span><span class="mord mathnormal">p</span></span></span></span> 的 n-gram，而且选中哪些只取决于它们的哈希值，因此同一文本的两个副本会选中相同的 n-gram。若按位置选择（&quot;每隔 4 个 n-gram 取一个&quot;），则不然：在开头插入一个词，所有被选中的 n-gram 都会改变。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E7%83%AD%E5%B8%A6%E9%B1%BC%E7%9A%84%E6%8C%87%E7%BA%B9l11-p3134">例题 12.3</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates（书中第 60 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="9-simhash">9. Simhash</h2>
+<p>基于词的表示上的相似度比较，比 n-gram 指纹更有效地找到近似重复；它的问题在于<strong>效率</strong>（L12 p4–6）。<strong>Simhash</strong>（Charikar, 2002）结合了基于词的相似度的优点与哈希指纹的效率：两个页面之间的<strong>余弦相关性</strong>与它们 simhash 指纹中<strong>相同比特的数量</strong>成正比。</p>
+<p>算法（L12 p7–10，在 p16 再次框出）：</p>
+<ol>
+<li>把文档处理为一组<strong>带权重的特征</strong>——这里是<strong>按词频加权的词</strong>。</li>
+<li>为每个词生成一个 <strong>b 位哈希</strong>（b 为指纹大小）；每个词的哈希唯一。</li>
+<li>在 b 维向量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> 中，对每个词，如果其哈希的第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 位为 <strong>1</strong>，就把它的权重<strong>加到</strong>分量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 上；如果该位为 <strong>0</strong>，则<strong>减去</strong>它的权重。</li>
+<li>处理完所有词后，指纹的第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 位在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">V_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 为正时为 <strong>1</strong>，否则为 0。</li>
+</ol>
+<p>幻灯片的例子（L12 p11–15），文本与第 8 节相同：</p>
+<ul>
+<li>(b) 带权重的词：tropical 2、fish 2、include 1、found 1、environments 1、around 1、world 1、including 1、both 1、freshwater 1、salt 1、water 1、species 1（in、the、and 被略去）。</li>
+<li>(c) 8 位哈希值：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>词</th>
+<th>哈希</th>
+<th>词</th>
+<th>哈希</th>
+<th>词</th>
+<th>哈希</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tropical</td>
+<td><code>01100001</code></td>
+<td>fish</td>
+<td><code>10101011</code></td>
+<td>include</td>
+<td><code>11100110</code></td>
+</tr>
+<tr>
+<td>found</td>
+<td><code>00011110</code></td>
+<td>environments</td>
+<td><code>00101101</code></td>
+<td>around</td>
+<td><code>10001011</code></td>
+</tr>
+<tr>
+<td>world</td>
+<td><code>00101010</code></td>
+<td>including</td>
+<td><code>11000000</code></td>
+<td>both</td>
+<td><code>10101110</code></td>
+</tr>
+<tr>
+<td>freshwater</td>
+<td><code>00111111</code></td>
+<td>salt</td>
+<td><code>10110101</code></td>
+<td>water</td>
+<td><code>00100101</code></td>
+</tr>
+<tr>
+<td>species</td>
+<td><code>11101110</code></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<ul>
+<li>(d) <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> = <strong>1 −5 9 −9 3 1 3 3</strong>。</li>
+<li>(e) 指纹 = <strong>1 0 1 0 1 1 1 1</strong>。</li>
+</ul>
+<p>L12 p14 检查了最后一个分量：tropical <code>01100001</code> → <code>- + + - - - - +</code>，fish → <code>+ - + - + - + +</code>，include → <code>+ + + - - + + -</code>，并沿最后一列向下：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>=</mo><mn>2</mn><mo>+</mo><mn>2</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">3 = 2 + 2 - 1 - 1 + 1 + 1 - 1 - 1 - 1 + 1 + 1 + 1 - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>。演示每一步加入一个词：</p>
+<pre data-language="viz" data-viz="simhash"><code>{&quot;title&quot;: &quot;热带鱼文本的 Simhash（L12 p7–16）&quot;, &quot;interactive&quot;: true}</code></pre><p><strong>比较两个 simhash</strong>（L12 p17–18）：相似度是<strong>相同比特所占的比例</strong>：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>n</mi></munder><mo stretchy="false">(</mo><msub><mi>H</mi><mi>A</mi></msub><msub><mo>≡</mo><mtext>bitwise</mtext></msub><msub><mi>H</mi><mi>B</mi></msub><mo stretchy="false">)</mo></mrow><mi>n</mi></mfrac><mspace width="2em"/><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>≥</mo><mi>τ</mi><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><mtext>near duplicates</mtext></mrow><annotation encoding="application/x-tex">S_{A,B} = \frac{\sum_n (H_A \equiv_{\text{bitwise}} H_B)}{n} \qquad S_{A,B} \ge \tau \implies \text{near duplicates}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1257em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4397em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.6897em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel"><span class="mrel">≡</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">bitwise</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">near duplicates</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>A</mi></msub><mo separator="true">,</mo><msub><mi>H</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">H_A, H_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是两个指纹，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>≡</mo><mtext>bitwise</mtext></msub></mrow><annotation encoding="application/x-tex">\equiv_{\text{bitwise}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6138em;vertical-align:-0.15em;"></span><span class="mrel"><span class="mrel">≡</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">bitwise</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 在两者比特一致的每个位置计为 1，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> 是比特数——等价于 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mtext>Hamming distance</mtext><mi mathvariant="normal">/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1 - \text{Hamming distance}/n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Hamming distance</span></span><span class="mord">/</span><span class="mord mathnormal">n</span></span></span></span>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：Simhash 与普通哈希恰恰相反。好的哈希在一个字节改变时会完全改变（§7）；simhash 的设计目标是让相似的文档得到的指纹只在<strong>少数</strong>比特上不同——只改一个词，只会使 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> 改变该词的权重那么多。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#124-%E7%83%AD%E5%B8%A6%E9%B1%BC%E6%96%87%E6%9C%AC%E7%9A%84-simhashl12-p1115">例题 12.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates（书中第 60 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="10-去除噪声查找内容块">10. 去除噪声：查找内容块</h2>
+<p>许多网页包含与<strong>主要内容无关</strong>的文本、链接和图片（L12 p20）。这些材料大多是<strong>噪声</strong>，可能会损害页面的排名。一些技术用于检测<strong>内容块</strong>；在建索引时，非内容材料会被<strong>忽略或降低重要性</strong>。</p>
+<p>噪声示例（L12 p21–22）：一个新闻页面，其横幅和侧栏被框为<strong>噪声块</strong>；以及 CNN.com 的 &quot;Science &amp; Space&quot; 文章（&quot;Aquarium plays whale shark matchmaker&quot;），其正文被框为<strong>内容块</strong>，周围是导航、搜索框和广告。&quot;那么，如何检测出内容？&quot;</p>
+<p><strong>技术一：标签的累积分布</strong>——<em>文档斜率曲线</em>（Finn, Kushmerick &amp; Smyth, 2001），在<a href="/~kazuhak/notes/cs-121/week-03/zh-CN/#7-%E9%87%8D%E5%A4%8D%E5%86%85%E5%AE%B9%E6%95%B0%E6%8D%AE%E5%99%AA%E5%A3%B0%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%84%9A%E6%9C%AC%E4%B8%8E%E6%B7%B1%E7%BD%91">第 3 周第 7 节</a>中介绍过（L12 p23–24）。沿页面的 token 逐个遍历，统计到目前为止看到的标签数：<strong>token 数</strong>（0–3,500）在 x 轴，<strong>标签数</strong>（0–1,000）在 y 轴。曲线在标签密集的导航区域稳步上升，而<strong>正文是中间的&quot;平台&quot;</strong>（标记为 &quot;Text area&quot;，约 1,000–1,500 个 token），在那里很多 token 经过时几乎没有标签。</p>
+<p>作为优化问题（L12 p25–27）：把页面表示为一个<strong>比特序列</strong>，若第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> 个 token 是<strong>标签</strong>则 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>n</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_n = 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>。寻找 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span>，使得 <strong><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 之前和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> 之后的标签数</strong>，加上 <strong><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 与 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> 之间的非标签 token 数</strong>，最大：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>i</mi><mo separator="true">,</mo><mtext> </mtext><mi>j</mi></mrow></munder><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>b</mi><mi>n</mi></msub><mtext>  </mtext><mo>+</mo><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mi>i</mi></mrow><mi>j</mi></munderover><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>b</mi><mi>n</mi></msub><mo stretchy="false">)</mo><mtext>  </mtext><mo>+</mo><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mi>j</mi><mo>+</mo><mn>1</mn></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>b</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">\max_{i,\,j} \; \sum_{n=0}^{i-1} b_n \;+\; \sum_{n=i}^{j} (1 - b_n) \;+\; \sum_{n=j+1}^{N-1} b_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:3.0788em;vertical-align:-1.2671em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.4306em;"><span style="top:-2.3723em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mspace mtight" style="margin-right:0.1952em;"></span><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8638em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8117em;"><span style="top:-1.8829em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2671em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.1364em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8588em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mathnormal mtight">i</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3471em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.2421em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> 是 token 的数量；token <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> … <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> 构成内容块。第一项和第三项奖励块<strong>外部</strong>的标签，中间一项奖励块<strong>内部</strong>的文本。</p>
+<p><strong>替代方法</strong>（L12 p28）：把曲线切分为纵向<strong>片段</strong>，求每个片段内的<strong>斜率</strong>，并迭代，不断缩小片段大小，直到找到<strong>零斜率窗口</strong>。</p>
+<p><strong>其他方法</strong>（L12 p29）利用<strong>文档对象模型（DOM）</strong>结构和<strong>视觉（布局）特征</strong>：HTML 解析器把 HTML 转换为 DOM 树。幻灯片中的 CNN 树：<code>#document</code> → <code>HTML</code> → <code>HEAD</code>、<code>BODY</code>（<code>contentArea</code>），其中 <code>DIV</code> 和 <code>TABLE</code> 名为 <code>cnnCeil</code>、<code>cnnBreakingNewsBanner</code>、<code>iframecnnBreakingNewsBanner</code>、<code>cnnCeilSearch</code>、<code>cnnArticleWireFrame</code>、<code>cnnFootBox</code>、<code>csiIframe</code>——并且高亮显示了 <code>TABLE</code> → <code>TBODY</code> → <code>TR</code> → <strong><code>TD</code> <code>cnnArticleContent</code></strong>，即文章本身。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.8 Removing Noise（书中第 63 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="11-文本统计与-zipf-定律">11. 文本统计与 Zipf 定律</h2>
+<p><strong>处理文本</strong>是把文档转换为<strong>索引词项</strong>的关键步骤（L12 p32）。为什么不直接索引原始字符串？</p>
+<ul>
+<li>对网络搜索来说，<strong>精确匹配用户输入的字符串</strong>限制太多，效果不好（例如，区分大小写的搜索可能是也可能不是你想要的）。</li>
+<li>搜索中<strong>并非所有词的价值都相同</strong>。</li>
+<li>有时<strong>词从哪里开始、到哪里结束</strong>都不清楚——在中文和韩文等语言中，甚至不清楚什么是&quot;词&quot;。</li>
+</ul>
+<p>（分词、停用词去除和词干提取属于第 5 周的内容。）</p>
+<p><strong>文本统计</strong>（L12 p33–34）：文本使用的词种类繁多，但词出现的许多统计特征是<strong>可以预测的</strong>，例如词频的分布。<strong>检索模型和排序算法高度依赖这些特征</strong>：对检索重要的词，通常<strong>在某个文档中出现频繁，但在整个语料库中并不常见</strong>。</p>
+<p><strong>Zipf 定律</strong>（L12 p35–36）。词频分布<strong>高度偏斜</strong>：少数词出现非常频繁，许多词几乎从不出现。最常见的两个词（&quot;the&quot;、&quot;of&quot;）约占所有词出现次数的 <strong>10%</strong>。Zipf 的&quot;定律&quot;是：<strong>第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> 个最常见词的频率与 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> 成反比</strong>——秩与频率的乘积大致为常数：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>r</mi><mo>⋅</mo><mi>f</mi><mo>≈</mo><mi>k</mi><mspace width="2em"/><mtext>or</mtext><mspace width="2em"/><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub><mo>≈</mo><mi>c</mi><mo separator="true">,</mo><mspace width="1em"/><mi>c</mi><mo>≈</mo><mn>0.1</mn><mtext> for English</mtext></mrow><annotation encoding="application/x-tex">r \cdot f \approx k \qquad\text{or}\qquad r \cdot P_r \approx c, \quad c \approx 0.1 \text{ for English}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:2em;"></span><span class="mord text"><span class="mord">or</span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6776em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord">0.1</span><span class="mord text"><span class="mord"> for English</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> 是秩（词按频率从高到低排序），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span> 是词的频率，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是其出现概率（频率 / 词出现总数），<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>、<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span></span></span></span> 为常数。L12 p37 绘制了英语的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>（0–0.1）与秩（0–100）的关系：曲线起点接近 0.1，在前约 10 个秩内急剧下降，然后趋于 0——即 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.1</mn><mi mathvariant="normal">/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">0.1/r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.1/</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> 的形状。</p>
+<p><strong>AP89</strong>（Associated Press 1989 年新闻）统计（L12 p38）：</p>
+<table>
+<thead>
+<tr>
+<th>统计项</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文档总数</td>
+<td>84,678</td>
+</tr>
+<tr>
+<td>词出现总数</td>
+<td>39,749,179</td>
+</tr>
+<tr>
+<td>词表大小（不同词的数量）</td>
+<td>198,763</td>
+</tr>
+<tr>
+<td>出现超过 1000 次的词</td>
+<td>4,169</td>
+</tr>
+<tr>
+<td>只出现一次的词</td>
+<td>70,064</td>
+</tr>
+</tbody></table>
+<p>AP89 最常见的词（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 单位为 %）：</p>
+<table>
+<thead>
+<tr>
+<th>词</th>
+<th>频次</th>
+<th>r</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (%)</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></th>
+<th>词</th>
+<th>频次</th>
+<th>r</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (%)</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>the</td>
+<td>2,420,778</td>
+<td>1</td>
+<td>6.49</td>
+<td>0.065</td>
+<td>has</td>
+<td>136,007</td>
+<td>26</td>
+<td>0.37</td>
+<td>0.095</td>
+</tr>
+<tr>
+<td>of</td>
+<td>1,045,733</td>
+<td>2</td>
+<td>2.80</td>
+<td>0.056</td>
+<td>are</td>
+<td>130,322</td>
+<td>27</td>
+<td>0.35</td>
+<td>0.094</td>
+</tr>
+<tr>
+<td>to</td>
+<td>968,882</td>
+<td>3</td>
+<td>2.60</td>
+<td>0.078</td>
+<td>not</td>
+<td>127,493</td>
+<td>28</td>
+<td>0.34</td>
+<td>0.096</td>
+</tr>
+<tr>
+<td>a</td>
+<td>892,429</td>
+<td>4</td>
+<td>2.39</td>
+<td>0.096</td>
+<td>who</td>
+<td>116,364</td>
+<td>29</td>
+<td>0.31</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>and</td>
+<td>865,644</td>
+<td>5</td>
+<td>2.32</td>
+<td>0.120</td>
+<td>they</td>
+<td>111,024</td>
+<td>30</td>
+<td>0.30</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>in</td>
+<td>847,825</td>
+<td>6</td>
+<td>2.27</td>
+<td>0.140</td>
+<td>its</td>
+<td>111,021</td>
+<td>31</td>
+<td>0.30</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>said</td>
+<td>504,593</td>
+<td>7</td>
+<td>1.35</td>
+<td>0.095</td>
+<td>had</td>
+<td>103,943</td>
+<td>32</td>
+<td>0.28</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>for</td>
+<td>363,865</td>
+<td>8</td>
+<td>0.98</td>
+<td>0.078</td>
+<td>will</td>
+<td>102,949</td>
+<td>33</td>
+<td>0.28</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>that</td>
+<td>347,072</td>
+<td>9</td>
+<td>0.93</td>
+<td>0.084</td>
+<td>would</td>
+<td>99,503</td>
+<td>34</td>
+<td>0.27</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>was</td>
+<td>293,027</td>
+<td>10</td>
+<td>0.79</td>
+<td>0.079</td>
+<td>about</td>
+<td>92,983</td>
+<td>35</td>
+<td>0.25</td>
+<td>0.087</td>
+</tr>
+<tr>
+<td>on</td>
+<td>291,947</td>
+<td>11</td>
+<td>0.78</td>
+<td>0.086</td>
+<td>i</td>
+<td>92,005</td>
+<td>36</td>
+<td>0.25</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>he</td>
+<td>250,919</td>
+<td>12</td>
+<td>0.67</td>
+<td>0.081</td>
+<td>been</td>
+<td>88,786</td>
+<td>37</td>
+<td>0.24</td>
+<td>0.088</td>
+</tr>
+<tr>
+<td>is</td>
+<td>245,843</td>
+<td>13</td>
+<td>0.65</td>
+<td>0.086</td>
+<td>this</td>
+<td>87,286</td>
+<td>38</td>
+<td>0.23</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>with</td>
+<td>223,846</td>
+<td>14</td>
+<td>0.60</td>
+<td>0.084</td>
+<td>their</td>
+<td>84,638</td>
+<td>39</td>
+<td>0.23</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>at</td>
+<td>210,064</td>
+<td>15</td>
+<td>0.56</td>
+<td>0.085</td>
+<td>new</td>
+<td>83,449</td>
+<td>40</td>
+<td>0.22</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>by</td>
+<td>209,586</td>
+<td>16</td>
+<td>0.56</td>
+<td>0.090</td>
+<td>or</td>
+<td>81,796</td>
+<td>41</td>
+<td>0.22</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>it</td>
+<td>195,621</td>
+<td>17</td>
+<td>0.52</td>
+<td>0.089</td>
+<td>which</td>
+<td>80,385</td>
+<td>42</td>
+<td>0.22</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>from</td>
+<td>189,451</td>
+<td>18</td>
+<td>0.51</td>
+<td>0.091</td>
+<td>we</td>
+<td>80,245</td>
+<td>43</td>
+<td>0.22</td>
+<td>0.093</td>
+</tr>
+<tr>
+<td>as</td>
+<td>181,714</td>
+<td>19</td>
+<td>0.49</td>
+<td>0.093</td>
+<td>more</td>
+<td>76,388</td>
+<td>44</td>
+<td>0.21</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>be</td>
+<td>157,300</td>
+<td>20</td>
+<td>0.42</td>
+<td>0.084</td>
+<td>after</td>
+<td>75,165</td>
+<td>45</td>
+<td>0.20</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>were</td>
+<td>153,913</td>
+<td>21</td>
+<td>0.41</td>
+<td>0.087</td>
+<td>us</td>
+<td>72,045</td>
+<td>46</td>
+<td>0.19</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>an</td>
+<td>152,576</td>
+<td>22</td>
+<td>0.41</td>
+<td>0.090</td>
+<td>percent</td>
+<td>71,956</td>
+<td>47</td>
+<td>0.19</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>have</td>
+<td>149,749</td>
+<td>23</td>
+<td>0.40</td>
+<td>0.092</td>
+<td>up</td>
+<td>71,082</td>
+<td>48</td>
+<td>0.19</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>his</td>
+<td>142,285</td>
+<td>24</td>
+<td>0.38</td>
+<td>0.092</td>
+<td>one</td>
+<td>70,266</td>
+<td>49</td>
+<td>0.19</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>but</td>
+<td>140,880</td>
+<td>25</td>
+<td>0.38</td>
+<td>0.094</td>
+<td>people</td>
+<td>68,988</td>
+<td>50</td>
+<td>0.19</td>
+<td>0.093</td>
+</tr>
+</tbody></table>
+<p>变化最大的是频率最高的词——但如果继续往下看：前 10 名中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 在 0.056 到 0.140 之间摆动，然后从第 11 名到第 50 名稳定在 0.081 到 0.096 之间，接近 Zipf 的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>≈</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">c \approx 0.1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.1</span></span></span></span>。</p>
+<p><strong>AP89 的 Zipf 定律</strong>（L12 p39）是一张<strong>对数-对数图</strong>：纵轴为概率（<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">8</span></span></span></span></span></span></span></span></span></span></span></span> 到 1），横轴为秩（1 到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span>），图中有 Zipf 直线 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub><mo>=</mo><mn>0.1</mn><mi mathvariant="normal">/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">P_r = 0.1/r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.1/</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>（斜率为 −1 的直线）以及 AP89 的数据点。数据点在中间的秩段贴近该直线，在最靠前的几个秩处<strong>低于</strong>直线，而对超过约 10,000 的秩则<strong>向下偏离</strong>，最后形成罕见词的阶梯状平台。<strong>注意高频和低频处的问题。</strong>只出现一次的词称为 <strong>hapax legomena</strong>（希腊语 ἅπαξ λεγόμενον，意为&quot;只说过一次&quot;）——AP89 的 198,763 个词中有 70,064 个，约占 35%。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 列并不使用左侧表格中的 39,749,179 总数；用它相除会得到 &quot;the&quot; = 6.09%，而不是 6.49%。该列与约 3730 万次出现的总数一致，因此其中每个 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 都比左表隐含的值高约 6%。Zipf 的结论并不改变。→ <a href="#125-%E5%9C%A8-ap89-%E4%B8%8A%E6%A3%80%E9%AA%8C-zipf-%E5%AE%9A%E5%BE%8Bl12-p3539">例题 12.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.1 From Words to Terms（书中第 73 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2 Text Statistics（书中第 75 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2.1 Vocabulary Growth（书中第 80 页）</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2.2 Estimating Collection and Result Set Sizes（书中第 83 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="12-示例题附解答">12. 示例题（附解答）</h2>
+<h3 id="121-π-的-utf-8-编码l10-p13">12.1 π 的 UTF-8 编码（L10 p13）</h3>
+<p>π 是 Unicode 码位 960。UTF-8 会存储哪些字节？UTF-32 需要多少字节？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 960 = <code>0x3C0</code> = <code>00000011 11000000</code>。它位于 128–2047 范围内，因此模板是 <code>110xxxxx 10xxxxxx</code>，有 5 + 6 = 11 个有效载荷位：960 用 11 位表示为 <code>01111000000</code>。高 5 位 <code>01111</code> → <code>110</code>+<code>01111</code> = <code>11001111</code>；接下来 6 位 <code>000000</code> → <code>10</code>+<code>000000</code> = <code>10000000</code>。结果为 <strong><code>CF 80</code></strong>，共 2 个字节。UTF-32 始终使用 4 个字节：<code>00 00 03 C0</code>。返回<a href="#3-unicode-%E4%B8%8E-utf-8">第 3 节</a>。</p>
+<h3 id="122-字节和校验和l11-p24">12.2 字节和校验和（L11 p24）</h3>
+<p>对 &quot;Tropical fish&quot; 的字节求和。字节和是检测精确重复的安全方法吗？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 以十六进制计算：54 + 72 + 6F + 70 + 69 + 63 + 61 + 6C + 20 + 66 + 69 + 73 + 68 = <strong>508（十六进制）= 1,288</strong>。这并不安全：求和忽略顺序，因此 &quot;Tropical fihs&quot; 的和也是 1,288。CRC 会按位置对字节加权：CRC-32 得到 <code>0x18f14f94</code> 与 <code>0x3ba24de2</code>。返回<a href="#7-%E7%B2%BE%E7%A1%AE%E9%87%8D%E5%A4%8D%E6%A0%A1%E9%AA%8C%E5%92%8C%E4%B8%8E-crc">第 7 节</a>。</p>
+<h3 id="123-热带鱼的指纹l11-p3134">12.3 热带鱼的指纹（L11 p31–34）</h3>
+<p>用幻灯片中的 3-gram 和哈希值，&quot;0 mod 4&quot; 会选出哪些值？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 18 个词 → 18 − 3 + 1 = 16 个 3-gram。对 4 取余：</p>
+<table>
+<thead>
+<tr>
+<th>哈希</th>
+<th>938</th>
+<th>664</th>
+<th>463</th>
+<th>822</th>
+<th>492</th>
+<th>798</th>
+<th>78</th>
+<th>969</th>
+<th>143</th>
+<th>236</th>
+<th>913</th>
+<th>908</th>
+<th>694</th>
+<th>553</th>
+<th>870</th>
+<th>779</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mod 4</td>
+<td>2</td>
+<td><strong>0</strong></td>
+<td>3</td>
+<td>2</td>
+<td><strong>0</strong></td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td>3</td>
+<td><strong>0</strong></td>
+<td>1</td>
+<td><strong>0</strong></td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+</tbody></table>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi></mrow><annotation encoding="application/x-tex">F</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span></span></span></span> = {664, 492, 236, 908}：16 个值中的 4 个，分别来自 &quot;fish include fish&quot;、&quot;found in tropical&quot;、&quot;the world including&quot; 和 &quot;including both freshwater&quot;。与另一文档的指纹比较时，使用 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">|F_A \cap F_B| / |F_A \cup F_B| \ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣/∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span>。返回<a href="#8-%E8%BF%91%E4%BC%BC%E9%87%8D%E5%A4%8D%E4%B8%8E-n-gram-%E6%8C%87%E7%BA%B9">第 8 节</a>。</p>
+<h3 id="124-热带鱼文本的-simhashl12-p1115">12.4 热带鱼文本的 Simhash（L12 p11–15）</h3>
+<p>使用幻灯片的权重和 8 位哈希，计算 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> 和指纹。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 每个词对 1 位加上 +权重，对 0 位加上 −权重。按列计算：</p>
+<table>
+<thead>
+<tr>
+<th>比特</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span></td>
+<td>1</td>
+<td>−5</td>
+<td>9</td>
+<td>−9</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>指纹</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>第 8 位，如 L12 p14 所示：tropical +2，fish +2，include −1，found −1，environments +1，around +1，world −1，including −1，both −1，freshwater +1，salt +1，water +1，species −1 → 3 &gt; 0 → 1。指纹为 <strong>10101111</strong>，与幻灯片一致。两个文档的 simhash <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>A</mi></msub><mo separator="true">,</mo><msub><mi>H</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">H_A, H_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 通过 8 位中相同比特的比例与 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span> 比较。返回<a href="#9-simhash">第 9 节</a>。</p>
+<h3 id="125-在-ap89-上检验-zipf-定律l12-p3539">12.5 在 AP89 上检验 Zipf 定律（L12 p35–39）</h3>
+<p>根据 AP89 的表格：“the” 和 “of” 占文本的多少？<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是否保持在 0.1 附近？hapax legomena 占词表的比例是多少？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<ul>
+<li>&quot;the&quot; + &quot;of&quot;：幻灯片上的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 为 6.49% + 2.80% = <strong>9.29%</strong>——即 &quot;about 10%&quot;。根据频次和 39,749,179 的总数，则为 3,466,511 / 39,749,179 = <strong>8.7%</strong>。</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：秩 1 得 0.065，秩 2 为 0.056，秩 6 为 0.140（最大的波动）；秩 11–50 保持在 <strong>0.081–0.096</strong>。用幻灯片上四舍五入的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 重新计算 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>×</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \times P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，&quot;and&quot; 得 0.116（幻灯片为 0.120），&quot;in&quot; 得 0.136（幻灯片为 0.140）——这是舍入造成的。</li>
+<li>用左表的总数，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 会更低，例如 &quot;the&quot; 为 2,420,778 / 39,749,179 = 0.061，&quot;people&quot; 为 50 × 68,988 / 39,749,179 = 0.087；幻灯片的那一列隐含的总数约为 3730 万（见第 11 节中的易错点）。</li>
+<li>hapax legomena：70,064 / 198,763 = <strong>35%</strong> 的词表只出现一次；只有 4,169 个词（2.1%）出现超过 1,000 次。</li>
+</ul>
+<p>Zipf 在中间段大致成立，在两端失效——即 L12 p39 所示的高频和低频问题。返回<a href="#11-%E6%96%87%E6%9C%AC%E7%BB%9F%E8%AE%A1%E4%B8%8E-zipf-%E5%AE%9A%E5%BE%8B">第 11 节</a>。</p>
+<hr>
+<h2 id="13-速查与必记的-5-件事">13. 速查与必记的 5 件事</h2>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>每个字符的字节数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ASCII</td>
+<td>1（只用 7 位）</td>
+<td>128 个字符，仅限英语</td>
+</tr>
+<tr>
+<td>UTF-8</td>
+<td>1–4</td>
+<td>与 ASCII 兼容；模板 <code>0xxxxxxx</code>、<code>110xxxxx 10xxxxxx</code>、<code>1110xxxx</code> + 2、<code>11110xxx</code> + 3</td>
+</tr>
+<tr>
+<td>UTF-32</td>
+<td>4</td>
+<td>宽度固定：随机访问快，但占用内存更多</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>重复检测方法</th>
+<th>检测对象</th>
+<th>方式</th>
+<th>相似度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>校验和（字节和）</td>
+<td>精确</td>
+<td>字节求和</td>
+<td>相等与否；忽略顺序导致碰撞</td>
+</tr>
+<tr>
+<td>CRC、MD5、SHA、BLAKE</td>
+<td>精确</td>
+<td>考虑位置的哈希</td>
+<td>相等与否；碰撞罕见</td>
+</tr>
+<tr>
+<td>N-gram 指纹</td>
+<td>近似</td>
+<td>n-gram → 哈希 → 保留 0 mod p</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">∣</mo><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mo stretchy="false">∣</mo><mi mathvariant="normal">/</mi><mo stretchy="false">∣</mo><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mo stretchy="false">∣</mo><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">\lvert F_A \cap F_B\rvert / \lvert F_A \cup F_B\rvert \ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">∣</span><span class="mord">/</span><span class="mopen">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span></td>
+</tr>
+<tr>
+<td>Simhash</td>
+<td>近似</td>
+<td>权重 × ±哈希位 → <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> 的符号</td>
+<td>相同比特数 / n <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">\ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719em;vertical-align:-0.136em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>存储 / 噪声</th>
+<th>关键思路</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大文件、TREC Web</td>
+<td>每个文件中有许多 <code>&lt;DOC&gt;</code> 块：减少文件 I/O，只需寻道一次</td>
+</tr>
+<tr>
+<td>压缩</td>
+<td>无损，对 HTML/XML 约 80%（DEFLATE、LZW），分块进行</td>
+</tr>
+<tr>
+<td>BigTable</td>
+<td>行 = 页面；（行键，列键，时间戳）→ 单元格；按行键划分子表</td>
+</tr>
+<tr>
+<td>内容块</td>
+<td>标签累积曲线的平台；最大化 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">[</mo><mi>i</mi><mo separator="true">,</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[i, j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span> 之外的标签数与之内的文本数</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Zipf</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>定律</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><mi>f</mi><mo>≈</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">r \cdot f \approx k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub><mo>≈</mo><mi>c</mi><mo>≈</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">r \cdot P_r \approx c \approx 0.1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.1</span></span></span></span>（英语）</td>
+</tr>
+<tr>
+<td>AP89</td>
+<td>39.7M 个词，198,763 个不同的词，70,064 个 hapax legomena</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 件事</strong></p>
+<ol>
+<li>Unicode 把字形映射为数字；UTF-8/16/32 把数字映射为字节。π = U+03C0 = 960 → <code>110</code>01111 <code>10</code>000000 = <code>CF 80</code>。</li>
+<li>搜索引擎把文档存储在大型复合文件（TREC Web）或 BigTable 中——通过 URL 哈希实现随机访问、压缩和更新，而不是每个页面一个文件。</li>
+<li>精确重复：校验和/CRC；近似重复：n-gram 指纹（&quot;0 mod p&quot; 选择，交集除以并集 ≥ τ），或 simhash（相同比特的比例 ≥ τ）。</li>
+<li>Simhash：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">V_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 在比特 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 为 1 时加上权重，为 0 时减去权重；当 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V_i &gt; 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> 时比特为 1——相似的文档得到相似的指纹。</li>
+<li>Zipf：秩 × 概率 ≈ 0.1；少数词占主导，AP89 词表中约 35% 的词只出现一次；该定律在两端都会偏离。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-03/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 3 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>网络爬虫</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 5 周 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>文本处理、词项-文档矩阵</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-03/zh-CN/" title="上一篇: 网络爬虫 ([)" aria-label="上一篇: 第 3 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 4 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" title="下一篇: 文本处理、词项-文档矩阵 (])" aria-label="下一篇: 第 5 周" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 周</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

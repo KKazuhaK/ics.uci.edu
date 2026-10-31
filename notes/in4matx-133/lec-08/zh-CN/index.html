@@ -1,0 +1,727 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 AJAX、Fetch 与 Promise | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Web API、URI 与 HTTP 动词、URL 转义、AJAX 中的 XML 与 JSON、XMLHttpRequest 与 fetch()、异步请求、用 .then()/.catch() 处理 Promise、同源策略，以及 Promise.all。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413984" data-source-url="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-08/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 8 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 8 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 8 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 27 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-8ajaxfetch-与-promise">IN4MATX 133: User Interface Software — Lecture 8：AJAX、Fetch 与 Promise</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-web-api">1. Web API</a></li>
+<li><a href="#2-web-%E8%AF%B7%E6%B1%82%E7%9A%84%E7%BB%93%E6%9E%84uri">2. Web 请求的结构：URI</a></li>
+<li><a href="#3-http-%E5%8A%A8%E8%AF%8D%E4%B8%8E%E5%93%8D%E5%BA%94">3. HTTP 动词与响应</a></li>
+<li><a href="#4-url-%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E8%BD%AC%E4%B9%89">4. URL 中的字符转义</a></li>
+<li><a href="#5-ajaxxml-%E4%B8%8E-json">5. AJAX、XML 与 JSON</a></li>
+<li><a href="#6-xmlhttprequest">6. XMLHttpRequest</a></li>
+<li><a href="#7-fetch">7. fetch()</a></li>
+<li><a href="#8-%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82">8. 异步请求</a></li>
+<li><a href="#9-promise-%E4%B8%8E-then">9. Promise 与 .then()</a></li>
+<li><a href="#10-%E5%8F%96%E5%87%BA%E6%95%B0%E6%8D%AEresponsejson-%E4%B8%8E%E9%93%BE%E5%BC%8F%E8%B0%83%E7%94%A8">10. 取出数据：response.json() 与链式调用</a></li>
+<li><a href="#11-%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%AB%AF-js%E4%BB%A5%E5%8F%8A%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5">11. 客户端与服务端 JS，以及同源策略</a></li>
+<li><a href="#12-%E4%BD%BF%E7%94%A8-catch-%E6%8D%95%E8%8E%B7%E9%94%99%E8%AF%AF">12. 使用 .catch() 捕获错误</a></li>
+<li><a href="#13-%E4%BD%BF%E7%94%A8-promiseall-%E5%A4%84%E7%90%86%E5%A4%9A%E4%B8%AA-promise">13. 使用 Promise.all 处理多个 Promise</a></li>
+<li><a href="#14-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">14. 课堂问题与演示（附解答）</a></li>
+<li><a href="#15-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">15. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，第 5 周<br>内容整理自 Lecture 8 的幻灯片和 demo 仓库文件夹 <code>W4_L1_Oct20_Ajax</code>。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：A1 成绩即将完成，预计下周初公布。<br>A3 将于周四课堂上发布（已更新为 2026 版）；截止日期为 <strong>11 月 11 日（周三）</strong>（已推迟）。<br>周五的 discussion 内容是 Angular。</p>
+</blockquote>
+<p>本讲目标：说明程序如何访问 Web 资源以及这些资源如何响应，用 <code>fetch</code> 请求从 Web API 获取资源，并使用 Promise 处理异步请求。</p>
+<hr>
+<h2 id="1-web-api">1. Web API</h2>
+<p>许多 Web 服务和数据源允许你通过 HTTP（Web）请求访问其数据。它们为此提供了 <strong>Web API</strong>。</p>
+<p><strong>API = Application Programming Interface（应用程序编程接口）</strong>：通过编程与应用程序交互的接口。接口就是一组定义好的函数——幻灯片给出的“接口”示例如下：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doSomething</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">param1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">param2</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  //...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Web API 的思路相同，只是每个“函数”变成了你发送 HTTP 请求的一个 URL。幻灯片上的例子包括：<strong>PokeAPI</strong>（今天所有演示都用它）、<strong>GitHub</strong>、<strong>Spotify</strong>（A3）、<strong>OC Transpo</strong>、<strong>Google Maps</strong>、<strong>Stripe</strong>、<strong>US Census Bureau</strong>（美国人口普查局）。</p>
+<p>幻灯片中的 GitHub 例子：原始仓库是普通网页，而 API 以数据的形式返回同类信息：</p>
+<ul>
+<li>原始仓库：<code>https://github.com/travislindenreid/GDIM32-Final</code></li>
+<li>该仓库的所有 fork，按星标排序，最多 100 个：<code>https://api.github.com/repos/travislindenreid/GDIM32-Final/forks?sort=stargazers&amp;per_page=100</code></li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://pokeapi.co/">PokeAPI</a> · <a href="https://github.com/travislindenreid/GDIM32-Final">GDIM32-Final 仓库</a> · <a href="https://api.github.com/repos/travislindenreid/GDIM32-Final/forks?sort=stargazers&per_page=100">GitHub API：GDIM32-Final 的 fork</a></p>
+</blockquote>
+<h2 id="2-web-请求的结构uri">2. Web 请求的结构：URI</h2>
+<p><strong>使用互联网</strong>（幻灯片 7）：你的浏览器向 Web 服务器发送一个<strong>请求</strong>，并收到一个<strong>响应</strong>。地址栏中的 URL <code>https://en.wikipedia.org/wiki/Donald_Bren_School_of_Information_and_Computer_Sciences</code> 可以拆分为三部分——意思是“Hey Wikipedia，我想看 ICS 学院的页面！”：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>示例</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>协议</td>
+<td><code>https://</code></td>
+<td>如何处理这些信息</td>
+</tr>
+<tr>
+<td>主机</td>
+<td><code>en.wikipedia.org</code></td>
+<td>谁拥有这些信息</td>
+</tr>
+<tr>
+<td>资源</td>
+<td><code>/wiki/Donald_Bren_School_…</code></td>
+<td>你想要的信息</td>
+</tr>
+</tbody></table>
+<h3 id="21-uri-与-url">2.1 URI 与 URL</h3>
+<p><strong>URI</strong>（幻灯片将其展开为“Uniform Resource Indicator”，标准名称是 Uniform Resource <em>Identifier</em>，即统一资源标识符）。所有 URL 都是 URI，但 URL 还指明了<strong>访问机制</strong>（<code>http://</code>、<code>file://</code>）。URI 返回一个<strong>资源</strong>——网页、图片文件等，或者只是数据。</p>
+<ul>
+<li><code>http://www.domain.com/users</code> → 返回用户列表。这个用户列表就是资源。</li>
+<li>资源可以有<strong>子资源</strong>：<code>http://www.domain.com/users/shawna</code> → 返回某一个特定用户。</li>
+</ul>
+<h3 id="22-基础-uri-与端点">2.2 基础 URI 与端点</h3>
+<ul>
+<li><strong>基础 URI</strong>：每个针对该 API 的请求都以它开头——<code>https://pokeapi.co/api/</code></li>
+<li><strong>端点（endpoint）</strong>：可通过 API 访问的一个具体资源——<code>v2/pokemon/ditto</code>、<code>v2/type/3</code>。端点通常包含 <strong>API 版本号</strong>（<code>v2</code>）。</li>
+</ul>
+<h3 id="23-查询参数">2.3 查询参数</h3>
+<p>有些 API 会在 URI 之后接收<strong>键/值对</strong>——即对资源的参数，用来精确指定返回什么内容或以什么格式返回：<code>?key=value&amp;key=value</code>。PokeAPI 不支持这一点，但 Spotify 支持（A3 会用到）。幻灯片中的 Twitter 例子：</p>
+<div class="code-wrap"><pre><code>https://api.twitter.com/1.1/search/tweets.json?q=UCI&amp;lang=en</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>q=UCI</code> 即“query”（查询）——在 Twitter 中，就是要搜索的文本或话题标签；<code>lang=en</code> 表示语言 = 英语。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://pokeapi.co/">PokeAPI</a> · <a href="https://docs.x.com/x-api/posts/search/introduction#filter-operators">X API：搜索过滤运算符</a></p>
+</blockquote>
+<h2 id="3-http-动词与响应">3. HTTP 动词与响应</h2>
+<p>HTTP 请求包含一个<strong>目标资源</strong>和一个说明要对其执行什么操作的<strong>动词</strong>（方法）：</p>
+<table>
+<thead>
+<tr>
+<th>动词</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET</code></td>
+<td>返回资源当前状态的表示</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>添加一个新资源（例如一条记录、一个条目）</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>将已有资源更新为新状态</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td>更新资源状态的一部分</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>删除该资源</td>
+</tr>
+<tr>
+<td><code>OPTIONS</code></td>
+<td>返回可对该资源执行的方法集合</td>
+</tr>
+</tbody></table>
+<p><strong>响应</strong>包含一个<strong>状态码</strong>（是否按预期工作）和一个<strong>主体</strong>（实际的响应内容）：</p>
+<table>
+<thead>
+<tr>
+<th>状态码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>200</code></td>
+<td>OK（成功）</td>
+</tr>
+<tr>
+<td><code>201</code></td>
+<td>Created（已创建，用于 <code>POST</code>）</td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td>Bad request（请求错误，你的 URI 有问题）</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td>Forbidden（禁止访问，存在某种访问或身份验证问题）</td>
+</tr>
+<tr>
+<td><code>404</code></td>
+<td>Not found（资源不存在）</td>
+</tr>
+<tr>
+<td><code>500</code></td>
+<td>Internal server error（通用的服务端错误）</td>
+</tr>
+</tbody></table>
+<p><strong>综合起来</strong>（幻灯片 14）：<code>HTTP GET https://pokeapi.co/api/v2/pokemon/ditto</code> ——使用 GET 动词访问宝可梦“Ditto”；我们期望/希望得到状态 <code>200</code>（OK），然后再读取主体。（第 8 节的演示正是发出这个请求，并输出 <code>status: 200 ok: true</code>。）</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.restapitutorial.com/httpstatuscodes.html">REST API Tutorial：HTTP 状态码</a></p>
+</blockquote>
+<h2 id="4-url-中的字符转义">4. URL 中的字符转义</h2>
+<p>URL 中有一些字符是<strong>保留字符</strong>，因此必须以 <code>%</code> 加上该字符十六进制编码的形式进行<strong>编码</strong>。下表来自幻灯片（取自 w3schools；对这些字符而言，Windows-1252 与 UTF-8 的结果一致）：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>编码后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>空格</td>
+<td><code>%20</code></td>
+</tr>
+<tr>
+<td><code>!</code></td>
+<td><code>%21</code></td>
+</tr>
+<tr>
+<td><code>&quot;</code></td>
+<td><code>%22</code></td>
+</tr>
+<tr>
+<td><code>#</code></td>
+<td><code>%23</code></td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td><code>%24</code></td>
+</tr>
+<tr>
+<td><code>%</code></td>
+<td><code>%25</code></td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td><code>%26</code></td>
+</tr>
+<tr>
+<td><code>&#39;</code></td>
+<td><code>%27</code></td>
+</tr>
+</tbody></table>
+<p>“这是哪只宝可梦？是 Farfetch&#39;d！”严格来说，我们应该对撇号进行编码，但 PokeAPI 会直接去掉它：<code>HTTP GET https://pokeapi.co/api/v2/pokemon/farfetchd</code>（返回 200）。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#141-%E9%97%AE%E9%A2%98-1%E4%BB%8E-pokeapi-%E8%AF%BB%E5%8F%96-mr-mime%E5%B9%BB%E7%81%AF%E7%89%87-1618">问题 1——给 Mr. Mime 编码</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.w3schools.com/tags/ref_urlencode.asp">w3schools：HTML URL 编码参考</a></p>
+</blockquote>
+<h2 id="5-ajaxxml-与-json">5. AJAX、XML 与 JSON</h2>
+<p>那么 <em>JavaScript</em> 如何发出 Web 请求？答案是 <strong>AJAX：Asynchronous JavaScript and XML</strong>（异步 JavaScript 与 XML）。</p>
+<h3 id="51-xml">5.1 XML</h3>
+<p><strong>XML（可扩展标记语言，Extensible Markup Language）</strong>：一种用于语义化定义结构化内容的通用语法。HTML 是一组固定标签的 XML；而在 XML 中，你可以自己定义标签：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#F44747">person</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">firstName</span><span style="color:#808080">></span><span style="color:#D4D4D4">Alice</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">firstName</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">lastName</span><span style="color:#808080">></span><span style="color:#D4D4D4">Smith</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">lastName</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">favorites</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">      &#x3C;</span><span style="color:#F44747">music</span><span style="color:#808080">></span><span style="color:#D4D4D4">jazz</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">music</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">      &#x3C;</span><span style="color:#F44747">food</span><span style="color:#808080">></span><span style="color:#D4D4D4">pizza</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;/</span><span style="color:#F44747">favorites</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">person</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 22 以纯文本和 XML 两种形式展示了一份早餐菜单（此处只显示第一项；幻灯片上共五项：Belgian Waffles、Strawberry Belgian Waffles、Berry-Berry Belgian Waffles、French Toast、Homestyle Breakfast）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#F44747">breakfast_menu</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">name</span><span style="color:#808080">></span><span style="color:#D4D4D4">Belgian Waffles</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">name</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">price</span><span style="color:#808080">></span><span style="color:#D4D4D4">$5.95</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">price</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">description</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      Two of our famous Belgian Waffles with plenty of real maple syrup</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#F44747">description</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">calories</span><span style="color:#808080">></span><span style="color:#D4D4D4">650</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">calories</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!-- ... four more &#x3C;food> entries ... --></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">breakfast_menu</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="52-同一份数据的-json-形式">5.2 同一份数据的 JSON 形式</h3>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "breakfast_menu"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "food"</span><span style="color:#D4D4D4">: [</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">      "name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Belgian Waffles"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "price"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"$5.95"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "description"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Two of our famous Belgian Waffles with plenty of real maple syrup"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "calories"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"650"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">    ]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片中的数组包含全部五种食物。）注意这种映射关系：重复出现的 <code>&lt;food&gt;</code> 元素变成了数组，子元素变成了键。</p>
+<p><strong>XML 与 JSON 对比</strong>（幻灯片 24）：它们表示的是同样的数据，但</p>
+<ul>
+<li>JSON <strong>更简洁</strong> → 在 Web 上需要传输的数据更少；</li>
+<li>JSON <strong>更易读</strong>——XML 的闭合标签是冗余的；</li>
+<li>JSON 已经<strong>取代</strong>了 XML，成为 Web 请求的典型格式。</li>
+</ul>
+<p>所以在实践中，AJAX 其实是“Asynchronous JavaScript and <del>XML</del> JSON”（幻灯片 25）——这个名字沿用了下来，尽管现在 X 通常代表的是 JSON。</p>
+<h2 id="6-xmlhttprequest">6. XMLHttpRequest</h2>
+<p>AJAX 请求内置于浏览器提供的一个对象 <code>XMLHttpRequest</code> 中——这是最早的实现方式（幻灯片 27–28）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> xhttp</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> XMLHttpRequest</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">onreadystatechange</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">readyState</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">status</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">       // Action to be performed when the document is read;</span></span>
+<span class="line"><span style="color:#569CD6">       var</span><span style="color:#9CDCFE"> xml</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">responseXML</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">       var</span><span style="color:#9CDCFE"> movie</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">xml</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"track"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">       //...</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">open</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"GET"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"filename"</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">();</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>可以这样理解：创建请求对象 → 注册一个回调，每当请求的状态改变时都会触发 → 在回调中，只有当 <code>readyState == 4</code>（完成）<strong>且</strong> <code>status == 200</code>（OK）时才执行操作 → <code>open</code> 请求（动词、URL，以及 <code>true</code> 表示异步）→ <code>send</code> 发送请求。响应的 XML 使用与操作页面时相同的 DOM 方法进行查找（<code>getElementsByTagName</code>，来自 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/">Lecture 6</a>）。它能工作，但写起来很啰嗦——这正是 <code>fetch</code> 存在的原因。</p>
+<h2 id="7-fetch">7. fetch()</h2>
+<p><strong><code>fetch</code></strong> 是一种较新的现代方法，用于发出这类请求，大多数浏览器都支持（幻灯片上的 MDN Baseline 框写着：“自 2017 年 3 月起在各浏览器中广泛可用……”）。基本形式：<code>fetch(&#39;url&#39;)</code>。</p>
+<ul>
+<li><code>fetch(&#39;some-url&#39;)</code> <strong>默认发出 GET</strong> 请求。</li>
+<li><code>fetch</code> 可选地接受<strong>第二个“选项”参数</strong>（一个字典/对象）：<ul>
+<li><code>method</code>：使用的方法（例如 <code>POST</code>、<code>PUT</code>、<code>DELETE</code>）</li>
+<li><code>headers</code>：内容类型格式等（下周会详细介绍 headers）</li>
+<li><code>body</code>：对于 <code>POST</code>/<code>PUT</code> 请求要发送的内容</li>
+</ul>
+</li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// For a GET request</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'some-url'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// For a POST request</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'some-url'</span><span style="color:#D4D4D4">, {</span></span>
+<span class="line"><span style="color:#9CDCFE">  method:</span><span style="color:#CE9178"> 'POST'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  headers:</span><span style="color:#D4D4D4"> {</span><span style="color:#CE9178">'Content-Type'</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> 'application/json'</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#9CDCFE">  body:</span><span style="color:#4FC1FF"> JSON</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">stringify</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">-</span><span style="color:#9CDCFE">to</span><span style="color:#D4D4D4">-</span><span style="color:#9CDCFE">send</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>data-to-send</code> 是占位符，不是真正的 JS——按原样写的话，它会被解释为减法 <code>data - to - send</code>。请使用类似 <code>dataToSend</code> 的变量名。幻灯片 29 中也写的是弯引号的 <code>fetch(&#39;url&#39;)</code>；在真实代码中必须使用直引号 <code>&#39;url&#39;</code>。</p>
+<p><code>body</code> 必须是字符串，因此对象要先经过 <code>JSON.stringify</code> 处理，并且 <code>Content-Type</code> 头声明它是 JSON。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch">MDN：Window.fetch()</a> · <a href="https://css-tricks.com/using-fetch/">CSS-Tricks：使用 fetch</a></p>
+</blockquote>
+<h2 id="8-异步请求">8. 异步请求</h2>
+<p>AJAX 请求是<strong>异步的</strong>：它与你代码的其余部分同时进行。请求发出后，<strong>下一行会立即执行，而不会等待请求完成</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'About to send request'</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// (1)</span></span>
+<span class="line"><span style="color:#6A9955">//send request for data to the url</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);                             </span><span style="color:#6A9955">// (2) Does NOT return the data</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Sent request'</span><span style="color:#D4D4D4">);            </span><span style="color:#6A9955">// (3)</span></span>
+<span class="line"><span style="color:#6A9955">                                        // (4) Data is actually received sometime later!</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>为什么要这样做？请求需要多长时间是不确定的。以异步方式处理，意味着用户可以<strong>继续与你的页面交互</strong>——请求不会阻塞用户的界面操作。如果你在导航页面时页面却卡住了，那是很糟糕的体验。</p>
+<p>如果你熟悉 Python 的 <code>requests.get(url)</code>（会阻塞直到响应到达），那么 <code>fetch</code> 恰恰相反：它会立即返回一个占位对象。</p>
+<p>试一试——对 PokeAPI 发起一个真实请求。注意第三行输出的是一个 <strong>Promise</strong>，而不是 Ditto 的数据，并且状态行只会在 <code>Sent request</code> 之后才出现：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 32–35 · fetch is asynchronous (live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var url = &#39;https://pokeapi.co/api/v2/pokemon/ditto&#39;;\n\nconsole.log(&#39;About to send request&#39;);\nvar thePromise = fetch(url);   // does NOT return the data\nconsole.log(&#39;Sent request&#39;);\nconsole.log(thePromise);\n\nthePromise.then(function(response) {\n  console.log(&#39;status:&#39;, response.status, &#39;ok:&#39;, response.ok);\n});&quot;}</code></pre><p>输出：</p>
+<div class="code-wrap"><pre><code>About to send request
+Sent request
+Promise
+status: 200 ok: true</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-promise-与-then">9. Promise 与 .then()</h2>
+<p>因为 <code>fetch()</code> 是异步的，它会返回一个 <strong>Promise</strong>：这是对未来将从 AJAX 请求中得到的数据的一个“占位符”。</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//fetch() returns a Promise</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> thePromise</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用 <strong><code>.then()</code></strong> 方法可以提供一个<strong>回调函数</strong>，它会在 Promise 被<strong>兑现（fulfilled）</strong>（即异步请求完成）时运行。回调会收到请求的响应。<code>.then</code> 还可以接受一个可选的第二个回调，用于 Promise 被<strong>拒绝（rejected）</strong>的情况：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//what to do when we get the response</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> successCallback</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">//when fulfilled, execute the callback function</span></span>
+<span class="line"><span style="color:#6A9955">//(which will be passed the fetched data)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promise</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">successCallback</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">rejectCallback</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// rejectCallback is optional</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous variables/callbacks:</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="91-自己写一个-promise演示-1">9.1 自己写一个 Promise（演示 1）</h3>
+<p>幻灯片 36（<code>setup1.js</code>）使用一个根本不涉及 fetch 的 Promise，仅用来演示 <code>.then()</code>：脚本加载 5 秒后打印 “Hello from the future!”，并把该字符串作为 Promise 的结果返回。仓库中的参考答案如下：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">resolve</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">reject</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">		resolve</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the present!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">hello</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>new Promise(...)</code> 接收一个函数，该函数会拿到 <code>resolve</code> 和 <code>reject</code>。调用 <code>resolve(value)</code> 会兑现该 Promise；你传入的值会成为 <code>.then</code> 回调的参数。输出（幻灯片 36 的控制台截图显示的是相同的两行）：</p>
+<div class="code-wrap"><pre><code>Hello from the present!
+Hello from the future!     ← 5 seconds later</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 36 · solution1.js (Demo 1)&quot;, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console — the second line arrives after 5 seconds.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var hello = new Promise((resolve, reject) =&gt; {\n\tsetTimeout(() =&gt; {\n\t\tresolve(\&quot;Hello from the future!\&quot;);\n\t}, 5000);\n});\n\nconsole.log(\&quot;Hello from the present!\&quot;);\n\nhello.then((text) =&gt; {\n\tconsole.log(text);\n});&quot;}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo1/solution1.js">solution1.js</a></p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#143-%E6%BC%94%E7%A4%BA-1%E6%9D%A5%E8%87%AA%E6%9C%AA%E6%9D%A5%E7%9A%84%E9%97%AE%E5%80%99%E5%B9%BB%E7%81%AF%E7%89%87-36--setup1--solution1">演示 1——来自未来的问候</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then">MDN：Promise.prototype.then()</a></p>
+</blockquote>
+<h2 id="10-取出数据responsejson-与链式调用">10. 取出数据：response.json() 与链式调用</h2>
+<h3 id="101-响应不是数据">10.1 响应不是数据</h3>
+<p>传给 <code>fetch</code> 的 <code>.then()</code> 回调的参数是 <strong>Response</strong>（响应对象），而不是你想要的数据。Fetch API 为响应提供了 <code>.json()</code> 方法来提取数据——但 <strong><code>.json()</code> 同样是异步的，并且会返回另一个 Promise</strong>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> newPromise</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">();   </span><span style="color:#6A9955">// another promise, not the data</span></span>
+<span class="line"><span style="color:#6A9955">   //... what now?</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="102-链式调用-promise">10.2 链式调用 Promise</h3>
+<p><strong><code>.then()</code> 本身也会返回一个 Promise</strong>，其中包含回调的返回值。因此你可以<strong>链式</strong>调用多个回调——每个回调都会在前一个 Promise 被兑现之后运行：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeString</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//a value to put in Promise</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeUpper</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> string</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toUpperCase</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//a value to put in Promise</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseA</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">();                  </span><span style="color:#6A9955">// when completed, promiseA => json data</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseB</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">promiseA</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeString</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// promiseB => comma-separated string</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseC</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">promiseB</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeUpper</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// promiseC => uppercase string</span></span>
+<span class="line"><span style="color:#9CDCFE">promiseC</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">);                      </span><span style="color:#6A9955">// an uppercase, comma-separated string</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous variables and chain functions</span></span>
+<span class="line"><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeString</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeUpper</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">); });</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片第 38–39 页的两个版本都以 <code>};</code> / <code>};</code> 结束——缺少了闭合 <code>.then(</code> 的 <code>)</code>；上面已修正。<code>getData()</code> 是任意返回 Promise 的函数的占位。如果回调返回的是一个 <strong>Promise</strong>（例如 <code>response.json()</code>），下一个 <code>.then</code> 会等待它完成，并接收它的<em>值</em>——这正是下一种写法得以成立的原因。</p>
+<h3 id="103-提取-fetch-数据的标准写法">10.3 提取 fetch() 数据的标准写法</h3>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">      var</span><span style="color:#9CDCFE"> dataPromise</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">      return</span><span style="color:#9CDCFE"> dataPromise</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">   })</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">      //do something with data</span></span>
+<span class="line"><span style="color:#D4D4D4">   });</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两个 <code>.then</code>：第一个把 Response 转换为数据 Promise；第二个拿到解析后的 JSON 对象。</p>
+<h3 id="104-获取宝可梦演示-2">10.4 获取宝可梦（演示 2）</h3>
+<p>幻灯片 41（<code>setup2.js</code>）：使用 <code>fetch()</code> 从 PokeAPI 获取前 25 只宝可梦，并将它们显示在列表中——并且要<strong>按顺序</strong>获取。初始代码提供了一个构建 DOM 的辅助函数（Lecture 6 风格），以及一个空的 <code>getPokemon</code>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">sprite</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> listItem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'li'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> nameSpan</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'span'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	nameSpan</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'#'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">': '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> spriteImg</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'img'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	spriteImg</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">src</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sprite</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">	listItem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nameSpan</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	listItem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">spriteImg</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'pokemon_list'</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">listItem</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>仓库中的参考答案把 <code>.json()</code> 嵌套在第一个 <code>.then</code> 内部（而不是返回它），并且只有在当前宝可梦到达之后才请求<strong>下一个</strong>宝可梦：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">	fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">base_url</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'pokemon/'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">			addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sprites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">front_default</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">			if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">				getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		});</span></span>
+<span class="line"><span style="color:#D4D4D4">	});</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>结果：<code>#1: bulbasaur</code> … <code>#25: pikachu</code>，每只都带有其图片，并且始终按顺序排列（与幻灯片截图一致）。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 41 · solution2.js (Demo 2, live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 420, &quot;html&quot;: &quot;&lt;h1&gt;First 25 pokemon&lt;/h1&gt;\n&lt;ul id=\&quot;pokemon_list\&quot;&gt;\n&lt;/ul&gt;&quot;, &quot;js&quot;: &quot;function addPokemonToList(id, name, sprite) {\n    var listItem = document.createElement(&#39;li&#39;);\n\tvar nameSpan = document.createElement(&#39;span&#39;);\n\tnameSpan.textContent = &#39;#&#39; + id + &#39;: &#39; + name;\n    var spriteImg = document.createElement(&#39;img&#39;);\n\tspriteImg.src = sprite;\n\tlistItem.appendChild(nameSpan);\n\tlistItem.appendChild(spriteImg);\n    document.getElementById(&#39;pokemon_list&#39;).appendChild(listItem);\n}\n\nfunction getPokemon(pokedexNumber) {\n\tfetch(base_url + &#39;pokemon/&#39; + pokedexNumber).then((response) =&gt; {\n\t\tresponse.json().then((pokemon_json) =&gt; {\n\t\t\taddPokemonToList(pokemon_json.id, pokemon_json.name, pokemon_json.sprites.front_default);\n\t\t\tif(pokemon_json.id &lt; 25) {\n\t\t\t\tgetPokemon(pokemon_json.id + 1);\n\t\t\t}\n\t\t});\n\t});\n}\n\nvar base_url = &#39;https://pokeapi.co/api/v2/&#39;;\n\ngetPokemon(1); // demo script runs after the list exists, so no DOMContentLoaded needed&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片中被注释掉的循环 <code>for (var i = 1; i &lt;= 25; i++) getPokemon(i);</code> 会同时发出全部 25 个请求，而响应则按<strong>服务器返回的任意顺序</strong>到达。一次真实运行的完成顺序为 <code>2 3 1 5 4 6 7 9 10 8 11 12 13 14 16 15 17 18 20 19 21 22 24 23 25</code>。异步代码除非你让它等待，否则永远不保证顺序。</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/solution2.html">solution2.html</a></p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#144-%E6%BC%94%E7%A4%BA-2%E6%8C%89%E9%A1%BA%E5%BA%8F%E8%8E%B7%E5%8F%96%E5%89%8D-25-%E5%8F%AA%E5%AE%9D%E5%8F%AF%E6%A2%A6%E5%B9%BB%E7%81%AF%E7%89%87-41--setup2--solution2">演示 2——按顺序获取前 25 只宝可梦</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">MDN：Response</a></p>
+</blockquote>
+<h2 id="11-客户端与服务端-js以及同源策略">11. 客户端与服务端 JS，以及同源策略</h2>
+<h3 id="111-javascript-运行的两个地方">11.1 JavaScript 运行的两个地方</h3>
+<p>幻灯片 42：在请求/响应的示意图中，客户端 JS 位于<strong>你的浏览器</strong>中，可以编辑正在渲染的内容，并触发或响应事件。服务端 JS 位于 <strong>Web 服务器</strong>上，可以以编程方式浏览文件系统、动态生成页面或视图，并传输、存储数据或与数据交互。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>客户端</th>
+<th>服务端</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>运行位置</td>
+<td>浏览器中</td>
+<td>命令行等（但仍可能从浏览器访问）</td>
+</tr>
+<tr>
+<td>变化发生</td>
+<td>浏览器中实时发生</td>
+<td>响应 HTTP 请求时</td>
+</tr>
+<tr>
+<td>HTTP 请求</td>
+<td><strong>不能</strong>向许多 API 发出</td>
+<td><strong>可以</strong>向大多数 API 发出</td>
+</tr>
+<tr>
+<td>示例</td>
+<td>AJAX、Angular、React、Vue.js</td>
+<td>Node、ASP.NET</td>
+</tr>
+</tbody></table>
+<h3 id="112-同源策略">11.2 同源策略</h3>
+<p>许多浏览器<strong>不允许</strong> AJAX 请求发送到不同的服务器。这样可以防止恶意脚本访问 DOM 中的数据。变通方法（幻灯片 43 的示意图）：浏览器中的 Web 应用不能直接 GET Yahoo（“No”），但它可以与<strong>充当代理的自有 Web 服务器</strong>通信，而这个非浏览器的代理可以与 Yahoo 通信（“OK”）。</p>
+<p>为什么这很重要（幻灯片 44–45）：</p>
+<ul>
+<li>两个浏览器标签页：一个是银行应用，另一个是恶意应用。两者都运行 JavaScript，并且运行在<strong>同一个 JavaScript 引擎</strong>上。</li>
+<li>银行的脚本读取/编辑你的银行数据。<strong>origin（源）</strong>是打开该 JavaScript 文件的 HTML 页面，因此每个标签页都是一个独立的源。</li>
+<li>如果没有该策略，恶意应用的脚本就能读取并编辑你的银行数据。有了它，每个脚本只能在自己的标签页（源）内操作。</li>
+</ul>
+<p>有两个例外：</p>
+<ol>
+<li>应用始终可以与<strong>同一域名</strong>下的其他应用通信（例如，localhost 上的应用可以与其他 localhost 应用通信*）。</li>
+<li><strong>服务器可以指定</strong>接受来自特定源（或任何源）的连接。</li>
+</ol>
+<p>你<em>可以</em>在浏览器中禁用该策略，但最好不要这样做。</p>
+<h3 id="113-localhost-上的服务器a3-的设置">11.3 localhost 上的服务器（A3 的设置）</h3>
+<p><strong>localhost</strong> = “这台计算机”。幻灯片 47 的示意图：</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  live[&quot;Live server: localhost:8080 (browser)&quot;] &lt;--&gt;|&quot;same domain, can communicate*&quot;| proxy[&quot;Spotify proxy: localhost:7890 (server)&quot;]
+  proxy &lt;--&gt;|&quot;no communication restrictions&quot;| spotify[&quot;Spotify API&quot;]</code></pre><ul>
+<li><strong>浏览器</strong>（Live Server 页面）实施同源策略，以保护你在其中打开的其他数据。</li>
+<li><strong>Spotify 代理</strong>作为服务器运行，因此不受同源限制，可以与 Spotify 通信。</li>
+<li>两者都在 localhost 上，因此可以相互通信*。</li>
+</ul>
+<p>（*星号的说明见 Lecture 9 的幻灯片：不同端口在技术上是不同的源；代理被配置为允许它们之间的通信。）</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#142-%E9%97%AE%E9%A2%98-2%E5%93%AA%E4%BA%9B%E4%B8%BB%E4%BD%93%E5%8F%AF%E4%BB%A5%E5%90%91-spotify-api-%E5%8F%91%E5%87%BA-http-%E8%AF%B7%E6%B1%82%E5%B9%BB%E7%81%AF%E7%89%87-4850">问题 2——谁可以调用 Spotify API？</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://en.wikipedia.org/wiki/Same-origin_policy">Wikipedia：同源策略</a> · <a href="https://security.stackexchange.com/questions/8264/why-is-the-same-origin-policy-so-important">Security StackExchange：为什么同源策略如此重要？</a></p>
+</blockquote>
+<h2 id="12-使用-catch-捕获错误">12. 使用 .catch() 捕获错误</h2>
+<p><code>.catch()</code> 提供一个回调，当 Promise 被<strong>拒绝</strong>（发生错误）时运行。它会捕获<strong>此前所有 <code>.then()</code></strong> 中的错误；位于 <code>.catch</code> 之后的 <code>.then</code> 仍然会运行：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooSrc</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">firstCallback</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">secondCallback</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">catch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">error</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">     //called if EITHER previous callback</span></span>
+<span class="line"><span style="color:#6A9955">     //has an error</span></span>
+<span class="line"><span style="color:#6A9955">     //param is object representing the error itself</span></span>
+<span class="line"><span style="color:#9CDCFE">     console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">error</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">message</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">thirdCallback</span><span style="color:#D4D4D4">) </span><span style="color:#6A9955">//will only do this if</span></span>
+<span class="line"><span style="color:#6A9955">                       //no previous errors</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>对幻灯片最后一条注释做一处更正：<code>thirdCallback</code> 在没有错误时运行，<strong>并且</strong>在 <code>.catch</code> 处理了某个错误之后也会运行——正常返回的 <code>.catch</code> 会让链条回到成功路径。下面的第二条链在其第一个回调中抛出了错误：下一个 <code>.then</code> 被跳过，<code>.catch</code> 输出错误信息，而它之后的 <code>.then</code> 仍然会运行。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 38–39, 51 · chaining and .catch()&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// getData() stands in for any function that returns a Promise\nfunction getData() { return Promise.resolve([&#39;ditto&#39;, &#39;pikachu&#39;, &#39;mew&#39;]); }\nfunction makeString(data) { return data.join(&#39;, &#39;); }\nfunction makeUpper(string) { return string.toUpperCase(); }\n\ngetData()\n  .then(makeString)\n  .then(makeUpper)\n  .then(function(d) { console.log(d); });\n\ngetData()\n  .then(function(d) { return d.foo.bar; })   // throws: d.foo is undefined\n  .then(function() { console.log(&#39;skipped&#39;); })\n  .catch(function(error) { console.log(&#39;caught:&#39;, error.message); })\n  .then(function() { console.log(&#39;runs after catch&#39;); });&quot;}</code></pre><p>输出：</p>
+<div class="code-wrap"><pre><code>DITTO, PIKACHU, MEW
+caught: Cannot read properties of undefined (reading &#39;bar&#39;)
+runs after catch</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="13-使用-promiseall-处理多个-promise">13. 使用 Promise.all 处理多个 Promise</h2>
+<p>Promise 只是“去做某件事”的指令，因此你可以启动多个 Promise，并<strong>等待它们全部完成</strong>——请求会并发运行：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooUrl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> bar</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">barUrl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//a promise for when all commands ready</span></span>
+<span class="line"><span style="color:#4EC9B0">Promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">foo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">bar</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooRes</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">barRes</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">     //do something both both responses, e.g.,</span></span>
+<span class="line"><span style="color:#C586C0">     return</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooRes</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">barRes</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooData</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">barData</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#6A9955">     //now have both data sets!</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片上的代码无法运行。<code>Promise.all</code> 接收的是<strong>一个数组</strong>形式的 Promise 列表，并以<strong>一个数组</strong>形式的结果兑现。<code>Promise.all(foo, bar)</code> 会以 <code>object is not iterable</code> 拒绝，并且 <code>.then</code> 回调只会接收到一个参数。修正版本：<code>Promise.all([foo, bar]).then(function([fooRes, barRes]) { return Promise.all([fooRes.json(), barRes.json()]); }).then(function([fooData, barData]) { … })</code>。</p>
+</blockquote>
+<p>两个版本并排对比（对宝可梦 #1 和 #4 发出真实请求）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 52 · Promise.all — slide version vs fixed (live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var foo = fetch(&#39;https://pokeapi.co/api/v2/pokemon/1&#39;);\nvar bar = fetch(&#39;https://pokeapi.co/api/v2/pokemon/4&#39;);\n\n// Slide version: two separate arguments\nPromise.all(foo, bar)\n  .then(function(fooRes, barRes) { console.log(&#39;never gets here&#39;); })\n  .catch(function(e) { console.log(&#39;slide version rejected:&#39;, e.message); });\n\n// Fixed: pass ONE array, destructure ONE array\nPromise.all([foo, bar])\n  .then(function([fooRes, barRes]) {\n    return Promise.all([fooRes.json(), barRes.json()]);\n  })\n  .then(function([fooData, barData]) {\n    console.log(fooData.name, barData.name);\n  });&quot;}</code></pre><p>输出：</p>
+<div class="code-wrap"><pre><code>slide version rejected: object is not iterable (cannot read property Symbol(Symbol.iterator))
+bulbasaur charmander</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="14-课堂问题与演示附解答">14. 课堂问题与演示（附解答）</h2>
+<h3 id="141-问题-1从-pokeapi-读取-mr-mime幻灯片-1618">14.1 问题 1：从 PokeAPI 读取 Mr. Mime（幻灯片 16–18）</h3>
+<p><em>如果我们确实需要编码……我们该如何读取 PokeAPI 中 Mr. Mime 的条目？</em></p>
+<ul>
+<li>A. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mr. mime</code></li>
+<li>B. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mrmime</code></li>
+<li>C. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mr%2E%20mime</code></li>
+<li>D. <code>HTTP POST https://pokeapi.co/api/v2/pokemon/mr. mime</code></li>
+<li>E. <code>HTTP POST https://pokeapi.co/api/v2/pokemon/mr%2E%20mime</code></li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：C。</strong> 有两个决定：动词和编码。</p>
+<ul>
+<li><em>读取</em>资源用 <strong>GET</strong>；POST 用于添加新资源 → D 和 E 排除。</li>
+<li>“如果我们确实需要编码”：空格变为 <code>%20</code>，句点变为 <code>%2E</code> → C。A 中留下了未经转义的空格；B 去掉了字符，这正是 PokeAPI 对 Farfetch&#39;d 的做法，但那不是“编码”。</li>
+</ul>
+<p>（脱离假设：PokeAPI 中这只宝可梦的实际名称是 <code>mr-mime</code>；<code>/pokemon/mrmime</code> 会返回 404。）返回 <a href="#4-url-%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E8%BD%AC%E4%B9%89">第 4 节</a>。</p>
+<h3 id="142-问题-2哪些主体可以向-spotify-api-发出-http-请求幻灯片-4850">14.2 问题 2：哪些主体可以向 Spotify API 发出 HTTP 请求？（幻灯片 48–50）</h3>
+<p><em>（假设浏览器使用默认设置。）</em></p>
+<ol>
+<li>打开 spotify.com 的浏览器</li>
+<li>在 localhost:8888 上运行、带有客户端 JavaScript 的浏览器</li>
+<li>在 localhost:8888 上运行、带有服务端 JavaScript 的浏览器</li>
+<li>运行在 Spotify 域名下的服务器</li>
+</ol>
+<ul>
+<li>A. 4</li>
+<li>B. 1, 4</li>
+<li>C. 1, 2, 4</li>
+<li>D. 1, 3, 4</li>
+<li>E. 1, 2, 3, 4</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：B（1, 4）。</strong> 幻灯片并未显示投票结果；这是根据幻灯片 43–47 推导出的答案。</p>
+<ul>
+<li>(1) ✅ 页面来自 Spotify 自己的域名，因此它的脚本在同一域名内与 Spotify 通信（例外 1）。</li>
+<li>(2) ❌ localhost 上的客户端 JS 与 Spotify 属于不同的源；浏览器的同源策略会阻止它——这正是 A3 需要代理的原因。</li>
+<li>(3) ❌ 陷阱：服务端 JavaScript 并不在浏览器<em>中</em>运行（它运行在命令行中，例如 Node）。“带有服务端 JS 的浏览器”仍然受该策略约束。</li>
+<li>(4) ✅ 服务器不受同源限制（而且它本身就在 Spotify 的域名下）。</li>
+</ul>
+<p>返回 <a href="#11-%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8E%E6%9C%8D%E5%8A%A1%E7%AB%AF-js%E4%BB%A5%E5%8F%8A%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5">第 11 节</a>。</p>
+<h3 id="143-演示-1来自未来的问候幻灯片-36--setup1--solution1">14.3 演示 1：来自未来的问候（幻灯片 36 · setup1 → solution1）</h3>
+<p>任务（<code>setup1.js</code> 只有这一行注释）：<em>使用一个 Promise，在 JavaScript 加载 5 秒后，通过将字符串作为 Promise 的结果返回，打印 “Hello from the future!”。这里不使用 <code>fetch()</code>——只在 Promise 完成后使用 <code>.then()</code>。</em></p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution1.js</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">resolve</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">reject</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">		resolve</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the present!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">hello</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出：<code>Hello from the present!</code> 立即出现，<code>Hello from the future!</code> 在 5 秒后出现。关键点：<code>.then</code> 会立即注册，但其回调只有在调用 <code>resolve</code> 之后才会运行；与此同时，脚本的其余部分会继续执行。返回 <a href="#91-%E8%87%AA%E5%B7%B1%E5%86%99%E4%B8%80%E4%B8%AA-promise%E6%BC%94%E7%A4%BA-1">第 9.1 节</a>。</p>
+<h3 id="144-演示-2按顺序获取前-25-只宝可梦幻灯片-41--setup2--solution2">14.4 演示 2：按顺序获取前 25 只宝可梦（幻灯片 41 · setup2 → solution2）</h3>
+<p>任务：补全 <code>getPokemon(pokedexNumber)</code>——在循环中使用 <code>fetch()</code>，从 <code>https://pokeapi.co/api/v2/</code> 获取前 25 只宝可梦，并用 <code>addPokemonToList(id, name, sprite)</code> 添加每一只；等它们出现后，<strong>按顺序</strong>获取。初始代码：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">	// write fetch call here!</span></span>
+<span class="line"><span style="color:#6A9955">    // use addPokemonToList to create HTML once have pokemon</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> base_url</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'https://pokeapi.co/api/v2/'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, () </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // for(var i = 1; i &#x3C;= 25; i++) {</span></span>
+<span class="line"><span style="color:#6A9955">    //     getPokemon(i);</span></span>
+<span class="line"><span style="color:#6A9955">    // }</span></span>
+<span class="line"><span style="color:#DCDCAA">    getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution2.js</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">	fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">base_url</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'pokemon/'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">			addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sprites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">front_default</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">			if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">				getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		});</span></span>
+<span class="line"><span style="color:#D4D4D4">	});</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>而 <code>DOMContentLoaded</code> 处理函数只调用 <code>getPokemon(1)</code>。用到的字段：<code>id</code>、<code>name</code>、<code>sprites.front_default</code>（图片 URL）。为什么要用递归：如果用循环，全部 25 个请求会同时在途，并且乱序到达；而在第 n 个的回调中请求第 n+1 个，就把它们<strong>串行化</strong>了，因此列表始终是 1 → 25（代价是更慢——一次只有一个请求）。返回 <a href="#104-%E8%8E%B7%E5%8F%96%E5%AE%9D%E5%8F%AF%E6%A2%A6%E6%BC%94%E7%A4%BA-2">第 10.4 节</a>。</p>
+<h2 id="15-速查与必记的-5-个要点">15. 速查与必记的 5 个要点</h2>
+<p><strong>HTTP</strong></p>
+<table>
+<thead>
+<tr>
+<th>动词</th>
+<th>用途</th>
+<th></th>
+<th>状态码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET</code></td>
+<td>读取</td>
+<td></td>
+<td><code>200</code></td>
+<td>OK</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>添加新资源</td>
+<td></td>
+<td><code>201</code></td>
+<td>Created</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>替换/更新</td>
+<td></td>
+<td><code>400</code></td>
+<td>请求错误</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td>更新部分内容</td>
+<td></td>
+<td><code>403</code></td>
+<td>禁止访问</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>删除</td>
+<td></td>
+<td><code>404</code></td>
+<td>未找到</td>
+</tr>
+<tr>
+<td><code>OPTIONS</code></td>
+<td>列出允许的方法</td>
+<td></td>
+<td><code>500</code></td>
+<td>服务器内部错误</td>
+</tr>
+</tbody></table>
+<p><strong>URI 组成部分</strong>：基础 URI <code>https://pokeapi.co/api/</code> + 端点 <code>v2/pokemon/ditto</code> + 可选查询 <code>?key=value&amp;key=value</code>。对保留字符进行编码：空格 <code>%20</code>、<code>&#39;</code> <code>%27</code>、<code>&amp;</code> <code>%26</code>。</p>
+<p><strong>fetch 与 Promise</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>得到的结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fetch(url)</code></td>
+<td>一个 Response 的 Promise（GET）</td>
+</tr>
+<tr>
+<td><code>fetch(url, {method, headers, body})</code></td>
+<td>其他动词；<code>body: JSON.stringify(obj)</code></td>
+</tr>
+<tr>
+<td><code>p.then(onOk, onFail)</code></td>
+<td>一个新 Promise，其值为回调的返回值</td>
+</tr>
+<tr>
+<td><code>response.json()</code></td>
+<td>解析后数据的 Promise</td>
+</tr>
+<tr>
+<td><code>p.catch(fn)</code></td>
+<td>处理之前任何步骤的拒绝</td>
+</tr>
+<tr>
+<td><code>new Promise((resolve, reject) =&gt; …)</code></td>
+<td>你自己的 Promise；<code>resolve(v)</code> 会兑现它</td>
+</tr>
+<tr>
+<td><code>Promise.all([p1, p2])</code></td>
+<td>全部完成后为 <code>[v1, v2]</code> 的 Promise</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li><code>fetch</code> 会立即返回一个 <strong>Promise</strong>——它之后的那一行会在任何数据到达之前运行。</li>
+<li>获取数据需要两步：<code>.then(response =&gt; response.json())</code>，然后 <code>.then(data =&gt; …)</code>；response 并不是数据。</li>
+<li><code>.then</code> 会返回一个新的 Promise，因此要链式调用；<code>.catch</code> 会处理<strong>每一个</strong>先前 <code>.then</code> 中的错误。</li>
+<li>读取 = GET，添加 = POST；对保留字符进行编码（空格 → <code>%20</code>）。</li>
+<li>浏览器的<strong>同源策略</strong>会阻止客户端对许多 API 的请求；服务器（或同域页面）不受限制——这也是 A3 使用 localhost 代理的原因。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 7 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>TypeScript 与数据可视化工具</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 9 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>服务器端开发、身份验证与授权</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" title="上一篇: TypeScript 与数据可视化工具 ([)" aria-label="上一篇: 第 7 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 7 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 8 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-08/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" title="下一篇: 服务器端开发、身份验证与授权 (])" aria-label="下一篇: 第 9 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 9 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

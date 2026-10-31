@@ -1,0 +1,601 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 43 Software Architecture | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Why architecture matters, its elements, prescriptive vs. descriptive views, architectural erosion, and the six architectural styles."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413993" data-source-url="/~kazuhak/notes/in4matx-43/week-04/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-43/week-03/en-US/" data-next-url="/~kazuhak/notes/in4matx-43/week-05/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 4</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 4 · Software Engineering Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 43 Week 4 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on April 24, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--week-4-lecture-notes">Informatics 43 — Week 4 Lecture Notes</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-from-requirements-to-structure--why-we-need-architecture">From Requirements to Structure — Why We Need Architecture</a></li>
+<li><a href="#2-the-architect--an-analogy-and-its-limits">The Architect — An Analogy (and Its Limits)</a></li>
+<li><a href="#3-defining-software-architecture">Defining Software Architecture</a></li>
+<li><a href="#4-architecture-in-action--worked-examples">Architecture in Action — Worked Examples</a></li>
+<li><a href="#5-elements-of-software-architecture">Elements of Software Architecture</a></li>
+<li><a href="#6-prescriptive-vs-descriptive-architecture">Prescriptive vs. Descriptive Architecture</a></li>
+<li><a href="#7-architectural-erosion">Architectural Erosion</a></li>
+<li><a href="#8-architectural-styles--definition">Architectural Styles — Definition</a></li>
+<li><a href="#9-the-six-architectural-styles">The Six Architectural Styles</a></li>
+<li><a href="#10-mixing-styles">Mixing Styles</a></li>
+<li><a href="#11-evolution-and-architecture">Evolution and Architecture</a></li>
+<li><a href="#12-connection-to-the-fundamental-principles">Connection to the Fundamental Principles</a></li>
+<li><a href="#13-quiz-4-study-guide">Quiz 4 Study Guide</a></li>
+<li><a href="#14-wrap-up-and-memory-framework">Wrap-Up and Memory Framework</a></li>
+</ol>
+<hr>
+<h2 id="1-from-requirements-to-structure--why-we-need-architecture">1. From Requirements to Structure — Why We Need Architecture</h2>
+<h3 id="11-the-gap-between-requirements-and-code">1.1 The gap between requirements and code</h3>
+<p>After Weeks 2–3 we have a requirements specification and a set of use cases. The natural next question is: <em>now what?</em> Given the same set of requirements, there are <strong>many possible ways</strong> to structure the resulting system — different arrangements of modules, different divisions of responsibility, different communication patterns. Architecture is the discipline of making those structural decisions deliberately.</p>
+<p>The progression is:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">Architecture</mtext><mtext> </mtext><mtext mathvariant="bold">&amp;</mtext><mtext> </mtext><mtext mathvariant="bold">Design</mtext></mrow><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Code</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} \;\longrightarrow\; \textbf{Architecture \&amp; Design} \;\longrightarrow\; \textbf{Code}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Architecture &amp; Design</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Code</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Architecture sits in the middle — it is <strong>not</strong> the requirements (which say <em>what</em> the system must do), and it is <strong>not</strong> the code (which says exactly <em>how</em> every detail is implemented). It is the high-level structure that bridges the two.</p>
+<h3 id="12-why-architecture-matters-in-software-engineering">1.2 Why architecture matters in software engineering</h3>
+<p>Architecture is valuable for five concrete reasons:</p>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Intellectual control</strong></td>
+<td>Keeps a large, complex system understandable by humans</td>
+</tr>
+<tr>
+<td><strong>Conceptual integrity</strong></td>
+<td>Ensures the system has a coherent &quot;story&quot; rather than being a patchwork of styles</td>
+</tr>
+<tr>
+<td><strong>Effective project communication</strong></td>
+<td>Gives teams a shared vocabulary and shared diagrams to reason about the system</td>
+</tr>
+<tr>
+<td><strong>Reusability</strong></td>
+<td>Well-structured components can be reused across systems or variants</td>
+</tr>
+<tr>
+<td><strong>Maintainability</strong></td>
+<td>Helps manage a family of variant systems and supports long-term evolution</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-the-architect--an-analogy-and-its-limits">2. The Architect — An Analogy (and Its Limits)</h2>
+<h3 id="21-what-a-building-architect-does">2.1 What a (building) architect does</h3>
+<p>Software architecture borrows its name from building architecture, and the analogy is genuinely useful. A building architect:</p>
+<ul>
+<li>Plays a <strong>distinctive role</strong> in a project, separate from the construction workers</li>
+<li>Has <strong>broad training</strong>, <strong>extensive experience</strong>, and <strong>deep domain understanding</strong></li>
+<li><strong>Leads the team</strong>, <strong>communicates well</strong>, and is a <strong>decision maker</strong></li>
+<li>Works at a <strong>higher level of abstraction</strong> than those performing the actual construction</li>
+<li>Often serves as the <strong>interface to key business stakeholders/customers</strong></li>
+</ul>
+<p>A software architect plays a parallel role in a software project.</p>
+<h3 id="22-where-the-analogy-breaks-down">2.2 Where the analogy breaks down</h3>
+<p>The analogy is a helpful starting point but should not be pushed too far — software is genuinely different from buildings:</p>
+<ul>
+<li>Software serves a <strong>much broader range of purposes</strong> than buildings do</li>
+<li>We know <strong>much more about buildings than software</strong> (centuries vs. decades)</li>
+<li>Software is <strong>far more malleable</strong> than physical materials — changing a building after construction is enormously expensive; changing software is comparatively cheap</li>
+<li><strong>Software is a machine</strong>, not a static structure — it has runtime behavior</li>
+<li><strong>Software is invisible</strong> — you cannot see it, walk through it, or inspect it the way you can a building</li>
+</ul>
+<blockquote>
+<p>Keep the analogy as intuition, but remember: software architecture has to grapple with behavior, change, and invisibility in a way that building architecture does not.</p>
+</blockquote>
+<hr>
+<h2 id="3-defining-software-architecture">3. Defining Software Architecture</h2>
+<h3 id="31-the-primary-definition">3.1 The primary definition</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Software</mtext><mtext> </mtext><mtext mathvariant="bold">architecture</mtext></mrow><mo>=</mo><mtext>the set of </mtext><mrow><mtext mathvariant="italic">principal</mtext><mtext> </mtext><mtext mathvariant="italic">design</mtext><mtext> </mtext><mtext mathvariant="italic">decisions</mtext></mrow><mtext> about the system</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Software architecture} = \text{the set of } \textit{principal design decisions} \text{ about the system}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Software architecture</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">the set of </span></span><span class="mord text"><span class="mord textit">principal design decisions</span></span><span class="mord text"><span class="mord"> about the system</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The word <strong>&quot;principal&quot;</strong> is doing a lot of work here. Not every design decision is architectural — only the ones that are fundamental enough to shape the system overall. These principal decisions cover:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>What it addresses</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Structure</strong></td>
+<td>How the system is divided into parts</td>
+</tr>
+<tr>
+<td><strong>Behavior</strong></td>
+<td>How those parts act over time</td>
+</tr>
+<tr>
+<td><strong>Interaction</strong></td>
+<td>How the parts communicate with each other</td>
+</tr>
+<tr>
+<td><strong>Non-functional properties</strong></td>
+<td>Performance, scalability, security, reliability, etc.</td>
+</tr>
+</tbody></table>
+<h3 id="32-architecture-as-blueprint">3.2 Architecture as blueprint</h3>
+<p>A second, complementary definition:</p>
+<blockquote>
+<p><strong>Software architecture is the blueprint for a software system&#39;s construction and evolution.</strong></p>
+</blockquote>
+<p>The word &quot;evolution&quot; matters as much as &quot;construction&quot; — architecture is not just about getting the system built; it is about setting the system up to change gracefully over time.</p>
+<h3 id="33-other-useful-definitions">3.3 Other useful definitions</h3>
+<p>Several well-known authors have offered their own framings, and each highlights something different:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Definition</th>
+<th>What it emphasizes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Clements, Bass, Kazman</strong></td>
+<td>&quot;The set of structures needed to reason about the system, which comprise software elements, relations among them, and properties of both.&quot;</td>
+<td>Reasoning / analysis</td>
+</tr>
+<tr>
+<td><strong>Spinellis</strong></td>
+<td>&quot;How your whole system … will be decomposed into processes or services; how data are stored, communicated, and processed; and how all parts fit together to deliver the required functionality, reliability, capacity, scalability, maintainability, and portability.&quot;</td>
+<td>Decomposition and non-functional properties</td>
+</tr>
+<tr>
+<td><strong>Fowler</strong></td>
+<td>&quot;The highest-level breakdown of a system into its parts; the decisions that are hard to change.&quot;</td>
+<td>What is <em>hard to change</em></td>
+</tr>
+<tr>
+<td><strong>Natarén</strong></td>
+<td>&quot;The clear definition of multiple high-level components that, when working together, form your system and solve your problem.&quot;</td>
+<td>High-level components working together</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>All four definitions circle the same idea from different angles: architecture = the important, high-level, hard-to-change decisions that shape the system.</p>
+</blockquote>
+<hr>
+<h2 id="4-architecture-in-action--worked-examples">4. Architecture in Action — Worked Examples</h2>
+<h3 id="41-example-email">4.1 Example: Email</h3>
+<p>Email has a short functional spec:</p>
+<ul>
+<li>Send and receive messages</li>
+<li>Get your own messages, not others&#39;</li>
+<li>Addressing scheme</li>
+<li>Store messages</li>
+<li>Electronic</li>
+<li>Blocks spam</li>
+</ul>
+<p>At the architectural level, email is commonly structured as <strong>client ↔ client</strong> communication (mediated by servers under the hood). The architecture captures the high-level interaction pattern, not the implementation details of each mail program.</p>
+<h3 id="42-example-the-world-wide-web-rest">4.2 Example: The World Wide Web (REST)</h3>
+<p>The Web can be described in multiple ways — several diagrams and narratives can all be valid descriptions of the same architecture. The key properties of the Web&#39;s architecture (also known as the <strong>REST reference architecture</strong>) are:</p>
+<ul>
+<li>The Web is a collection of <strong>resources</strong>, each with a unique name (<strong>URL</strong>)</li>
+<li>A URL can be used to determine the identity of a machine on the Internet (the <strong>origin server</strong>), from which the resource may be obtained</li>
+<li><strong>Clients</strong> (user agents / Web browsers) make requests of servers for their resources</li>
+<li>Clients manipulate <strong>representations</strong> of resources (not the resources themselves)</li>
+<li>All communication between user agents and origin servers must be performed by a <strong>simple, generic protocol (HTTP)</strong></li>
+<li>All communication must be <strong>fully self-contained</strong> (stateless)</li>
+</ul>
+<p><strong>Three important observations about the Web&#39;s architecture:</strong></p>
+<ol>
+<li><strong>There is no single piece of code that implements the architecture</strong> — it is a property of the whole system, not of any one file or program</li>
+<li><strong>The stylistic constraints are not apparent in the code</strong> — you cannot read any one HTTP server&#39;s source and see &quot;REST&quot; stamped on it</li>
+<li><strong>The Web is one of the world&#39;s most successful applications</strong>, and it can only be <strong>understood adequately from an architectural vantage point</strong></li>
+</ol>
+<blockquote>
+<p>This example is crucial: it shows that architecture is a way of thinking about a system that exists <em>above</em> any particular codebase. The diagrams, constraints, and protocol rules <em>are</em> the architecture.</p>
+</blockquote>
+<h3 id="43-example-facebook">4.3 Example: Facebook</h3>
+<p>Facebook illustrates how many requirements — both functional and non-functional — drive architectural decisions.</p>
+<p><strong>Functional requirements include:</strong> friend lists, status updates, news feed, comments / likes / reactions, messaging, photos, location services, 3rd-party apps, and many more.</p>
+<p><strong>Non-functional requirements include:</strong></p>
+<ul>
+<li>Efficiency / performance</li>
+<li>Scalability</li>
+<li>Availability</li>
+<li>Security</li>
+<li>Privacy</li>
+<li>Reliability</li>
+<li>Portability</li>
+</ul>
+<blockquote>
+<p>Architecture has to satisfy both sets simultaneously. A structure that delivers the functional behavior but fails on scalability or availability is not an acceptable architecture for Facebook.</p>
+</blockquote>
+<h3 id="44-example-client-server">4.4 Example: Client-Server</h3>
+<p>The most common distributed-system architecture. Its defining features:</p>
+<ul>
+<li><strong>Clients make requests</strong> of servers</li>
+<li><strong>Centralized</strong> control over data, security, and access</li>
+</ul>
+<p>Client-server shows up everywhere precisely because centralization simplifies a lot of concerns (especially security and data consistency). It is covered in more detail as one of the six architectural styles in Section 9.</p>
+<hr>
+<h2 id="5-elements-of-software-architecture">5. Elements of Software Architecture</h2>
+<p>A software architecture is built from <strong>three kinds of building blocks</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Components</strong></td>
+<td>The parts that do the work (modules, services, processes, etc.)</td>
+</tr>
+<tr>
+<td><strong>Connectors</strong></td>
+<td>The mechanisms by which components communicate (calls, pipes, message queues, networks, events, …)</td>
+</tr>
+<tr>
+<td><strong>Configurations</strong></td>
+<td>The specific way components and connectors are <strong>arranged</strong> — topology</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The trio <em>components + connectors + configurations</em> is the vocabulary that every architectural style below uses. When you read &quot;pipe-and-filter&quot; or &quot;publish-subscribe,&quot; each style is essentially a named recipe describing <em>which</em> components, <em>which</em> connectors, and <em>which</em> configurations to use.</p>
+</blockquote>
+<hr>
+<h2 id="6-prescriptive-vs-descriptive-architecture">6. Prescriptive vs. Descriptive Architecture</h2>
+<h3 id="61-two-perspectives-on-the-same-system">6.1 Two perspectives on the same system</h3>
+<p>Every real system effectively has two architectures:</p>
+<table>
+<thead>
+<tr>
+<th>Perspective</th>
+<th>What it is</th>
+<th>Also called</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Prescriptive architecture</strong></td>
+<td>The architecture as <strong>intended</strong> by the designers</td>
+<td>as-designed, as-intended</td>
+</tr>
+<tr>
+<td><strong>Descriptive architecture</strong></td>
+<td>The architecture as actually <strong>realized</strong> in the code that runs</td>
+<td>as-implemented, as-realized</td>
+</tr>
+</tbody></table>
+<h3 id="62-why-they-diverge">6.2 Why they diverge</h3>
+<p>For simple / young systems the two may match. For large, long-lived systems (examples discussed in class: <strong>Linux</strong>, <strong>iRODS</strong>, <strong>HADOOP</strong>), the prescriptive and descriptive architectures can differ dramatically. The prescriptive diagram is clean and modular; the descriptive diagram reveals shortcuts, hacks, and dependencies that were never intended.</p>
+<hr>
+<h2 id="7-architectural-erosion">7. Architectural Erosion</h2>
+<h3 id="71-what-erosion-is">7.1 What erosion is</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Architectural</mtext><mtext> </mtext><mtext mathvariant="bold">erosion</mtext></mrow><mo>=</mo><mtext>when a system’s actual (descriptive) architecture drifts away from its intended (prescriptive) architecture</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Architectural erosion} = \text{when a system&#x27;s actual (descriptive) architecture drifts away from its intended (prescriptive) architecture}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Architectural erosion</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">when a system’s actual (descriptive) architecture drifts away from its intended (prescriptive) architecture</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>The ideal process is: <strong>when the system evolves, modify the prescriptive architecture first</strong>, then update the implementation to match. In practice, the <strong>system — and thus the descriptive architecture — is often modified directly</strong>, with no corresponding update to the prescriptive architecture. Over time the gap widens.</p>
+<h3 id="72-why-it-happens">7.2 Why it happens</h3>
+<p>Erosion is rarely caused by a single factor. Common contributors:</p>
+<ul>
+<li><strong>Developer sloppiness</strong> — taking a shortcut and not documenting it</li>
+<li><strong>Short deadlines</strong> — the prescriptive update gets skipped &quot;just this once&quot; (and then never)</li>
+<li><strong>Lack of (documented) prescriptive architecture</strong> — if the intended design was never written down, developers cannot violate it in any meaningful sense</li>
+<li><strong>Code optimizations</strong> — performance fixes that cut across module boundaries</li>
+<li><strong>Inadequate techniques or tool support</strong> — no automated way to check whether the code conforms to the design</li>
+</ul>
+<blockquote>
+<p>Architectural erosion is a maintenance problem as much as a design problem. Avoiding it requires deliberate effort: documenting the prescriptive architecture, keeping it current, and checking conformance.</p>
+</blockquote>
+<hr>
+<h2 id="8-architectural-styles--definition">8. Architectural Styles — Definition</h2>
+<h3 id="81-what-an-architectural-style-is">8.1 What an architectural style is</h3>
+<p>An <strong>architectural style</strong> is:</p>
+<ul>
+<li>A <strong>named collection of architectural design decisions</strong> that<ul>
+<li>are applicable in a given development context,</li>
+<li><strong>constrain</strong> architectural design decisions, and</li>
+<li>result in <strong>beneficial qualities</strong> in each resulting system.</li>
+</ul>
+</li>
+<li>Equivalently: a <strong>named, commonly used set of components / connectors / configurations</strong>, where <strong>each component/connector has its own job</strong>.</li>
+</ul>
+<h3 id="82-why-styles-are-useful">8.2 Why styles are useful</h3>
+<p>A style is essentially a proven recipe. When you adopt a style, you inherit its benefits (modularity, scalability, etc.) but also its constraints (you have to play by its rules). The remainder of Lecture 8 covers six widely-used styles, each with a motivating example and a list of benefits.</p>
+<hr>
+<h2 id="9-the-six-architectural-styles">9. The Six Architectural Styles</h2>
+<p>The course discusses six architectural styles. These are <strong>not an exhaustive list</strong> — many others exist — but they are the six you are responsible for knowing.</p>
+<h3 id="91-model-view-controller-mvc">9.1 Model-View-Controller (MVC)</h3>
+<p><strong>Example: ATM</strong></p>
+<p>Goals for an ATM include withdrawals, deposits, transfers, and balance checks, <em>and</em> a clear separation of concerns:</p>
+<ul>
+<li>The team wants to <strong>experiment with different UIs</strong></li>
+<li>The team wants to <strong>isolate business rules</strong>, since those change frequently</li>
+</ul>
+<p>The MVC structure separates the system into three parts:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+<th>ATM mapping</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Model</strong></td>
+<td>Holds the data and business rules</td>
+<td>Bank account, business rules</td>
+</tr>
+<tr>
+<td><strong>View</strong></td>
+<td>Presents information to the user</td>
+<td>ATM display</td>
+</tr>
+<tr>
+<td><strong>Controller</strong></td>
+<td>Handles user input and coordinates model/view</td>
+<td>Input handler</td>
+</tr>
+</tbody></table>
+<p><strong>Key benefits:</strong> <strong>Modularity</strong>, <strong>Anticipation of Change</strong> (you can swap views without touching the model, and change business rules without touching the UI).</p>
+<blockquote>
+<p><strong>MVC is particularly aimed at UI concerns.</strong> In practice, when people talk about &quot;the controller&quot; in MVC, they almost always mean <em>UI-driven</em> control (handling button clicks, form submissions, etc.). The reason the pattern exists is that mixing data, rendering, and UI logic in one place produces code that is very hard to change — changing a color, a metric, or a business rule becomes a cross-cutting edit. MVC separates those concerns precisely so each can change independently.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/mvc-atm.png" alt="MVC mapped onto an ATM: the ATM display (view), a rules component (controller), and the bank account (model) connected by arrows showing who talks to whom."></p>
+<hr>
+<h3 id="92-client-server">9.2 Client-Server</h3>
+<p><strong>Example: Online multi-player video game</strong></p>
+<p>Goals:</p>
+<ul>
+<li>Multi-player, online</li>
+<li>Control access to data and players</li>
+</ul>
+<p>Structure: <strong>one game server</strong> with <strong>many game clients</strong> (game client 1, game client 2, game client 3, …). Clients make requests; the server holds centralized state.</p>
+<p><strong>Key benefits:</strong></p>
+<ul>
+<li><strong>Sharing data and services</strong> over a wide range of clients</li>
+<li><strong>Centralized control</strong> over access, functionality, and data</li>
+</ul>
+<p><strong>Main drawback:</strong> the central server is a <strong>single point of load and failure</strong> — one server can easily be <strong>overwhelmed</strong> as the number of clients grows, and if it goes down, all clients lose service. Scaling client-server systems (replicating servers, load balancing, caching) is largely a response to this weakness.</p>
+<p><strong>Cloud computing has changed client-server.</strong> Most modern client-server applications run on servers in the cloud:</p>
+<table>
+<thead>
+<tr>
+<th>Before cloud</th>
+<th>With cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Software developers had to manage physical servers</td>
+<td>Servers managed by a third party (started by <strong>AWS</strong>)</td>
+</tr>
+<tr>
+<td>Single data center, hard to scale</td>
+<td>Cloud providers also provide application services</td>
+</tr>
+</tbody></table>
+<p>Benefits of cloud: <strong>scalability</strong>, <strong>more computing power</strong>, potentially <strong>cost-effective</strong>.
+Drawbacks: <strong>security/privacy</strong> concerns, and it <strong>may not be cost-effective</strong> at all scales.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/client-server-game.png" alt="Client-server for an online multiplayer game: three game clients each send requests to a single centralized game server."></p>
+<hr>
+<h3 id="93-layered">9.3 Layered</h3>
+<p><strong>Example: Restaurant</strong></p>
+<p>Goals:</p>
+<ul>
+<li>Prepare and serve food to customers</li>
+<li>Enforce a specific protocol of interaction</li>
+<li>Abstract away irrelevant details</li>
+<li>Minimize the effects of changes</li>
+<li><strong>Separate concerns</strong>: keep each part focused on a specific task</li>
+</ul>
+<p>Structure: the system is divided into <strong>layers</strong>, each layer communicating only with the layers immediately above and below it. A real-world example is <strong>Android</strong>, which is organized as a stack of layers (kernel, libraries, application framework, applications).</p>
+<p><strong>Key benefits:</strong> <strong>Modularity</strong>, <strong>Abstraction</strong>, <strong>Anticipation of Change</strong>, <strong>Reuse</strong>.</p>
+<blockquote>
+<p><strong>The lowest layer is generally the most reusable.</strong> The Android example makes this concrete: the <strong>Linux kernel</strong> sits at the bottom, and it is reused not just by Android but by most servers on the internet. The higher up you go, the more application-specific things become; the lower you go, the more general and reusable the layer is. This is why re-skinning an app (swapping the top UI layer) is cheap, but swapping the kernel is almost unthinkable.</p>
+</blockquote>
+<blockquote>
+<p>A restaurant works because the waiter doesn&#39;t cook, the cook doesn&#39;t take orders from customers, and the customer doesn&#39;t go into the kitchen. Each layer has a defined interface with the layers it contacts.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/layered-android.jpg" alt="Android as a layered architecture: Applications on top, then Application Framework, then Libraries and Android Runtime, with the Linux Kernel at the bottom."></p>
+<hr>
+<h3 id="94-peer-to-peer-p2p">9.4 Peer-to-Peer (P2P)</h3>
+<p><strong>Example: Skype</strong></p>
+<p>Goals:</p>
+<ul>
+<li>Online (multi-person) video chat and voice calls</li>
+<li>Share the same functionality between multiple people <strong>without slowing down video/audio streaming</strong></li>
+</ul>
+<p>Structure: peers (skype 1, skype 2, skype 3) talk <strong>directly to each other</strong> — there is no centralized server mediating every call. Every peer plays essentially the same role.</p>
+<p><strong>Key benefits:</strong> <strong>Efficient</strong> (no central bottleneck), <strong>Robust</strong> (no single point of failure — if one peer drops out, the rest of the system keeps going).</p>
+<p><strong>Other real-world examples:</strong> <strong>BitTorrent</strong>, <strong>Bitcoin</strong>, and in a broad sense <strong>the internet itself</strong> — all share the P2P property that no single node is essential.</p>
+<blockquote>
+<p><strong>In practice, &quot;pure&quot; P2P is rare.</strong> Most deployed P2P systems still have a small client-server component for things the peers can&#39;t do well on their own — e.g., Skype needs a central directory to look up which IP address corresponds to which username, and BitTorrent traditionally used trackers for the same reason. The <em>bulk traffic</em> (video, audio, files) goes peer-to-peer, but a thin coordination layer is usually centralized.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/p2p-skype.png" alt="Peer-to-peer topology for Skype: three peers (skype 1, skype 2, skype 3) communicating directly with each other — no central server mediates the calls."></p>
+<hr>
+<h3 id="95-pipe-and-filter">9.5 Pipe-and-Filter</h3>
+<p><strong>Example: Compiler</strong></p>
+<p>Goals:</p>
+<ul>
+<li>Translate a high-level programming language into a low-level one the computer can execute</li>
+<li>Separate different steps of translation so you can <strong>add / edit / remove / replace</strong> steps easily</li>
+</ul>
+<p>Structure: a <strong>filter</strong> is a component that reads an input stream and produces an output stream. A <strong>pipe</strong> is a connector that carries the stream from one filter to the next.</p>
+<p>For a compiler:</p>
+<div class="code-wrap"><pre><code>scanner --&gt; stream (tokens) --&gt; parser --&gt; stream (parse trees) --&gt; translator
+   ^filter        ^pipe         ^filter         ^pipe              ^filter</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The classic Unix-shell example:</p>
+<div class="code-wrap"><pre><code>ls -l | grep &quot;Aug&quot; | sort</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Each command is a filter; each <code>|</code> is a pipe. Output of one filter becomes input of the next.</p>
+<p><strong>Key benefits:</strong> <strong>Modularity</strong>, <strong>Reuse</strong>, <strong>Anticipation of Change</strong> (you can insert, remove, or rearrange filters without touching the others).</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pipe-filter-unix.png" alt="Pipe-and-filter for the Unix `ls -l | grep "Aug" | sort` pipeline: three filter components (print records, filter "Aug" records, sort) separated by stream connectors (pipes)."></p>
+<hr>
+<h3 id="96-publish-subscribe-pub-sub">9.6 Publish-Subscribe (&quot;Pub-Sub&quot;)</h3>
+<p><strong>Example: Stock market ticker</strong></p>
+<p>Goals:</p>
+<ul>
+<li>Filter through enormous amounts of info (stock prices) and <strong>only broadcast info that a subscriber is interested in</strong></li>
+</ul>
+<p>Structure: a <strong>subscription manager</strong> sits between the data source (the stock market) and the <strong>subscribers</strong> (trader 1, trader 2, trader 3). Subscribers register their interests; the manager routes only relevant events to each.</p>
+<p><strong>Key benefits:</strong> <strong>Efficiency</strong> (subscribers aren&#39;t flooded with data they don&#39;t want), <strong>Scalability</strong> (adding subscribers doesn&#39;t require changing publishers).</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pub-sub-stock.png" alt="Publish-subscribe for a stock-market ticker: the stock market publishes to a subscription manager (connector), which routes only relevant events to trader 1, trader 2, and trader 3."></p>
+<hr>
+<h2 id="10-mixing-styles">10. Mixing Styles</h2>
+<p>Real systems rarely fit neatly into a single style — mixing is often necessary. For example, a stock-market-ticker system can combine pub-sub (for pushing prices to traders) <em>with</em> a client-server substructure (a stock market server, a subscription manager, and a stock database shared among components), plus a purchasing-rules component wired in on the side.</p>
+<blockquote>
+<p>When you see a real architecture diagram, expect a <strong>combination</strong> of styles. &quot;This system uses pub-sub <em>and</em> client-server <em>and</em> layered&quot; is a normal, healthy description — not a sign of confused design.</p>
+</blockquote>
+<hr>
+<h2 id="11-evolution-and-architecture">11. Evolution and Architecture</h2>
+<h3 id="111-evolution-is-inevitable">11.1 Evolution is inevitable</h3>
+<blockquote>
+<p><strong>All successful software evolves.</strong> Evolution is an essential part of software development and must be accommodated / planned for as much as possible.</p>
+</blockquote>
+<p><strong>Architecture is a key tool in accommodating evolution.</strong> The prescriptive/descriptive framing from Section 6, the style choices from Section 9, and the fundamental principles below all exist largely to make future evolution cheaper.</p>
+<h3 id="112-the-web-as-the-canonical-evolution-example">11.2 The Web as the canonical evolution example</h3>
+<p>The World Wide Web is probably the clearest case of an architecture that enabled benefits its designers never foresaw. The earliest version (1991) was little more than <strong>plain text with hyperlinks</strong> (e.g. the original CERN page). By the late 1990s it supported e-commerce (early Amazon). Today it supports video streaming, social networks, real-time apps, and much more.</p>
+<blockquote>
+<p>None of these later uses were anticipated in the original design. But because the <em>bones</em> chosen in the REST reference architecture — URLs, HTTP, stateless requests, resource representations — were solid and general, the Web has been able to <strong>layer new capabilities on top</strong> of the same foundation for more than three decades without a redesign. This is architecture-enabled evolution working at its best.</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/web-cern-1991.png" alt="Screenshot of the first World Wide Web page (info.cern.ch, 1991) — plain text with blue hyperlinks. The same architectural bones now support video streaming, e-commerce, and real-time apps."></p>
+<h3 id="113-trend-from-monolithic-to-microservices">11.3 Trend: from monolithic to microservices</h3>
+<p>One concrete evolutionary trend in industry today: monolithic applications (everything in one large deployable unit) are increasingly being broken apart into <strong>microservices</strong> (many small, independently deployable services). Real systems that have made this transition include <strong>Netflix</strong>.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/monolithic-vs-microservices.png" alt="Monolithic vs. microservices: a single deployable unit with all features bundled together, versus many small independently deployable services communicating with each other."></p>
+<hr>
+<h2 id="12-connection-to-the-fundamental-principles">12. Connection to the Fundamental Principles</h2>
+<p>The same fundamental principles from Week 1 apply to software architecture:</p>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>How it shows up in architecture</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Rigor and formality</strong></td>
+<td>Precise diagrams, precise style definitions, precise component/connector vocabulary</td>
+</tr>
+<tr>
+<td><strong>Separation of concerns</strong> (modularity, divide and conquer, abstraction)</td>
+<td>Every style above is an instance of separating concerns — MVC separates data/UI/control, layered separates levels of abstraction, pub-sub separates publishers from subscribers</td>
+</tr>
+<tr>
+<td><strong>Anticipation of change</strong></td>
+<td>Choosing styles (MVC, layered, pipe-and-filter) that make change cheap; keeping prescriptive architecture updated</td>
+</tr>
+<tr>
+<td><strong>Generality</strong></td>
+<td>Styles themselves are general solutions applicable across many systems</td>
+</tr>
+<tr>
+<td><strong>Incrementality</strong></td>
+<td>Architecture enables adding features, filters, services, or subscribers incrementally</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Architecture is not a separate subject from these principles — it is one of the most visible places where they are applied.</p>
+</blockquote>
+<hr>
+<h2 id="13-quiz-4-study-guide">13. Quiz 4 Study Guide</h2>
+<p>You should know and understand:</p>
+<ul>
+<li><strong>What software architecture is</strong><ul>
+<li>The set of principal design decisions about the system</li>
+<li>The blueprint for construction and evolution</li>
+<li>Why architecture matters (intellectual control, conceptual integrity, communication, reusability, maintainability)</li>
+</ul>
+</li>
+<li><strong>Elements of software architecture</strong><ul>
+<li>Components, connectors, configurations</li>
+</ul>
+</li>
+<li><strong>Architectural erosion</strong><ul>
+<li>Prescriptive vs. descriptive architectures</li>
+<li>Why erosion happens</li>
+</ul>
+</li>
+<li><strong>The six architectural styles</strong><ul>
+<li>Model-View-Controller</li>
+<li>Client-Server</li>
+<li>Layered</li>
+<li>Peer-to-Peer</li>
+<li>Pipe-and-Filter</li>
+<li>Publish-Subscribe</li>
+<li>For each: know the motivating example, the structural pattern, and the key benefits</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="14-wrap-up-and-memory-framework">14. Wrap-Up and Memory Framework</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 4 knowledge structure
+|
++-- Why architecture
+|   +-- bridges requirements -&gt; code
+|   +-- gives: intellectual control, conceptual integrity,
+|   |          communication, reusability, maintainability
+|   +-- analogy to building architect (but software is malleable,
+|       invisible, a machine, and we know less about it)
+|
++-- Definition of software architecture
+|   +-- the set of PRINCIPAL design decisions about the system
+|   +-- covers: structure, behavior, interaction, non-functional properties
+|   +-- blueprint for CONSTRUCTION and EVOLUTION
+|   +-- other definitions: Clements/Bass/Kazman, Spinellis, Fowler, Natarén
+|
++-- Architecture in action
+|   +-- Email            -&gt; client-to-client
+|   +-- WWW / REST       -&gt; resources + URLs + HTTP + stateless
+|   |                       (no single file IS the architecture)
+|   +-- Facebook         -&gt; many functional + many non-functional reqs
+|   +-- Client-Server    -&gt; most common distributed architecture
+|
++-- Elements of architecture
+|   +-- components   (the parts that do work)
+|   +-- connectors   (how parts communicate)
+|   +-- configurations (how they are arranged)
+|
++-- Prescriptive vs. descriptive
+|   +-- prescriptive = as-designed / as-intended
+|   +-- descriptive  = as-implemented / as-realized
+|   +-- examples where they diverge: Linux, iRODS, Hadoop
+|
++-- Architectural erosion
+|   +-- descriptive drifts away from prescriptive over time
+|   +-- causes: sloppiness, deadlines, no docs,
+|               optimizations, weak tooling
+|
++-- Architectural style (definition)
+|   +-- named collection of design decisions
+|   +-- applicable in a given context
+|   +-- constrains further decisions
+|   +-- produces beneficial qualities
+|
++-- The 6 styles
+|   +-- MVC             (ATM)            -&gt; modularity, anticipation of change
+|   |                                       (specifically targets UI concerns)
+|   +-- Client-Server   (video game)     -&gt; sharing data/services, centralized control
+|   |                                       drawback: single server can be overwhelmed
+|   |                                       (cloud changed client-server)
+|   +-- Layered         (restaurant,     -&gt; modularity, abstraction,
+|   |                    Android)            anticipation of change, reuse
+|   |                                       (lowest layer = most reusable, e.g. Linux kernel)
+|   +-- Peer-to-Peer    (Skype,          -&gt; efficient, robust
+|   |                    BitTorrent,        (pure P2P is rare; usually has
+|   |                    Bitcoin)            a small client-server layer for
+|   |                                        user/peer discovery)
+|   +-- Pipe-and-Filter (compiler,       -&gt; modularity, reuse,
+|   |                    ls | grep | sort)   anticipation of change
+|   +-- Publish-Subscribe (stock ticker) -&gt; efficiency, scalability
+|
++-- Mixing styles
+|   +-- real systems usually combine multiple styles
+|
++-- Evolution
+|   +-- all successful software evolves
+|   +-- architecture is the key tool for managing evolution
+|   +-- canonical example: the Web
+|   |   (CERN 1991 plain text -&gt; Amazon 1997 -&gt; modern social/video)
+|   |   -&gt; REST bones stayed, features layered on top for 30+ years
+|   +-- trend: monolithic -&gt; microservices (Netflix)
+|
++-- Fundamental principles (still the same 5)
+    +-- rigor and formality
+    +-- separation of concerns (modularity, divide &amp; conquer, abstraction)
+    +-- anticipation of change
+    +-- generality
+    +-- incrementality</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="77"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 77 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="one-sentence-summary">One-sentence summary</h3>
+<blockquote>
+<p>Software architecture is the set of principal design decisions — components, connectors, and configurations — that sits between requirements and code, exists as both a prescriptive (intended) and a descriptive (realized) view that tend to drift apart over time (erosion), and is expressed through named, reusable styles (MVC, client-server, layered, peer-to-peer, pipe-and-filter, publish-subscribe) whose whole purpose is to apply the fundamental SE principles — especially separation of concerns and anticipation of change — so that the system can evolve gracefully.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-03/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 3</span><span class="pager-title" data-astro-cid-gxyjxt6l>Use Cases and Software Engineering Ethics</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-05/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 5 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Software Design and UML</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-03/en-US/" title="Previous: Use Cases and Software Engineering Ethics ([)" aria-label="Previous: Week 3" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 3</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 4</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-05/en-US/" title="Next: Software Design and UML (])" aria-label="Next: Week 5" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 5</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

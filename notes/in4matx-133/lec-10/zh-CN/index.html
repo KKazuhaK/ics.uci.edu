@@ -1,0 +1,717 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 Angular 中的组件 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="大型客户端的框架、安装 Angular、模型-视图-控制器（MVC）及 Angular 的实现方式、组件与根组件、插值/属性/事件/双向绑定、@if 与 @for，以及用输入和输出嵌套组件。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413985" data-source-url="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-10/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 10 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-10/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 10 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 10 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 29 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-10angular-中的组件">IN4MATX 133: User Interface Software — Lecture 10：Angular 中的组件</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E5%B0%8F%E5%9E%8B%E4%B8%8E%E5%A4%A7%E5%9E%8B%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%95%8C%E9%9D%A2%E4%BB%A5%E5%8F%8A%E6%A1%86%E6%9E%B6">1. 小型与大型客户端界面，以及框架</a></li>
+<li><a href="#2-angular-%E4%B8%8E%E5%AE%89%E8%A3%85">2. Angular 与安装</a></li>
+<li><a href="#3-model-view-controller%E6%A8%A1%E5%9E%8B-%E8%A7%86%E5%9B%BE-%E6%8E%A7%E5%88%B6%E5%99%A8">3. Model-View-Controller（模型-视图-控制器）</a></li>
+<li><a href="#4-angular-%E4%B8%AD%E7%9A%84-mvc%E7%BB%91%E5%AE%9A">4. Angular 中的 MVC：绑定</a></li>
+<li><a href="#5-angular-%E7%BB%84%E4%BB%B6">5. Angular 组件</a></li>
+<li><a href="#6-%E6%A0%B9%E6%A8%A1%E6%9D%BF%E4%B8%8E%E6%A0%B9%E7%BB%84%E4%BB%B6">6. 根模板与根组件</a></li>
+<li><a href="#7-%E5%8D%95%E5%90%91%E7%BB%91%E5%AE%9A%E6%8F%92%E5%80%BC%E5%B1%9E%E6%80%A7%E4%BA%8B%E4%BB%B6">7. 单向绑定：插值、属性、事件</a></li>
+<li><a href="#8-%E4%BD%BF%E7%94%A8-ngmodel-%E7%9A%84%E5%8F%8C%E5%90%91%E7%BB%91%E5%AE%9A">8. 使用 ngModel 的双向绑定</a></li>
+<li><a href="#9-%E6%8E%A7%E5%88%B6%E6%B5%81if-%E4%B8%8E-for">9. 控制流：@if 与 @for</a></li>
+<li><a href="#10-%E4%BD%BF%E7%94%A8%E7%BB%84%E4%BB%B6%E5%B5%8C%E5%A5%97%E8%BE%93%E5%85%A5%E4%B8%8E%E8%BE%93%E5%87%BA">10. 使用组件：嵌套、输入与输出</a></li>
+<li><a href="#11-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">11. 课堂问题与演示（附解答）</a></li>
+<li><a href="#12-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">12. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周四 10/29（第 5 周）<br>内容整理自 Lecture 10 的幻灯片和 demo 仓库文件夹 <code>W5_L2_Oct29_AngularComponents</code>（一个 Angular 项目，<code>w5l2-example</code>）。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：周五的讨论会更深入地讲解 Angular——如何启动一个 Angular 项目，以及另一个编码演示。（幻灯片上写的是“Friday (2/6)”，这是早先开课遗留的日期，实际指周五 10/30。）<br>请在 Canvas 上于 <strong>周一 11/2</strong> 之前声明你的 A3 搭档。</p>
+</blockquote>
+<p>本讲目标：解释 Model-View-Controller（模型-视图-控制器）架构以及 Angular 如何实现它，描述 Angular 组件的作用，并实现一个遵循 MVC 的 Angular 组件。</p>
+<blockquote>
+<p>💡 <strong>关键点</strong>：Angular 无法在这些笔记的演示框中运行（演示框运行的是普通的 HTML/CSS/JS，而 Angular 需要它自己的编译器）。因此下面的演示用<strong>纯 JavaScript 手动重写</strong>了每个 Angular 示例，并加以标注。这恰好能让人看清 Angular 替你做了什么：演示中每一行手动接线，都是某个绑定所替代的内容。Angular 代码本身以代码块的形式展示，文中引用的输出来自使用 Angular 22 构建仓库中的组件。</p>
+</blockquote>
+<hr>
+<h2 id="1-小型与大型客户端界面以及框架">1. 小型与大型客户端界面，以及框架</h2>
+<p>幻灯片对比了两类前端：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>“小型”客户端（幻灯片 4：你的 A2 Runkeeper 报告）</th>
+<th>“大型”客户端（幻灯片 5：Instagram）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面</td>
+<td>3 个</td>
+<td>数百个，页面之间有多种导航方式</td>
+</tr>
+<tr>
+<td>页面间的交互</td>
+<td>无</td>
+<td>很多</td>
+</tr>
+<tr>
+<td>数据 / UI</td>
+<td>数据是动态的，UI 相对静态</td>
+<td>重复出现的 UI 组件（状态更新）；每个人看到的内容和链接都不同</td>
+</tr>
+<tr>
+<td>计算</td>
+<td>每个页面背后有大量计算，但每个页面都是独立的</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/small-client-a2.png" alt="幻灯片 4：“小型”客户端——A2 的 Runkeeper 报告页面（“One week of #RunKeeper Tweets”、About the data）"></p>
+<p><em>大型客户端应用该如何开发？</em>（幻灯片 6）借助<strong>框架</strong>，框架可以：</p>
+<ul>
+<li>添加结构与组织，</li>
+<li>使 UI 组件可复用，</li>
+<li>支持模块化，</li>
+<li>在需要时导入包、UI 等。</li>
+</ul>
+<p>Angular、React、Vue.js（以及“把你最喜欢的其他框架放在这里”）都支持相同的总体目标，并且在工作方式上有很多共通之处。本课程使用 Angular。</p>
+<h2 id="2-angular-与安装">2. Angular 与安装</h2>
+<p>Angular（幻灯片 9）：</p>
+<ul>
+<li>2009 年首次发布，</li>
+<li>使用 <strong>TypeScript、HTML 和 CSS</strong>（<a href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/">Lecture 7</a> 讲过 TypeScript），</li>
+<li>不规定服务端使用哪种框架，</li>
+<li>每年发布一个大版本（demo 仓库的项目使用 Angular CLI 22.2.3）。</li>
+</ul>
+<p>安装与运行（幻灯片 10）：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> @angular/cli</span><span style="color:#6A9955">   # the Angular command-line tool, installed globally</span></span>
+<span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> new</span><span style="color:#CE9178"> example</span><span style="color:#6A9955">                # create a new app named "example"</span></span>
+<span class="line"><span style="color:#DCDCAA">cd</span><span style="color:#CE9178"> example</span></span>
+<span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> serve</span><span style="color:#6A9955">                      # run it; add --open to open the browser too</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>应用默认运行在 <strong>localhost:4200</strong> 上，并且在你修改源文件时会自动重新加载。<code>-g</code> 很重要：与 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/">Lecture 6</a> 中一样，全局安装才能让 <code>ng</code> 命令在命令行中可用。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/ng-new-default-app.png" alt="幻灯片 10：ng new 生成的应用运行在 localhost:4200——带 Angular 标志的 “Hello, test” 和文档链接"></p>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/README.md">w5l2-example/README.md</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/package.json">package.json</a></p>
+</blockquote>
+<h2 id="3-model-view-controller模型-视图-控制器">3. Model-View-Controller（模型-视图-控制器）</h2>
+<p><strong>MVC</strong> 是一种组织界面背后代码的方法。它把应用拆分为三种角色：</p>
+<ul>
+<li><strong>模型（Model）</strong> — 应用背后的数据。<ul>
+<li>数据变化时通知视图。</li>
+<li>允许视图查询其数据。</li>
+<li>允许控制器操作其数据。</li>
+</ul>
+</li>
+<li><strong>视图（View）</strong> — 应用的可视界面。<ul>
+<li>渲染模型的内容，并规定模型的数据应当如何呈现。</li>
+<li>模型变化时，视图必须更新其呈现，方式可以是<strong>推送（push）</strong>（视图等待变化通知——例如实时更新的信息流），也可以是<strong>拉取（pull）</strong>（视图在需要新数据时主动请求——例如下拉刷新）。</li>
+<li>把输入转发给控制器。</li>
+</ul>
+</li>
+<li><strong>控制器（Controller）</strong> — 与应用的交互。<ul>
+<li>解释用户输入，并将其映射为动作。</li>
+<li>告诉模型要执行哪些动作。</li>
+<li><em>间接地</em>（通过模型）告诉视图页面是否应当以不同方式渲染。</li>
+</ul>
+</li>
+</ul>
+<p>幻灯片中的图是一个循环：</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-diagram.png" alt="幻灯片 12–15：MVC 循环——用户使用控制器，控制器操作模型，模型更新视图，用户看到视图"></p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：控制器自己从不绘制任何东西。它改变模型，而模型的变化才会更新视图。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Wikipedia: Model–view–controller</a></p>
+</blockquote>
+<h2 id="4-angular-中的-mvc绑定">4. Angular 中的 MVC：绑定</h2>
+<p>Angular 如何把 MVC 映射到文件上（幻灯片 16）：</p>
+<table>
+<thead>
+<tr>
+<th>MVC 角色</th>
+<th>在 Angular 中</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>视图</td>
+<td>HTML 和 CSS</td>
+</tr>
+<tr>
+<td>模型与控制器</td>
+<td>TypeScript</td>
+</tr>
+<tr>
+<td>三者之间的粘合剂</td>
+<td>Angular 本身</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-in-angular.png" alt="幻灯片 16–17：Angular 中的 MVC——视图（HTML、CSS）和模型通过双向数据绑定与 Angular 相连；控制器（JavaScript、服务）与服务器通信；用户与视图交互"></p>
+<p>关键术语是<strong>绑定（binding）</strong>（幻灯片 17）：</p>
+<ul>
+<li>视图中的变量可以<strong>绑定</strong>到模型或控制器中的变量和函数。</li>
+<li>模型中的变量变化时，视图中每一处引用它的地方都会随之变化——Angular 使用的是 <strong>“推送”</strong> 模型。</li>
+<li>视图接收到用户输入时，会把它传递给绑定到该输入的控制器函数。</li>
+</ul>
+<p>第 7–8 节展示了四种绑定；<a href="#74-%E6%BC%94%E7%A4%BA%E5%BA%94%E7%94%A8%E4%B8%AD%E7%9A%84%E5%8D%95%E5%90%91%E7%BB%91%E5%AE%9A">7.4</a> 中的演示用手动方式把它们接线。</p>
+<h2 id="5-angular-组件">5. Angular 组件</h2>
+<p><strong>组件（component）</strong> 是一个界面元素——通常比“一个按钮”大，但比“一个页面”小，并且通常会在界面中重复出现。每个组件都定义了该元素的模型、视图和控制器。</p>
+<p>组件术语（幻灯片 20）：</p>
+<ul>
+<li><strong>模板（template）</strong> — 表示视图的 HTML 文件，</li>
+<li><strong>样式（style）</strong> — 说明组件如何设置样式的 CSS 文件，</li>
+<li><strong>选择器（selector）</strong> — Angular 用来查找该组件出现在每一处的 CSS 选择器（例如每一个 <code>&lt;app-week&gt;</code> 标签）。</li>
+</ul>
+<p>用下面的命令创建一个新组件：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> generate</span><span style="color:#CE9178"> component</span><span style="color:#CE9178"> hello</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这会创建一个包含四个文件的文件夹：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hello.css</code></td>
+<td>视图</td>
+</tr>
+<tr>
+<td><code>hello.html</code></td>
+<td>视图</td>
+</tr>
+<tr>
+<td><code>hello.spec.ts</code></td>
+<td>自动化测试（我们基本会忽略它）</td>
+</tr>
+<tr>
+<td><code>hello.ts</code></td>
+<td>模型与控制器</td>
+</tr>
+</tbody></table>
+<p>每个应用至少有一个组件，即<strong>根（root）组件</strong>——默认是 <code>app.html</code> / <code>app.css</code> / <code>app.ts</code> / <code>app.spec.ts</code>。它本质上就是应用的“主”页面。仓库展示了它如何被放到页面上：<code>index.html</code> 只包含 <code>&lt;app-root&gt;&lt;/app-root&gt;</code>，而 <code>main.ts</code> 使用根类启动应用：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// src/main.ts (from the repo)</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">bootstrapApplication</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/platform-browser'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">appConfig</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './app/app.config'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">App</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './app/app'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">bootstrapApplication</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">App</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">appConfig</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">catch</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">error</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>构造函数与 <code>ngOnInit()</code>（额外幻灯片 54，课上未讲）。</strong> 大多数组件既有构造函数，也有初始化函数；把初始化代码放在 <code>ngOnInit()</code> 中，它会稍后运行：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-hello'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './hello.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./hello.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> HelloComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() { }</span></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片的标题把它叫作 <code>onInit()</code>，但接口是 <code>OnInit</code>，方法必须命名为 <code>ngOnInit</code>。“稍后”为什么重要：给每个组件加上 <code>&lt;app-hello name=&quot;Kazuha&quot;&gt;</code>，且其中带有 <code>@Input() name = &quot;&quot;</code>，并在两处打印 <code>name</code>，会得到 <code>constructor: name = &#39;&#39;</code>，然后是 <code>ngOnInit: name = &#39;Kazuha&#39;</code>——构造函数运行时，输入尚未被设置。（幻灯片中的 <code>hello.component.*</code> 文件名是较早的 CLI 命名；当前 CLI 生成的是 <code>hello.html</code>、<code>hello.ts</code>。）</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://stackoverflow.com/questions/35763730/difference-between-constructor-and-ngoninit">Stack Overflow: Difference between constructor and ngOnInit</a></p>
+</blockquote>
+<h2 id="6-根模板与根组件">6. 根模板与根组件</h2>
+<p>幻灯片 23（“Hello Angular”）展示了正在运行的演示应用：番茄猫图片、<strong>&quot;Hello, INF 133&quot;</strong>、“Congratulations! Your app is running. 🎉”，右侧是三个链接胶囊（INF 133 Canvas、INF 133 Slack、Angular tutorials），以及 GitHub / X / YouTube 图标。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/hello-angular.png" alt="幻灯片 23：运行中的演示应用——番茄猫、“Hello, INF 133”、“Congratulations! Your app is running.”，以及 Canvas / Slack / Angular tutorials 链接"></p>
+<h3 id="61-根模板apphtml">6.1 根模板：app.html</h3>
+<p>根模板看起来与任何其他 HTML 页面一样；唯一的区别是它可以使用<strong>数据绑定</strong>：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“left-side”</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomatoCat.png"</span><span style="color:#9CDCFE"> alt</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomato cat"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"200px"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Hello, {{title}}!</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Congratulations! Your app is running. 🎉</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>{{title}}</code> 把这段文字绑定到变量 <code>title</code>。（幻灯片的排版错误：<code>class=“left-side”</code> 使用了弯引号——应写成 <code>class=&quot;left-side&quot;</code>。）</p>
+<h3 id="62-根组件appts">6.2 根组件：app.ts</h3>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;    </span><span style="color:#6A9955">// import Angular's component library</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({                                  </span><span style="color:#6A9955">// designates the class as a component</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,                       </span><span style="color:#6A9955">// replace all occurrences of &#x3C;app-root> with this</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span><span style="color:#D4D4D4">,                  </span><span style="color:#6A9955">// designate the template</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.css'</span><span style="color:#D4D4D4">]                    </span><span style="color:#6A9955">// designate the style(s)</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {                            </span><span style="color:#6A9955">// all code for the component</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'example'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 27 画出了箭头：<code>app.html</code> 中的 <code>{{title}}</code> ↔ <code>app.ts</code> 中的 <code>title = &#39;example&#39;</code>，因此页面显示 “Hello, example!”。</p>
+<p>仓库中的 <code>app.ts</code>（生成 “Hello, INF 133” 的版本）有两处不同，值得留意：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">FormsModule</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">RouterOutlet</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Week</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Dice</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"INF 133"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>styleUrl</code>（一个文件，字符串）对比幻灯片中的 <code>styleUrls</code>（数组）——两者都可以接受。</li>
+<li><code>imports: [...]</code> 列出了模板中用到的、不是纯 HTML 的内容：用于 <code>ngModel</code> 的 <code>FormsModule</code>（第 8 节），以及子组件 <code>Week</code> 和 <code>Dice</code>（第 10 节）。</li>
+</ul>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/app.html">app.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/app.ts">app.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/main.ts">main.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/index.html">index.html</a></p>
+</blockquote>
+<h2 id="7-单向绑定插值属性事件">7. 单向绑定：插值、属性、事件</h2>
+<p>共有四种绑定（幻灯片 28）：</p>
+<table>
+<thead>
+<tr>
+<th>绑定</th>
+<th>语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>插值</td>
+<td><code>{{ }}</code></td>
+</tr>
+<tr>
+<td>属性</td>
+<td><code>[ ]</code></td>
+</tr>
+<tr>
+<td>事件</td>
+<td><code>( )</code></td>
+</tr>
+<tr>
+<td>双向</td>
+<td><code>[( )]</code></td>
+</tr>
+</tbody></table>
+<h3 id="71-插值绑定">7.1 插值绑定 {{ }}</h3>
+<p>插值把计算得到的字符串“编织”进 HTML 元素标签之间的文本以及属性赋值之中。它还会计算表达式：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  Hello, {{title}}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!-- "The sum of 1 + 1 is 2" --></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">The sum of 1 + 1 is {{1 + 1}}</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="72-属性绑定">7.2 属性绑定 [ ]</h3>
+<p>把元素属性设置为组件属性的值。属性名外的方括号表示：引号中的值是一个 TypeScript 表达式，而不是字符串：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“tomatoCatUrl</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在 <code>app.ts</code> 中设置 <code>tomatoCatUrl = &quot;tomatoCat.png&quot;</code> 后，这会显示番茄猫（幻灯片 30）。如果没有方括号，<code>src=&quot;tomatoCatUrl&quot;</code> 会请求一个名字就叫 <code>tomatoCatUrl</code> 的文件。（幻灯片的排版错误：开头的 <code>“</code> 是弯引号。）</p>
+<h3 id="73-事件绑定">7.3 事件绑定 ( )</h3>
+<p>监听按键、鼠标移动、点击和触摸等事件。事件名外的圆括号表示：事件触发时运行引号中的语句：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--When clicked, will run the onSave() function in</span></span>
+<span class="line"><span style="color:#6A9955">component.ts file--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“onSave()</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Save</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>事件名就是 DOM 的事件名（<code>click</code>、<code>input</code>……即你在 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/">Lecture 6</a> 中传给 <code>addEventListener</code> 的那些），而语句中包含调用括号 <code>onSave()</code>。</p>
+<h3 id="74-演示应用中的单向绑定">7.4 演示应用中的单向绑定</h3>
+<p>插值、属性和事件绑定都是<strong>单向的</strong>（只读）：</p>
+<table>
+<thead>
+<tr>
+<th>数据方向</th>
+<th>语法（幻灯片 32 的表格）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单向，数据源（<code>.ts</code>）→ 视图目标（<code>.html</code>）</td>
+<td><code>{{expression}}</code>、<code>[target]=&quot;expression&quot;</code>、<code>bind-target=&quot;expression&quot;</code></td>
+</tr>
+<tr>
+<td>单向，视图目标（<code>.html</code>）→ 数据源（<code>.ts</code>）</td>
+<td><code>(target)=&quot;statement&quot;</code>、<code>on-target=&quot;statement&quot;</code></td>
+</tr>
+<tr>
+<td>双向</td>
+<td><code>[(target)]=&quot;expression&quot;</code>、<code>bindon-target=&quot;expression&quot;</code></td>
+</tr>
+</tbody></table>
+<p>幻灯片 33 把演示应用中的三种单向绑定连接在一起：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!-- app.html --></span></span>
+<span class="line"><span style="color:#D4D4D4">{{title}}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomatoCatUrl"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"clickExample()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me and read the console!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// app.ts</span></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'INF 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  tomatoCatUrl</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"tomatoCat.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">  clickExample</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"clicked button!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>{{title}}</code> → <code>title</code>，<code>[src]</code> → <code>tomatoCatUrl</code>，<code>(click)</code> → <code>clickExample()</code>。点击按钮会记录 <code>clicked button!</code>。（幻灯片的代码全程使用弯引号；上面的代码是仓库中的版本。）</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/one-way-binding-arrows.png" alt="幻灯片 33：箭头把 app.html 中的 {{title}}、[src]="tomatoCatUrl"、(click)="clickExample()" 分别连到 app.ts 中的 title、tomatoCatUrl、clickExample()"></p>
+<p>下面试一下：同一个页面，模型 / 视图 / 控制器的接线全部手写出来。可以逐步查看，或编辑后点击 Run：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;幻灯片 29–38 · app.html 的四种绑定，用纯 JavaScript 手动接线（Angular 会替你完成这些接线）&quot;, &quot;html&quot;: &quot;&lt;p&gt;&lt;b&gt;Property binding:&lt;/b&gt;&lt;/p&gt;\n&lt;img id=\&quot;cat\&quot; alt=\&quot;tomato cat\&quot; width=\&quot;120\&quot;&gt;\n&lt;h1 id=\&quot;hello\&quot;&gt;&lt;/h1&gt;\n&lt;p&gt;&lt;b&gt;Interpolation with math:&lt;/b&gt; &lt;span id=\&quot;sum\&quot;&gt;&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;b&gt;Event binding:&lt;/b&gt; &lt;button id=\&quot;btn\&quot;&gt;Click me and read the console...&lt;/button&gt;&lt;/p&gt;\n&lt;p&gt;&lt;b&gt;Two-way binding:&lt;/b&gt; &lt;input id=\&quot;box\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } h1 { margin: 4px 0; }&quot;, &quot;js&quot;: &quot;// MODEL: the data (the fields of class App in app.ts)\nconst model = { title: \&quot;INF 133\&quot;, tomatoCatUrl: \&quot;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W5_L2_Oct29_AngularComponents/w5l2-example/public/tomatoCat.png\&quot;, enteredText: \&quot;placeholder\&quot; };\n\n// VIEW: render the model (what {{ }} and [ ] do)\nfunction render() {\n  document.getElementById(\&quot;hello\&quot;).textContent = \&quot;Hello, \&quot; + model.title;   // {{title}}\n  document.getElementById(\&quot;sum\&quot;).textContent = \&quot;The sum of 1 + 1 is \&quot; + (1 + 1); // {{1 + 1}}\n  document.getElementById(\&quot;cat\&quot;).src = model.tomatoCatUrl;                    // [src]=\&quot;tomatoCatUrl\&quot;\n  document.getElementById(\&quot;box\&quot;).value = model.enteredText;                   // [(ngModel)] model -&gt; view\n}\n\n// CONTROLLER: map user input to actions (what ( ) does)\nfunction clickExample() { console.log(\&quot;clicked button!\&quot;); }\nfunction textChanged() { console.log(\&quot;you wrote: \&quot; + model.enteredText); }\ndocument.getElementById(\&quot;btn\&quot;).addEventListener(\&quot;click\&quot;, clickExample);     // (click)=\&quot;clickExample()\&quot;\ndocument.getElementById(\&quot;box\&quot;).addEventListener(\&quot;input\&quot;, (e) =&gt; {\n  model.enteredText = e.target.value;                                         // [(ngModel)] view -&gt; model\n  textChanged();                                                              // (input)=\&quot;textChanged()\&quot;\n});\n\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;事件绑定：点击会运行控制器函数（视图 → .ts）。&quot;, &quot;js&quot;: &quot;document.getElementById(\&quot;btn\&quot;).click();&quot;}, {&quot;note&quot;: &quot;双向绑定，视图 → 模型：输入会更新 enteredText，然后 (input) 将其记录下来。&quot;, &quot;js&quot;: &quot;const box = document.getElementById(\&quot;box\&quot;);\nbox.value = \&quot;abc\&quot;;\nbox.dispatchEvent(new Event(\&quot;input\&quot;));&quot;}, {&quot;note&quot;: &quot;模型 → 视图（“推送”）：修改模型，视图中每一处绑定都会随之更新。&quot;, &quot;js&quot;: &quot;model.title = \&quot;IN4MATX 133\&quot;;\nmodel.enteredText = \&quot;set from the model\&quot;;\nrender();\nconsole.log(\&quot;title is now \&quot; + model.title);&quot;}], &quot;height&quot;: 330, &quot;interactive&quot;: true}</code></pre><p>控制台会显示 <code>clicked button!</code>，然后是 <code>you wrote: abc</code>，最后是 <code>title is now IN4MATX 133</code>，同时标题变为 “Hello, IN4MATX 133”。在 Angular 中，最后那个 <code>render()</code> 调用并不存在：修改 <code>this.title</code> 就足够了。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：方括号决定方向。<code>[x]</code> 从 <code>.ts</code> <strong>读取</strong>到页面中；<code>(x)</code> 把事件<strong>发送</strong>给 <code>.ts</code>。因此 <code>(href)=&quot;url&quot;</code> 是一个监听名为 “href” 事件的事件监听器——它永远不会设置链接。这正是 <a href="#111-%E9%97%AE%E9%A2%98-1%E5%93%AA%E4%B8%80%E9%A1%B9%E5%8F%AF%E4%BB%A5%E6%8A%8A%E9%93%BE%E6%8E%A5%E7%9A%84-href-%E7%BB%91%E5%AE%9A%E5%88%B0-url%E5%B9%BB%E7%81%AF%E7%89%87-3436">问题 1</a> 中的陷阱。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#111-%E9%97%AE%E9%A2%98-1%E5%93%AA%E4%B8%80%E9%A1%B9%E5%8F%AF%E4%BB%A5%E6%8A%8A%E9%93%BE%E6%8E%A5%E7%9A%84-href-%E7%BB%91%E5%AE%9A%E5%88%B0-url%E5%B9%BB%E7%81%AF%E7%89%87-3436">问题 1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://angular.dev/guide/templates">Angular: Templates</a> · <a href="https://angular.dev/guide/templates/binding">Angular: Binding</a> · <a href="https://angular.dev/guide/templates/event-listeners">Angular: Event listeners</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event">MDN: click event</a></p>
+</blockquote>
+<h2 id="8-使用-ngmodel-的双向绑定">8. 使用 ngModel 的双向绑定</h2>
+<p>“你通常既想显示一个数据属性，又想在用户做出修改时更新该属性。”最常见的用途是绑定到用户输入。<strong><code>ngModel</code> 指令</strong>启用输入框的双向绑定，写法是带有“盒中香蕉”（banana in a box）括号的 <code>[( )]</code>：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--enteredText variable contains inputted text--></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--textChanged() is called after every keystroke--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> [(ngModel)]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"enteredText"</span><span style="color:#9CDCFE"> (input)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“textChanged()</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在仓库的 <code>app.ts</code> 中：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">enteredText</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"placeholder"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">textChanged</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"you wrote: "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">enteredText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输入框一开始显示 <code>placeholder</code>（模型 → 视图）；输入会替换 <code>enteredText</code>（视图 → 模型），然后 <code>(input)</code> 事件绑定会把它记录下来——在清空的输入框中输入 <code>abc</code>，会记录 <code>you wrote: abc</code>。要使用 <code>ngModel</code>，组件的 <code>imports</code> 中必须有 <code>FormsModule</code>（仓库的 <code>app.ts</code> 中有：<code>import {FormsModule} from &#39;@angular/forms&#39;;</code>）。</p>
+<p>幻灯片 38 汇集了所有绑定：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--enteredText variable contains inputted text--></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--textChanged() is called after every keystroke--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> [(ngModel)]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"enteredText"</span><span style="color:#9CDCFE"> (input)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“textChanged()</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--When clicked, will run the onSave() function in app.ts file--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“clickExample()</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me and read the console…</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h3</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--will display the title--></span></span>
+<span class="line"><span style="color:#D4D4D4">  {{title}}</span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--will display the image at tomatoCatUrl—></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;img [src]="tomatoCatUrl"></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;/h3></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片 38 最后一条注释以破折号 <code>—&gt;</code> 结尾，而不是 <code>--&gt;</code>，因此注释永远不会闭合。Angular 会拒绝编译该模板（“Unexpected character &quot;EOF&quot;”）；在普通 HTML 页面中，它会悄悄隐藏直到下一个 <code>--&gt;</code> 之前的所有内容。另外：注释写的是 <code>onSave()</code>，但按钮调用的是 <code>clickExample()</code>，并且有两个属性使用了弯引号。</p>
+</blockquote>
+<p>第 <a href="#74-%E6%BC%94%E7%A4%BA%E5%BA%94%E7%94%A8%E4%B8%AD%E7%9A%84%E5%8D%95%E5%90%91%E7%BB%91%E5%AE%9A">7.4 节的演示</a> 中的双向步骤展示了两个方向。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://angular.dev/guide/templates/two-way-binding">Angular: Two-way binding</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event">MDN: change event</a></p>
+</blockquote>
+<h2 id="9-控制流if-与-for">9. 控制流：@if 与 @for</h2>
+<p>模板可以用 <code>@if</code> 和 <code>@for</code> 决定<em>是否</em>渲染某物，以及<em>渲染多少次</em>——条件使用圆括号，被包含的内容使用花括号。它们在 2024 年取代了 <code>*ngIf</code> 和 <code>*ngFor</code>——网上较旧的示例仍在使用旧语法。</p>
+<h3 id="91-if">9.1 @if</h3>
+<p>仅当条件为真时才渲染标签：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(isHalloween()) {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    It’s Halloween!!!</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">} @else {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Just another regular ole day…</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>条件调用了仓库 <code>app.ts</code> 中的控制器函数（月份从 0 开始计数，因此 9 表示十月）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">isHalloween</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">  const</span><span style="color:#4FC1FF"> today</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Date</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getMonth</span><span style="color:#D4D4D4">() == </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getDate</span><span style="color:#D4D4D4">() == </span><span style="color:#B5CEA8">31</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> true</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在上课当天（10/29），页面显示 “Just another regular ole day...”（幻灯片 40 的截图）。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/if-example.png" alt="幻灯片 40：@if / @else 模板及其输出 “Just another regular ole day...”"></p>
+<h3 id="92-for">9.2 @for</h3>
+<p>为数组中的每个元素重复渲染一次：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// In app.ts</span></span>
+<span class="line"><span style="color:#9CDCFE">days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  @for(day of days; track day) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      {{day}}</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>track</code> 用于性能优化：它应当是每个项目的唯一属性，这样当数组变化时，Angular 才能区分各个项目。</li>
+<li>你可以选择用 <code>let i = $index</code> 获取索引：</li>
+</ul>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  @for(day of days; track day; let i = $index) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      {{i+1}}: {{day}}</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>第一个渲染 Sunday … Saturday；第二个渲染 “1: Sunday” … “7: Saturday”。它就是 Python 中 <code>for i, day in enumerate(days)</code> 的模板版本。仓库的 <code>app.html</code> 还循环遍历一个内联的对象数组，并使用 <code>track item.title</code> 来生成页面右侧的三个链接胶囊。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/for-example.png" alt="幻灯片 41：两个 @for 模板及其输出——Sunday … Saturday，以及 1: Sunday … 7: Saturday"></p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://angular.love/diving-into-the-new-angular-control-flow-internals">angular.love: Diving into the new Angular control flow</a> · <a href="https://angular.dev/api/core/@if">Angular: @if</a> · <a href="https://angular.dev/api/core/@for">Angular: @for</a></p>
+</blockquote>
+<h2 id="10-使用组件嵌套输入与输出">10. 使用组件：嵌套、输入与输出</h2>
+<h3 id="101-嵌套组件">10.1 嵌套组件</h3>
+<p>组件可以包含其他组件：把子组件的<strong>选择器</strong>（在其 <code>.ts</code> 中定义）放入父组件的模板中。在 <code>app.html</code> 中：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“exampleTitle”</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Component nesting example:</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-week</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-week</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片的错误：<code>&lt;p&gt;</code> 却用 <code>&lt;/h1&gt;</code> 关闭，且 class 使用了弯引号——仓库中是 <code>&lt;p class=&quot;exampleTitle&quot;&gt;Component nesting example:&lt;/p&gt;</code>。）父组件还必须在其 <code>imports</code> 中列出子组件的类（仓库的 <code>app.ts</code> 中为 <code>imports: [FormsModule, RouterOutlet, Week, Dice]</code>）。</p>
+<h3 id="102-输入">10.2 输入</h3>
+<p>组件可以声明<strong>输入（inputs）</strong>——即父组件传入的值。下面是 <code>week.ts</code> 和 <code>week.html</code>（仓库中的版本，与幻灯片 43 一致）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Input</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-week'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> '../app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './week.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Week</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#D4D4D4">    @</span><span style="color:#DCDCAA">Input</span><span style="color:#D4D4D4">() </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    @for(day of days; track day){</span></span>
+<span class="line"><span style="color:#808080">        &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">            {{day}}</span></span>
+<span class="line"><span style="color:#D4D4D4">            @if(day == today) {</span></span>
+<span class="line"><span style="color:#808080">                &#x3C;</span><span style="color:#569CD6">strong</span><span style="color:#808080">></span><span style="color:#D4D4D4">Today!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">strong</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">            }</span></span>
+<span class="line"><span style="color:#808080">        &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input.png" alt="幻灯片 43：week.ts 中的 @Input() today（标注为 Input），以及 week.html 中在 @if(day == today) 里引用 today"></p>
+<p><code>@Input()</code> 把 <code>today</code> 标记为输入；模板像使用其他字段一样使用它。父组件传入它（幻灯片 44）：</p>
+<ul>
+<li><strong>如果是动态的，使用属性绑定</strong>：<code>&lt;app-week [today]=&quot;dayOfWeek()&quot;&gt;&lt;/app-week&gt;</code> —— <code>dayOfWeek()</code> 是 <code>App</code> 中的函数；</li>
+<li><strong>如果是静态值，则像任何其他属性一样</strong>：<code>&lt;app-week today=&quot;Friday&quot;&gt;&lt;/app-week&gt;</code>。</li>
+</ul>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// app.ts</span></span>
+<span class="line"><span style="color:#DCDCAA">dayOfWeek</span><span style="color:#D4D4D4">():</span><span style="color:#9CDCFE">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  const</span><span style="color:#4FC1FF"> day</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Date</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">getDay</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">][</span><span style="color:#9CDCFE">day</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两者都会渲染七天，并在匹配的那一天后面显示 <strong>Today!</strong>。（幻灯片 44 的错误：它用 <code>&lt;/app-day&gt;</code> 关闭 <code>&lt;app-week&gt;</code>，且其标签写的是 “Sets day property”——输入实际名为 <code>today</code>。）</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input-passing.png" alt="幻灯片 44：传入输入——today="Friday" 设置静态值；[today]="dayOfWeek()" 绑定到 App 的函数"></p>
+<p>试一下——把 Week 组件写成一个普通 JS 函数，其参数扮演 <code>@Input() today</code> 的角色：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;幻灯片 41–44 · week.html 的 @for + @if，以及 today 输入，用纯 JavaScript 手动实现&quot;, &quot;html&quot;: &quot;&lt;p&gt;&lt;b&gt;today=\&quot;Friday\&quot; (static):&lt;/b&gt;&lt;/p&gt;\n&lt;div id=\&quot;static\&quot;&gt;&lt;/div&gt;\n&lt;p&gt;&lt;b&gt;[today]=\&quot;dayOfWeek()\&quot; (bound):&lt;/b&gt;&lt;/p&gt;\n&lt;div id=\&quot;bound\&quot;&gt;&lt;/div&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } ul { margin: 2px 0 8px; }&quot;, &quot;js&quot;: &quot;const days = [\&quot;Sunday\&quot;, \&quot;Monday\&quot;, \&quot;Tuesday\&quot;, \&quot;Wednesday\&quot;, \&quot;Thursday\&quot;, \&quot;Friday\&quot;, \&quot;Saturday\&quot;];\n\n// The Week component: today is its @Input()\nfunction appWeek(today) {\n  const ul = document.createElement(\&quot;ul\&quot;);\n  for (const day of days) {                       // @for(day of days; track day)\n    const li = document.createElement(\&quot;li\&quot;);\n    li.textContent = day + \&quot; \&quot;;                  // {{day}}\n    if (day == today) {                           // @if(day == today)\n      li.insertAdjacentHTML(\&quot;beforeend\&quot;, \&quot;&lt;strong&gt;Today!&lt;/strong&gt;\&quot;);\n    }\n    ul.append(li);\n  }\n  return ul;\n}\n\nfunction dayOfWeek() {                            // from App in app.ts\n  return days[new Date().getDay()];\n}\n\ndocument.getElementById(\&quot;static\&quot;).append(appWeek(\&quot;Friday\&quot;));\ndocument.getElementById(\&quot;bound\&quot;).append(appWeek(dayOfWeek()));\nconsole.log(\&quot;dayOfWeek() = \&quot; + dayOfWeek());\n&quot;, &quot;height&quot;: 400, &quot;interactive&quot;: true}</code></pre><p>静态列表总是标出 Friday；绑定的列表会标出你打开页面的那一天（控制台会打印出来）。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>today=&quot;Friday&quot;</code> 传入的是<em>字符串</em> <code>&quot;Friday&quot;</code>；<code>[today]=&quot;Friday&quot;</code> 则会去父组件中寻找名为 <code>Friday</code> 的字段。只有当值是表达式时才使用方括号。</p>
+</blockquote>
+<h3 id="103-输出额外幻灯片-53课上未讲">10.3 输出（额外幻灯片 53，课上未讲）</h3>
+<p>组件还可以声明<strong>输出属性（output properties）</strong>——即向父组件发送的事件：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Output</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'myClick'</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">clicks</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> EventEmitter</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">>();</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>父组件使用事件绑定进行监听，处理函数运行在<strong>父</strong>组件中：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">app-button</span><span style="color:#9CDCFE"> (myClick)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"clickMessage"</span><span style="color:#808080">></span><span style="color:#D4D4D4">click with myClick</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">app-button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">clickMessage</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"clicked!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片的错误：语句必须调用函数，即 <code>(myClick)=&quot;clickMessage()&quot;</code>。若使用幻灯片中的 <code>&quot;clickMessage&quot;</code>（不带圆括号），子组件发出事件时不会记录任何内容；使用 <code>clickMessage()</code> 则会记录 <code>clicked!</code>。输入是从父到子，输出是从子到父。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#112-%E9%97%AE%E9%A2%98-2%E7%94%A8%E7%BB%84%E4%BB%B6%E6%94%B9%E8%BF%9B%E4%BD%A0%E7%9A%84%E4%BD%9C%E5%93%81%E9%9B%86%E5%B9%BB%E7%81%AF%E7%89%87-4547">问题 2</a> · <a href="#113-%E6%BC%94%E7%A4%BA%E6%8E%B7%E9%AA%B0%E5%AD%90%E5%B9%BB%E7%81%AF%E7%89%87-48--dicets--dicefinishedtxt">演示：掷骰子</a></p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/week/week.ts">week.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/week/week.html">week.html</a></p>
+</blockquote>
+<hr>
+<h2 id="11-课堂问题与演示附解答">11. 课堂问题与演示（附解答）</h2>
+<h3 id="111-问题-1哪一项可以把链接的-href-绑定到-url幻灯片-3436">11.1 问题 1：哪一项可以把链接的 href 绑定到 url？（幻灯片 34–36）</h3>
+<p><em>哪一项可以把链接的 <code>href</code> 绑定到变量 <code>url</code>？</em></p>
+<ul>
+<li>A. <code>&lt;a href=“{{url}}”&gt;link&lt;/a&gt;</code></li>
+<li>B. <code>&lt;a (href)=“url”&gt;link&lt;/a&gt;</code></li>
+<li>C. <code>&lt;a [href]=“url”&gt;link&lt;/a&gt;</code></li>
+<li>D. A 和 B</li>
+<li>E. A 和 C</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：E（A 和 C）。</strong> 幻灯片没有显示投票结果；这是通过在 Angular 22 中、用 <code>url = &quot;https://example.com/page&quot;</code> 编译这三个链接（使用直引号）验证的：</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>结果 <code>href</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A <code>href=&quot;{{url}}&quot;</code></td>
+<td><code>https://example.com/page</code> ✅ —— 插值在属性值中同样有效（“在属性赋值之中”，幻灯片 29）</td>
+</tr>
+<tr>
+<td>B <code>(href)=&quot;url&quot;</code></td>
+<td>无 ❌ —— 这是一个<em>事件</em>绑定，监听名为 href 的事件；它从不设置任何东西</td>
+</tr>
+<tr>
+<td>C <code>[href]=&quot;url&quot;</code></td>
+<td><code>https://example.com/page</code> ✅ —— 属性绑定</td>
+</tr>
+</tbody></table>
+<p>所以 D 因为 B 而错误。仓库的 <code>app.html</code> 在链接胶囊中使用的是写法 C：<code>[href]=&quot;item.link&quot;</code>。（幻灯片上的弯引号会让浏览器把 <code>“</code> 当作值的一部分——务必输入直引号。）返回 <a href="#7-%E5%8D%95%E5%90%91%E7%BB%91%E5%AE%9A%E6%8F%92%E5%80%BC%E5%B1%9E%E6%80%A7%E4%BA%8B%E4%BB%B6">第 7 节</a>。</p>
+<h3 id="112-问题-2用组件改进你的作品集幻灯片-4547">11.2 问题 2：用组件改进你的作品集（幻灯片 45–47）</h3>
+<p><em>与搭档一起讨论一个想法：如何用 Angular 组件改进你的作品集网站。</em></p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>幻灯片给出的示例答案</strong>：一个旧的课程网站（链接见下），其整个站点都在一个 Angular 组件中，而页眉、正文和页脚各自是独立的组件——这使得复用页眉和页脚内容变得很容易。对于 A1 风格的作品集，同样的思路适用于任何重复出现的内容：每个页面都使用的页眉/导航和页脚，或是带有输入（标题、图片、链接）的项目卡片组件，并用 <code>@for</code> 为每个项目渲染一次。返回 <a href="#10-%E4%BD%BF%E7%94%A8%E7%BB%84%E4%BB%B6%E5%B5%8C%E5%A5%97%E8%BE%93%E5%85%A5%E4%B8%8E%E8%BE%93%E5%87%BA">第 10 节</a>。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://inf133-wi26.depstein.net/">Example: an earlier IN4MATX 133 course website built with Angular</a></p>
+</blockquote>
+<h3 id="113-演示掷骰子幻灯片-48--dicets--dicefinishedtxt">11.3 演示：掷骰子（幻灯片 48 · dice.ts → diceFinished.txt）</h3>
+<p><strong>任务</strong>：在演示应用中制作一个 <code>Dice</code> 组件，显示两个骰子和一个按钮；点击按钮会同时掷两个骰子并显示总和。幻灯片 48 展示了结果：“Hello!”、一个 “Click to roll the dice!” 按钮、两张骰子图片，以及 “Total: 8”。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/rolling-dice.png" alt="幻灯片 48：完成后的 Dice 组件——“Hello!”、掷骰按钮、两个骰子（5 和 6）以及 “Total: 8”"></p>
+<p>起始代码（<code>src/app/dice/</code>，由 <code>ng generate component dice</code> 生成）：<code>dice.html</code> 是 <code>&lt;p&gt;TODO: this!&lt;/p&gt;</code>，类是空的：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [],</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-dice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './dice.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './dice.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dice</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>应用已经放置了它：<code>app.html</code> 中有 <code>&lt;app-dice&gt;&lt;/app-dice&gt;</code>，且 <code>app.ts</code> 导入了 <code>Dice</code>。图片 <code>dice_1.png</code> … <code>dice_6.png</code> 位于项目的 <code>public/</code> 文件夹中。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答</strong>（来自 <code>diceFinished.txt</code>）。模型 + 控制器，即 <code>dice.ts</code>：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dice</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    diceUrl1</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"dice_1.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    diceUrl2</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"dice_1.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    total</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">    rollDice</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">        var</span><span style="color:#9CDCFE"> random</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">() * </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl1</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">`dice_</span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">random</span><span style="color:#569CD6">}</span><span style="color:#CE9178">.png`</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">        var</span><span style="color:#9CDCFE"> random2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">() * </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl2</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">`dice_</span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">random2</span><span style="color:#569CD6">}</span><span style="color:#CE9178">.png`</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">random</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">random2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>视图，即 <code>dice.html</code>：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Hello!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"rollDice()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click to roll the dice!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"diceUrl1"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100px"</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"diceUrl2"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100px"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Total: {{total}}</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>今天课上的每种绑定都出现了：<code>(click)</code> 把点击发送给控制器，<code>rollDice()</code> 更新模型（<code>this.diceUrl1</code>、<code>this.total</code>——注意是 <code>this.</code>，这与模板中不同），而 <code>[src]</code> / <code>{{total}}</code> 把新值推送到视图。每次点击会记录三行，例如 <code>dice_5.png</code>、<code>dice_3.png</code>、<code>8</code>。<code>Math.floor(Math.random() * 6 + 1)</code> 会得到 1–6 之间的整数（类似于 Python 的 <code>random.randint(1, 6)</code>）。</p>
+<p><code>diceFinished.txt</code> 标注的是 <code>diceComponent.cs</code>，并指向 <code>templateUrl: &#39;./dice.component.html&#39;</code> 和 <code>styleUrl: &#39;../app.css&#39;</code>；本项目中生成的文件是 <code>dice.html</code> 和 <code>dice.css</code>，因此保留起始代码中的 <code>@Component({...})</code>，只粘贴类的主体部分即可。</p>
+<p>用纯 JS 手动实现的同一个组件——按 Next 掷骰子：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;幻灯片 48 · 完成的 Dice 组件（diceFinished.txt），用纯 JavaScript 手动实现&quot;, &quot;html&quot;: &quot;&lt;p&gt;Hello!&lt;/p&gt;\n&lt;button id=\&quot;roll\&quot;&gt;Click to roll the dice!&lt;/button&gt;\n&lt;p&gt;&lt;img id=\&quot;d1\&quot; width=\&quot;100\&quot;&gt;&lt;img id=\&quot;d2\&quot; width=\&quot;100\&quot;&gt;&lt;/p&gt;\n&lt;p id=\&quot;total\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; }&quot;, &quot;js&quot;: &quot;const IMG = \&quot;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W5_L2_Oct29_AngularComponents/w5l2-example/public/\&quot;;  // the repo&#39;s public/ folder\n// model (fields of class Dice)\nlet diceUrl1 = \&quot;dice_1.png\&quot;;\nlet diceUrl2 = \&quot;dice_1.png\&quot;;\nlet total = 2;\n\n// view: [src]=\&quot;diceUrl1\&quot;, [src]=\&quot;diceUrl2\&quot;, Total: {{total}}\nfunction render() {\n  document.getElementById(\&quot;d1\&quot;).src = IMG + diceUrl1;\n  document.getElementById(\&quot;d2\&quot;).src = IMG + diceUrl2;\n  document.getElementById(\&quot;total\&quot;).textContent = \&quot;Total: \&quot; + total;\n}\n\n// controller: (click)=\&quot;rollDice()\&quot;\nfunction rollDice() {\n  var random = Math.floor(Math.random() * 6 + 1);\n  diceUrl1 = `dice_${random}.png`;\n  var random2 = Math.floor(Math.random() * 6 + 1);\n  diceUrl2 = `dice_${random2}.png`;\n  total = random + random2;\n  console.log(diceUrl1);\n  console.log(diceUrl2);\n  console.log(total);\n  render();  // Angular re-renders for you; by hand we must call it\n}\ndocument.getElementById(\&quot;roll\&quot;).addEventListener(\&quot;click\&quot;, rollDice);\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;点击按钮：rollDice() 随机选取两个点数并更新模型，视图随之变化。&quot;, &quot;js&quot;: &quot;document.getElementById(\&quot;roll\&quot;).click();&quot;}], &quot;height&quot;: 230, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/dice.ts">dice.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/dice.html">dice.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/diceFinished.txt">diceFinished.txt</a></p>
+</blockquote>
+<p>返回 <a href="#10-%E4%BD%BF%E7%94%A8%E7%BB%84%E4%BB%B6%E5%B5%8C%E5%A5%97%E8%BE%93%E5%85%A5%E4%B8%8E%E8%BE%93%E5%87%BA">第 10 节</a>。</p>
+<hr>
+<h2 id="12-速查与必记的-5-个要点">12. 速查与必记的 5 个要点</h2>
+<p><strong>Angular 中的 MVC</strong></p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>作用</th>
+<th>Angular 文件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型</td>
+<td>数据；数据变化时通知视图</td>
+<td><code>.ts</code>（类字段）</td>
+</tr>
+<tr>
+<td>视图</td>
+<td>渲染模型；转发输入</td>
+<td><code>.html</code> + <code>.css</code></td>
+</tr>
+<tr>
+<td>控制器</td>
+<td>把用户输入映射为对模型的动作</td>
+<td><code>.ts</code>（类方法）</td>
+</tr>
+</tbody></table>
+<p><strong>绑定与控制流</strong></p>
+<table>
+<thead>
+<tr>
+<th>语法</th>
+<th>名称</th>
+<th>方向</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{{expr}}</code></td>
+<td>插值</td>
+<td><code>.ts</code> → <code>.html</code></td>
+<td><code>Hello, {{title}}</code></td>
+</tr>
+<tr>
+<td><code>[prop]=&quot;expr&quot;</code></td>
+<td>属性</td>
+<td><code>.ts</code> → <code>.html</code></td>
+<td><code>[src]=&quot;tomatoCatUrl&quot;</code></td>
+</tr>
+<tr>
+<td><code>(event)=&quot;stmt()&quot;</code></td>
+<td>事件</td>
+<td><code>.html</code> → <code>.ts</code></td>
+<td><code>(click)=&quot;clickExample()&quot;</code></td>
+</tr>
+<tr>
+<td><code>[(ngModel)]=&quot;field&quot;</code></td>
+<td>双向</td>
+<td>双向</td>
+<td><code>[(ngModel)]=&quot;enteredText&quot;</code>（需要 <code>FormsModule</code>）</td>
+</tr>
+<tr>
+<td><code>@if(cond) { } @else { }</code></td>
+<td>条件</td>
+<td>—</td>
+<td><code>@if(isHalloween())</code></td>
+</tr>
+<tr>
+<td><code>@for(x of xs; track x; let i = $index) { }</code></td>
+<td>循环</td>
+<td>—</td>
+<td><code>@for(day of days; track day)</code></td>
+</tr>
+</tbody></table>
+<p><strong>组件与 CLI</strong></p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装 CLI / 新建应用 / 运行</td>
+<td><code>npm install -g @angular/cli</code> · <code>ng new example</code> · <code>ng serve</code>（localhost:4200）</td>
+</tr>
+<tr>
+<td>新建组件</td>
+<td><code>ng generate component hello</code> → <code>hello.html</code>、<code>hello.css</code>、<code>hello.ts</code>、<code>hello.spec.ts</code></td>
+</tr>
+<tr>
+<td>组件元数据</td>
+<td><code>@Component({ selector, templateUrl, styleUrl(s), imports })</code></td>
+</tr>
+<tr>
+<td>使用子组件</td>
+<td>模板中写 <code>&lt;app-week&gt;</code>，并在 <code>imports</code> 中加入 <code>Week</code></td>
+</tr>
+<tr>
+<td>输入（父 → 子）</td>
+<td><code>@Input() today = &quot;&quot;;</code> · <code>&lt;app-week today=&quot;Friday&quot;&gt;</code> / <code>[today]=&quot;dayOfWeek()&quot;</code></td>
+</tr>
+<tr>
+<td>输出（子 → 父）</td>
+<td><code>@Output(&#39;myClick&#39;) clicks = new EventEmitter&lt;string&gt;();</code> · <code>(myClick)=&quot;clickMessage()&quot;</code></td>
+</tr>
+<tr>
+<td>初始化代码</td>
+<td><code>ngOnInit()</code>（在输入设置之后运行），而不是构造函数</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>MVC：控制器改变模型，模型更新视图；在 Angular 中，视图是 <code>.html</code>/<code>.css</code>，模型与控制器则是 <code>.ts</code> 类。</li>
+<li>方括号从 <code>.ts</code> 读取（<code>[src]</code>），圆括号把事件发送给 <code>.ts</code>（<code>(click)</code>），两者同时使用即为双向（<code>[(ngModel)]</code>）——因此 <code>(href)=&quot;url&quot;</code> 什么也不绑定。</li>
+<li><code>{{ }}</code> 既可用于文本，也可用于属性值之中，并且会计算表达式（<code>{{1 + 1}}</code> → 2）。</li>
+<li>组件 = 选择器 + 模板 + 样式 + 类；要使用它，在父组件中写入其选择器标签，并把它的类加入父组件的 <code>imports</code>。</li>
+<li>输入：静态值以普通属性传入（<code>today=&quot;Friday&quot;</code>），动态值放在方括号中（<code>[today]=&quot;dayOfWeek()&quot;</code>）；<code>@for</code> 需要 <code>track</code>，且 <code>@if</code>/<code>@for</code> 取代了 <code>*ngIf</code>/<code>*ngFor</code>。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 9 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>服务器端开发、身份验证与授权</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>IN4MATX 133 · User Interface Software</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-09/zh-CN/" title="上一篇: 服务器端开发、身份验证与授权 ([)" aria-label="上一篇: 第 9 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 9 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 10 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-10/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 智能指针、多维数组与经验分析 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="智能指针所有权收尾、一维数组复习、多维数组、为什么要分析算法、运行时间的经验测量，以及运行时间的数学模型。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413976" data-source-url="/~kazuhak/notes/ics-46/lec-02/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-02/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-01/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-03/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 2 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-02/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 2 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 2 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 16 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-2智能指针多维数组实测分析">Information and Computer Science 46 — Lecture 2：智能指针、多维数组、实测分析</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E6%89%80%E6%9C%89%E6%9D%83%E6%94%B6%E5%B0%BE">1. 智能指针：所有权（收尾）</a></li>
+<li><a href="#2-c-%E4%B8%80%E7%BB%B4%E6%95%B0%E7%BB%84%E8%87%AA%E5%AD%A6%E5%A4%8D%E4%B9%A0">2. C++ 一维数组（自学复习）</a></li>
+<li><a href="#3-%E5%A4%9A%E7%BB%B4%E6%95%B0%E7%BB%84">3. 多维数组</a></li>
+<li><a href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95">4. 为什么要分析算法？</a></li>
+<li><a href="#5-%E8%BF%90%E8%A1%8C%E6%97%B6%E9%97%B4%E7%9A%84%E5%AE%9E%E6%B5%8B%E5%88%86%E6%9E%90">5. 运行时间的实测分析</a></li>
+<li><a href="#6-%E8%BF%90%E8%A1%8C%E6%97%B6%E9%97%B4%E7%9A%84%E6%95%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B">6. 运行时间的数学模型</a></li>
+<li><a href="#7-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">7. 课堂活动（附解答）</a></li>
+<li><a href="#8-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">8. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46 — Prof. Tom Yeh，Fall 2026，10/1/26。内容整理自 Lecture 2 的幻灯片；Thornton 的 ICS 46/45C 笔记和 algs4 booksite §1.4 仅作简短补充。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong><br>Lab 1 截止日期为 <strong>Mon 10/5</strong>。HW 1 已发布（无需提交）。<br>带有活动解答的更新版幻灯片会在每周末发布。<br>额外加分（1%）：同意将 AI 活动数据用于研究，或完成替代任务——详情见 Ed。<br>今日目标（幻灯片 3）：讲完智能指针、多维数据、算法分析。</p>
+</blockquote>
+<hr>
+<h2 id="1-智能指针所有权收尾">1. 智能指针：所有权（收尾）</h2>
+<p>Lecture 1 的时间不够，没来得及做树的活动，所以智能指针复习、这个活动及其解答都放到了这一讲（幻灯片 4–11）。关于裸指针（raw pointer）、引用和 <code>new</code>/<code>delete</code>，见 <a href="/~kazuhak/notes/ics-46/lec-01/zh-CN/">Lecture 1 笔记</a>。</p>
+<h3 id="11-智能指针复习">1.1 智能指针复习</h3>
+<p>智能指针（smart pointer，<code>#include &lt;memory&gt;</code>）会在指针本身销毁时自动 delete 它所指的对象。幻灯片 5 列出了三种（幻灯片把其中一个拼成了“<code>std::share_ptr</code>”，正确的名字是 <code>std::shared_ptr</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>Pointer</th>
+<th>Ownership</th>
+<th>Object destroyed when…</th>
+<th>Copyable?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::unique_ptr</code></td>
+<td>一对一</td>
+<td>该指针被销毁时</td>
+<td>否——用 <code>std::move</code> 转移</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr</code></td>
+<td>多对一（引用计数）</td>
+<td><strong>最后一个</strong>拥有它的指针被销毁时</td>
+<td>可以（计数 +1）</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr</code></td>
+<td>无所有权——“借出”</td>
+<td>永不：它销毁时不做任何清理</td>
+<td>可以</td>
+</tr>
+</tbody></table>
+<p><code>weak_ptr</code> 用于函数参数和<strong>循环数据结构</strong>（cyclic data structure）。<strong><code>.get()</code></strong> 从智能指针中取出裸地址。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">p</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                  // * and -> work like a raw pointer</span></span>
+<span class="line"><span style="color:#6A9955">// std::unique_ptr&#x3C;int> q = p;          // error: copy is deleted</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">  // OK: q owns it, p is now nullptr</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：<code>shared_ptr</code> 不是垃圾回收——<code>shared_ptr</code> 组成的<strong>环</strong>（父节点拥有子节点，子节点又拥有父节点）永远到不了计数 0，会造成内存泄漏。这正是下面树的活动里的陷阱。</p>
+</blockquote>
+<h3 id="12-裸指针与智能指针配合使用">1.2 裸指针与智能指针配合使用</h3>
+<p>幻灯片 11 的经验法则：</p>
+<ul>
+<li><strong>所有者（Owner）</strong>——智能指针控制资源的生命周期。</li>
+<li><strong>观察者（Observer）</strong>——裸指针可以查看（读、写、检查）对象，但<strong>不负责销毁它</strong>。</li>
+<li><strong><code>.get()</code></strong> 交出一个临时的、非拥有的裸指针，<strong>同时不放弃所有权</strong>。</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">   // parent observes root; root still owns it</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>Working design for a tree with parent links</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>shared_ptr</code> 向下 + <code>weak_ptr</code> 向上</td>
+<td>生命周期共享或不可预测、需要打破环；观察者可以检查对象是否已不存在（<code>lock()</code>、<code>expired()</code>）</td>
+</tr>
+<tr>
+<td><code>unique_ptr</code> 向下 + 裸 <code>Node*</code> 向上（通过 <code>.get()</code>）</td>
+<td>更快（无需计数）；<strong>只有在所有者比观察者活得更久时</strong>才安全——树里正是如此，因为父节点的析构函数会销毁它的子节点</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：Thornton 关于“把对象借给函数”的规则：优先用引用（<code>const Node&amp;</code>），因为它不可能为空；如果 <code>nullptr</code> 是合法实参就用裸指针；只有当借用者可能比所有者活得更久时才用 <code>weak_ptr</code>。</p>
+</blockquote>
+<h3 id="13-树的活动四种设计">1.3 树的活动：四种设计</h3>
+<p>活动（幻灯片 6）从一个裸指针版 <code>Node</code> 开始，它有 <code>left</code>、<code>right</code>、<code>parent</code>，用三个 <code>new Node()</code> 建立父↔子链接，再手动写三个 <code>delete</code>（幻灯片注释：“Manual cleanup is fragile. Deleting out-of-order causes crash”）。四种设计都用 <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code> 编译过：</p>
+<table>
+<thead>
+<tr>
+<th>Design (slide)</th>
+<th><code>left</code> / <code>right</code></th>
+<th><code>parent</code></th>
+<th>Compiles?</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>裸指针（p6）</td>
+<td><code>Node*</code></td>
+<td><code>Node*</code></td>
+<td>能</td>
+<td>只有每个 <code>delete</code> 都手写对才正确；<code>delete root</code> 之后有三个指针悬空</td>
+</tr>
+<tr>
+<td>(a)/(b) 朴素版（p7–8）</td>
+<td><code>unique_ptr</code></td>
+<td><code>unique_ptr</code></td>
+<td><strong>不能</strong></td>
+<td><code>root-&gt;left = leftChild;</code> 复制了一个 <code>unique_ptr</code> → “use of deleted function … <code>operator=</code>”</td>
+</tr>
+<tr>
+<td>(c)（p9）</td>
+<td><code>shared_ptr</code></td>
+<td><code>weak_ptr</code></td>
+<td>能</td>
+<td>3 个析构函数全部运行，无泄漏</td>
+</tr>
+<tr>
+<td>(c′) 全用 shared（反例）</td>
+<td><code>shared_ptr</code></td>
+<td><code>shared_ptr</code></td>
+<td>能</td>
+<td><strong>泄漏</strong>：没有任何析构函数运行（ASan：6 次分配共 216 字节）</td>
+</tr>
+<tr>
+<td>(d)（p10）</td>
+<td><code>unique_ptr</code></td>
+<td>裸 <code>Node*</code></td>
+<td>能</td>
+<td>3 个析构函数全部运行，无泄漏，无需计数</td>
+</tr>
+</tbody></table>
+<p>幻灯片 10 的 (d) 版本：</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node created</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Downward links hold exclusive ownership</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Upward link is a non-owning observer</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#6A9955">        // 1. Initialize nodes as unique pointers</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">root</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">leftChild</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">rightChild</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // 2. Transfer ownership downward using std::move</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // 3. Set upward back-pointers using the raw address (.get())</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span><span style="color:#6A9955"> // &#x3C;-- All 3 nodes are completely destroyed here automatically!</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"End of main.</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="32"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（32 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>设计 (d) 在内存中的样子：拥有所有权的 <code>unique_ptr</code> 指向下方，裸 <code>parent</code> 指针指向上方，被 move 过的局部变量是 <code>nullptr</code>。在下面逐步演示（演示获得焦点时，← / → 键可用）：</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;设计 (d)：unique_ptr 向下，裸指针向上（幻灯片 10）&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;root-&gt;left = std::move(leftChild); ... root-&gt;left-&gt;parent = root.get(); ...&quot;, &quot;note&quot;: &quot;每个 Node 恰好有一个所有者；被 move 过的局部变量是 nullptr；parent 链接只是观察&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;root (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}, {&quot;name&quot;: &quot;leftChild (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n1&quot;}, {&quot;name&quot;: &quot;rightChild (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n2&quot;}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;n0&quot;, &quot;type&quot;: &quot;Node (root)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n1&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n2&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;nullptr&quot;}]}, {&quot;id&quot;: &quot;n1&quot;, &quot;type&quot;: &quot;Node (left child)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}]}, {&quot;id&quot;: &quot;n2&quot;, &quot;type&quot;: &quot;Node (right child)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}]}]}, {&quot;code&quot;: &quot;}   // end of block&quot;, &quot;note&quot;: &quot;root 销毁 -&gt; delete n0 -&gt; n0 的 left/right 销毁 -&gt; delete n1 和 n2。没有泄漏，也没有重复 delete&quot;, &quot;free&quot;: [&quot;n0&quot;, &quot;n1&quot;, &quot;n2&quot;], &quot;set&quot;: {&quot;main.root (unique_ptr)&quot;: {&quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n0&quot;}}}]}</code></pre><p>输出（第 2 步之后多加了一行，打印 <code>leftChild</code> 是否为空）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Node created
+Node created
+Node created
+leftChild is now nullptr
+Node destroyed
+Node destroyed
+Node destroyed
+End of main.</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：执行 <code>std::move(leftChild)</code> 之后，<code>leftChild</code> 就是 <code>nullptr</code>——所以幻灯片 10 写的是 <code>root-&gt;left-&gt;parent</code>，而不是 <code>leftChild-&gt;parent</code>（幻灯片 9 的 <code>shared_ptr</code> 版本仍然可以这样写）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#71-%E4%B8%8A%E4%B8%80%E8%AE%B2%E7%9A%84%E6%B4%BB%E5%8A%A8-ad%E5%B9%BB%E7%81%AF%E7%89%87-610">上一讲的活动 (a)–(d)</a></p>
+</blockquote>
+<hr>
+<h2 id="2-c-一维数组自学复习">2. C++ 一维数组（自学复习）</h2>
+<p>幻灯片 12 把这一部分标为自学复习（ICS 45C 的内容）。</p>
+<h3 id="21-静态分配与动态分配">2.1 静态分配与动态分配</h3>
+<p>数组（array）是同一类型的一段连续单元，下标从 0 开始，大小固定，且需要你自己记录（幻灯片 13）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Statically allocated</th>
+<th>Dynamically allocated</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Syntax</td>
+<td><code>int a[10];</code></td>
+<td><code>int* a = new int[size];</code></td>
+</tr>
+<tr>
+<td>Size known</td>
+<td>编译期</td>
+<td>运行期</td>
+</tr>
+<tr>
+<td>Lives on</td>
+<td>运行时栈</td>
+<td>堆；<code>new</code> 返回指向第一个元素的指针</td>
+</tr>
+<tr>
+<td>Cleanup</td>
+<td>自动</td>
+<td><code>delete[] a;</code></td>
+</tr>
+</tbody></table>
+<p>幻灯片里的 <code>void foo(unsigned int n) { int a[n]; }</code> 是<strong>变长数组</strong>（variable-length array）：有些编译器接受，但它<strong>不是标准 C++</strong>（g++ <code>-pedantic</code>：<code>warning: ISO C++ forbids variable length array &#39;a&#39; [-Wvla]</code>），而且 <code>n</code> 很大时会栈溢出。</p>
+<h3 id="22-传递数组与指针运算">2.2 传递数组与指针运算</h3>
+<p>幻灯片 14：无论数组是怎么分配的，都可以把它作为参数传递——传入<strong>指向第一个元素的指针</strong>加上<strong>大小</strong>，以便手动做越界检查。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> zeroArray</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> size</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">size</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">zeroFill</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">50</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">zeroFill</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">50</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两个调用都能无警告编译，并且都会越过末尾多写 40 个 int；size 只是一个数字，C++ 对它是完全信任的。ASan 能抓到动态分配的那个：<code>heap-buffer-overflow … 0 bytes after 40-byte region … in zeroFill(int*, unsigned int)</code>。</p>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误（p14）</strong>：函数定义里叫 <code>zeroArray</code>，调用时却写成 <code>zeroFill</code>——其实是同一个函数，选一个名字统一即可。</p>
+</blockquote>
+<p>指针运算（幻灯片 14）：</p>
+<ul>
+<li><code>p + k</code> 会让地址增加 <code>k * sizeof(type)</code> 字节。</li>
+<li><code>(a + 1)</code> 是 <code>a[1]</code> 的地址；<code>(a - 1)</code> 是“<code>a[-1]</code>”——编译器允许，但行为<strong>未定义</strong>。</li>
+<li><code>(a - b)</code> = <code>a[0]</code> 与 <code>b[0]</code> 的地址之差，再除以该类型的大小。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误（p14）</strong>：幻灯片写的是 <code>(a + 1) == a[1]</code>，少了一个 <code>*</code>，应为 <code>*(a + 1) == a[1]</code>（或 <code>a + 1 == &amp;a[1]</code>）。</p>
+</blockquote>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>已验证：<code>sizeof(int) = 4</code>，<code>(char*)(a + 1) - (char*)a = 4 bytes</code>，执行 <code>*(a + 1) = 3</code> 之后 <code>a[1] = 3</code>，且 <code>&amp;a[7] - a = 7 elements</code>。</p>
+<p>幻灯片 18 总结了 <code>int x[10];</code>（<code>x</code> 会退化为指向 <code>&amp;x[0]</code> 的 <code>int*</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>指针地址</td>
+<td><code>&amp;x[i] == x + i</code>（按类型大小自动缩放）</td>
+</tr>
+<tr>
+<td>字节地址</td>
+<td><code>Base + (i × sizeof(int))</code></td>
+</tr>
+<tr>
+<td>值</td>
+<td><code>x[i] == *(x + i)</code></td>
+</tr>
+</tbody></table>
+<p>一次乘法加一次加法，所以<strong>每个下标的访问代价都是相同的常数时间</strong>。</p>
+<h3 id="23-stdvector">2.3 <code>std::vector</code></h3>
+<p>幻灯片 15：<code>std::vector</code> 是<strong>用 RAII 管理</strong>的动态一维数组（它在析构函数中释放数组，所以不会泄漏），<strong><code>at()</code></strong> 就是 <code>[ ]</code> <strong>加上范围检查</strong>。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push_back</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) += </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出（合并显示在一行），外加额外的 <code>v.at(10) = 1;</code>：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">10 11 12 13 14 15 16 17 18 19
+v.at(10) threw std::out_of_range</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>v[10] = 1</code> 则会悄无声息地触发未定义行为。幻灯片上的复习链接：Thornton 的 <a href="http://www.ics.uci.edu/~thornton/ics45c/Notes/SingleDimensionArrays">ICS 45C Single-Dimension Arrays</a>。</p>
+<hr>
+<h2 id="3-多维数组">3. 多维数组</h2>
+<h3 id="31-声明与存储-n-维数组">3.1 声明与存储 n 维数组</h3>
+<p>幻灯片 17：为<strong>每一维声明一个固定的、编译期确定的大小</strong>；每一维<em>代表</em>什么（行还是列）由你决定。在内存中，数组会被<strong>压平成一行</strong>，按<strong>行主序</strong>（row-major order）排列：最右边的下标变化最快，所以第一个下标相同的元素在内存中是连续的。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">][</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">][</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>int a[4][5]</code> 的布局（幻灯片 17/19）：按内存顺序列出每个元素，再标出 <code>a[2][3]</code> 落在哪里。在下面逐步演示（演示获得焦点时，← / → 键可用）：</p>
+<pre data-language="viz" data-viz="array-2d"><code>{&quot;title&quot;: &quot;int a[4][5] 的行主序布局&quot;, &quot;dims&quot;: [4, 5], &quot;find&quot;: [2, 3]}</code></pre><p>把整块内存直接当作 <code>int*</code> 读出来，就得到幻灯片 17 的那一行数值：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">flat: 0 0 0 0 0 0 1 2 3 4 0 2 4 6 8 0 3 6 9 12</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="32-下标地址公式">3.2 下标：地址公式</h3>
+<p>幻灯片 19，<code>int a[4][5];</code>——<code>a</code> 会退化为指向整行的指针（<code>int(*)[5]</code>），所以 <code>a + i</code> 会跳过 <code>i</code> 行、每行 5 个 int：</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>元素地址</td>
+<td><code>&amp;a[i][j] == *(a + i) + j == (int*)a + (i × 5 + j)</code></td>
+</tr>
+<tr>
+<td>字节地址</td>
+<td><code>Base + (i × 5 + j) × sizeof(int)</code></td>
+</tr>
+<tr>
+<td>元素值</td>
+<td><code>a[i][j] == *(*(a + i) + j) == *((int*)a + (i × 5 + j))</code></td>
+</tr>
+</tbody></table>
+<p>具体例子，<code>i = 2, j = 3</code>（真实输出）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">a[2][3] = 6, *(*(a + i) + j) = 6, *((int*)a + (i * 5 + j)) = 6
+byte offset of a[2][3] = 52 = (2*5+3)*4
+sizeof(a) = 80, sizeof(a[0]) = 20, (char*)(a + 1) - (char*)a = 20</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>n 维规则</strong>（幻灯片 19）：地址计算需要<strong>所有内层维度</strong>的大小——也就是除最左边一维之外的全部。<code>i × 5 + j</code> 里出现了 5，却从未出现 4。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：正因为这条规则，二维数组形参必须在类型里带上内层大小——<code>void fill(int a[][5], int rows)</code> 能编译，而 <code>void fill(int* a, int rows, int cols)</code> 配 <code>a[i][j]</code> 则不行（Thornton，<em>Multidimensional Data</em>）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#72-%E6%B4%BB%E5%8A%A8-1%E5%B9%BB%E7%81%AF%E7%89%87-20">活动 1</a>——<code>int a[3][2][4]</code> 的布局与公式。</p>
+</blockquote>
+<hr>
+<h2 id="4-为什么要分析算法">4. 为什么要分析算法？</h2>
+<p>幻灯片 22：你常常同时扮演三个角色——<strong>程序员</strong>（需要一个能用的解法）、<strong>客户</strong>（想要高效的解法）和<strong>理论家</strong>（想要理解原理）。幻灯片 23 给出分析效率的理由：<strong>预测</strong>性能、<strong>比较</strong>算法、<strong>提供</strong>保证、<strong>理解</strong>理论，以及<strong>避免</strong>性能 bug。</p>
+<p><strong>计算复杂度</strong>（computational complexity）= <strong>时间复杂度</strong>（time complexity，运行时间如何随输入规模增长）+ <strong>空间复杂度</strong>（space complexity，内存如何增长）。这一讲只讲时间，用两种方式：测量它（§5）和建模它（§6）。</p>
+<hr>
+<h2 id="5-运行时间的实测分析">5. 运行时间的实测分析</h2>
+<h3 id="51-贯穿全讲的例子3-sum">5.1 贯穿全讲的例子：3-SUM</h3>
+<p>幻灯片 24：给定 n 个互不相同的数，有多少个<strong>无序三元组</strong>之和为 0？输入 <code>30 -40 -20 -10 40 0 10 5</code> → <strong>4</strong>（<code>30 -40 10</code>、<code>30 -20 -10</code>、<code>-40 40 0</code>、<code>-10 0 10</code>）。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> count</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">                count</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">            }</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 25 在随机整数文件上给它计时：</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>n</th>
+<th>Triples</th>
+<th>Time (s)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8ints.txt</td>
+<td>8</td>
+<td>4</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1Kints.txt</td>
+<td>1000</td>
+<td>70</td>
+<td>0.081</td>
+</tr>
+<tr>
+<td>2Kints.txt</td>
+<td>2000</td>
+<td>528</td>
+<td>0.38（重跑：0.371）</td>
+</tr>
+<tr>
+<td>4Kints.txt</td>
+<td>4000</td>
+<td>4039</td>
+<td>2.792</td>
+</tr>
+<tr>
+<td>8Kints.txt</td>
+<td>8000</td>
+<td>32074</td>
+<td>21.623</td>
+</tr>
+<tr>
+<td>16Kints.txt</td>
+<td>16000</td>
+<td>255181</td>
+<td>177.344</td>
+</tr>
+</tbody></table>
+<p>同一份输入，两次时间不同（0.38 与 0.371）：测量是有噪声的。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：algs4 把这一过程看作科学方法——观察、假设一个模型、预测一个尚未测量的情形、验证、重复。下面的倍增测试正是这个循环。</p>
+</blockquote>
+<h3 id="52-对数-对数图与幂律">5.2 对数-对数图与幂律</h3>
+<p>幻灯片 26：先画 T(n) 对 n 的图，再在<strong>对数-对数</strong>（log-log）图上重画。如果得到一条直线，运行时间就服从<strong>幂律</strong>（power law）：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mtext> </mtext><msup><mi>n</mi><mi>b</mi></msup><mspace width="1em"/><mo>⟹</mo><mspace width="1em"/><mi>log</mi><mo>⁡</mo><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>b</mi><mi>log</mi><mo>⁡</mo><mi>n</mi><mo>+</mo><mi>log</mi><mo>⁡</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">T(n) = a\,n^b \quad\Longrightarrow\quad \log T(n) = b \log n + \log a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9231em;vertical-align:-0.024em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">a</span></span></span></span></span></div>
+<p>斜率就是 <strong>b</strong>。幻灯片 25/27 中 3-SUM 的测量值，逐个加到对数-对数图上，并标出倍增比（在下面逐步演示，演示获得焦点时 ← / → 键可用）：</p>
+<pre data-language="viz" data-viz="doubling-test"><code>{&quot;title&quot;: &quot;3-SUM 倍增测试（幻灯片 25、27）&quot;, &quot;n&quot;: [1000, 2000, 4000, 8000, 16000], &quot;times&quot;: [0.081, 0.38, 2.792, 21.623, 177.344]}</code></pre><p>从 lg n = 11.97 到 13.97，直线上升 7.47 − 1.48 ≈ 6.0，横向跨度 2.0：斜率 <strong>b = 3</strong>。幻灯片的拟合结果：<strong>T(n) ≈ 0.42 × 10⁻¹⁰ n³</strong> 秒。</p>
+<h3 id="53-倍增假设">5.3 倍增假设</h3>
+<p>幻灯片 27：把 n 翻倍并取比值——a 被约掉：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mi>a</mi><mtext> </mtext><msup><mi>n</mi><mi>b</mi></msup></mrow><mrow><mi>a</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><msup><mo stretchy="false">)</mo><mi>b</mi></msup></mrow></mfrac><mo>=</mo><msup><mn>2</mn><mi>b</mi></msup></mrow><annotation encoding="application/x-tex">\frac{T(n)}{T(n/2)} = \frac{a\,n^b}{a\,(n/2)^b} = 2^b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4621em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5261em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7751em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8991em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span></span></span></div>
+<ul>
+<li><strong>b</strong>：8000 → 16000 的比值是 177.344 / 21.623 ≈ <strong>8.2</strong>，所以 b ≈ lg 8.2 ≈ <strong>3</strong>。</li>
+<li><strong>a</strong>：T(16000) = 177.34 = a × 16000³ → a = 0.42 × 10⁻¹⁰。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误（p27）</strong>：177.34 / 16000³ 实际算出来是 <strong>0.43 × 10⁻¹⁰</strong>；幻灯片上的 0.42 来自拟合直线。</p>
+</blockquote>
+<p>p27 表格中的全部比值：</p>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>T(n) (s)</th>
+<th>T(n)/T(n/2)</th>
+<th>lg ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8</td>
+<td>0</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>0.081</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2000</td>
+<td>0.38</td>
+<td>4.7</td>
+<td>2.2</td>
+</tr>
+<tr>
+<td>4000</td>
+<td>2.792</td>
+<td>7.3</td>
+<td>2.9</td>
+</tr>
+<tr>
+<td>8000</td>
+<td>21.623</td>
+<td>7.7</td>
+<td>2.95</td>
+</tr>
+<tr>
+<td>16000</td>
+<td>177.344</td>
+<td>8.2</td>
+<td>3.04</td>
+</tr>
+</tbody></table>
+<p><strong>为什么要选最大的 2 个输入规模？</strong>（幻灯片 27 的问题）n 很小时，时间本身很小，所以计时器分辨率和噪声占比很大（n = 8 甚至读数为 0），而且低阶项和固定开销相对 n³ 还不能忽略。只有 n 足够大时，比值才会稳定在 8 附近。</p>
+<p>在我自己的机器上复现（<code>-O2</code>，3 次取最小值，随机整数）：n 从 500 到 8000，比值依次为 7.97、7.60、8.25、7.81——<strong>b ≈ 3</strong> 再次得到验证，但 a ≈ 1.7 × 10⁻¹⁰（n = 8000 时为 86.949 s），不同硬件上常数不同。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#73-%E6%B4%BB%E5%8A%A8-2%E5%B9%BB%E7%81%AF%E7%89%87-28">活动 2</a>——根据计时表选出模型 T(n)。</p>
+</blockquote>
+<h3 id="54-什么决定了-a-和-b">5.4 什么决定了 a 和 b</h3>
+<p>幻灯片 29，对 T(n) = a·n^b：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>System-independent factors</th>
+<th>System-dependent factors</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Determine</td>
+<td>指数 <strong>b</strong>（也会影响 a）</td>
+<td>只决定常数 <strong>a</strong></td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>操作所用的数据结构与算法；算法本身；输入数据</td>
+<td>硬件（CPU、内存、缓存）；软件（编译器、垃圾回收器）；系统（操作系统、网络等）</td>
+</tr>
+</tbody></table>
+<p>所以 b 是算法及其输入的属性；更快的机器只会改变 a，不会改变 b。</p>
+<hr>
+<h2 id="6-运行时间的数学模型">6. 运行时间的数学模型</h2>
+<h3 id="61-总时间--σ-代价--频率">6.1 总时间 = Σ 代价 × 频率</h3>
+<p>幻灯片 31（Donald Knuth，1960 年代）：<strong>总运行时间 = 所有操作的 代价 × 频率 之和。</strong></p>
+<table>
+<thead>
+<tr>
+<th>Cost</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>与系统和机器相关</td>
+<td>与算法和数据相关</td>
+</tr>
+<tr>
+<td>确切代价取决于机器和编译器；分析程序以找出其基本操作</td>
+<td>取决于数据结构、算法设计和输入；原则上可以建立精确的数学模型</td>
+</tr>
+</tbody></table>
+<p>幻灯片 32，C++ 基本操作的相对代价：<code>int add &lt; int multiply &lt; int divide &lt; float add &lt; float multiply &lt; float divide</code>；内存访问的代价不一，但基本模型假定它与一次加法相当。</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Example</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>变量声明</td>
+<td><code>int a;</code></td>
+<td>c1</td>
+</tr>
+<tr>
+<td>赋值</td>
+<td><code>a = b;</code></td>
+<td>c2</td>
+</tr>
+<tr>
+<td>整数比较</td>
+<td><code>a &lt; b;</code></td>
+<td>c3</td>
+</tr>
+<tr>
+<td>数组 / vector 访问</td>
+<td><code>a[i]</code>, <code>v[i]</code></td>
+<td>c4</td>
+</tr>
+<tr>
+<td>容器大小</td>
+<td><code>v.size()</code></td>
+<td>c5</td>
+</tr>
+<tr>
+<td>动态分配</td>
+<td><code>new int[n]</code>, <code>std::vector&lt;int&gt; v(n)</code></td>
+<td>c6·n</td>
+</tr>
+</tbody></table>
+<p>分配是个例外：代价与 n 成正比，而不是常数。（幻灯片该列的表头显示成了原始的 <code>$c_i$</code>——这是 LaTeX 渲染失误。）</p>
+<h3 id="62-数操作次数1-sum">6.2 数操作次数：1-Sum</h3>
+<p>幻灯片 33：给定 n 个互不相同的数，有多少个数本身等于 0？</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> count</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        count</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Frequency</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>变量声明</td>
+<td>2</td>
+<td><code>count</code>、<code>i</code></td>
+</tr>
+<tr>
+<td>赋值</td>
+<td>2</td>
+<td><code>count = 0</code>、<code>i = 0</code></td>
+</tr>
+<tr>
+<td>小于</td>
+<td><strong>n + 1</strong></td>
+<td><code>i &lt; n</code> 有 n 次为真，再有 1 次为假而退出循环</td>
+</tr>
+<tr>
+<td>等于</td>
+<td>n</td>
+<td><code>a[i] == 0</code></td>
+</tr>
+<tr>
+<td>数组访问</td>
+<td>n</td>
+<td><code>a[i]</code></td>
+</tr>
+<tr>
+<td>自增</td>
+<td><strong>n 到 2n</strong></td>
+<td><code>i++</code> 执行 n 次，再加上取决于数据的 0..n 次 <code>count++</code></td>
+</tr>
+</tbody></table>
+<p>在 n = 10 时插桩统计：<code>less=11 equal=10 access=10</code>；没有 0 时 <code>incr=10</code>，有一个 0 时 <code>incr=11</code>。</p>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误（p33）</strong>：数是<strong>互不相同</strong>的，所以最多只有一个为 0，自增次数其实是 <strong>n 到 n + 1</strong>（n 到 2n 是不要求“互不相同”时的上界）。</p>
+</blockquote>
+<h3 id="63-波浪号记法">6.3 波浪号记法</h3>
+<p>幻灯片 35：只保留<strong>首项</strong>（leading term）来估计运行时间（或内存）——n 很大时，低阶项可以忽略。</p>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Tilde</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(1/6)n³ + 10n + 100</td>
+<td>~ n³</td>
+</tr>
+<tr>
+<td>(1/6)n³ + 100n² + 47</td>
+<td>~ n³</td>
+</tr>
+<tr>
+<td>(1/6)n³ + 100n^(2/3) + (1/2)/n</td>
+<td>~ n³</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：algs4 把 g(n) ~ f(n) 定义为 g(n)/f(n) → 1，这样会保留系数：第一行严格来说是 ~ (1/6)n³。幻灯片上的“~ n³”是增长阶（order of growth）的简写。Big-O 会在 Lecture 3 讲。</p>
+</blockquote>
+<h3 id="64-简化代价模型--波浪号">6.4 简化：代价模型 + 波浪号</h3>
+<p>幻灯片 36：(1) <strong>代价模型</strong>（cost model）——用某一种基本操作作为运行时间的代理，例如<strong>数组访问</strong>；(2) 用波浪号记法描述它的频率。套用到 2-Sum 上：</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Frequency</th>
+<th>Tilde</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>变量声明</td>
+<td>n + 2</td>
+<td>~ n</td>
+</tr>
+<tr>
+<td>赋值</td>
+<td>n + 2</td>
+<td>~ n</td>
+</tr>
+<tr>
+<td>小于</td>
+<td>(n + 1)(n + 2)/2</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>等于</td>
+<td>n(n − 1)/2</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>数组访问</td>
+<td>n(n − 1)</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>自增</td>
+<td>n(n + 1)/2 到 n²</td>
+<td>~ n²</td>
+</tr>
+</tbody></table>
+<p>结果：<strong>2-SUM 问题约需 ~n² 次数组访问。</strong> 3-SUM 同理：C(n, 3) ~ n³/6 个三元组 × 每个 3 次访问 = <strong>~n³/2 次数组访问</strong>，与实验得到的 b = 3 吻合。</p>
+<blockquote>
+<p>➡️ <strong>续见 <a href="/~kazuhak/notes/ics-46/lec-03/zh-CN/">Lecture 3</a></strong>：活动 3（2-Sum 操作次数，幻灯片 34）在 Lecture 3 开头讲解并给出解答，随后是增长率与 Big-O/Ω/Θ。</p>
+</blockquote>
+<hr>
+<h2 id="7-课堂活动附解答">7. 课堂活动（附解答）</h2>
+<h3 id="71-上一讲的活动-ad幻灯片-610">7.1 上一讲的活动 a–d（幻灯片 6–10）</h3>
+<p>起始代码（幻灯片 6）：</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node created</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Member pointers initialized safely to nullptr</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> left</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> right</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"--- Initializing Tree Elements ---</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> leftChild</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> rightChild</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // Linking parent-to-child and child-to-parent</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955"> // Complete relationship mapping</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"--- Tearing Down Tree Elements ---</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // ⚠ Manual cleanup is fragile. Deleting out-of-order causes cras[h]</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> leftChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> rightChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"End of main.</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（37 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>(a)</strong> 把裸指针改成 unique pointer。
+<strong>(b)</strong> 尝试编译会发生什么？为什么？
+<strong>(c)</strong> 修改必要的智能指针类型，保证没有内存泄漏。
+<strong>(d)</strong> 为了性能，改成只使用 <code>unique_ptr</code> 和裸指针。</p>
+<p><strong>解答。</strong></p>
+<p><strong>(a)</strong> 把每个 <code>Node*</code>（成员和局部变量）都改成 <code>std::unique_ptr&lt;Node&gt;</code>，并删掉所有 <code>delete</code>。</p>
+<p><strong>(b)</strong> 编译错误：<code>root-&gt;left = leftChild;</code>、<code>root-&gt;right = rightChild;</code> 和 <code>root-&gt;left-&gt;parent = root;</code> 都会<strong>复制</strong>一个 <code>unique_ptr</code>，而它的拷贝赋值已被删除（两个独占所有者会把同一个 Node delete 两次）。让 parent 成为 <code>unique_ptr</code> 在设计上也是错的——子节点不能拥有它的父节点。</p>
+<p><strong>(c)</strong> 所有权向下，观察向上：<code>left</code>/<code>right</code>（以及局部变量）改成 <code>std::shared_ptr&lt;Node&gt;</code>，<code>parent</code> 改成 <code>std::weak_ptr&lt;Node&gt;</code>。<code>weak_ptr</code> 不参与计数，所以在块结束时 root 的计数降到 0，三个 Node 全部被销毁。如果 <code>parent</code> 也用 <code>shared_ptr</code>，形成的环会让三个 Node 全部泄漏。</p>
+<p><strong>(d)</strong> <code>unique_ptr</code> 向下，裸指针向上：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>更快（没有引用计数），而且因为父节点总是比它的子节点活得更久，所以是安全的。</p>
+<h3 id="72-活动-1幻灯片-20">7.2 活动 1（幻灯片 20）</h3>
+<p><code>int a[3][2][4];</code>
+<strong>(a)</strong> 画出这个三维数组在一维连续内存中的布局。
+<strong>(b)</strong> 访问 <code>a[i][j][k]</code> 的指针运算公式是什么？</p>
+<p><strong>解答。</strong></p>
+<p><strong>(a)</strong> 24 个 int 在一整块内存里；<code>k</code> 变化最快，其次是 <code>j</code>，最后是 <code>i</code>。每个 <code>a[i]</code> 占 8 个 int，每个 <code>a[i][j]</code> 占 4 个：</p>
+<table>
+<thead>
+<tr>
+<th>Flat positions</th>
+<th>0–3</th>
+<th>4–7</th>
+<th>8–11</th>
+<th>12–15</th>
+<th>16–19</th>
+<th>20–23</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Elements</td>
+<td><code>a[0][0][0..3]</code></td>
+<td><code>a[0][1][0..3]</code></td>
+<td><code>a[1][0][0..3]</code></td>
+<td><code>a[1][1][0..3]</code></td>
+<td><code>a[2][0][0..3]</code></td>
+<td><code>a[2][1][0..3]</code></td>
+</tr>
+</tbody></table>
+<p><strong>(b)</strong> <code>&amp;a[i][j][k] == (int*)a + (i * 2 * 4 + j * 4 + k)</code>，所以 <code>a[i][j][k] == *((int*)a + (i * 8 + j * 4 + k))</code>（也可写成 <code>*(*(*(a + i) + j) + k)</code>）；字节地址为 <code>Base + (i × 8 + j × 4 + k) × sizeof(int)</code>。公式里只出现内层大小 2 和 4。已对全部 24 个单元验证：<code>correct for all 24 cells? 1</code>。</p>
+<h3 id="73-活动-2幻灯片-28">7.3 活动 2（幻灯片 28）</h3>
+<p>假设你给代码计时，得到下面的观察结果。哪个函数最接近 T(n) 的模型？写出你的推导过程。</p>
+<p>A. n²  B. 6 × 10⁻⁴ n  C. 5 × 10⁻⁹ n²  D. 7 × 10⁻⁹ n²</p>
+<table>
+<thead>
+<tr>
+<th>Input size</th>
+<th>1000</th>
+<th>2000</th>
+<th>4000</th>
+<th>8000</th>
+<th>16000</th>
+<th>32000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Time</td>
+<td>0</td>
+<td>0.0</td>
+<td>0.1</td>
+<td>0.3</td>
+<td>1.3</td>
+<td>5.1</td>
+</tr>
+</tbody></table>
+<p><strong>解答：C。</strong></p>
+<ol>
+<li>用最大的两个规模求 b：5.1 / 1.3 ≈ 3.9 ≈ 2² → <strong>b ≈ 2</strong>。排除 B（线性）。</li>
+<li>用 n = 32000 求 a：a = 5.1 / 32000² = 5.1 / (1.024 × 10⁹) ≈ <strong>5 × 10⁻⁹</strong>。</li>
+<li>检验：A 预测约 10⁹ s；D 预测 32000 时为 7.2 s。C 预测 32000 时为 5.1 s，16000 时为 1.28 s。✓</li>
+</ol>
+<p>忽略小规模的数据：0.3 / 0.1 = 3 主要是舍入造成的。</p>
+<hr>
+<h2 id="8-速查与必记的-5-个要点">8. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Key fact</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>unique_ptr</code></td>
+<td>一个所有者，不能复制；<code>std::move</code> 转移所有权，源指针变成 <code>nullptr</code></td>
+</tr>
+<tr>
+<td><code>shared_ptr</code></td>
+<td>引用计数；对象随最后一个所有者一起销毁；环会泄漏</td>
+</tr>
+<tr>
+<td><code>weak_ptr</code></td>
+<td>不拥有；用来打破环；<code>lock()</code> / <code>expired()</code></td>
+</tr>
+<tr>
+<td>raw <code>T*</code> via <code>.get()</code></td>
+<td>观察者；所有者必须比它活得更久</td>
+</tr>
+<tr>
+<td>1D address</td>
+<td><code>&amp;x[i] == x + i</code>, <code>x[i] == *(x + i)</code>, byte <code>Base + i × sizeof(T)</code></td>
+</tr>
+<tr>
+<td>2D <code>T a[R][C]</code></td>
+<td>行主序；<code>a[i][j] == *((T*)a + (i × C + j))</code></td>
+</tr>
+<tr>
+<td>3D <code>T a[D0][D1][D2]</code></td>
+<td><code>*((T*)a + (i × D1 × D2 + j × D2 + k))</code></td>
+</tr>
+<tr>
+<td>Power law</td>
+<td>T(n) = a·n^b；log-log 图上的斜率为 b</td>
+</tr>
+<tr>
+<td>Doubling</td>
+<td>T(n)/T(n/2) = 2^b；b = lg(比值)，然后 a = T(n)/n^b</td>
+</tr>
+<tr>
+<td>Math model</td>
+<td>T = Σ 代价 × 频率；波浪号只保留首项</td>
+</tr>
+<tr>
+<td>1-Sum / 2-Sum / 3-Sum</td>
+<td>~n / ~n² / ~n³/2 次数组访问</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>复制 <code>unique_ptr</code> 是编译错误；请用 <code>std::move</code>，之后源指针为 <code>nullptr</code>。</li>
+<li>父 ↔ 子都用 <code>shared_ptr</code> 会泄漏；把反向指针改成 <code>weak_ptr</code>，或者用 <code>unique_ptr</code> 向下 + 裸指针 <code>.get()</code> 向上。</li>
+<li>C++ 数组是行主序，n 维地址计算需要除第一维之外的所有维度大小。</li>
+<li>n 翻倍会使时间乘以 2^b；用最大的输入来计算 b 和 a。</li>
+<li><code>for</code> 循环的判断条件会执行 n + 1 次，波浪号记法只保留首项（2-Sum：~n² 次数组访问）。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 1 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>随机数、引用与指针</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-03/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 3 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>算法分析与 ArrayList</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" title="上一篇: 随机数、引用与指针 ([)" aria-label="上一篇: 第 1 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 1 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 2 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-02/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-03/zh-CN/" title="下一篇: 算法分析与 ArrayList (])" aria-label="下一篇: 第 3 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

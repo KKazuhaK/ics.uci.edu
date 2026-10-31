@@ -1,0 +1,969 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 TypeScript &amp; Data Visualization Tools | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="TypeScript types, classes and interfaces, tsconfig and declaration files, evaluating UI tools by threshold and ceiling, declarative visualization, and building charts with Vega-Lite."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413983" data-source-url="/~kazuhak/notes/in4matx-133/lec-07/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-06/en-US/" data-next-url="/~kazuhak/notes/in4matx-133/lec-08/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 7</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 7 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 7 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-7-typescript--data-visualization-tools">IN4MATX 133: User Interface Software — Lecture 7: TypeScript &amp; Data Visualization Tools</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-what-typescript-is">1. What TypeScript is</a></li>
+<li><a href="#2-types">2. Types</a></li>
+<li><a href="#3-classes-interfaces-and-inheritance">3. Classes, interfaces and inheritance</a></li>
+<li><a href="#4-tsconfigjson-and-declaration-files">4. tsconfig.json and declaration files</a></li>
+<li><a href="#5-benefits-drawbacks-and-other-transpilers">5. Benefits, drawbacks and other transpilers</a></li>
+<li><a href="#6-interactive-software-and-ui-tools">6. Interactive software and UI tools</a></li>
+<li><a href="#7-evaluating-tools-threshold-and-ceiling">7. Evaluating tools: threshold and ceiling</a></li>
+<li><a href="#8-visualization-tools-and-declarative-languages">8. Visualization tools and declarative languages</a></li>
+<li><a href="#9-vega-lite-a-grammar-of-graphics">9. Vega-Lite: a grammar of graphics</a></li>
+<li><a href="#10-building-a-histogram-in-vega-lite">10. Building a histogram in Vega-Lite</a></li>
+<li><a href="#11-sensible-defaults-and-overriding-them">11. Sensible defaults and overriding them</a></li>
+<li><a href="#12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Thursday 10/15<br>Built from the Lecture 7 slides (78 pages) and the demo repo folder <code>W3_L2_Oct15_TypeScript_VegaLite</code>. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Last material needed for A2; Friday&#39;s discussion has a deeper Vega-Lite demo.<br>Bonus slides p70–78 (more TypeScript) are folded into sections 2–4, marked &quot;(bonus slides)&quot;.</p>
+</blockquote>
+<hr>
+<h2 id="1-what-typescript-is">1. What TypeScript is</h2>
+<p><strong>Installing</strong> (a global npm package, see <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/#11-npm">Lecture 6</a>):</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> typescript</span><span style="color:#6A9955">   # installs tsc, the TypeScript transpiler</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Also via Homebrew (Mac) or Chocolatey (PC).</p>
+<p><strong>About TypeScript</strong> (slides 6–7):</p>
+<ul>
+<li><strong>Microsoft, 2012</strong>; first Visual Studio only, now Eclipse, Sublime, WebStorm, Atom, etc. Latest: TypeScript 7.0 (July 2026).</li>
+<li>Adds <strong>static types, type checking and objects</strong> to JavaScript, all <strong>optional</strong>.</li>
+<li><strong>Transpiles</strong> (&quot;transcompiles&quot;) to JavaScript: <code>tsc</code> converts TS to equivalent JS; browsers only run the JS.</li>
+<li>A <strong>strict superset of JavaScript</strong>: valid JS is valid TS, so TS can use popular JS libraries.</li>
+</ul>
+<p>Types are checked at compile time (like C++), then <strong>erased</strong>: none are left in the <code>.js</code>.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.typescriptlang.org/download">TypeScript: Download</a></p>
+</blockquote>
+<hr>
+<h2 id="2-types">2. Types</h2>
+<h3 id="21-annotating-a-variable-and-transpiling">2.1 Annotating a variable and transpiling</h3>
+<p><code>hello.ts</code> puts a type after a colon:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNumber</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNumber</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>tsc hello.ts</code> generates <code>hello.js</code>, annotation gone:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNumber</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNumber</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Prints <code>Hello, IN4MATX 133!</code> (current tsc also adds <code>&quot;use strict&quot;;</code>). (Slide bug: <code>hello.js</code> ends with <code>‘!&#39;);</code>, a curly quote and syntax error → <code>&#39;!&#39;</code>.)</p>
+<p><strong>Predefined types</strong> (slide 9): <code>number</code>, <code>boolean</code>, <code>string</code>, <code>void</code> (generally a function return type), <code>null</code>, <code>undefined</code>, <code>any</code>.</p>
+<p><strong>Typing is optional.</strong> Both of these initialize <code>courseNum</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNum</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNum</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNum</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Alternatives (<code>lecture.ts</code> comments one out); together they conflict, since the second <strong>infers</strong> <code>number</code>. (Slide bug: same curly quote, <code>‘!&#39;</code>.)</p>
+<h3 id="22-typed-functions-and-error-checking">2.2 Typed functions and error checking</h3>
+<p>Functions can specify <strong>argument types and return types</strong>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) </span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// "better" function</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area2</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Both return <code>I&#39;m a square of area 225 cm^2.</code>; <code>area2</code> is &quot;better&quot; because its return and local types are stated too.</p>
+<p><strong>Types enable error checking</strong> (slide 12): arguments in the wrong order:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area2</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>tsc: <code>error TS2345: Argument of type &#39;number&#39; is not assignable to parameter of type &#39;string&#39;.</code> (slide: <code>type &#39;15&#39;</code>; commented out in <code>lecture.ts</code>).</p>
+<p>Demo (tsc&#39;s JS output): step 1&#39;s bad call runs silently as <code>I&#39;m a 15 of area NaN cm^2.</code></p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 11–12 · the JavaScript tsc emits for area2 (the browser runs JS, not TS)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// compiled from area2 in lecture.ts (types stripped by tsc)\nfunction area2(shape, width, height) {\n    var area = width * height;\n    return \&quot;I&#39;m a \&quot; + shape + \&quot; of area \&quot; + area + \&quot; cm^2.\&quot;;\n}\nconsole.log(area2(&#39;square&#39;, 15, 15));&quot;, &quot;height&quot;: 60, &quot;steps&quot;: [{&quot;note&quot;: &quot;The slide&#39;s bad call: tsc rejects it, but if you skip the type check the JS runs and silently prints NaN.&quot;, &quot;js&quot;: &quot;console.log(area2(15, 15, &#39;square&#39;));&quot;}]}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/lecture/lecture.ts">lecture.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/lecture/lecture.js">lecture.js</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: tsc <strong>still writes the <code>.js</code></strong> when there are type errors (by default), so read the errors.</p>
+</blockquote>
+<h3 id="23-union-types-optional-parameters-generics-bonus-slides">2.3 Union types, optional parameters, generics (bonus slides)</h3>
+<p><strong>Union types</strong> (slide 77, from the TypeScript 1.4 announcement): <code>|</code> allows one of several types:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> | </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[]) {</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> === </span><span style="color:#CE9178">"number"</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#C586C0">  else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // return sum of numbers</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>f(5)</code> → <code>15</code>; <code>f([1, 2, 3])</code> → <code>undefined</code> (the <code>else</code> is only a comment); <code>f(&quot;5&quot;)</code> is a type error.</p>
+<p><strong>Optional and default parameters</strong> (slide 78, TypeScript Handbook): <code>?</code> marks a parameter optional, <code>=</code> gives a default:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toFixed</span><span style="color:#D4D4D4">()); </span><span style="color:#6A9955">// 0 arguments</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toFixed</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">)); </span><span style="color:#6A9955">// 1 argument</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">?: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#DCDCAA">f</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">// OK</span></span>
+<span class="line"><span style="color:#DCDCAA">f</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// OK</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(Three separate snippets.) An omitted <code>x?</code> is <code>undefined</code>; without <code>?</code>, <code>f()</code> is an error; <code>x = 10</code> defaults to 10. For <code>n = 3.14159</code>: <code>toFixed()</code> → <code>3</code>, <code>toFixed(3)</code> → <code>3.142</code>.</p>
+<p><strong>Generics</strong> (slide 75) &quot;work the same as Java&quot;: type parameter <code>T</code> keeps the caller&#39;s type:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> identity</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">arg</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">): </span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> arg</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">let</span><span style="color:#9CDCFE"> output</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">identity</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">>(</span><span style="color:#CE9178">"myString"</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// type of output will be 'string'</span></span>
+<span class="line"><span style="color:#569CD6">let</span><span style="color:#9CDCFE"> output</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">identity</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"myString"</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// type of output will be 'string'</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The second call <strong>infers</strong> <code>T</code> (like a C++ template). (Slide bug: <code>let output</code> twice → <code>Cannot redeclare block-scoped variable &#39;output&#39;</code>; rename one.)</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-question-1-which-typescript-files-transpile-to-this-js-slide-14">Question 1</a> · <a href="#122-demo-1-add-types-to-joinntimes-slide-13--setup1--solution1">Demo 1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.typescriptlang.org/docs/handbook/generics.html">TypeScript Handbook: Generics</a> · <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-1-4/">Announcing TypeScript 1.4 (union types)</a> · <a href="https://www.typescriptlang.org/docs/handbook/2/functions.html#optional-parameters">TypeScript Handbook: Optional parameters</a></p>
+</blockquote>
+<hr>
+<h2 id="3-classes-interfaces-and-inheritance">3. Classes, interfaces and inheritance</h2>
+<h3 id="31-classes">3.1 Classes</h3>
+<p>Classes work &quot;just like in Java&quot;: typed fields at the top, a constructor, methods:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    area</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    color</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">    constructor</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">name</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"pink"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#DCDCAA">    shoutout</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> +  </span><span style="color:#CE9178">" with an area of "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm squared."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> square</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Shape</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"square"</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>square.shoutout()</code> → <code>I&#39;m pink square with an area of 900 cm squared.</code> (<code>lecture.js</code>: the same JS <code>class</code>, fields untyped.)</p>
+<h3 id="32-interfaces-bonus-slide">3.2 Interfaces (bonus slide)</h3>
+<p>An interface describes an object&#39;s &quot;inputs&quot; and &quot;outputs&quot;: its required properties and their types:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">interface</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    color</span><span style="color:#D4D4D4">?: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">// ? Specifies an "optional" value</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> : </span><span style="color:#4EC9B0">Shape</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" with area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm squared"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">({</span><span style="color:#9CDCFE">name:</span><span style="color:#CE9178"> "rectangle"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height:</span><span style="color:#B5CEA8"> 15</span><span style="color:#D4D4D4">}));</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">({</span><span style="color:#9CDCFE">name:</span><span style="color:#CE9178"> "square"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">color:</span><span style="color:#CE9178"> "red"</span><span style="color:#D4D4D4">}));</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Prints areas 450 and 900. Any object literal with the right properties is a <code>Shape</code>; omitting <code>height</code> is a type error. (Slide bug: curly <code>“red&quot;</code> → <code>&quot;red&quot;</code>.)</p>
+<h3 id="33-inheritance-bonus-slide">3.3 Inheritance (bonus slide)</h3>
+<p>Classes and interfaces can be <strong>extended</strong>: <code>super(...)</code> calls the base constructor, a same-named method <strong>overrides</strong>, <code>super.method()</code> calls the base version:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Shape3D</span><span style="color:#569CD6"> extends</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    volume</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">    constructor</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#569CD6">        super</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//calls base class constructor</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">volume</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> * </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#DCDCAA">    shoutout</span><span style="color:#D4D4D4">() { </span><span style="color:#6A9955">//overrides the base class</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> +  </span><span style="color:#CE9178">" with a volume of "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">volume</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm cube."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#DCDCAA">    superShout</span><span style="color:#D4D4D4">() { </span><span style="color:#6A9955">//calls base class shoutout method</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#569CD6"> super</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">shoutout</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cube</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Shape3D</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"cube"</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">cube</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">shoutout</span><span style="color:#D4D4D4">() );</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">cube</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">superShout</span><span style="color:#D4D4D4">() );</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Prints <code>I&#39;m cube with a volume of 27000 cm cube.</code>, then (base method) <code>I&#39;m pink cube with an area of 900 cm squared.</code> Demo:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 17 &amp; 74 · compiled JS of Shape and Shape3D&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// compiled JavaScript of the slide 17 Shape class + slide 74 Shape3D (types stripped)\nclass Shape {\n    constructor(name, width, height) {\n        this.name = name;\n        this.area = width * height;\n        this.color = \&quot;pink\&quot;;\n    }\n    ;\n    shoutout() {\n        return \&quot;I&#39;m \&quot; + this.color + \&quot; \&quot; + this.name + \&quot; with an area of \&quot; + this.area + \&quot; cm squared.\&quot;;\n    }\n}\nvar square = new Shape(\&quot;square\&quot;, 30, 30);\nconsole.log(square.shoutout());\nclass Shape3D extends Shape {\n    constructor(name, width, height, length) {\n        super(name, width, height); //calls base class constructor\n        this.volume = length * this.area;\n    }\n    ;\n    shoutout() {\n        return \&quot;I&#39;m \&quot; + this.name + \&quot; with a volume of \&quot; + this.volume + \&quot; cm cube.\&quot;;\n    }\n    superShout() {\n        return super.shoutout();\n    }\n}\n\nvar cube = new Shape3D(\&quot;cube\&quot;, 30, 30, 30);\nconsole.log(cube.shoutout());\nconsole.log(cube.superShout());\n&quot;, &quot;height&quot;: 60}</code></pre><h3 id="34-getters-and-setters-bonus-slide">3.4 Getters and setters (bonus slide)</h3>
+<p><code>get</code>/<code>set</code> run code when a property is read or assigned; <code>private</code> hides the backing field:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">const</span><span style="color:#4FC1FF"> fullNameMaxLength</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Employee</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#9CDCFE"> _fullName</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">  get</span><span style="color:#DCDCAA"> fullName</span><span style="color:#D4D4D4">(): </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">_fullName</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#569CD6">  set</span><span style="color:#DCDCAA"> fullName</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">fullNameMaxLength</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">      throw</span><span style="color:#569CD6"> new</span><span style="color:#DCDCAA"> Error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"fullName has a max length of "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">fullNameMaxLength</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">_fullName</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>emp.fullName = &quot;Peter&quot;</code> stores it; a 14-character name throws. Outside access to <code>emp._fullName</code> is a compile-time error only.</p>
+<hr>
+<h2 id="4-tsconfigjson-and-declaration-files">4. tsconfig.json and declaration files</h2>
+<p>A <code>tsconfig.json</code> file:</p>
+<ul>
+<li>indicates a TypeScript <strong>project</strong>;</li>
+<li>says which files or folders to transpile;</li>
+<li>picks transpiler options, such as whether to remove comments;</li>
+<li>specifies which version of ECMAScript (JavaScript) to transpile to.</li>
+</ul>
+<p>Build the whole project with:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">tsc</span><span style="color:#569CD6"> --project</span><span style="color:#CE9178"> tsconfig.json</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Declaration files (bonus slides 71–72).</strong> A <code>.d.ts</code> keeps the stripped types, so library users can check their calls:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">tsc</span><span style="color:#569CD6"> --declaration</span><span style="color:#CE9178"> test.ts</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> --save</span><span style="color:#CE9178"> @types/your-library-here</span><span style="color:#6A9955">   # typings for many existing JS libraries</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//test.ts</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// transpiled test.js</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// generated test.d.ts</span></span>
+<span class="line"><span style="color:#569CD6">declare</span><span style="color:#569CD6"> function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">): </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>A <code>.d.ts</code> is like a C++ header: signatures only, no bodies.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.typescriptlang.org/docs/handbook/tsconfig-json.html">TypeScript Handbook: tsconfig.json</a></p>
+</blockquote>
+<hr>
+<h2 id="5-benefits-drawbacks-and-other-transpilers">5. Benefits, drawbacks and other transpilers</h2>
+<table>
+<thead>
+<tr>
+<th>Benefits of TypeScript</th>
+<th>Drawbacks of TypeScript</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Type checking</strong>: errors <em>before</em> the code runs</td>
+<td><strong>Transpiling is occasionally a pain</strong>; it can be slow for large projects</td>
+</tr>
+<tr>
+<td>Editors autocomplete methods and APIs</td>
+<td>Might not work with new JavaScript libraries out of the gate</td>
+</tr>
+<tr>
+<td>Easier to refactor code</td>
+<td>Took a while to fit Angular and React (now Angular&#39;s default)</td>
+</tr>
+<tr>
+<td><strong>Object-oriented</strong>: easier to manage/maintain large code bases</td>
+<td></td>
+</tr>
+<tr>
+<td>Simple enough to use: same principles as Java and other OO languages</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Other noteworthy JavaScript transpilers:</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Dart</th>
+<th>Kotlin</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Developed by</td>
+<td>Google</td>
+<td>JetBrains (who develop a lot of IDEs)</td>
+</tr>
+<tr>
+<td>Idea</td>
+<td>introduces typing and similar object-oriented practices</td>
+<td>a &quot;better&quot; Java, fully interoperable with it</td>
+</tr>
+<tr>
+<td>To JavaScript via</td>
+<td><code>dart2js</code></td>
+<td><code>kotlin.js</code> (for use with React, etc.)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-interactive-software-and-ui-tools">6. Interactive software and UI tools</h2>
+<p><em>Switching topics: software tools and visualization</em>, a <strong>very narrow slice</strong>; for more, take <strong>IN4MATX 143</strong>.</p>
+<p><strong>Sequential programs (command line).</strong> The program prompts; the person waits, then types, modeled as a file (<code>input()</code>, <code>std::cin</code>).</p>
+<p><strong>Event-driven programming.</strong> The program waits for the person; input arrives as <strong>events</strong> (mouse down, drag, key up) in one ordered <strong>event queue</strong> that hides device specifics (<code>addEventListener</code>, <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/#7-events-and-listeners">Lecture 6</a>).</p>
+<p><strong>The basic interactive software loop</strong> is in all interactive software somewhere:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">do</span><span style="color:#D4D4D4"> { </span></span>
+<span class="line"><span style="color:#9CDCFE">  e</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">read_event</span><span style="color:#D4D4D4">();          </span><span style="color:#6A9955">// Input</span></span>
+<span class="line"><span style="color:#DCDCAA">  dispatch_event</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">);         </span><span style="color:#6A9955">// Processing</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">damage_exists</span><span style="color:#D4D4D4">()) </span></span>
+<span class="line"><span style="color:#DCDCAA">     update_display</span><span style="color:#D4D4D4">();       </span><span style="color:#6A9955">// Output</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">type</span><span style="color:#D4D4D4"> != </span><span style="color:#4FC1FF">WM_QUIT</span><span style="color:#D4D4D4">); </span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Writing it for every webpage or app would be tedious, so <strong>we rely on tools to handle common operations</strong>.</p>
+<p><strong>Example: a button.</strong> Set X/Y bounds, check mouse down <em>and</em> mouse up are inside, then fire an event, for every button.</p>
+<p><strong>Understanding tools.</strong></p>
+<ul>
+<li><em>What is a UI tool?</em> Software/libraries that help build a UI: Bootstrap (responsive), Angular, React, etc.</li>
+<li><em>Why use them?</em> They package common practices in a framework, make them easy to follow, and let you focus on your app.</li>
+<li><em>They enable</em> faster, more iterative design, a better implementation, and consistency across apps using the same tool.</li>
+<li><em>Why are tools hard to design?</em> Core practices and people&#39;s tasks keep changing.</li>
+</ul>
+<hr>
+<h2 id="7-evaluating-tools-threshold-and-ceiling">7. Evaluating tools: threshold and ceiling</h2>
+<p>Four key terms for evaluating a tool&#39;s &quot;usefulness&quot; (Myers, Hudson &amp; Pausch, TOCHI 2000):</p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+<th>From the slides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Threshold</strong></td>
+<td>how hard it is to get started</td>
+<td>Depends on prior knowledge; a new language raises it, borrowed concepts lower it.</td>
+</tr>
+<tr>
+<td><strong>Ceiling</strong></td>
+<td>how much can be achieved</td>
+<td>Tools restrict what&#39;s possible vs raw device access.</td>
+</tr>
+<tr>
+<td><strong>Path of least resistance</strong></td>
+<td>tools influence what interfaces are created</td>
+<td>Bootstrap pages look alike (<a href="/~kazuhak/notes/in4matx-133/lec-04/en-US/">Lecture 4</a>). <strong>Sapir-Whorf</strong>: language limits thought; tools frame how we think about design.</td>
+</tr>
+<tr>
+<td><strong>Moving targets</strong></td>
+<td>changing needs make tools obsolete</td>
+<td>Codification constrains design; understanding and tech (e.g. VR) move on.</td>
+</tr>
+</tbody></table>
+<p><strong>Both are relative.</strong> The best tools are <strong>low threshold</strong> and <strong>high ceiling</strong> (Photoshop adds tutorials to lower its threshold).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-question-2-threshold-and-ceiling-of-photoshop-vs-paint-slide-38">Question 2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://doi.org/10.1145/344949.344959">Myers, Hudson &amp; Pausch (2000): Past, present, and future of user interface software tools</a></p>
+</blockquote>
+<hr>
+<h2 id="8-visualization-tools-and-declarative-languages">8. Visualization tools and declarative languages</h2>
+<p><em>What does this have to do with visualization?</em> Visualization tools follow the same principles.</p>
+<h3 id="81-svg-vs-excel">8.1 SVG vs Excel</h3>
+<p><strong>SVG (Scalable Vector Graphics)</strong>: XML-based, HTML-like markup of lines, circles, rectangles; browsers render it. (Slide: raster &quot;S&quot; of pixels vs smooth vector &quot;S&quot;.)</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">svg</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100"</span><span style="color:#9CDCFE"> height</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">circle</span><span style="color:#9CDCFE"> cx</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"50"</span><span style="color:#9CDCFE"> cy</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"50"</span><span style="color:#9CDCFE"> r</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"40"</span><span style="color:#9CDCFE"> stroke</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"green"</span><span style="color:#9CDCFE"> stroke-width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"4"</span><span style="color:#9CDCFE"> fill</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"yellow"</span><span style="color:#808080"> /></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">svg</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>A yellow circle, green border, center (50, 50), radius 40:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 43 · an SVG circle&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;svg width=\&quot;100\&quot; height=\&quot;100\&quot;&gt;\n  &lt;circle cx=\&quot;50\&quot; cy=\&quot;50\&quot; r=\&quot;40\&quot; stroke=\&quot;green\&quot; stroke-width=\&quot;4\&quot; fill=\&quot;yellow\&quot; /&gt;\n&lt;/svg&gt;&quot;, &quot;height&quot;: 120, &quot;steps&quot;: [{&quot;note&quot;: &quot;Add a rectangle: SVG is built from shapes like this.&quot;, &quot;html&quot;: &quot;&lt;svg width=\&quot;100\&quot; height=\&quot;100\&quot;&gt;\n  &lt;circle cx=\&quot;50\&quot; cy=\&quot;50\&quot; r=\&quot;40\&quot; stroke=\&quot;green\&quot; stroke-width=\&quot;4\&quot; fill=\&quot;yellow\&quot; /&gt;\n  &lt;rect x=\&quot;35\&quot; y=\&quot;35\&quot; width=\&quot;30\&quot; height=\&quot;30\&quot; fill=\&quot;blue\&quot; /&gt;\n&lt;/svg&gt;&quot;}]}</code></pre><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Threshold</th>
+<th>Ceiling</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SVG</td>
+<td>high</td>
+<td>high (anything, e.g. Minard&#39;s Napoleon chart)</td>
+</tr>
+<tr>
+<td>Microsoft Excel</td>
+<td>low</td>
+<td>low (standard charts like the slide&#39;s &quot;Wildlife Population&quot; bar chart)</td>
+</tr>
+</tbody></table>
+<h3 id="82-the-spectrum-of-visualization-tools">8.2 The spectrum of visualization tools</h3>
+<p>Slide 45, from lower threshold (top) to higher ceiling (bottom):</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Kind</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Charting tools</td>
+<td>Chart typologies</td>
+<td>Excel, Google Charts</td>
+</tr>
+<tr>
+<td>Declarative languages</td>
+<td>Visual analysis grammars</td>
+<td>ggplot, VizQL</td>
+</tr>
+<tr>
+<td>Declarative languages</td>
+<td><strong>Visualization grammars</strong> (highlighted)</td>
+<td>Protovis, D3.js, <strong>Vega-Lite</strong></td>
+</tr>
+<tr>
+<td>Programming languages</td>
+<td>Graphics APIs</td>
+<td>Processing, SVG, OpenGL</td>
+</tr>
+</tbody></table>
+<h3 id="83-declarative-vs-imperative">8.3 Declarative vs imperative</h3>
+<p>A <strong>declarative language</strong> describes <strong>what</strong>, not <strong>how</strong>, separating the <strong>specification</strong> from the <strong>execution</strong>; <strong>imperative</strong> code gives explicit steps.</p>
+<p>The slides relabel HTML (markup) and CSS (styling) as <strong>declarative</strong>, JavaScript (programming) as <strong>imperative</strong>. Slide 49:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">main</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-3"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">B</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-4"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">main</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'1'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'fish'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'dog'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'2'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'*'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Grid: <em>what</em>. JS: <em>step-by-step</em>, ending in <code>number*fish*-2*blue*3*dog*2</code> (<a href="/~kazuhak/notes/in4matx-133/lec-05/en-US/">Lecture 5</a>). (Slide bug: curly <code>“col-4&quot;</code>, <code>“col&quot;</code>; fixed.)</p>
+<p><strong>Why declarative?</strong> Faster iteration, less code, a lower threshold, and it can be generated programmatically.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://en.wikipedia.org/wiki/Vector_graphics">Wikipedia: Vector graphics</a> · <a href="https://www.edwardtufte.com/tufte/posters">Edward Tufte: posters</a></p>
+</blockquote>
+<hr>
+<h2 id="9-vega-lite-a-grammar-of-graphics">9. Vega-Lite: a grammar of graphics</h2>
+<p><strong>Goal</strong> (Satyanarayan et al., IEEE Vis 2017): &quot;an expressive (high ceiling) yet concise (low threshold) declarative language for specifying visualizations&quot;.</p>
+<p>A <strong>grammar of graphics</strong>: a chart is these parts:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data</strong></td>
+<td>the input data to visualize</td>
+</tr>
+<tr>
+<td><strong>Mark</strong></td>
+<td>the data-representative graphics: area, bar, dot (point), image, line, label (text), rule, arc</td>
+</tr>
+<tr>
+<td><strong>Transform</strong></td>
+<td>whether to filter, aggregate, bin, etc.</td>
+</tr>
+<tr>
+<td><strong>Encoding</strong></td>
+<td>the mapping between data fields and mark properties (x, y, color, …)</td>
+</tr>
+<tr>
+<td><strong>Scale</strong></td>
+<td>(part of an encoding) maps data values to visual values</td>
+</tr>
+<tr>
+<td><strong>Guides</strong></td>
+<td>axes and legends that visualize the scales</td>
+</tr>
+</tbody></table>
+<p>A spec is a JSON object; data is usually a JSON array of records (the repo&#39;s <code>seattle-weather.json</code>, 365 rows for 2015):</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">[</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        "date"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"2015/01/01"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "weather"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"sun"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "temperature"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">1.1999999999999997</span></span>
+<span class="line"><span style="color:#D4D4D4">    }, </span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        "date"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"2015/01/02"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "weather"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"fog"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "temperature"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">2.8</span></span>
+<span class="line"><span style="color:#D4D4D4">    }, </span></span>
+<span class="line"><span style="color:#F44747">    ...</span></span>
+<span class="line"><span style="color:#D4D4D4">]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Draw it with <code>vegaEmbed(&#39;#id&#39;, spec)</code> after loading the vega, vega-lite and vega-embed scripts (<a href="#124-demo-2-bar-chart-of-us-ages-in-2000-slide-63--setup2--solution2">Demo 2</a>).</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://doi.org/10.1109/TVCG.2016.2599030">Satyanarayan et al. (2017): Vega-Lite: A Grammar of Interactive Graphics</a></p>
+</blockquote>
+<hr>
+<h2 id="10-building-a-histogram-in-vega-lite">10. Building a histogram in Vega-Lite</h2>
+<p><strong>Histogram = bar with x = binned field, y = count</strong>, colored by weather. Built one change at a time:</p>
+<p><strong>Step 1: a tick per record</strong> (slide 55): mark <code>&quot;tick&quot;</code>, x = <code>&quot;temperature&quot;</code>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">  data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">  mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"tick"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"temperature"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Every field gets one of <strong>four types</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>quantitative</code></td>
+<td>numerical</td>
+<td>temperature</td>
+</tr>
+<tr>
+<td><code>temporal</code></td>
+<td>time</td>
+<td>date</td>
+</tr>
+<tr>
+<td><code>ordinal</code></td>
+<td>ordered categories</td>
+<td>age group, month</td>
+</tr>
+<tr>
+<td><code>nominal</code></td>
+<td>unordered categories</td>
+<td>weather, origin</td>
+</tr>
+</tbody></table>
+<p><strong>Step 2: bin</strong> (slide 56): <code>bin: true</code> on x; axis title <code>BIN(temperature)</code>, one tick per bin, no count yet.</p>
+<p><strong>Step 3: count</strong> (slide 57): y with <code>aggregate: &quot;count&quot;</code>; still ticks, at each count&#39;s height.</p>
+<p><strong>Step 4: bars</strong> (slide 58): <code>mark: &quot;bar&quot;</code> makes it a histogram:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">  data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">  mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      bin</span><span style="color:#D4D4D4">: </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"temperature"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    },</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      aggregate</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"count"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Step 5: color</strong> (slide 59): <code>color: {field: &quot;weather&quot;, type: &quot;nominal&quot;}</code> splits each bar into <strong>stacked</strong> segments, with a legend.</p>
+<p>Demo with 12 inline rows (<code>data: {values: …}</code>), so counts are small:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 55–59 · building the histogram one encoding at a time (inline rows from seattle-weather.json)&quot;, &quot;interactive&quot;: true, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// 12 rows from the repo&#39;s seattle-weather.json (the demo can&#39;t load the file)\nvar weather = [\n  {\&quot;date\&quot;: \&quot;2015/01/01\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 1.2},\n  {\&quot;date\&quot;: \&quot;2015/01/02\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 2.8},\n  {\&quot;date\&quot;: \&quot;2015/01/18\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 10.55},\n  {\&quot;date\&quot;: \&quot;2015/03/25\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 10.8},\n  {\&quot;date\&quot;: \&quot;2015/04/01\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 9.2},\n  {\&quot;date\&quot;: \&quot;2015/05/22\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 14.2},\n  {\&quot;date\&quot;: \&quot;2015/06/15\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 23.05},\n  {\&quot;date\&quot;: \&quot;2015/07/08\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 22.2},\n  {\&quot;date\&quot;: \&quot;2015/07/31\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 26.1},\n  {\&quot;date\&quot;: \&quot;2015/08/14\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 16.65},\n  {\&quot;date\&quot;: \&quot;2015/08/22\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 19.45},\n  {\&quot;date\&quot;: \&quot;2015/10/19\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 14.7}\n];\n\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;, &quot;height&quot;: 260, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 56: bin: true groups the temperatures into bins.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 57: y counts the records in each bin (still ticks).&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 58: change the mark to bar, and it&#39;s a histogram.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 59: color by the nominal weather field; the bars stack automatically.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;},\n    color: {field: \&quot;weather\&quot;, type: \&quot;nominal\&quot;}\n  }\n}, {actions: false});&quot;}]}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/seattle-weather.json">seattle-weather.json</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Slides load <code>&quot;weather-seattle.json&quot;</code>, the repo file is <code>seattle-weather.json</code>; a wrong <code>url</code> gives an empty chart, no error. (The slides&#39; <code>snow</code> isn&#39;t in the repo&#39;s 2015 data.)</p>
+</blockquote>
+<hr>
+<h2 id="11-sensible-defaults-and-overriding-them">11. Sensible defaults and overriding them</h2>
+<p>Slide 59 never specified colors, bin widths, axis labels or stacking: Vega-Lite chose <strong>&quot;sensible defaults&quot;</strong>.</p>
+<p><strong>Overriding the defaults</strong> (slide 61): a custom color scale maps each <code>domain</code> value to a <code>range</code> color:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">color</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">  field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  scale</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    domain</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"sun"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"fog"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"drizzle"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"rain"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"snow"</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#C8C8C8">    range</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"#e7ba52"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#c7c7c7"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#aec7e8"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#1f77b4"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#9467bd"</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide bug: <code>scale</code> sits <em>beside</em> <code>color</code>, so Vega-Lite drops it (warning) → put it inside <code>color</code>, as above (curly <code>“#1f77b4&quot;</code> fixed too).</p>
+<p><strong>Monthly precipitation</strong> (slide 62): <code>timeUnit: &quot;month&quot;</code> groups and labels dates (e.g. &quot;2018-10-17&quot;) by month; <code>aggregate: &quot;mean&quot;</code> averages:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">timeUnit</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"month"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"date"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">y</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">aggregate</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"mean"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"precipitation"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide bugs: the repo data has no <code>precipitation</code> (the demo uses temperature), and a <code>quantitative</code> month draws <strong>no bars</strong>; use <code>&quot;ordinal&quot;</code> (as on the slide) or <code>&quot;temporal&quot;</code>.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 61–62 · overriding the color scale, then a monthly mean (inline rows from seattle-weather.json)&quot;, &quot;interactive&quot;: true, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// 12 rows from the repo&#39;s seattle-weather.json (the demo can&#39;t load the file)\nvar weather = [\n  {\&quot;date\&quot;: \&quot;2015/01/01\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 1.2},\n  {\&quot;date\&quot;: \&quot;2015/01/02\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 2.8},\n  {\&quot;date\&quot;: \&quot;2015/01/18\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 10.55},\n  {\&quot;date\&quot;: \&quot;2015/03/25\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 10.8},\n  {\&quot;date\&quot;: \&quot;2015/04/01\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 9.2},\n  {\&quot;date\&quot;: \&quot;2015/05/22\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 14.2},\n  {\&quot;date\&quot;: \&quot;2015/06/15\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 23.05},\n  {\&quot;date\&quot;: \&quot;2015/07/08\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 22.2},\n  {\&quot;date\&quot;: \&quot;2015/07/31\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 26.1},\n  {\&quot;date\&quot;: \&quot;2015/08/14\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 16.65},\n  {\&quot;date\&quot;: \&quot;2015/08/22\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 19.45},\n  {\&quot;date\&quot;: \&quot;2015/10/19\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 14.7}\n];\n\n// slide 61, with scale moved inside color (see the note above)\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;},\n    color: {\n      field: \&quot;weather\&quot;, type: \&quot;nominal\&quot;,\n      scale: {\n        domain: [\&quot;sun\&quot;,\&quot;fog\&quot;,\&quot;drizzle\&quot;,\&quot;rain\&quot;,\&quot;snow\&quot;],\n        range: [\&quot;#e7ba52\&quot;,\&quot;#c7c7c7\&quot;,\&quot;#aec7e8\&quot;,\&quot;#1f77b4\&quot;,\&quot;#9467bd\&quot;]\n      }\n    }\n  }\n}, {actions: false});&quot;, &quot;height&quot;: 260, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 62&#39;s idea on the repo data: timeUnit month on date, y = mean temperature (the repo file has no precipitation field).&quot;, &quot;js&quot;: &quot;// slide 62 (ordinal month; temperature instead of precipitation)\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {timeUnit: \&quot;month\&quot;, field: \&quot;date\&quot;, type: \&quot;ordinal\&quot;},\n    y: {aggregate: \&quot;mean\&quot;, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}]}</code></pre><p><strong>Sensible defaults are Vega-Lite&#39;s secret</strong> (slide 67): <strong>lower threshold</strong> (concise specs), <strong>same ceiling</strong> (overridable). Downside: charts <strong>look similar</strong> (path of least resistance, like grid frameworks) (<a href="#7-evaluating-tools-threshold-and-ceiling">section 7</a>).</p>
+<p>The in-class <strong>Vega-Lite demo</strong> (slide 63, <code>setup2.js</code>, &quot;Not TypeScript!&quot;) is <a href="#124-demo-2-bar-chart-of-us-ages-in-2000-slide-63--setup2--solution2">Demo 2</a>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#124-demo-2-bar-chart-of-us-ages-in-2000-slide-63--setup2--solution2">Demo 2</a> · <a href="#125-question-3-which-vega-lite-spec-draws-this-scatter-plot-slide-64">Question 3</a></p>
+</blockquote>
+<hr>
+<h2 id="12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</h2>
+<h3 id="121-question-1-which-typescript-files-transpile-to-this-js-slide-14">12.1 Question 1: Which TypeScript files transpile to this JS? (slide 14)</h3>
+<p>Which TypeScript files would transpile to</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// 1</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// 2</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// 3</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> 1</li>
+<li><strong>B</strong> 2</li>
+<li><strong>C</strong> 3</li>
+<li><strong>D</strong> 1 and 2</li>
+<li><strong>E</strong> 1, 2, and 3</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: E</strong> (revealed on slide 16).</p>
+<ul>
+<li>Types are <strong>erased</strong>: files 1 and 2 lose their <code>:number</code>s (tsc on the repo&#39;s <code>q1.ts</code> versions confirms).</li>
+<li>File 3 is plain JS, and TS is a superset, so it transpiles to itself.</li>
+<li>Trap: strict mode flags file 3 (<code>implicitly has an &#39;any&#39; type</code>) <strong>but still emits the same JS</strong>.</li>
+</ul>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/q1/q1.ts">q1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>Back to <a href="#2-types">2. Types</a>.</p>
+<h3 id="122-demo-1-add-types-to-joinntimes-slide-13--setup1--solution1">12.2 Demo 1: Add types to joinNTimes (slide 13 · setup1 → solution1)</h3>
+<p>The task, from <code>setup1.ts</code>:</p>
+<ul>
+<li>Write the function in plain JavaScript to join the array of strings on the &quot;join&quot; character, concatenating the results with a newline (<code>&#39;\n&#39;</code>).</li>
+<li>Add types to all the parameters and the return of that function.</li>
+<li>How does that change which function calls are legal?</li>
+</ul>
+<p>The three calls to try (commented out in the starter):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['hello', 'my', 'name', 'is', 'theresa'], ' ', 3));</span></span>
+<span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['in4matx', 133], '-', 2))</span></span>
+<span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['two', 'too', 'to'], 2, 4))</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer.</strong> Plain JS (the repo&#39;s <code>setup1.js</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> joinNTimes</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">''</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        joinedStr</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Untyped, <strong>all three calls run</strong> (the slide&#39;s console):</p>
+<div class="code-wrap"><pre><code>hello my name is theresa
+hello my name is theresa
+hello my name is theresa
+
+in4matx-133
+in4matx-133
+
+two2too2to
+two2too2to
+two2too2to
+two2too2to</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>join</code> coerces <code>133</code> to <code>&quot;133&quot;</code> and uses <code>2</code> as the separator <code>&quot;2&quot;</code>.</p>
+<p>With types (from <code>solution1.ts</code>):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> joinNTimes</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">[], </span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">''</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">	for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">		joinedStr</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#C586C0">	return</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Now <strong>only the first call is legal</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>tsc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>joinNTimes([&#39;hello&#39;, …, &#39;theresa&#39;], &#39; &#39;, 3)</code></td>
+<td>OK</td>
+</tr>
+<tr>
+<td><code>joinNTimes([&#39;in4matx&#39;, 133], &#39;-&#39;, 2)</code></td>
+<td><code>Type &#39;number&#39; is not assignable to type &#39;string&#39;.</code> (<code>133</code> inside a <code>string[]</code>)</td>
+</tr>
+<tr>
+<td><code>joinNTimes([&#39;two&#39;, &#39;too&#39;, &#39;to&#39;], 2, 4)</code></td>
+<td><code>Argument of type &#39;number&#39; is not assignable to parameter of type &#39;string&#39;.</code> (<code>joinStr</code>)</td>
+</tr>
+</tbody></table>
+<p><code>solution1.js</code> keeps only the first call. (Repo quirk: <code>solution1.ts</code> is all inside <code>/* … */</code>.)</p>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.ts">setup1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution1.ts">solution1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution1.js">solution1.js</a></p>
+</blockquote>
+<p>Back to <a href="#2-types">2. Types</a>.</p>
+<h3 id="123-question-2-threshold-and-ceiling-of-photoshop-vs-paint-slide-38">12.3 Question 2: Threshold and ceiling of Photoshop vs Paint (slide 38)</h3>
+<p>Relative to each other, what are the <em>threshold</em> and <em>ceiling</em> of Adobe Photoshop and Microsoft Paint? (They&#39;re tools for making images, but the principles apply.)</p>
+<ul>
+<li><strong>A</strong> Photoshop: high ceiling, high threshold; Paint: low ceiling, low threshold</li>
+<li><strong>B</strong> Photoshop: high ceiling, low threshold; Paint: low ceiling, high threshold</li>
+<li><strong>C</strong> Photoshop: low ceiling, high threshold; Paint: high ceiling, low threshold</li>
+<li><strong>D</strong> Photoshop: low ceiling, low threshold; Paint: high ceiling, high threshold</li>
+<li><strong>E</strong> I&#39;m confused, just clicking in to get participation credit</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: A</strong> (revealed on slide 40).</p>
+<ul>
+<li><strong>Ceiling</strong>: Photoshop does far more (layers, filters, photo editing), which rules out C and D.</li>
+<li><strong>Threshold</strong>: Paint is easy; Photoshop takes learning (hence its tutorials, slide 41), which rules out B.</li>
+<li>Both terms are relative.</li>
+</ul>
+<p>Back to <a href="#7-evaluating-tools-threshold-and-ceiling">7. Evaluating tools</a>.</p>
+<h3 id="124-demo-2-bar-chart-of-us-ages-in-2000-slide-63--setup2--solution2">12.4 Demo 2: Bar chart of U.S. ages in 2000 (slide 63 · setup2 → solution2)</h3>
+<p>The task (<code>setup2.js</code>): a bar chart of the U.S. age distribution, <strong>ages on the Y-axis, counts on the X-axis</strong>. Records of <code>population.json</code> (loaded from the web; copy in the folder):</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">[{</span><span style="color:#9CDCFE">"year"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1850</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"age"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"sex"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"people"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1483789</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">"year"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1850</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"age"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"sex"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"people"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1450376</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#F44747">...</span><span style="color:#D4D4D4">]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The starter (<code>setup2.html</code> loads vega 5.21.0, vega-lite 5.2.0, vega-embed 6.20.2 from jsDelivr, plus an <code>&lt;h1&gt;</code> and empty <code>&lt;div id=&quot;plot&quot;&gt;</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> schema</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#CE9178">		"$schema"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "https://vega.github.io/schema/vega-lite/v4.json"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">		"data"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> { </span><span style="color:#CE9178">"url"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "https://vega.github.io/editor/data/population.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#CE9178">		"transform"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> [{</span><span style="color:#CE9178">"filter"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "datum.year == 2000"</span><span style="color:#D4D4D4">}], </span><span style="color:#6A9955">/*Only select population data from 2000*/</span></span>
+<span class="line"><span style="color:#6A9955">		/*Make a bar chart, encode the X and Y axes*/</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#DCDCAA">	vegaEmbed</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'#plot'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">schema</span><span style="color:#D4D4D4">, {</span><span style="color:#9CDCFE">actions:</span><span style="color:#569CD6">false</span><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>As given it fails: <code>Invalid specification … includes at least one of … &quot;mark&quot;, &quot;layer&quot;, …</code>.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (the part <code>solution2.js</code> adds in place of the comment):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#CE9178">		"mark"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">		"encoding"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#CE9178">			"y"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#CE9178">			  "field"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "age"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"type"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "ordinal"</span></span>
+<span class="line"><span style="color:#D4D4D4">			},</span></span>
+<span class="line"><span style="color:#CE9178">			"x"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#CE9178">			  "aggregate"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "sum"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"field"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "people"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"type"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "quantitative"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">			  "axis"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span><span style="color:#CE9178">"title"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "population"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>mark: &quot;bar&quot;</code>, <strong>y = age, <code>ordinal</code></strong>: one bar per age group, in order.</li>
+<li><strong>x = <code>sum</code> of <code>people</code></strong>: adds each age&#39;s two records (sex 1 and 2).</li>
+<li><code>axis: {&quot;title&quot;: &quot;population&quot;}</code> overrides the default title (<code>Sum of people</code>).</li>
+<li>The <code>transform</code> filter keeps only the 2000 rows.</li>
+</ul>
+<p>Result: 19 bars, ages 0–90, longest at 35–40 (~23M). The v4 <code>$schema</code> causes a harmless warning.</p>
+<p>Demo: year-2000 rows for ages 0, 10, … 90, plus a 1990 row the filter drops:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 2 · solution2.js with inline rows (DOMContentLoaded wrapper dropped; the demo runs after the page)&quot;, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;h1&gt;U.S. age distribution in 2000&lt;/h1&gt;\n&lt;div id=\&quot;plot\&quot;&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// population.json, year 2000 rows for ages 0,10,...,90 (+ one 1990 row the filter drops)\nvar population = [\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9735380},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 9310714},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 10, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 10563233},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 10, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 10022524},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 20, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9731315},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 20, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 9324244},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 30, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 10205879},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 30, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 10119296},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 40, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 11320252},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 40, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 11488578},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 50, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 8507934},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 50, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 8911133},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 60, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 5123399},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 60, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 5668961},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 70, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 3792145},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 70, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 5184855},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 80, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 1902638},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 80, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 3221898},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 90, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 336303},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 90, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 1064581},\n  {\&quot;year\&quot;: 1990, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9307465},\n  {\&quot;year\&quot;: 1990, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 8894007}\n];\n\nvar schema = {\n    \&quot;data\&quot;: { \&quot;values\&quot;: population },\n    \&quot;transform\&quot;: [{\&quot;filter\&quot;: \&quot;datum.year == 2000\&quot;}], /*Only select population data from 2000*/\n    \&quot;mark\&quot;: \&quot;bar\&quot;,\n    \&quot;encoding\&quot;: {\n        \&quot;y\&quot;: {\n          \&quot;field\&quot;: \&quot;age\&quot;, \&quot;type\&quot;: \&quot;ordinal\&quot;\n        },\n        \&quot;x\&quot;: {\n          \&quot;aggregate\&quot;: \&quot;sum\&quot;, \&quot;field\&quot;: \&quot;people\&quot;, \&quot;type\&quot;: \&quot;quantitative\&quot;,\n          \&quot;axis\&quot;: {\&quot;title\&quot;: \&quot;population\&quot;}\n        }\n    }\n}\nvegaEmbed(&#39;#plot&#39;, schema, {actions:false});&quot;, &quot;height&quot;: 340, &quot;tab&quot;: &quot;js&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup2.html">setup2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution2.html">solution2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/population.json">population.json</a></p>
+</blockquote>
+<p>Back to <a href="#11-sensible-defaults-and-overriding-them">11. Sensible defaults</a>.</p>
+<h3 id="125-question-3-which-vega-lite-spec-draws-this-scatter-plot-slide-64">12.5 Question 3: Which Vega-Lite spec draws this scatter plot? (slide 64)</h3>
+<p>How would this visualization be specified in Vega-Lite? (Assume field names are correct.) The chart: hollow circles, <strong>Horsepower</strong> on x (0–200+), <strong>Miles_per_Gallon</strong> on y (0–50), color by <strong>Origin</strong> (Europe blue, Japan orange, USA red).</p>
+<ul>
+<li><strong>A</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: “</span><span style="color:#9CDCFE">Horsepower</span><span style="color:#CE9178">", type: "</span><span style="color:#9CDCFE">ordinal</span><span style="color:#CE9178">"}</span><span style="color:#F44747">,</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>B</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>C</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ticks"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>D</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>E</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ticks"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPT"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: “</span><span style="color:#9CDCFE">Horsepower</span><span style="color:#CE9178">", type: "</span><span style="color:#9CDCFE">ordinal</span><span style="color:#CE9178">"}</span><span style="color:#F44747">,</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+</ul>
+<p>(Letters as on reveal slide 66; the slide text orders them differently. A and E keep the slide&#39;s curly <code>“</code>.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: B</strong> (revealed on slide 66).</p>
+<ul>
+<li><strong>Mark</strong>: hollow circles = <code>&quot;point&quot;</code>; <code>&quot;ticks&quot;</code> isn&#39;t a mark (C errors), ruling out C and E.</li>
+<li><strong>Axes</strong>: Horsepower x, MPG y, both <code>quantitative</code>; A and E swap them as <code>ordinal</code> (E: typo <code>&quot;MPT&quot;</code>).</li>
+<li><strong>Color</strong>: Origin is unordered, so <code>nominal</code> (three hues). D&#39;s <code>ordinal</code> gives shades of one hue:</li>
+</ul>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 3 · option B (nominal color), then option D (ordinal color)&quot;, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// three made-up rows, just to compare B (nominal) with D (ordinal)\nvar cars = [\n  {\&quot;Horsepower\&quot;: 130, \&quot;MPG\&quot;: 18, \&quot;Origin\&quot;: \&quot;USA\&quot;},\n  {\&quot;Horsepower\&quot;: 95, \&quot;MPG\&quot;: 24, \&quot;Origin\&quot;: \&quot;Japan\&quot;},\n  {\&quot;Horsepower\&quot;: 46, \&quot;MPG\&quot;: 26, \&quot;Origin\&quot;: \&quot;Europe\&quot;}\n];\nfunction show(colorType) {\n  vegaEmbed(\&quot;#vis\&quot;, {\n    data: {values: cars},\n    mark: \&quot;point\&quot;,\n    encoding: {\n      x: {field: \&quot;Horsepower\&quot;, type: \&quot;quantitative\&quot;},\n      y: {field: \&quot;MPG\&quot;, type: \&quot;quantitative\&quot;},\n      color: {field: \&quot;Origin\&quot;, type: colorType}\n    }\n  }, {actions: false});\n}\nshow(\&quot;nominal\&quot;); // option B&quot;, &quot;height&quot;: 240, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Option D: ordinal color turns the three origins into shades of one hue, unlike the slide&#39;s chart.&quot;, &quot;js&quot;: &quot;show(\&quot;ordinal\&quot;); // option D&quot;}]}</code></pre><p>Back to <a href="#11-sensible-defaults-and-overriding-them">11. Sensible defaults</a>.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>TypeScript</strong></p>
+<table>
+<thead>
+<tr>
+<th>Syntax / command</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm install -g typescript</code></td>
+<td>installs <code>tsc</code></td>
+</tr>
+<tr>
+<td><code>tsc hello.ts</code></td>
+<td>writes <code>hello.js</code> (types stripped)</td>
+</tr>
+<tr>
+<td><code>tsc --project tsconfig.json</code></td>
+<td>build a project per its config</td>
+</tr>
+<tr>
+<td><code>tsc --declaration test.ts</code></td>
+<td>also writes <code>test.d.ts</code> (types only)</td>
+</tr>
+<tr>
+<td><code>npm install --save @types/lib</code></td>
+<td>type declarations for a JS library</td>
+</tr>
+<tr>
+<td><code>var x:number = 133;</code></td>
+<td>annotated variable; <code>var x = 133;</code> infers <code>number</code></td>
+</tr>
+<tr>
+<td><code>number</code>, <code>boolean</code>, <code>string</code>, <code>void</code>, <code>null</code>, <code>undefined</code>, <code>any</code></td>
+<td>predefined types</td>
+</tr>
+<tr>
+<td><code>function f(a: string, b: number): string</code></td>
+<td>parameter and return types</td>
+</tr>
+<tr>
+<td><code>string[]</code></td>
+<td>array of strings</td>
+</tr>
+<tr>
+<td><code>x: number | number[]</code></td>
+<td>union type</td>
+</tr>
+<tr>
+<td><code>f(x?: number)</code> / <code>f(x = 10)</code></td>
+<td>optional / default parameter</td>
+</tr>
+<tr>
+<td><code>interface Shape { color?: string; }</code></td>
+<td>object shape; <code>?</code> = optional property</td>
+</tr>
+<tr>
+<td><code>class B extends A { constructor(){ super(...) } }</code></td>
+<td>inheritance; <code>super.m()</code> calls the base method</td>
+</tr>
+<tr>
+<td><code>private</code>, <code>get</code> / <code>set</code></td>
+<td>hidden field; accessor property</td>
+</tr>
+<tr>
+<td><code>function identity&lt;T&gt;(arg: T): T</code></td>
+<td>generic function</td>
+</tr>
+</tbody></table>
+<p><strong>Tool evaluation</strong></p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Threshold</td>
+<td>how hard to get started (want low)</td>
+</tr>
+<tr>
+<td>Ceiling</td>
+<td>how much can be achieved (want high)</td>
+</tr>
+<tr>
+<td>Path of least resistance</td>
+<td>tools shape what gets built (all Bootstrap / Vega-Lite output looks alike)</td>
+</tr>
+<tr>
+<td>Moving targets</td>
+<td>changing needs make tools obsolete</td>
+</tr>
+</tbody></table>
+<p><strong>Vega-Lite</strong></p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>data</td>
+<td><code>data: {url: &quot;file.json&quot;}</code> or <code>data: {values: [...]}</code></td>
+</tr>
+<tr>
+<td>mark</td>
+<td><code>&quot;bar&quot;</code>, <code>&quot;tick&quot;</code>, <code>&quot;point&quot;</code>, <code>&quot;line&quot;</code>, <code>&quot;area&quot;</code>, <code>&quot;rule&quot;</code>, <code>&quot;text&quot;</code>, <code>&quot;arc&quot;</code></td>
+</tr>
+<tr>
+<td>field types</td>
+<td><code>quantitative</code>, <code>temporal</code>, <code>ordinal</code>, <code>nominal</code></td>
+</tr>
+<tr>
+<td>bin</td>
+<td><code>x: {bin: true, field: &quot;temperature&quot;, type: &quot;quantitative&quot;}</code></td>
+</tr>
+<tr>
+<td>aggregate</td>
+<td><code>y: {aggregate: &quot;count&quot;, type: &quot;quantitative&quot;}</code>; also <code>&quot;sum&quot;</code>, <code>&quot;mean&quot;</code></td>
+</tr>
+<tr>
+<td>color</td>
+<td><code>color: {field: &quot;weather&quot;, type: &quot;nominal&quot;}</code></td>
+</tr>
+<tr>
+<td>custom scale</td>
+<td><code>color: {…, scale: {domain: [...], range: [...]}}</code> (inside the channel)</td>
+</tr>
+<tr>
+<td>time</td>
+<td><code>x: {timeUnit: &quot;month&quot;, field: &quot;date&quot;, type: &quot;ordinal&quot;}</code></td>
+</tr>
+<tr>
+<td>filter</td>
+<td><code>transform: [{&quot;filter&quot;: &quot;datum.year == 2000&quot;}]</code></td>
+</tr>
+<tr>
+<td>draw it</td>
+<td><code>vegaEmbed(&#39;#plot&#39;, spec, {actions: false})</code></td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>TS types are <strong>checked, then erased</strong>: typed and untyped code emit the same JS, even with type errors.</li>
+<li>Typing is optional: <code>var x = 133</code> is <strong>inferred</strong> as <code>number</code>; parameter types decide which calls are legal.</li>
+<li><strong>Threshold</strong> = how hard to start, <strong>ceiling</strong> = how much is possible; want low/high; relative (Photoshop high/high, Paint low/low).</li>
+<li>Declarative = <em>what</em> (HTML, CSS, Vega-Lite); imperative = step-by-step <em>how</em> (JS). Vega-Lite&#39;s <strong>sensible defaults</strong> lower the threshold; overrides keep the ceiling.</li>
+<li>Vega-Lite spec = <strong>data + mark + encoding</strong> with the right field type; histogram = <code>bar</code>, binned x, <code>count</code> y.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 6</span><span class="pager-title" data-astro-cid-gxyjxt6l>DOM Manipulation &amp; Package Management</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-08/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 8 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>AJAX, Fetch &amp; Promises</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-06/en-US/" title="Previous: DOM Manipulation &amp; Package Management ([)" aria-label="Previous: Lecture 6" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 6</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 7</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-08/en-US/" title="Next: AJAX, Fetch &amp; Promises (])" aria-label="Next: Lecture 8" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 8</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

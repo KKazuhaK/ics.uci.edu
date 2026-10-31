@@ -1,0 +1,1 @@
+var e=[`en-US`,`zh-CN`],t=`kzh-lang`;function n(t){return typeof t==`string`&&e.includes(t)}function r(){try{let e=localStorage.getItem(t);return n(e)?e:null}catch{return null}}function i(e){try{localStorage.setItem(t,e)}catch{}}export{i as n,n as r,r as t};

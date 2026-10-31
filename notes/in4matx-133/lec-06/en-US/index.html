@@ -1,0 +1,806 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 DOM Manipulation &amp; Package Management | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="The Document Object Model, selecting and editing elements, changing the DOM tree, events and listeners, script order, client-side validation, and package managers with npm."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-06/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413983" data-source-url="/~kazuhak/notes/in4matx-133/lec-06/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-05/en-US/" data-next-url="/~kazuhak/notes/in4matx-133/lec-07/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 6</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 6 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 6 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-6-dom-manipulation--package-management">IN4MATX 133: User Interface Software — Lecture 6: DOM Manipulation &amp; Package Management</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-javascript-on-the-client-and-the-server">1. JavaScript on the client and the server</a></li>
+<li><a href="#2-the-document-object-model-dom">2. The Document Object Model (DOM)</a></li>
+<li><a href="#3-putting-javascript-in-a-page">3. Putting JavaScript in a page</a></li>
+<li><a href="#4-selecting-elements">4. Selecting elements</a></li>
+<li><a href="#5-editing-elements">5. Editing elements</a></li>
+<li><a href="#6-changing-the-dom-tree">6. Changing the DOM tree</a></li>
+<li><a href="#7-events-and-listeners">7. Events and listeners</a></li>
+<li><a href="#8-document-ready-and-script-order">8. Document ready and script order</a></li>
+<li><a href="#9-client-side-uses-validating-and-gathering-data">9. Client-side uses: validating and gathering data</a></li>
+<li><a href="#10-package-managers">10. Package managers</a></li>
+<li><a href="#11-npm">11. npm</a></li>
+<li><a href="#12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Tuesday 10/13<br>Built from the Lecture 6 slides (53 pages) and the demo repo folder <code>W3_L1_Oct13_DOM</code>. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Start A2 soon: it&#39;s due in ~2 weeks, has its own <code>#a2</code> Slack channel, and students report it&#39;s difficult, so it&#39;s NOT the one to procrastinate on.<br>A2 draws on three lectures: Lec 5 (10/8, JavaScript basics), this one (10/13, modifying page content with JavaScript + npm), and Lec 7 (10/15, TypeScript objects + Vega-Lite graphs).</p>
+</blockquote>
+<hr>
+<h2 id="1-javascript-on-the-client-and-the-server">1. JavaScript on the client and the server</h2>
+<p>So far (<a href="/~kazuhak/notes/in4matx-133/lec-05/en-US/">Lecture 5</a>) JavaScript has looked like any other language. It took over the web because it has <strong>lots of built-in functions for editing web pages</strong>. Today it runs in two places:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Client-side (your browser)</th>
+<th>Server-side (web server)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Visible to the user?</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>When changes happen</td>
+<td>In real time, in the browser</td>
+<td>On the server, in response to HTTP requests</td>
+</tr>
+<tr>
+<td>What it does</td>
+<td>Edits what&#39;s being rendered; triggers or reacts to events</td>
+<td>Navigates the file system programmatically; dynamically generates pages or views; transports, stores or interacts with data</td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>AJAX, Angular, React, Vue.js</td>
+<td>Node, ASP.NET</td>
+</tr>
+</tbody></table>
+<p>The browser sends a <strong>request</strong>, the server sends back a <strong>response</strong> (slide 8 shows a server folder with <code>index.html</code>, <code>css/style.css</code>, <code>js/app.js</code>). The slide&#39;s warning: it can be confusing to follow your code if JavaScript is on both sides.</p>
+<h3 id="11-the-window-object-client-only">1.1 The window object (client only)</h3>
+<p>On the client, <code>window</code> is the browser itself; you read its properties and call its functions:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* example properties */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerWidth</span><span style="color:#D4D4D4">;   </span><span style="color:#6A9955">//viewport width</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> height</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHeight</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//viewport height</span></span>
+<span class="line"><span style="color:#6A9955">/* example functions */</span></span>
+<span class="line"><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Boo!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> confirmed</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">confirm</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Are you sure?"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> quest</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">window</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">prompt</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"What is your quest?"</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The slide marks the alert/confirm/prompt pop-ups as <strong>bad form</strong>: put the message or the input on your page instead. (Slide bug: the prompt line ends <code>?”);</code> with a curly quote, which is a syntax error; the version above uses a straight <code>&quot;</code>.)</p>
+<p><strong>Server-side has no <code>window</code></strong>: on a server there would be nothing to scroll to and no one to alert. Client–server communication comes back in A3.</p>
+<p>In this demo the pop-ups are shown as console lines. <code>confirm</code> answers <code>true</code> and <code>prompt</code> answers <code>&quot;&quot;</code> (the empty string):</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 10 · the window object (alerts go to the console here)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;/* example properties */\nvar width = window.innerWidth;   //viewport width\nvar height = window.innerHeight; //viewport height\nconsole.log(width &gt; 0, height &gt; 0);\n\n/* example functions */\nwindow.alert(\&quot;Boo!\&quot;);\nvar confirmed = window.confirm(\&quot;Are you sure?\&quot;);\nvar quest = window.prompt(\&quot;What is your quest?\&quot;);\nconsole.log(confirmed, JSON.stringify(quest));&quot;, &quot;height&quot;: 60}</code></pre><hr>
+<h2 id="2-the-document-object-model-dom">2. The Document Object Model (DOM)</h2>
+<p>The DOM is &quot;a standard for how to get, change, add, or delete HTML elements&quot;. The HTML you write is parsed by the browser and <strong>turned into the DOM</strong>, and then client-side JavaScript can edit the DOM. Server-side JavaScript might decide what HTML to send, but it <strong>does not edit the DOM</strong>.</p>
+<p>When a page loads, the browser builds a DOM of the page. The DOM is a <strong>tree</strong>: HTML elements are nodes (text and attributes hang off them as nodes too). Through it JavaScript can <strong>respond to events</strong> and <strong>change structure, style and content</strong>. The slide&#39;s tree:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TB
+  doc[&quot;document&quot;] --&gt; html[&quot;Root element: #lt;html#gt;&quot;]
+  html --&gt; head[&quot;Element: #lt;head#gt;&quot;] &amp; body[&quot;Element: #lt;body#gt;&quot;]
+  head --&gt; title[&quot;Element: #lt;title#gt;&quot;] --&gt; t1[&quot;Text: #quot;My title#quot;&quot;]
+  body --&gt; h1[&quot;Element: #lt;h1#gt;&quot;] --&gt; t2[&quot;Text: #quot;A heading#quot;&quot;]
+  body --&gt; a[&quot;Element: #lt;a#gt;&quot;]
+  a --&gt; href[&quot;Attribute: href&quot;]
+  a --&gt; t3[&quot;Text: #quot;Link text#quot;&quot;]</code></pre><blockquote>
+<p>💡 <strong>Key Insight</strong>: Every DOM call in the rest of this lecture is a tree operation: find a node, change a node, or add/move/remove a child.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://css-tricks.com/dom/">CSS-Tricks: What is the DOM?</a> · <a href="https://en.wikipedia.org/wiki/Document_Object_Model">Wikipedia: Document Object Model</a></p>
+</blockquote>
+<hr>
+<h2 id="3-putting-javascript-in-a-page">3. Putting JavaScript in a page</h2>
+<p>You can write JavaScript inline in a <code>&lt;script&gt;</code> tag. Wiring a handler with an <code>onclick</code> attribute works, but the slide flags it as <strong>bad style</strong>:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">    function</span><span style="color:#DCDCAA"> buttonClicked</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#DCDCAA">      alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Button Clicked!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--Bad style! Don't do this--></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> onclick</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"</span><span style="color:#DCDCAA">buttonClicked</span><span style="color:#CE9178">()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Like CSS, it&#39;s better to <strong>load an external script</strong> (same as Lecture 5&#39;s &quot;Loading JavaScript&quot;):</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"js/script.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The better way to attach the click handler is <code>addEventListener</code> (<a href="#7-events-and-listeners">section 7</a>). Putting the script in the <code>&lt;head&gt;</code> only works if the script waits for the page to load (<a href="#8-document-ready-and-script-order">section 8</a>).</p>
+<hr>
+<h2 id="4-selecting-elements">4. Selecting elements</h2>
+<p>Before you can change an element you need a reference to it, which you get by calling <strong>selector functions</strong> on <code>document</code>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//element with id="foo"</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> fooElem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'foo'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//elements with class="row"</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> rowElems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByClassName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'row'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//&#x3C;li> elements</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> liElems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'li'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Look at the names. <code>getElementById</code> is singular and returns <strong>one element</strong> (or <code>null</code>). <code>getElementsBy…</code> is plural and returns a <strong>collection</strong> (an <code>HTMLCollection</code>), even if only one element matches. To use one element from it you index it, like <code>liElems[0]</code>.</p>
+<p>Slide 17 runs the first one against <code>&lt;div id=&quot;foo&quot;&gt;This is a div with ID &#39;foo&#39;.&lt;/div&gt;</code>. The console prints the div&#39;s <code>innerHTML</code>, which is <code>This is a div with ID &#39;foo&#39;.</code> (Slide bugs: the slide code has curly quotes <code>‘foo&#39;</code> / <code>“foo”</code>, which are a JavaScript syntax error, and <code>console.Log</code>, which throws <code>TypeError: console.Log is not a function</code>. The repo version below uses <code>&#39;foo&#39;</code> and <code>console.log</code>.)</p>
+<p><strong>The easiest way is to reuse CSS selectors.</strong> Any selector from <a href="/~kazuhak/notes/in4matx-133/lec-03/en-US/">Lecture 3</a> works. <code>.selectExample &gt; p</code> is the child selector: a <code>&lt;p&gt;</code> that is a <em>direct</em> child of <code>.selectExample</code>, not a grandchild.</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/*easiest to select by reusing CSS selectors! */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cssSelector</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'.selectExample > p'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//selects FIRST element that matches css selector</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cssSelector</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//matches ALL elements that match css selector</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elems</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelectorAll</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cssSelector</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">elems</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The <code>forEach</code> loop is from lectureExamples.js. On the repo page it prints <code>CSS selector example!!</code> once. The second paragraph inside <code>.selectExample</code> sits inside a nested <code>&lt;div&gt;</code>, so it is a grandchild and isn&#39;t matched.</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Returns</th>
+<th>Has <code>forEach</code>?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getElementById</code></td>
+<td>one element or <code>null</code></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>getElementsByClassName</code>, <code>getElementsByTagName</code></td>
+<td><code>HTMLCollection</code> (live)</td>
+<td><strong>no</strong>, so use a <code>for</code> loop</td>
+</tr>
+<tr>
+<td><code>querySelector</code></td>
+<td>first match or <code>null</code></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>querySelectorAll</code></td>
+<td><code>NodeList</code></td>
+<td><strong>yes</strong></td>
+</tr>
+</tbody></table>
+<p>The repo&#39;s own comment (solution1.js) says the same thing: &quot;HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method but NodeList, which querySelector returns, does&quot;. It means <code>querySelectorAll</code>. In Chromium, <code>typeof collection.forEach</code> is <code>undefined</code> for an HTMLCollection and <code>function</code> for a NodeList.</p>
+<p>Try your own selectors below; edit the JS and press Run:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 16–18 · lectureExamples.html / .js (Selecting elements 1–2)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;div id=\&quot;foo\&quot;&gt;This is a div with ID &#39;foo&#39;.&lt;/div&gt;\n&lt;ol&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n    &lt;li&gt;List item&lt;/li&gt;\n&lt;/ol&gt;\n&lt;div class=\&quot;selectExample\&quot;&gt;\n    &lt;p&gt;CSS selector example!!&lt;/p&gt;\n    &lt;div&gt;&lt;p&gt;Here&#39;s another paragraph that will not be selected... because it&#39;s not a direct descendent!&lt;/p&gt;&lt;/div&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;//element with id=\&quot;foo\&quot;\nvar fooElem = document.getElementById(&#39;foo&#39;);\nconsole.log(fooElem.innerHTML);\n\n//&lt;li&gt; elements\nvar liElems = document.getElementsByTagName(&#39;li&#39;);\nconsole.log(liElems.length);\n\n/*easiest to select by reusing CSS selectors! */\nvar cssSelector = &#39;.selectExample &gt; p&#39;;\nvar elem = document.querySelector(cssSelector);\nvar elems = document.querySelectorAll(cssSelector);\nelems.forEach((elem) =&gt; {\n    console.log(elem.innerHTML);\n});\nconsole.log(elems.length);&quot;, &quot;height&quot;: 200}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.html">lectureExamples.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Writing a property on a collection (<code>getElementsByClassName(&quot;para&quot;).innerHTML = …</code>) throws no error and changes nothing on the page. You have to index first: <code>[0].innerHTML</code>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-question-1-which-snippet-edits-the-p-slide-23">Question 1</a> tests exactly this.</p>
+</blockquote>
+<hr>
+<h2 id="5-editing-elements">5. Editing elements</h2>
+<p>Once you have an element, you change it by <strong>setting its properties</strong>.</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* properties to access the CONTENT of the element */</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p.queryTest'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//the text content of the elem</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm different!"</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//change the content</span></span>
+<span class="line"><span style="color:#6A9955">//content including tags</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm &#x3C;strong>different&#x3C;/strong>"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">parentNode</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">//get the parent node</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>textContent</code> is plain text. Tags in the string are <strong>not</strong> parsed; they show up literally on the page (in Chromium the stored HTML is <code>I&#39;m &amp;lt;strong&amp;gt;different&amp;lt;/strong&amp;gt;</code>).</li>
+<li><code>innerHTML</code> is parsed as HTML, so <code>different</code> becomes bold.</li>
+<li><code>parentNode</code> moves up the tree. Here it&#39;s the <code>&lt;body&gt;</code>, whose <code>tagName</code> is <code>BODY</code>.</li>
+</ul>
+<p>(Slide bug: <code>‘p.queryTest’</code> uses curly quotes; use <code>&#39;p.queryTest&#39;</code>.)</p>
+<p>You can also <strong>add or remove classes, IDs and inline style</strong>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> elements</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"h1"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">elements</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  elements</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"title"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  elements</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">style</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"blue"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With the repo&#39;s CSS <code>.title { font-style: italic; }</code>, the heading &quot;Hello, IN4MATX 133!&quot; turns <strong>blue and italic</strong>. That&#39;s the slide&#39;s screenshot, and it&#39;s also what I got running lectureExamples.html. <code>classList.add</code> keeps styling in the CSS file, while <code>style.color</code> writes an inline style on the element. The loop is a <code>for</code> loop because the result is an <code>HTMLCollection</code> (<a href="#4-selecting-elements">section 4</a>).</p>
+<p>Step through it:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 19–20 · lectureExamples.js (Editing elements 1–2)&quot;, &quot;css&quot;: &quot;.title {\n    font-style: italic;\n}&quot;, &quot;html&quot;: &quot;&lt;h1&gt;Hello, IN4MATX 133!&lt;/h1&gt;\n&lt;p class=\&quot;queryTest\&quot;&gt;Editing inner HTML...&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var elem = document.querySelector(&#39;p.queryTest&#39;);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;textContent replaces the text; tags in the string would show literally.&quot;, &quot;js&quot;: &quot;\nelem.textContent = \&quot;I&#39;m different!\&quot;; //change the content&quot;}, {&quot;note&quot;: &quot;innerHTML parses the string as HTML, so &lt;strong&gt; becomes bold.&quot;, &quot;js&quot;: &quot;\nelem.innerHTML = \&quot;I&#39;m &lt;strong&gt;different&lt;/strong&gt;\&quot;;\nvar parent = elem.parentNode; //get the parent node\nconsole.log(parent.tagName);&quot;}, {&quot;note&quot;: &quot;Add the class \&quot;title\&quot; (italic, from the CSS) and an inline blue color to every h1.&quot;, &quot;js&quot;: &quot;\nvar elements = document.getElementsByTagName(\&quot;h1\&quot;);\nfor(var i = 0; i &lt; elements.length; i++) {\n    elements[i].classList.add(\&quot;title\&quot;);\n    elements[i].style.color=\&quot;blue\&quot;;\n}&quot;}], &quot;height&quot;: 150}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.css">lectureExamples.css</a></p>
+</blockquote>
+<hr>
+<h2 id="6-changing-the-dom-tree">6. Changing the DOM tree</h2>
+<p>Besides editing elements that already exist, you can create new nodes and attach, insert, replace or remove them:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//create a new &#x3C;p> (not yet in the tree)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> newP</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"I'm new!"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">//create Node of textContent only</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> newText</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"I'm blank"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> div</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'div#container'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//add element INSIDE (at end)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//add node BEFORE element (new, old)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insertBefore</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"First!"</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">newP</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//replace node (new, old)</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">replaceChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createTextNode</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'boo'</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">newText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">//remove node</span></span>
+<span class="line"><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">removeChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">querySelector</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>A node you create <strong>isn&#39;t on the page until you append or insert it</strong> somewhere. Running the calls in order, <code>div.innerHTML</code> goes like this (Chromium output):</p>
+<table>
+<thead>
+<tr>
+<th>After</th>
+<th><code>div.innerHTML</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>appendChild(newP)</code></td>
+<td><code>&lt;p&gt;I&#39;m new!&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td><code>appendChild(newText)</code></td>
+<td><code>&lt;p&gt;I&#39;m new!&lt;/p&gt;I&#39;m blank</code></td>
+</tr>
+<tr>
+<td><code>insertBefore(&quot;First!&quot;, newP)</code></td>
+<td><code>First!&lt;p&gt;I&#39;m new!&lt;/p&gt;I&#39;m blank</code></td>
+</tr>
+<tr>
+<td><code>replaceChild(&#39;boo&#39;, newText)</code></td>
+<td><code>First!&lt;p&gt;I&#39;m new!&lt;/p&gt;boo</code></td>
+</tr>
+<tr>
+<td><code>removeChild(p)</code></td>
+<td><code>First!boo</code></td>
+</tr>
+</tbody></table>
+<p>The argument order is the trap: <code>insertBefore</code> and <code>replaceChild</code> both take <strong>(new, old)</strong>. The repo&#39;s lectureExamples.js comments out every call after the first <code>appendChild</code>, so its page only shows &quot;I&#39;m new!&quot;. The demo below runs them all:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 21 · Changing the DOM, one call per step&quot;, &quot;html&quot;: &quot;&lt;div id=\&quot;container\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;//create a new &lt;p&gt; (not yet in the tree)\nvar newP = document.createElement(&#39;p&#39;);\nnewP.textContent = \&quot;I&#39;m new!\&quot;;\n//create Node of textContent only\nvar newText = document.createTextNode(\&quot;I&#39;m blank\&quot;);\nvar div = document.querySelector(&#39;div#container&#39;);&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;appendChild adds the new p inside the div, at the end.&quot;, &quot;js&quot;: &quot;\ndiv.appendChild(newP); //add element INSIDE (at end)\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;A text node is appended after the p.&quot;, &quot;js&quot;: &quot;\ndiv.appendChild(newText);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;insertBefore(new, old) puts \&quot;First!\&quot; before the p.&quot;, &quot;js&quot;: &quot;\ndiv.insertBefore(document.createTextNode(\&quot;First!\&quot;), newP);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;replaceChild(new, old) swaps \&quot;I&#39;m blank\&quot; for \&quot;boo\&quot;.&quot;, &quot;js&quot;: &quot;\ndiv.replaceChild(document.createTextNode(&#39;boo&#39;), newText);\nconsole.log(div.innerHTML);&quot;}, {&quot;note&quot;: &quot;removeChild removes the p; only the two text nodes are left.&quot;, &quot;js&quot;: &quot;\ndiv.removeChild(div.querySelector(&#39;p&#39;));\nconsole.log(div.innerHTML);&quot;}], &quot;height&quot;: 120}</code></pre><p>The in-class <strong>DOM manipulation demo</strong> (slide 22: <code>setup1.html</code>, <code>setup1.css</code>, <code>setup1.js</code>) puts sections 4–6 together on a timer. It&#39;s worked out in <a href="#122-demo-1-edit-the-page-on-a-timer-slide-22--setup1--solution1">Demo 1</a>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#122-demo-1-edit-the-page-on-a-timer-slide-22--setup1--solution1">Demo 1</a></p>
+</blockquote>
+<hr>
+<h2 id="7-events-and-listeners">7. Events and listeners</h2>
+<p><em>How do we make interactive pages?</em> You attach a <strong>listener</strong> to an element: a function to call when that element causes an event. Usually it&#39;s an anonymous callback (callbacks were covered in <a href="/~kazuhak/notes/in4matx-133/lec-05/en-US/">Lecture 5</a>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//often use an anonymous callback function</span></span>
+<span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'click'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(){</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'clicky clicky!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The callback is passed an <strong>event</strong> parameter. Sometimes it&#39;s useful, but you can often ignore it, since all JavaScript parameters are optional. <code>event.target</code> is the element the event came from:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">elem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'click'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'You clicked me!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">   //get what was clicked;</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> clickedElem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>You can add several listeners to the same element and they all run in the order they were added. On the repo page, one click on <code>#buttonTest</code> prints <code>clicky clicky!</code> and then <code>You clicked me!</code>, followed by the button element itself.</p>
+<p>Event types listed on the slide:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&#39;click&#39;</code></td>
+<td>mouse or button clicked</td>
+</tr>
+<tr>
+<td><code>&#39;dblclick&#39;</code></td>
+<td>double-clicked</td>
+</tr>
+<tr>
+<td><code>&#39;hover&#39;</code></td>
+<td>mouse hover (see the slide bug below)</td>
+</tr>
+<tr>
+<td><code>&#39;focus&#39;</code></td>
+<td>element gains focus (the slide marks this important)</td>
+</tr>
+<tr>
+<td><code>&#39;mouseenter&#39;</code> / <code>&#39;mouseleave&#39;</code></td>
+<td>mouse moves over / leaves the element</td>
+</tr>
+<tr>
+<td><code>&#39;mousedown&#39;</code></td>
+<td>mouse button is pressed</td>
+</tr>
+<tr>
+<td><code>&#39;keydown&#39;</code></td>
+<td>key is pressed</td>
+</tr>
+</tbody></table>
+<p>Slide bug: there is <strong>no <code>&#39;hover&#39;</code> event</strong>. I attached a <code>&#39;hover&#39;</code> listener in Chromium and hovered the element, and it never fired, while <code>&#39;mouseenter&#39;</code> did. Use <code>mouseenter</code>/<code>mouseleave</code> (or the CSS <code>:hover</code> selector for styling).</p>
+<p>Click the button and watch the console:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 27–28 · lectureExamples.js (Listeners 1–2) — click the button&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;button id=\&quot;buttonTest\&quot;&gt;click me!&lt;/button&gt;&quot;, &quot;js&quot;: &quot;var elem = document.getElementById(&#39;buttonTest&#39;);\n\n//often use an anonymous callback function\nelem.addEventListener(&#39;click&#39;, function(){\n    console.log(&#39;clicky clicky!&#39;);\n});\n\nelem.addEventListener(&#39;click&#39;, function(event) {\n    console.log(&#39;You clicked me!&#39;);\n    // get what was clicked\n    var clickedElem = event.target;\n    console.log(clickedElem);\n});&quot;, &quot;height&quot;: 80}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/lectureExamples/lectureExamples.js">lectureExamples.js</a> (sections &quot;Listeners (1)&quot; and &quot;Listeners (2)&quot;)</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://developer.mozilla.org/en-US/docs/Web/Events">MDN: Event reference</a></p>
+</blockquote>
+<hr>
+<h2 id="8-document-ready-and-script-order">8. Document ready and script order</h2>
+<p>Your script should <strong>wait until the page has loaded</strong>. Otherwise the elements it&#39;s trying to access might not exist yet:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">  alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Page loaded!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>This is how lectureExamples.js works: its whole body sits inside one <code>DOMContentLoaded</code> listener, even though it&#39;s loaded in the <code>&lt;head&gt;</code>. Without the listener, a <code>&lt;head&gt;</code> script runs before the <code>&lt;body&gt;</code> is parsed. At the top level of such a script, <code>document.querySelector(&#39;h1&#39;)</code> returns <code>null</code>; inside the listener it finds the heading. The demo files use the older <code>&lt;body onload=&quot;runJS()&quot;&gt;</code> for the same purpose.</p>
+<p><strong>Importing JavaScript.</strong> When your script uses document ready, the convention is to load it in the <code>&lt;head&gt;</code>. <strong>Order matters</strong>, especially for libraries: load Math.js <em>before</em> the script that uses it.</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.0.0/math.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">script</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"index.js"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The slide opens the first <code>src</code> with a curly <code>“</code>; that has to be a straight <code>&quot;</code>.)</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>Cannot read properties of null</code> from a selector almost always means the script ran before the element existed. Wrap your code in <code>DOMContentLoaded</code>.</p>
+</blockquote>
+<hr>
+<h2 id="9-client-side-uses-validating-and-gathering-data">9. Client-side uses: validating and gathering data</h2>
+<p><strong>Validating data.</strong> Check form fields <em>before</em> sending to a server. The user gets instant feedback and there&#39;s less back-and-forth with the server:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> validateForm</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">  var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">forms</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">"myForm"</span><span style="color:#D4D4D4">][</span><span style="color:#CE9178">"fname"</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">==</span><span style="color:#569CD6">null</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">==</span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">    alert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Name must be filled out"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">form</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"myForm"</span><span style="color:#9CDCFE"> onsubmit</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"</span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> validateForm</span><span style="color:#CE9178">()"</span><span style="color:#9CDCFE"> method</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"post"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">label</span><span style="color:#808080">></span><span style="color:#D4D4D4">Name: </span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">label</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> type</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"text"</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"fname"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> type</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"submit"</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Submit"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">form</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>return false</code> from the <code>onsubmit</code> handler <strong>cancels the submit</strong>. With the field empty, it alerts <code>Name must be filled out</code> and the page stays put. <code>document.forms[&quot;myForm&quot;][&quot;fname&quot;]</code> looks up the form by its <code>name</code>, then the input by its <code>name</code>.</p>
+<p>Step through both cases (empty, then filled in), or type in the box and press Submit yourself. The demo never actually sends the form; it logs <code>[form submitted]</code> instead:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 32 \u00b7 validating a form before it is sent \u2014 step through, or type and press Submit&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;form name=\&quot;myForm\&quot; onsubmit=\&quot;return validateForm()\&quot; method=\&quot;post\&quot;&gt;\n&lt;label&gt;Name: &lt;/label&gt;\n&lt;input type=\&quot;text\&quot; name=\&quot;fname\&quot;&gt;\n&lt;input type=\&quot;submit\&quot; value=\&quot;Submit\&quot;&gt;\n&lt;/form&gt;&quot;, &quot;js&quot;: &quot;function validateForm() {\n    var x = document.forms[\&quot;myForm\&quot;][\&quot;fname\&quot;].value;\n    if(x==null || x==\&quot;\&quot;) {\n        alert(\&quot;Name must be filled out\&quot;);\n        return false;\n    }\n}&quot;, &quot;height&quot;: 80, &quot;steps&quot;: [{&quot;note&quot;: &quot;Submit with the field empty: validateForm alerts and returns false, so the submit is cancelled.&quot;, &quot;js&quot;: &quot;\n// simulate pressing Submit with an empty field\ndocument.forms[\&quot;myForm\&quot;].requestSubmit();&quot;}, {&quot;note&quot;: &quot;Fill in a name and submit again: validateForm returns nothing, so the form would be sent.&quot;, &quot;js&quot;: &quot;\ndocument.forms[\&quot;myForm\&quot;][\&quot;fname\&quot;].value = \&quot;Peter\&quot;;\ndocument.forms[\&quot;myForm\&quot;].requestSubmit();&quot;}]}</code></pre><p><strong>Gathering and using information.</strong> Client-side code can read things only the browser knows, such as the user&#39;s location:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"demo"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getLocation</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">navigator</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">geolocation</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        navigator</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">geolocation</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getCurrentPosition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">showPosition</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">        x</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"Geolocation is not supported by this browser."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> showPosition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    x</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"Latitude: "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">coords</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">latitude</span><span style="color:#D4D4D4"> +</span></span>
+<span class="line"><span style="color:#CE9178">    "&#x3C;br>Longitude: "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">position</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">coords</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">longitude</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">script</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>getCurrentPosition</code> takes <code>showPosition</code> as a callback and calls it later with the position. The slide&#39;s reminder is that <strong>this is client-side</strong>: it&#39;s the user&#39;s browser (and device) that knows the location. (Not run here, because it needs a location permission prompt.)</p>
+<hr>
+<h2 id="10-package-managers">10. Package managers</h2>
+<p><em>Switching topics.</em> So far we&#39;ve imported packages in two ways (<a href="/~kazuhak/notes/in4matx-133/lec-04/en-US/">Lecture 4</a> did this for Bootstrap):</p>
+<ul>
+<li>through <strong>CDNs</strong>, by pasting a <code>&lt;script&gt;</code> tag into the <code>&lt;head&gt;</code>, e.g. <code>&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.0.0/math.min.js&quot;&gt;&lt;/script&gt;</code>;</li>
+<li>by <strong>downloading from the source</strong> (e.g. downloading Bootstrap instead of using a CDN).</li>
+</ul>
+<p><strong>Package managers</strong> give you an easy way to install software on your computer, both new programs and libraries. They also make it simple to update software to the latest version. The hard part is that packages depend on other packages, often on different versions of them, and your package manager should handle that for you. They&#39;re essentially <strong>app stores where all the content is free</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OS-level</td>
+<td>apt-get (Unix), homebrew (macOS), winget (Windows)</td>
+</tr>
+<tr>
+<td>Language-level</td>
+<td>pip (Python), npm (JavaScript), yarn (also JavaScript), RubyGems (Ruby)</td>
+</tr>
+</tbody></table>
+<p><strong>Why are there so many?</strong> There&#39;s some value in keeping language- or domain-specific contexts. Certain languages work better with certain file formats, most managers are community-driven, and each new one solves some problem of an earlier one. The slide&#39;s verdict: &quot;a lot of these are excuses; in reality, it&#39;s often a frustrating mess.&quot;</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.quora.com/Why-do-so-many-different-programming-languages-have-their-own-package-manager">Quora: Why do so many programming languages have their own package manager?</a></p>
+</blockquote>
+<hr>
+<h2 id="11-npm">11. npm</h2>
+<h3 id="111-npm-and-yarn">11.1 npm and Yarn</h3>
+<ul>
+<li><strong>npm</strong> was introduced as the package manager for <strong>Node.js</strong> (server-side JavaScript).</li>
+<li><strong>Yarn</strong> came later, released as open source by Facebook. It uses the <strong>same registry</strong> (list of packages).</li>
+<li>Both have a lot of useful libraries for building web pages and web interfaces, for both server-side and client-side JavaScript. They&#39;re occasionally used to install system-wide software too.</li>
+<li>&quot;Package&quot; and &quot;library&quot; are often used interchangeably, which can be misleading.</li>
+</ul>
+<p>Some example web libraries:</p>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Moment.js*</td>
+<td>managing time and time zones (*the slide links an article saying you probably don&#39;t need it anymore)</td>
+</tr>
+<tr>
+<td>Math.js</td>
+<td>any math, unit conversion, etc.</td>
+</tr>
+<tr>
+<td>Express</td>
+<td>routing your website to different content (other pages or files)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://momentjs.com/docs/">Moment.js docs</a> · <a href="https://dockyard.com/blog/2020/02/14/you-probably-don-t-need-moment-js-anymore">DockYard: You probably don&#39;t need Moment.js anymore</a> · <a href="http://mathjs.org/docs/">Math.js docs</a> · <a href="https://expressjs.com/">Express</a></p>
+</blockquote>
+<h3 id="112-the-three-npm-files-and-git">11.2 The three npm files and git</h3>
+<table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>What it is</th>
+<th>Commit to git?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>package.json</code></td>
+<td>the libraries installed in this project; kept in the project&#39;s root folder by convention</td>
+<td><strong>yes</strong></td>
+</tr>
+<tr>
+<td><code>package-lock.json</code></td>
+<td>the specific versions of the libraries <em>your</em> libraries require (&quot;the libraries of your libraries&quot;)</td>
+<td><strong>yes</strong></td>
+</tr>
+<tr>
+<td><code>node_modules/</code></td>
+<td>all the installed libraries themselves</td>
+<td><strong>no</strong>: add it to <code>.gitignore</code></td>
+</tr>
+</tbody></table>
+<p><code>.gitignore</code> lists the files that should not be committed. You commit the two JSON files so someone else can install <strong>the same package versions</strong> you used. You don&#39;t commit <code>node_modules/</code> because it&#39;s redundant (<code>package.json</code> already says what to download) and large (it holds the packages themselves).</p>
+<h3 id="113-using-npm">11.3 Using npm</h3>
+<p>npm runs in your OS&#39;s command line, from your project&#39;s <strong>root directory</strong>:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">cd</span><span style="color:#CE9178"> path/to/project</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#CE9178"> packagename</span><span style="color:#6A9955">   # installs into this project's node_modules/</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> update</span><span style="color:#6A9955">                # get the latest versions (important for security patches)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Cloning a project.</strong> To run the course webpage, for example: install npm, clone the repository, and run <code>npm install</code> with no package name in the root directory. That installs every library the project depends on (listed in <code>package.json</code>) into <code>node_modules/</code>.</p>
+<p><strong>Global packages</strong> are just software on your computer, usually command-line programs:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> packagename</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Global packages are programs, not libraries, so they are <strong>not added to <code>package.json</code> or <code>node_modules/</code></strong>, although your project might depend on them to run. They often overlap with what OS-level package managers provide. <strong>A2 only requires global packages.</strong></p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.npmjs.com/get-npm">npm: Get npm</a></p>
+</blockquote>
+<h3 id="114-packagejson-and-version-ranges">11.4 package.json and version ranges</h3>
+<p>&quot;Do not edit manually unless you know what you&#39;re doing!&quot; The slide&#39;s example (an old course website, an Angular project):</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"inf133-wi22"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "version"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"0.0.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  "scripts"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "ng"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "start"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng serve"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "build"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ng build"</span></span>
+<span class="line"><span style="color:#D4D4D4">  },</span></span>
+<span class="line"><span style="color:#9CDCFE">  "dependencies"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/animations"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/common"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/compiler"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/core"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/forms"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/platform-browser"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/platform-browser-dynamic"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "@angular/router"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~7.2.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "bibtex-parse-js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"0.0.24"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "component"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^1.1.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "core-js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^2.5.4"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "moment"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^2.24.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "ngx-moment"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^3.4.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "rxjs"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~6.3.3"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "tslib"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"^1.10.0"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">    "zone.js"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"~0.8.26"</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(Slide bugs: <code>“inf133-wi22&quot;</code> opens with a curly quote, and there is a trailing comma after <code>&quot;build&quot;: &quot;ng build&quot;</code>. Both are invalid JSON, so they&#39;re fixed above.)</p>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Meaning</th>
+<th><code>&quot;~7.2.0&quot;</code> / <code>&quot;^1.1.0&quot;</code> accepts</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>^</code></td>
+<td>&quot;compatible with&quot;</td>
+<td><code>^1.1.0</code> → 1.X.X</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>&quot;approximately the same as&quot;</td>
+<td><code>~7.2.0</code> → 7.2.X</td>
+</tr>
+<tr>
+<td>none</td>
+<td>exactly that version</td>
+<td><code>&quot;0.0.24&quot;</code></td>
+</tr>
+<tr>
+<td><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>=</code></td>
+<td>explicit comparisons</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><code>scripts</code> names commands you run with npm (e.g. <code>npm start</code> runs <code>ng serve</code>). In an empty project, <code>npm install moment</code> (npm 10.9.4) writes <code>&quot;moment&quot;: &quot;^2.31.0&quot;</code> to <code>package.json</code>, creates <code>package-lock.json</code>, and downloads into <code>node_modules/</code>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-question-2-npm-install-vs-npm-install--g-slide-49">Question 2</a></p>
+</blockquote>
+<hr>
+<h2 id="12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</h2>
+<h3 id="121-question-1-which-snippet-edits-the-p-slide-23">12.1 Question 1: Which snippet edits the p? (slide 23)</h3>
+<p>Which snippet would edit the <code>p</code> to display &quot;1, 2, 3, 4, 5&quot;?</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"para"</span><span style="color:#9CDCFE"> id</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"intro"</span><span style="color:#808080">></span><span style="color:#D4D4D4">1, 2, 3</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> <code>document.getElementById(&quot;intro&quot;).append(&quot;, 4, 5&quot;);</code></li>
+<li><strong>B</strong> <code>document.getElementsByClassName(“para&quot;).innerHTML = &quot;1, 2, 3, 4, 5&quot;;</code></li>
+<li><strong>C</strong> <code>document.getElementsByTagName(“p&quot;)[0].innerHTML = &quot;1, 2, 3, 4, 5&quot;;</code></li>
+<li><strong>D</strong> Two of the above</li>
+<li><strong>E</strong> All of the above</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: D</strong> (A and C; the slide 25 reveal highlights A, C and D).</p>
+<ul>
+<li><strong>A works.</strong> <code>getElementById</code> returns the element, and <code>append</code> adds the text at the end, giving <code>1, 2, 3, 4, 5</code>.</li>
+<li><strong>B fails silently.</strong> <code>getElementsByClassName</code> returns an <code>HTMLCollection</code>. Setting <code>.innerHTML</code> on the collection just creates a useless property on it, so the <code>&lt;p&gt;</code> still says <code>1, 2, 3</code>, and no error is thrown.</li>
+<li><strong>C works.</strong> It&#39;s a collection too, but <code>[0]</code> takes the first <code>&lt;p&gt;</code> out of it and then sets its <code>innerHTML</code>.</li>
+</ul>
+<p>(The slide&#39;s B and C open the string with a curly <code>“</code>, which would be a syntax error in real code. The repo&#39;s <code>q1.js</code> uses straight quotes; the answer assumes them.) Running q1.js with each option uncommented gives the same output as this check:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 1 · each option run on a fresh copy of the p (q1.js)&quot;, &quot;html&quot;: &quot;&lt;p class=\&quot;para\&quot; id=\&quot;intro\&quot;&gt;1, 2, 3&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var p = document.getElementById(\&quot;intro\&quot;);\n\n// A\ndocument.getElementById(\&quot;intro\&quot;).append(\&quot;, 4, 5\&quot;);\nconsole.log(\&quot;A:\&quot;, p.innerHTML);\np.innerHTML = \&quot;1, 2, 3\&quot;; // reset\n\n// B\ndocument.getElementsByClassName(\&quot;para\&quot;).innerHTML = \&quot;1, 2, 3, 4, 5\&quot;;\nconsole.log(\&quot;B:\&quot;, p.innerHTML);\np.innerHTML = \&quot;1, 2, 3\&quot;; // reset\n\n// C\ndocument.getElementsByTagName(\&quot;p\&quot;)[0].innerHTML = \&quot;1, 2, 3, 4, 5\&quot;;\nconsole.log(\&quot;C:\&quot;, p.innerHTML);&quot;, &quot;height&quot;: 60}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/q1/q1.html">q1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>Back to <a href="#4-selecting-elements">4. Selecting elements</a>.</p>
+<h3 id="122-demo-1-edit-the-page-on-a-timer-slide-22--setup1--solution1">12.2 Demo 1: Edit the page on a timer (slide 22 · setup1 → solution1)</h3>
+<p>The starting page shows &quot;Hello, IN4MATX 133!&quot; and &quot;Fill in this paragraph and add another one.&quot; The task, from <code>setup1.js</code>:</p>
+<ul>
+<li>After 1 second, add the &quot;title&quot; class to the h1 tag and change its color to blue.</li>
+<li>After 2 seconds, change the text of the first paragraph (id &quot;first&quot;) to &quot;Lorem ipsum amet&quot;.</li>
+<li>After 3 seconds, add a new paragraph to the div (id &quot;body&quot;) with the text &quot;A new paragraph!&quot;</li>
+</ul>
+<p>Starter (<code>setup1.html</code> calls <code>runJS()</code> from <code>&lt;body onload=&quot;runJS()&quot;&gt;</code>; <code>setup1.css</code> defines <code>.title { font-style: italic; }</code> and <code>#body { font-family: &#39;Arial&#39;; }</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> runJS</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeTitleBlue</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addLoremIpsum</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addNewParagraph</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (from <code>solution1.js</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> runJS</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeTitleBlue</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">addLoremIpsum</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    setTimeout</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">addNewParagraph</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeTitleBlue</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> h1Tags</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'h1'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">    // interesting note: HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method</span></span>
+<span class="line"><span style="color:#6A9955">    // but NodeList, which querySelector returns, does</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C; </span><span style="color:#9CDCFE">h1Tags</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        h1Tags</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'title'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        h1Tags</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">].</span><span style="color:#9CDCFE">style</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addLoremIpsum</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> firstTag</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'first'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    firstTag</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'Lorem ipsum'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addNewParagraph</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> div</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'body'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> newEl</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'p'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    newEl</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'A new paragraph'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    newEl</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">classList</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'title'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    div</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newEl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Key points:</p>
+<ul>
+<li><code>setTimeout(fn, ms)</code> takes the function <strong>itself</strong> (<code>makeTitleBlue</code>, not <code>makeTitleBlue()</code>) and calls it after <code>ms</code> milliseconds.</li>
+<li>Each step is one of the moves from sections 4–6: select by tag and loop, select by id and set <code>textContent</code>, then create, set and <code>appendChild</code>.</li>
+</ul>
+<p>After 3.5 s the page shows a blue &quot;Hello, IN4MATX 133!&quot;, &quot;Lorem ipsum&quot;, and &quot;A new paragraph&quot;. Two repo quirks: the solution writes <code>&#39;Lorem ipsum&#39;</code> and <code>&#39;A new paragraph&#39;</code> (the task says &quot;Lorem ipsum amet&quot; and &quot;A new paragraph!&quot;), and it also italicizes the new paragraph. Also, <code>solution1.html</code> links <code>solution1.css</code>, which isn&#39;t in the repo (404), so on the repo page the heading is <strong>blue but not italic</strong>. With <code>setup1.css</code> (as in the demo below), the heading and new paragraph are italic and the div is Arial.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 1 · solution1.js (runJS() called directly instead of body onload)&quot;, &quot;css&quot;: &quot;.title {\n    font-style: italic;\n}\n\n#body {\n    font-family: &#39;Arial&#39;;\n}&quot;, &quot;html&quot;: &quot;&lt;h1&gt;Hello, IN4MATX 133!&lt;/h1&gt;\n&lt;div id=\&quot;body\&quot;&gt;\n    &lt;p id=\&quot;first\&quot;&gt;Fill in this paragraph and add another one.&lt;/p&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;\nfunction runJS() {\n    setTimeout(makeTitleBlue, 1000);\n\n    setTimeout(addLoremIpsum, 2000);\n\n    setTimeout(addNewParagraph, 3000);\n}\n\nfunction makeTitleBlue () {\n    var h1Tags = document.getElementsByTagName(&#39;h1&#39;);\n    // interesting note: HTMLCollection, which getElementsByTagName returns, does NOT have a foreach() method\n    // but NodeList, which querySelector returns, does\n    for(var i = 0; i&lt; h1Tags.length; i++) {\n        h1Tags[i].classList.add(&#39;title&#39;);\n        h1Tags[i].style.color = &#39;blue&#39;;\n    }\n}\n\nfunction addLoremIpsum () {\n    var firstTag = document.getElementById(&#39;first&#39;);\n    firstTag.textContent = &#39;Lorem ipsum&#39;;\n}\n\nfunction addNewParagraph () {\n    var div = document.getElementById(&#39;body&#39;);\n    var newEl = document.createElement(&#39;p&#39;);\n    newEl.textContent = &#39;A new paragraph&#39;;\n    newEl.classList.add(&#39;title&#39;);\n    div.appendChild(newEl);\n}\n\nrunJS(); // in the repo: &lt;body onload=\&quot;runJS()\&quot;&gt;&quot;, &quot;height&quot;: 160}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.css">setup1.css</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/solution1.html">solution1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L1_Oct13_DOM/demo1/solution1.js">solution1.js</a></p>
+</blockquote>
+<p>Back to <a href="#6-changing-the-dom-tree">6. Changing the DOM tree</a>.</p>
+<h3 id="123-question-2-npm-install-vs-npm-install--g-slide-49">12.3 Question 2: npm install vs npm install -g (slide 49)</h3>
+<p>Which is correct? The four effects:</p>
+<ol>
+<li>Downloads package to <code>node_modules</code></li>
+<li>Adds package to <code>package.json</code></li>
+<li>Adds package&#39;s dependencies to <code>package-lock.json</code></li>
+<li>Package is usable as a program from the command line</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th><code>npm install packagename</code></th>
+<th><code>npm install -g packagename</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>1, 2, 3, 4</td>
+<td>1, 4</td>
+</tr>
+<tr>
+<td>B</td>
+<td>1, 2, 3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>C</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>D</td>
+<td>1, 2, 3</td>
+<td>2, 3, 4</td>
+</tr>
+<tr>
+<td>E</td>
+<td>1</td>
+<td>1, 4</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: B</strong> (revealed on slide 51).</p>
+<ul>
+<li><strong>Local install</strong> changes the project: it downloads into <code>node_modules/</code> (1), records the package in <code>package.json</code> (2), and pins its dependencies in <code>package-lock.json</code> (3). My <code>npm install moment</code> test did all three.</li>
+<li><strong>Global install</strong> is &quot;just software on your computer&quot;: it gives you a command-line program (4) and touches <strong>none</strong> of the project&#39;s files. That rules out A and E (global doesn&#39;t use the project&#39;s <code>node_modules</code>) and D (global doesn&#39;t edit <code>package.json</code> or the lock file). C misses that a local install also updates the two JSON files.</li>
+</ul>
+<p>Back to <a href="#11-npm">11. npm</a>.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Selecting</strong></p>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>document.getElementById(&#39;foo&#39;)</code></td>
+<td>one element / <code>null</code></td>
+</tr>
+<tr>
+<td><code>document.getElementsByClassName(&#39;row&#39;)</code></td>
+<td><code>HTMLCollection</code> (index it; no <code>forEach</code>)</td>
+</tr>
+<tr>
+<td><code>document.getElementsByTagName(&#39;li&#39;)</code></td>
+<td><code>HTMLCollection</code></td>
+</tr>
+<tr>
+<td><code>document.querySelector(&#39;.a &gt; p&#39;)</code></td>
+<td>first match / <code>null</code></td>
+</tr>
+<tr>
+<td><code>document.querySelectorAll(&#39;.a &gt; p&#39;)</code></td>
+<td><code>NodeList</code> (has <code>forEach</code>)</td>
+</tr>
+</tbody></table>
+<p><strong>Editing and changing the tree</strong></p>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>el.textContent = &quot;…&quot;</code></td>
+<td>set plain text (tags shown literally)</td>
+</tr>
+<tr>
+<td><code>el.innerHTML = &quot;…&quot;</code></td>
+<td>set content parsed as HTML</td>
+</tr>
+<tr>
+<td><code>el.parentNode</code></td>
+<td>parent node</td>
+</tr>
+<tr>
+<td><code>el.classList.add(&quot;title&quot;)</code></td>
+<td>add a class</td>
+</tr>
+<tr>
+<td><code>el.style.color = &quot;blue&quot;</code></td>
+<td>inline style</td>
+</tr>
+<tr>
+<td><code>document.createElement(&#39;p&#39;)</code> / <code>createTextNode(&quot;…&quot;)</code></td>
+<td>new node, not yet in the tree</td>
+</tr>
+<tr>
+<td><code>parent.appendChild(node)</code></td>
+<td>add inside, at the end</td>
+</tr>
+<tr>
+<td><code>parent.insertBefore(new, old)</code></td>
+<td>add before <code>old</code></td>
+</tr>
+<tr>
+<td><code>parent.replaceChild(new, old)</code></td>
+<td>swap</td>
+</tr>
+<tr>
+<td><code>parent.removeChild(node)</code></td>
+<td>remove</td>
+</tr>
+</tbody></table>
+<p><strong>Events</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>el.addEventListener(&#39;click&#39;, function(event) {…})</code></td>
+<td>react to an event; <code>event.target</code> = source</td>
+</tr>
+<tr>
+<td><code>document.addEventListener(&#39;DOMContentLoaded&#39;, …)</code></td>
+<td>run after the page is parsed</td>
+</tr>
+<tr>
+<td><code>click</code>, <code>dblclick</code>, <code>focus</code>, <code>mouseenter</code>, <code>mouseleave</code>, <code>mousedown</code>, <code>keydown</code></td>
+<td>common types (no <code>hover</code> event)</td>
+</tr>
+</tbody></table>
+<p><strong>npm</strong></p>
+<table>
+<thead>
+<tr>
+<th>Command / file</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm install</code></td>
+<td>install everything in <code>package.json</code> into <code>node_modules/</code></td>
+</tr>
+<tr>
+<td><code>npm install pkg</code></td>
+<td>add <code>pkg</code>: node_modules + package.json + package-lock.json</td>
+</tr>
+<tr>
+<td><code>npm install -g pkg</code></td>
+<td>install a command-line program globally; no project files</td>
+</tr>
+<tr>
+<td><code>npm update</code></td>
+<td>update to the latest allowed versions (security patches)</td>
+</tr>
+<tr>
+<td><code>^1.1.0</code> / <code>~7.2.0</code></td>
+<td>1.X.X / 7.2.X</td>
+</tr>
+<tr>
+<td>commit</td>
+<td><code>package.json</code>, <code>package-lock.json</code>; <code>.gitignore</code> <code>node_modules/</code></td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li><code>getElementsBy…</code> returns a <strong>collection</strong>: index it (<code>[0]</code>) before setting <code>innerHTML</code>. Setting a property on the collection itself does nothing and doesn&#39;t raise an error.</li>
+<li><code>textContent</code> is text-only, while <code>innerHTML</code> parses tags.</li>
+<li><code>insertBefore</code> and <code>replaceChild</code> take <strong>(new, old)</strong>, and a created node isn&#39;t visible until you append or insert it.</li>
+<li>Scripts in the <code>&lt;head&gt;</code> must wait for <code>DOMContentLoaded</code>, and libraries must be loaded before the scripts that use them.</li>
+<li><code>npm install pkg</code> updates <code>node_modules</code> + <code>package.json</code> + <code>package-lock.json</code>, while <code>-g</code> only installs a command-line program. Commit the two JSON files, never <code>node_modules/</code>.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-05/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 5</span><span class="pager-title" data-astro-cid-gxyjxt6l>JavaScript 2</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 7 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>TypeScript &amp; Data Visualization Tools</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-05/en-US/" title="Previous: JavaScript 2 ([)" aria-label="Previous: Lecture 5" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 5</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 6</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" title="Next: TypeScript &amp; Data Visualization Tools (])" aria-label="Next: Lecture 7" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 7</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

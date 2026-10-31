@@ -1,0 +1,1054 @@
+<!DOCTYPE html><html lang="en-US"><head><title>CS 121 Text Processing, Term-Document Matrices | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Tokenizing problems, stopping, stemming (suffix-s, Porter, Krovetz), phrases with POS tagging and n-grams, document structure and anchor text, and the term-document incidence matrix."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413980" data-source-url="/~kazuhak/notes/cs-121/week-05/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-05/zh-CN/" data-prev-url="/~kazuhak/notes/cs-121/week-04/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 5</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 5 · Information Retrieval Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents CS 121 Week 5 notes in a structured reading format so you can review text processing, the web graph, SEO, web crawling, and how search engines index and rank pages week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 28, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-5-text-processing-term-document-matrices">CS 121: Information Retrieval — Week 5: Text Processing, Term-Document Matrices</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-where-we-are-text-transformation">1. Where We Are: Text Transformation</a></li>
+<li><a href="#2-tokenizing-problems-to-consider">2. Tokenizing Problems to Consider</a></li>
+<li><a href="#3-the-tokenizing-process">3. The Tokenizing Process</a></li>
+<li><a href="#4-stopping">4. Stopping</a></li>
+<li><a href="#5-stemming">5. Stemming</a></li>
+<li><a href="#6-the-porter-stemmer">6. The Porter Stemmer</a></li>
+<li><a href="#7-dictionary-stemmers-krovetz-and-a-comparison">7. Dictionary Stemmers, Krovetz, and a Comparison</a></li>
+<li><a href="#8-phrases">8. Phrases</a></li>
+<li><a href="#9-part-of-speech-tagging">9. Part-of-Speech Tagging</a></li>
+<li><a href="#10-word-n-grams">10. Word N-Grams</a></li>
+<li><a href="#11-document-structure-and-markup">11. Document Structure and Markup</a></li>
+<li><a href="#12-links-and-anchor-text">12. Links and Anchor Text</a></li>
+<li><a href="#13-the-term-document-incidence-matrix">13. The Term-Document Incidence Matrix</a></li>
+<li><a href="#14-why-the-matrix-doesnt-scale">14. Why the Matrix Doesn&#39;t Scale</a></li>
+<li><a href="#15-worked-examples-with-solutions">15. Worked Examples (with Solutions)</a></li>
+<li><a href="#16-quick-reference--top-5-things-to-remember">16. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 28<br>Built from the Lecture 13 and 14 slides (the YuJa videos are not included; the in-class Lecture 12.5 deck wasn&#39;t posted yet). Organized by concept, not by lecture.<br>📖 Readings this week: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., Ch 4 up to and including §4.4</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning, Raghavan &amp; Schütze, <em>Introduction to IR</em>, Ch 1</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Assignment 2 (web crawler) is due <strong>Friday, Oct 30, 9:00 pm</strong>.<br>Online Quiz 2 is next Wednesday, <strong>Nov 4</strong>, in class on your laptop (opens 7:00 pm, 35 minutes).</p>
+</blockquote>
+<hr>
+<h2 id="1-where-we-are-text-transformation">1. Where We Are: Text Transformation</h2>
+<p>Both decks sit in the <strong>Text Transformation/Processing</strong> box of the architecture (L13 p2, p10 · L14 p2, p29; the full diagram is in <a href="/~kazuhak/notes/cs-121/week-01/en-US/#10-search-engine-architecture">Week 1 §10</a>). The topic is &quot;Text processing &amp; tokenization++&quot;: what happens to a document&#39;s text between the document store and the index.</p>
+<p><strong>Tokenizing</strong>, or <strong>lexical analysis</strong>, forms units of meaning from characters, usually from sequences of them. It is surprisingly complex in English and can be harder in other languages (L13 p4–5). The early-IR rule (runs of 3+ alphanumerics, ended by a space or special character, then lower-cased) and its result on the Bigcorp sentence are in <a href="/~kazuhak/notes/cs-121/week-02/en-US/#23-the-early-tokenization-methodology">Week 2 §2.3</a>. Two things L13 adds:</p>
+<ul>
+<li>Turning upper case into lower case has several names: <strong>case folding</strong>, <strong>normalization</strong> or <strong>downcasing</strong>.</li>
+<li>That rule is too simple for search, or even for large-scale experiments, because <strong>too much information is lost</strong>. Small decisions in tokenizing can have a <strong>major impact</strong> on the effectiveness of some queries (L13 p6).</li>
+</ul>
+<hr>
+<h2 id="2-tokenizing-problems-to-consider">2. Tokenizing Problems to Consider</h2>
+<p>The slides&#39; list of hard cases (L13 p7–9):</p>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Why it matters</th>
+<th>Examples from the slides</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Small words</strong></td>
+<td>Can be important in some queries, usually in combinations</td>
+<td>xp, am, pm, el paso, world war II, &quot;to be or not to be&quot;</td>
+</tr>
+<tr>
+<td><strong>Hyphens — merge</strong></td>
+<td>Sometimes the hyphen isn&#39;t needed; both forms are common, so merge them</td>
+<td>e-bay, wal-mart, active-x, cd-rom, t-shirts</td>
+</tr>
+<tr>
+<td><strong>Hyphens — hard cases</strong></td>
+<td>The hyphen may be part of the word or a word separator; harder to decide</td>
+<td>winston-salem, mazda rx-7, e-cards, pre-diabetes, t-mobile, spanish-speaking</td>
+</tr>
+<tr>
+<td><strong>Special characters</strong></td>
+<td>Important parts of tags, URLs, code in documents</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Capitalized words</strong></td>
+<td>May or may not mean the same as lower case</td>
+<td>&quot;Bush&quot;, &quot;Apple&quot; vs &quot;bush&quot;, &quot;apple&quot;</td>
+</tr>
+<tr>
+<td><strong>Apostrophes</strong></td>
+<td>Part of a word, part of a possessive, or just a mistake</td>
+<td>rosie o&#39;donnell, can&#39;t, don&#39;t, 80&#39;s, 1890&#39;s, men&#39;s straw hats, master&#39;s degree, england&#39;s ten largest cities, shriner&#39;s</td>
+</tr>
+<tr>
+<td><strong>Numbers</strong></td>
+<td>Can be important, decimals included</td>
+<td>nokia 3250, top 10 courses, united 93, quicktime 6.5 pro, 92.3 the beat, 288358, 3.14159265</td>
+</tr>
+<tr>
+<td><strong>Periods</strong></td>
+<td>Appear in numbers, abbreviations, URLs, ends of sentences, …</td>
+<td>I.B.M., Ph.D., cs.umass.edu, F.E.A.R.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: In a search engine, the tokenizing steps for <strong>queries must be identical</strong> to the steps for documents (L13 p9). If documents index <code>ibm</code> but the query is tokenized to <code>i</code>, <code>b</code>, <code>m</code>, nothing matches.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.2 Tokenizing (book p. 87)</a></p>
+</blockquote>
+<hr>
+<h2 id="3-the-tokenizing-process">3. The Tokenizing Process</h2>
+<p>Tokenizing is a <strong>multiple-step process</strong> (L13 p11). The first step uses a <strong>tokenizer + parser</strong> to identify which parts of the document to tokenize for search (the markup in <a href="#11-document-structure-and-markup">§11</a> is where the parser earns its keep).</p>
+<p>The most general strategy is to <strong>defer complex decisions to other components</strong>:</p>
+<ul>
+<li>A word is any set of alphanumeric characters, ended by a space or special character, with everything converted to lower case.</li>
+<li><strong>Everything is indexed</strong>, and the system keeps track of additional information. Example: <code>92.3</code> → <code>92</code> <code>3</code>, but a search still finds documents with <code>92</code> and <code>3</code> <strong>adjacent</strong>.</li>
+<li>Add some special rules to reduce dependence on the query transformation components.</li>
+</ul>
+<p>That&#39;s not very different from the simple tokenizing used in the past (L13 p12). Rules used with early <strong>TREC</strong> collections:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Apostrophes in words ignored</td>
+<td>o&#39;connor → <code>oconnor</code>, bob&#39;s → <code>bobs</code></td>
+</tr>
+<tr>
+<td>Periods in abbreviations ignored</td>
+<td>I.B.M. → <code>ibm</code>, Ph.D. → <code>phd</code></td>
+</tr>
+</tbody></table>
+<p>Difficult cases are still left to <strong>post-processing</strong>: information extraction and query transformation.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The tokenizer stays simple on purpose and keeps enough information (like word positions) that later stages can recover what it threw away.</p>
+</blockquote>
+<hr>
+<h2 id="4-stopping">4. Stopping</h2>
+<p><strong>Function words</strong> — determiners, prepositions — have little meaning on their own and very high occurrence frequencies (L13 p13). They can be treated as <strong>stopwords</strong>, i.e. removed, which:</p>
+<ul>
+<li>reduces index space,</li>
+<li>improves response time,</li>
+<li>improves effectiveness.</li>
+</ul>
+<p>However, they can be important <strong>in combinations</strong>: &quot;to be or not to be&quot; is all stopwords.</p>
+<p>Building the list (L13 p14): a stopword list can be made from the highest-frequency words or from a standard list. Lists are customized for applications, domains, and even <strong>parts of documents</strong> — &quot;click&quot; and &quot;here&quot; are good stopwords for anchor text.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The usual best policy is to <strong>index all words</strong> in the documents and decide <strong>at query time</strong> which words to use (L13 p14). Removing a word at indexing time can&#39;t be undone.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.3 Stopping (book p. 90)</a></p>
+</blockquote>
+<hr>
+<h2 id="5-stemming">5. Stemming</h2>
+<p>Stemming is also called <strong>conflation</strong>. Words are made of <strong>morphemes</strong> (L13 p15):</p>
+<ul>
+<li><strong>Stems</strong> are the core units.</li>
+<li><strong>Affixes</strong> are the units that adhere to stems. In &quot;stems&quot;, STEM is the stem and S is the affix.</li>
+</ul>
+<p>Many words have morphological variations: <strong>inflectional</strong> (plurals, tenses) and <strong>derivational</strong> (turning verbs into nouns by adding a suffix such as <em>-ation</em>). In most cases the variants have the same or very similar meanings.</p>
+<p><strong>Stemmers</strong> try to reduce those variations to a <strong>common stem</strong>, usually by removing suffixes. Like stopping, this can happen at indexing time and/or during query processing (L13 p16). The slide&#39;s example: a user searches &quot;mark spitz swimming&quot;, but pages about past events say &quot;swam&quot;. The stemmer has to turn both &quot;swimming&quot; and &quot;swam&quot; into the same stem (e.g. &quot;swim&quot;) for them to match.</p>
+<p>The payoff is usually <strong>small but significant</strong> (L13 p17): about 5–10% better effectiveness for English, and up to 50% for Arabic or Russian, where it can be crucial. Arabic builds many words around one root — the slide&#39;s table for the root <em>ktb</em>:</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>kitab</td>
+<td>a book</td>
+</tr>
+<tr>
+<td>kitabi</td>
+<td>my book</td>
+</tr>
+<tr>
+<td>alkitab</td>
+<td>the book</td>
+</tr>
+<tr>
+<td>kitabuki</td>
+<td>your book (f)</td>
+</tr>
+<tr>
+<td>kitabuka</td>
+<td>your book (m)</td>
+</tr>
+<tr>
+<td>kitabuhu</td>
+<td>his book</td>
+</tr>
+<tr>
+<td>kataba</td>
+<td>to write</td>
+</tr>
+<tr>
+<td>maktaba</td>
+<td>library, bookstore</td>
+</tr>
+<tr>
+<td>maktab</td>
+<td>office</td>
+</tr>
+</tbody></table>
+<p><strong>Two basic types</strong> (L13 p18–20), both language dependent:</p>
+<ul>
+<li><strong>Dictionary-based</strong>: uses lists of related words.</li>
+<li><strong>Algorithmic</strong>: uses a program to determine related words.</li>
+</ul>
+<p>The simplest English algorithmic stemmer is <strong>suffix-s</strong>: remove an &quot;s&quot; ending, assuming it&#39;s a plural.</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> suffix_s</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">word</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> word[:-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] </span><span style="color:#C586C0">if</span><span style="color:#D4D4D4"> word.endswith(</span><span style="color:#CE9178">"s"</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> word</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> w </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"cats"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"lakes"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"wiis"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"centuries"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"is"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(w, </span><span style="color:#CE9178">"->"</span><span style="color:#D4D4D4">, suffix_s(w))</span></span>
+<span class="line"><span style="color:#6A9955"># cats -> cat</span></span>
+<span class="line"><span style="color:#6A9955"># lakes -> lake</span></span>
+<span class="line"><span style="color:#6A9955"># wiis -> wii</span></span>
+<span class="line"><span style="color:#6A9955"># centuries -> centurie</span></span>
+<span class="line"><span style="color:#6A9955"># is -> i</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>It makes <strong>many false negatives</strong> (related words it fails to join: centuries ↛ century) and <strong>some false positives</strong> (unrelated words it joins: is → i).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Mind the direction. A <strong>false positive</strong> conflates words that <em>shouldn&#39;t</em> match (is/I); a <strong>false negative</strong> misses words that <em>should</em> (centuries/century).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#151-suffix-s-false-positives-and-false-negatives-l13-p1820">Worked Example 15.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.4 Stemming (book p. 91)</a></p>
+</blockquote>
+<hr>
+<h2 id="6-the-porter-stemmer">6. The Porter Stemmer</h2>
+<p>The <strong>Porter stemmer</strong> (L13 p21) is an algorithmic stemmer used in IR experiments since the 70s:</p>
+<ul>
+<li>It is a <strong>series of rules</strong>; at each step, the rule for the <strong>longest applicable suffix</strong> is executed.</li>
+<li>It is effective in TREC.</li>
+<li>It produces <strong>stems, not words</strong>.</li>
+<li>Drawback: it makes a number of errors and is difficult to modify.</li>
+</ul>
+<p>The slide shows one of its five steps (L13 p22, &quot;Example step (1 of 5)&quot;):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Step 1a:
+- Replace sses by ss (e.g., stresses → stress).
+- Delete s if the preceding word part contains a vowel not immediately
+  before the s (e.g., gaps → gap but gas → gas).
+- Replace ied or ies by i if preceded by more than one letter, otherwise
+  by ie (e.g., ties → tie, cries → cri).
+- If suffix is us or ss do nothing (e.g., stress → stress).
+Step 1b:
+- Replace eed, eedly by ee if it is in the part of the word after the
+  first non-vowel following a vowel (e.g., agreed → agree, feed → feed).
+- Delete ed, edly, ing, ingly if the preceding word part contains a
+  vowel, and then if the word ends in at, bl, or iz add e (e.g., fished →
+  fish, pirating → pirate), or if the word ends with a double letter that
+  is not ll, ss or zz, remove the last letter (e.g., falling → fall,
+  dripping → drip), or if the word is short, add e (e.g., hoping → hope).
+- Whew!</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Step through all twelve of the slide&#39;s examples below, or type your own words. The table fills in each word after 1a and after 1b — a purple cell means <em>that</em> step changed the word, and the final stem is bold — and the code panel highlights the rule that fired:</p>
+<pre data-language="viz" data-viz="porter-step1"><code>{&quot;title&quot;: &quot;Porter Step 1a + 1b on the slide&#39;s examples (L13 p22)&quot;, &quot;words&quot;: &quot;stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping&quot;, &quot;interactive&quot;: true}</code></pre><p>Every example comes out as the slide says: stress, gap, gas, tie, cri, agree, feed, fish, pirate, fall, drip, hope. Note &quot;cri&quot;: a stem, not a word.</p>
+<p>Porter&#39;s mistakes (L13 p23–24):</p>
+<table>
+<thead>
+<tr>
+<th>False positives (conflated, shouldn&#39;t be)</th>
+<th>False negatives (not conflated, should be)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>organization / organ</td>
+<td>european / europe</td>
+</tr>
+<tr>
+<td>generalization / generic</td>
+<td>cylinder / cylindrical</td>
+</tr>
+<tr>
+<td>numerical / numerous</td>
+<td>matrices / matrix</td>
+</tr>
+<tr>
+<td>policy / police</td>
+<td>urgency / urgent</td>
+</tr>
+<tr>
+<td>university / universe</td>
+<td>create / creation</td>
+</tr>
+<tr>
+<td>addition / additive</td>
+<td>analysis / analyses</td>
+</tr>
+<tr>
+<td>negligible / negligent</td>
+<td>useful / usefully</td>
+</tr>
+<tr>
+<td>execute / executive</td>
+<td>noise / noisy</td>
+</tr>
+<tr>
+<td>past / paste</td>
+<td>decompose / decomposition</td>
+</tr>
+<tr>
+<td>ignore / ignorant</td>
+<td>sparse / sparsity</td>
+</tr>
+<tr>
+<td>special / specialized</td>
+<td>resolve / resolution</td>
+</tr>
+<tr>
+<td>head / heading</td>
+<td>triangle / triangular</td>
+</tr>
+</tbody></table>
+<p>The <strong>Porter2</strong> stemmer addresses some of these issues, and you can include exceptions. A similar approach has been used for other languages.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#152-porter-step-1-by-hand-l13-p22">Worked Example 15.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://tartarus.org/martin/PorterStemmer/">Porter stemmer (tartarus.org)</a> · <a href="http://snowball.tartarus.org/algorithms/english/stemmer.html">Porter2 / Snowball English stemmer</a></p>
+</blockquote>
+<hr>
+<h2 id="7-dictionary-stemmers-krovetz-and-a-comparison">7. Dictionary Stemmers, Krovetz, and a Comparison</h2>
+<p><strong>Dictionary stemmers</strong> (L13 p25) use human-built word lists of <code>(word, stem)</code> pairs:</p>
+<ul>
+<li><strong>Very low false positive rate</strong>.</li>
+<li>Related words don&#39;t need to look alike: &quot;is&quot;, &quot;be&quot;, &quot;was&quot;.</li>
+<li>Important drawback: they <strong>can&#39;t react automatically to new words</strong>.</li>
+<li>Lists can be built semi-automatically by statistical analysis, then curated by humans. This is useful for <strong>query expansion</strong> in search applications.</li>
+</ul>
+<p>The <strong>Krovetz stemmer</strong> (L13 p26–27) is a <strong>hybrid</strong> of algorithmic and dictionary. It rests on the observation that irregular words are usually the oldest in the language, while new words tend to follow regular grammatical conventions.</p>
+<ol>
+<li>The word is checked in the dictionary. If it&#39;s there, it&#39;s left alone or replaced with its &quot;exception&quot;.</li>
+<li>If not, the word is checked for suffixes that could be removed.</li>
+<li>After removal, the dictionary is checked again.</li>
+</ol>
+<p>Its advantage: it usually produces <strong>words, not stems</strong>. It has a lower false positive rate and a somewhat higher false negative rate (depending on the size and curation of the dictionary). For search, effectiveness is comparable.</p>
+<p>The slides&#39; comparison on one text (L13 p28–29):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Text</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Original</strong></td>
+<td>Document will describe marketing strategies carried out by U.S. companies for their agricultural chemicals, report predictions for market share of such chemicals, or report market statistics for agrochemicals, pesticide, herbicide, fungicide, insecticide, fertilizer, predicted sales, market share, stimulate demand, price cut, volume of sales.</td>
+</tr>
+<tr>
+<td><strong>Porter</strong></td>
+<td>document describ market strategi carri compani agricultur chemic report predict market share chemic report market statist agrochem pesticid herbicid fungicid insecticid fertil predict sale market share stimul demand price cut volum sale</td>
+</tr>
+<tr>
+<td><strong>Krovetz</strong></td>
+<td>document describe marketing strategy carry company agriculture chemical report prediction market share chemical report market statistic agrochemic pesticide herbicide fungicide insecticide fertilizer predict sale stimulate demand price cut volume sale</td>
+</tr>
+</tbody></table>
+<p>Both outputs have also dropped the stopwords (will, out, by, for, their, of, such, or). Porter&#39;s tokens are stems like &quot;strategi&quot; and &quot;compani&quot;; Krovetz&#39;s are real words like &quot;strategy&quot; and &quot;company&quot;.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Algorithmic = rules, many errors, no dictionary to maintain. Dictionary = few false positives, can&#39;t handle new words. Krovetz = dictionary first, rules as a fallback.</p>
+</blockquote>
+<hr>
+<h2 id="8-phrases">8. Phrases</h2>
+<p>Phrases are important in search (L14 p4–6): many web search queries are <strong>2–3 word phrases</strong>. Phrases are:</p>
+<ul>
+<li><strong>More precise</strong> than single words — documents containing &quot;black sea&quot; vs. the two words &quot;black&quot; and &quot;sea&quot;. <strong>Order matters</strong>: do you want pages with &quot;the sea turned black&quot;?</li>
+<li><strong>Less ambiguous</strong> — &quot;big apple&quot; vs. &quot;apple&quot;.</li>
+</ul>
+<p>They can be <strong>difficult for ranking</strong>, and the details depend on the model. Given the query &quot;fishing supplies&quot;, how should you score documents with the exact phrase many times, the exact phrase once, the words in the same sentence, the same paragraph, the whole document, or variations on the words?</p>
+<p>Two questions (L14 p7–8, p18): <strong>what is a phrase?</strong> and <strong>how are phrases recognized?</strong> There are three approaches, covered in the next three places:</p>
+<ol>
+<li>Identify syntactic phrases with a <strong>part-of-speech (POS) tagger</strong> → <a href="#9-part-of-speech-tagging">§9</a>.</li>
+<li>Use <strong>word n-grams</strong> → <a href="#10-word-n-grams">§10</a>.</li>
+<li>Store <strong>word positions</strong> in the index and use <strong>proximity operators</strong> in queries.</li>
+</ol>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.3.5 Phrases and N-grams (book p. 97)</a></p>
+</blockquote>
+<hr>
+<h2 id="9-part-of-speech-tagging">9. Part-of-Speech Tagging</h2>
+<p>POS taggers use <strong>statistical / machine-learning models</strong> of text to predict the syntactic tag of each word (L14 p9). Example tags:</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Meaning</th>
+<th>Tag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NN</td>
+<td>singular noun</td>
+<td>IN</td>
+<td>preposition</td>
+</tr>
+<tr>
+<td>NNS</td>
+<td>plural noun</td>
+<td>JJ</td>
+<td>adjective</td>
+</tr>
+<tr>
+<td>VB</td>
+<td>verb</td>
+<td>CC</td>
+<td>conjunction (e.g. &quot;and&quot;, &quot;or&quot;)</td>
+</tr>
+<tr>
+<td>VBD</td>
+<td>verb, past tense</td>
+<td>PRP</td>
+<td>pronoun</td>
+</tr>
+<tr>
+<td>VBN</td>
+<td>verb, past participle</td>
+<td>MD</td>
+<td>modal auxiliary (e.g. &quot;can&quot;, &quot;will&quot;)</td>
+</tr>
+</tbody></table>
+<p>Phrases can then be defined as <strong>simple noun groups</strong>. The Brill tagger on the comparison text from §7 (L14 p10):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Document/NN will/MD describe/VB marketing/NN strategies/NNS carried/VBD
+out/IN by/IN U.S./NNP companies/NNS for/IN their/PRP agricultural/JJ
+chemicals/NNS ,/, report/NN predictions/NNS for/IN market/NN share/NN
+of/IN such/JJ chemicals/NNS ,/, or/CC report/NN market/NN statistics/NNS
+for/IN agrochemicals/NNS ,/, pesticide/NN ,/, herbicide/NN ,/,
+fungicide/NN ,/, insecticide/NN ,/, fertilizer/NN ,/, predicted/VBN
+sales/NNS ,/, market/NN share/NN ,/, stimulate/VB demand/NN ,/, price/NN
+cut/NN ,/, volume/NN of/IN sales/NNS ./.</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The most frequent noun phrases found this way in two collections (L14 p11):</p>
+<table>
+<thead>
+<tr>
+<th>TREC freq.</th>
+<th>TREC phrase</th>
+<th>Patent freq.</th>
+<th>Patent phrase</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>65824</td>
+<td>united states</td>
+<td>975362</td>
+<td>present invention</td>
+</tr>
+<tr>
+<td>61327</td>
+<td>article type</td>
+<td>191625</td>
+<td>u.s. pat</td>
+</tr>
+<tr>
+<td>33864</td>
+<td>los angeles</td>
+<td>147352</td>
+<td>preferred embodiment</td>
+</tr>
+<tr>
+<td>18062</td>
+<td>hong kong</td>
+<td>95097</td>
+<td>carbon atoms</td>
+</tr>
+<tr>
+<td>17788</td>
+<td>north korea</td>
+<td>87903</td>
+<td>group consisting</td>
+</tr>
+<tr>
+<td>17308</td>
+<td>new york</td>
+<td>81809</td>
+<td>room temperature</td>
+</tr>
+<tr>
+<td>15513</td>
+<td>san diego</td>
+<td>78458</td>
+<td>seq id</td>
+</tr>
+<tr>
+<td>15009</td>
+<td>orange county</td>
+<td>75850</td>
+<td>brief description</td>
+</tr>
+<tr>
+<td>12869</td>
+<td>prime minister</td>
+<td>66407</td>
+<td>prior art</td>
+</tr>
+<tr>
+<td>12799</td>
+<td>first time</td>
+<td>59828</td>
+<td>perspective view</td>
+</tr>
+<tr>
+<td>12067</td>
+<td>soviet union</td>
+<td>58724</td>
+<td>first embodiment</td>
+</tr>
+<tr>
+<td>10811</td>
+<td>russian federation</td>
+<td>56715</td>
+<td>reaction mixture</td>
+</tr>
+<tr>
+<td>9912</td>
+<td>united nations</td>
+<td>54619</td>
+<td>detailed description</td>
+</tr>
+<tr>
+<td>8127</td>
+<td>southern california</td>
+<td>54117</td>
+<td>ethyl acetate</td>
+</tr>
+<tr>
+<td>7640</td>
+<td>south korea</td>
+<td>52195</td>
+<td>example 1</td>
+</tr>
+<tr>
+<td>7620</td>
+<td>end recording</td>
+<td>52003</td>
+<td>block diagram</td>
+</tr>
+<tr>
+<td>7524</td>
+<td>european union</td>
+<td>46299</td>
+<td>second embodiment</td>
+</tr>
+<tr>
+<td>7436</td>
+<td>south africa</td>
+<td>41694</td>
+<td>accompanying drawings</td>
+</tr>
+<tr>
+<td>7362</td>
+<td>san francisco</td>
+<td>40554</td>
+<td>output signal</td>
+</tr>
+<tr>
+<td>7086</td>
+<td>news conference</td>
+<td>37911</td>
+<td>first end</td>
+</tr>
+<tr>
+<td>6792</td>
+<td>city council</td>
+<td>35827</td>
+<td>second end</td>
+</tr>
+<tr>
+<td>6348</td>
+<td>middle east</td>
+<td>34881</td>
+<td>appended claims</td>
+</tr>
+<tr>
+<td>6157</td>
+<td>peace process</td>
+<td>33947</td>
+<td>distal end</td>
+</tr>
+<tr>
+<td>5955</td>
+<td>human rights</td>
+<td>32338</td>
+<td>cross-sectional view</td>
+</tr>
+<tr>
+<td>5837</td>
+<td>white house</td>
+<td>30193</td>
+<td>outer surface</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="10-word-n-grams">10. Word N-Grams</h2>
+<p>POS tagging is <strong>too slow for large collections</strong> (L14 p12–13). The simpler definition: a phrase is <strong>any sequence of n words</strong>, an <strong>n-gram</strong> (also called a <strong>shingle</strong>). A bigram is 2 words, a trigram 3, a unigram a single word. N-grams are also used at the <strong>character level</strong>, for applications such as OCR.</p>
+<p>N-grams are usually formed from <strong>overlapping</strong> word sequences: move an n-word &quot;window&quot; one word at a time through the document.</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> ngrams</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">words</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">.join(words[i:i + n])</span></span>
+<span class="line"><span style="color:#C586C0">            for</span><span style="color:#D4D4D4"> i </span><span style="color:#C586C0">in</span><span style="color:#DCDCAA"> range</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(words) - n + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">words = </span><span style="color:#CE9178">"the sea turned black"</span><span style="color:#D4D4D4">.split()</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> n </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(n, ngrams(words, n))</span></span>
+<span class="line"><span style="color:#6A9955"># 1 ['the', 'sea', 'turned', 'black']</span></span>
+<span class="line"><span style="color:#6A9955"># 2 ['the sea', 'sea turned', 'turned black']</span></span>
+<span class="line"><span style="color:#6A9955"># 3 ['the sea turned', 'sea turned black']</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Run it below; the step counts the n-grams of a 1,000-word document:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Word n-grams: a window moving one word at a time (L14 p4, p12–15)&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;const words = \&quot;the sea turned black\&quot;.split(\&quot; \&quot;);\nfunction ngrams(ws, n) {\n  const out = [];\n  for (let i = 0; i + n &lt;= ws.length; i++) out.push(ws.slice(i, i + n).join(\&quot; \&quot;));\n  return out;\n}\nconsole.log(\&quot;unigrams\&quot;, ngrams(words, 1));\nconsole.log(\&quot;bigrams \&quot;, ngrams(words, 2));\nconsole.log(\&quot;trigrams\&quot;, ngrams(words, 3));&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Count the windows instead of listing them: a document of N words has N − n + 1 n-grams of length n.&quot;, &quot;js&quot;: &quot;\n// L14 p14: n-gram instances in a 1,000-word document, 2 &lt;= n &lt;= 5\nlet total = 0;\nfor (let n = 2; n &lt;= 5; n++) { console.log(\&quot;n =\&quot;, n, \&quot;:\&quot;, 1000 - n + 1); total += 1000 - n + 1; }\nconsole.log(\&quot;total\&quot;, total);&quot;}], &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>What n-grams buy you (L14 p14–15):</p>
+<ul>
+<li><strong>Frequent n-grams are more likely to be meaningful phrases.</strong></li>
+<li>N-grams form a <strong>Zipf distribution</strong> — a better fit than words alone (Zipf&#39;s law is in <a href="/~kazuhak/notes/cs-121/week-04/en-US/#11-text-statistics-and-zipfs-law">Week 4 §11</a>).</li>
+<li>You could <strong>index all n-grams</strong> up to a specified length. Advantage: <strong>much faster than POS tagging</strong>. Drawback: <strong>uses a lot of storage</strong> — a 1,000-word document contains <strong>3,990</strong> instances of word n-grams with 2 ≤ n ≤ 5.</li>
+</ul>
+<p><strong>Google n-grams</strong> (L14 p16–17): even at that storage cost, <strong>many web search engines do index n-grams</strong>. Google&#39;s sample:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tokens</td>
+<td>1,024,908,267,229</td>
+</tr>
+<tr>
+<td>Sentences</td>
+<td>95,119,665,584</td>
+</tr>
+<tr>
+<td>Unigrams</td>
+<td>13,588,391</td>
+</tr>
+<tr>
+<td>Bigrams</td>
+<td>314,843,401</td>
+</tr>
+<tr>
+<td>Trigrams</td>
+<td>977,069,902</td>
+</tr>
+<tr>
+<td>Fourgrams</td>
+<td>1,313,818,354</td>
+</tr>
+<tr>
+<td>Fivegrams</td>
+<td>1,176,470,663</td>
+</tr>
+</tbody></table>
+<p>The most frequent trigram in English on the web is <strong>&quot;all rights reserved&quot;</strong>; in Chinese, &quot;limited liability corporation&quot;.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#153-how-many-n-grams-in-a-1000-word-document-l14-p1415">Worked Example 15.3</a></p>
+</blockquote>
+<hr>
+<h2 id="11-document-structure-and-markup">11. Document Structure and Markup</h2>
+<p><strong>Some parts of a document are more important than others</strong> (L14 p20–21). The document parser recognizes structure from markup such as HTML tags:</p>
+<ul>
+<li><strong>Headers, anchor text and bolded text</strong> are all likely to contain important text.</li>
+<li><strong>Metadata</strong> can also be important.</li>
+<li><strong>Links</strong> are used for link analysis (later in the course).</li>
+</ul>
+<p>The slides&#39; example is the Wikipedia page &quot;Tropical fish&quot; (L14 p22–24). The rendered page has the title, &quot;From Wikipedia, the free encyclopedia&quot;, and two paragraphs with many linked words (fish, tropical, freshwater, salt water, Fishkeepers, aquarium, iridescence, pigmented). Its HTML source, abridged as on the slide:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">meta</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"keywords"</span><span style="color:#9CDCFE"> content</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Tropical fish, Airstone, Albinism, Algae eater,</span></span>
+<span class="line"><span style="color:#CE9178">Aquarium, Aquarium fish feeder, Aquarium furniture, Aquascaping, Bath treatment</span></span>
+<span class="line"><span style="color:#CE9178">(fishkeeping),Berlin Method, Biotope"</span><span style="color:#808080"> /></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">title</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish - Wikipedia, the free encyclopedia</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">title</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"firstHeading"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">b</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">b</span><span style="color:#808080">></span><span style="color:#D4D4D4"> include </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fish"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fish"</span><span style="color:#808080">></span><span style="color:#D4D4D4">fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> found in </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Tropics"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Tropics"</span><span style="color:#808080">></span><span style="color:#D4D4D4">tropical</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> environments around the world,</span></span>
+<span class="line"><span style="color:#D4D4D4">including both </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fresh_water"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fresh water"</span><span style="color:#808080">></span><span style="color:#D4D4D4">freshwater</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> and </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Sea_water"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Sea water"</span><span style="color:#808080">></span><span style="color:#D4D4D4">salt water</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> species. </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span></span>
+<span class="line"><span style="color:#9CDCFE">href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Fishkeeping"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Fishkeeping"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Fishkeepers</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4"> often use the term</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4">tropical fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4"> to refer only those requiring fresh water, with saltwater tropical fish</span></span>
+<span class="line"><span style="color:#D4D4D4">referred to as </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">i</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/List_of_marine_aquarium_fish_species"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"List of</span></span>
+<span class="line"><span style="color:#CE9178">marine aquarium fish species"</span><span style="color:#808080">></span><span style="color:#D4D4D4">marine fish</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">i</span><span style="color:#808080">></span><span style="color:#D4D4D4">.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical fish are popular </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Aquarium"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Aquarium"</span><span style="color:#808080">></span><span style="color:#D4D4D4">aquarium</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">fish , due to their often bright coloration. In freshwater fish, this coloration typically</span></span>
+<span class="line"><span style="color:#D4D4D4">derives from </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Iridescence"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Iridescence"</span><span style="color:#808080">></span><span style="color:#D4D4D4">iridescence</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4">, while salt</span></span>
+<span class="line"><span style="color:#D4D4D4">water fish are generally </span><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"/wiki/Pigment"</span><span style="color:#9CDCFE"> title</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"Pigment"</span><span style="color:#808080">></span><span style="color:#D4D4D4">pigmented</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span><span style="color:#D4D4D4">.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">...</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">html</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The markup tells the parser what&#39;s what: the <code>&lt;title&gt;</code>, the <code>&lt;h1&gt;</code> heading, the bold <code>&lt;b&gt;Tropical fish&lt;/b&gt;</code>, the keywords <code>&lt;meta&gt;</code>, and every <code>&lt;a href&gt;</code> link. L14 p24 boxes the links (freshwater, salt water, aquarium, iridescence, pigmented): they lead into §12.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.4 Document Structure and Markup (book p. 101)</a></p>
+</blockquote>
+<hr>
+<h2 id="12-links-and-anchor-text">12. Links and Anchor Text</h2>
+<p>Links are a key component of the Web: important for navigation, but also for search (L14 p25). In</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">a</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"http://example.com"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Example website</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">a</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>&quot;Example website&quot; is the <strong>anchor text</strong> and <code>http://example.com</code> is the <strong>destination link</strong>. Search engines use both.</p>
+<p>Anchor text is used as a <strong>description of the content of the destination page</strong> (L14 p26–28). The anchor text of <strong>all links pointing to a page</strong> is collected into an <strong>additional text field</strong> for that page. The slide&#39;s diagram shows the page <code>www.example.com</code> with four fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>text (the page&#39;s own body)</td>
+<td>document text</td>
+</tr>
+<tr>
+<td>anchor from other.com</td>
+<td>example</td>
+</tr>
+<tr>
+<td>anchor from null.com</td>
+<td>click here</td>
+</tr>
+<tr>
+<td>title</td>
+<td>example site</td>
+</tr>
+</tbody></table>
+<p>Anchor text tends to be <strong>short, descriptive, and similar to query text</strong>. Retrieval experiments have shown that it has a <strong>significant impact on effectiveness for some types of queries — more than PageRank!</strong></p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Anchor text describes the page the link <strong>points to</strong>, not the page it sits on. And &quot;click here&quot; is the kind of anchor text a stopword list for anchors removes (§4).</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.5.1 Anchor Text (book p. 105)</a></p>
+</blockquote>
+<hr>
+<h2 id="13-the-term-document-incidence-matrix">13. The Term-Document Incidence Matrix</h2>
+<p>&quot;Unstructured data in 1620&quot; (L14 p31–32): <strong>which plays of Shakespeare contain the words Brutus AND Caesar but NOT Calpurnia?</strong> You could grep all the plays for Brutus and Caesar, then strip out the lines containing Calpurnia. Why isn&#39;t that the answer for search?</p>
+<ul>
+<li>It&#39;s <strong>slow</strong> for large corpora.</li>
+<li><strong>NOT Calpurnia</strong> is non-trivial.</li>
+<li>Other operations, like finding the word <em>Romans</em> <strong>near</strong> <em>countrymen</em>, aren&#39;t feasible.</li>
+<li><strong>Ranked retrieval</strong> isn&#39;t possible — and users want ordered documents.</li>
+</ul>
+<p>A <strong>term-document incidence matrix</strong> (L14 p33–35) is a Boolean matrix: rows are <strong>terms</strong>, columns are <strong>documents</strong>, and an entry is 1 if the play contains the word, 0 otherwise.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Antony and Cleopatra</th>
+<th>Julius Caesar</th>
+<th>The Tempest</th>
+<th>Hamlet</th>
+<th>Othello</th>
+<th>Macbeth</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Antony</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Brutus</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Caesar</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Calpurnia</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Cleopatra</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>mercy</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>worser</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p><strong>Incidence vectors</strong> (L14 p36–38): each term has a 0/1 vector, its row. To answer the query, take the rows for Brutus, Caesar and Calpurnia, <strong>complement</strong> Calpurnia&#39;s, and <strong>bitwise AND</strong> them:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mo>=</mo><msub><mi>I</mi><mrow><mi>B</mi><mi>r</mi><mi>u</mi></mrow></msub><mo>∧</mo><msub><mi>I</mi><mrow><mi>C</mi><mi>a</mi><mi>e</mi></mrow></msub><mo>∧</mo><mi mathvariant="normal">¬</mi><msub><mi>I</mi><mrow><mi>C</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">R = I_{Bru} \wedge I_{Cae} \wedge \neg I_{Cal}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="mord mathnormal mtight">u</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight">e</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">¬</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span><span class="mord mathnormal mtight">a</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">I_t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is term <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span>&#39;s row, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∧</mo></mrow><annotation encoding="application/x-tex">\wedge</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5556em;"></span><span class="mord">∧</span></span></span></span> is bitwise AND, and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">¬</mi></mrow><annotation encoding="application/x-tex">\neg</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">¬</span></span></span></span> flips every bit.</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">(Brutus)         1 1 0 1 0 0  AND
+(Caesar)         1 1 0 1 1 1  AND
+(NOT Calpurnia)  1 0 1 1 1 1  =
+                 1 0 0 1 0 0</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The result&#39;s 1s are columns 1 and 4: <strong>Antony and Cleopatra</strong> and <strong>Hamlet</strong>. Step through it, or type another query (AND / OR / NOT over these terms):</p>
+<pre data-language="viz" data-viz="incidence-matrix"><code>{&quot;title&quot;: &quot;Brutus AND Caesar AND NOT Calpurnia (L14 p33–38)&quot;, &quot;terms&quot;: &quot;Antony: 1 1 0 0 0 1; Brutus: 1 1 0 1 0 0; Caesar: 1 1 0 1 1 1; Calpurnia: 0 1 0 0 0 0; Cleopatra: 1 0 0 0 0 0; mercy: 1 0 1 1 1 1; worser: 1 0 1 1 1 0&quot;, &quot;docs&quot;: &quot;Antony and Cleopatra, Julius Caesar, The Tempest, Hamlet, Othello, Macbeth&quot;, &quot;query&quot;: &quot;Brutus AND Caesar AND NOT Calpurnia&quot;, &quot;interactive&quot;: true}</code></pre><p>The answers in the text (L14 p39):</p>
+<ul>
+<li><em>Antony and Cleopatra</em>, Act III, Scene ii — Agrippa [aside to Domitius Enobarbus]: &quot;Why, Enobarbus, / When Antony found Julius <strong>Caesar</strong> dead, / He cried almost to roaring; and he wept / When at Philippi he found <strong>Brutus</strong> slain.&quot;</li>
+<li><em>Hamlet</em>, Act III, Scene ii — Lord Polonius: &quot;I did enact Julius <strong>Caesar</strong> I was killed i&#39; the / Capitol; <strong>Brutus</strong> killed me.&quot;</li>
+</ul>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#154-brutus-and-caesar-and-not-calpurnia-l14-p3338">Worked Example 15.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning et al., <em>Introduction to IR</em>, Ch 1 (this week&#39;s reading)</a></p>
+</blockquote>
+<hr>
+<h2 id="14-why-the-matrix-doesnt-scale">14. Why the Matrix Doesn&#39;t Scale</h2>
+<p>&quot;Can you use this in bigger collections?&quot; (L14 p40–43). Take:</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span> documents, each with about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> words;</li>
+<li>about 6 bytes per word, including spaces and punctuation → about <strong>6 GB</strong> of data;</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn><mtext>K</mtext></mrow><annotation encoding="application/x-tex">M = 500\text{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span></span></span></span> <strong>distinct</strong> terms among them.</li>
+</ul>
+<p>The term-document matrix is then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>500</mn><mtext>K</mtext><mo>×</mo><mn>1</mn><mtext>M</mtext></mrow><annotation encoding="application/x-tex">500\text{K} \times 1\text{M}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1</span><span class="mord text"><span class="mord">M</span></span></span></span></span>: <strong>half a trillion</strong> 0s and 1s, so it <strong>can&#39;t be built in memory</strong>. But it has <strong>no more than one billion 1s</strong> — at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^6 \times 10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span>, one per word occurrence. The matrix is <strong>extremely sparse</strong>.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The better representation records <strong>only the 1 positions</strong> (L14 p43). For each term, keep the list of documents that contain it — that&#39;s where the inverted index of the next weeks starts.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#155-how-big-is-the-incidence-matrix-l14-p4043">Worked Example 15.5</a></p>
+</blockquote>
+<hr>
+<h2 id="15-worked-examples-with-solutions">15. Worked Examples (with Solutions)</h2>
+<h3 id="151-suffix-s-false-positives-and-false-negatives-l13-p1820">15.1 Suffix-s: false positives and false negatives (L13 p18–20)</h3>
+<p>Apply the suffix-s stemmer (remove an &quot;s&quot; ending, assuming a plural) to cats, lakes, wiis, centuries, is. Which results are false negatives and which are false positives?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> cats → cat, lakes → lake and wiis → wii are correct. centuries → <strong>centurie</strong>, not century: it fails to conflate two related words, so it&#39;s a <strong>false negative</strong>. is → <strong>i</strong>: it conflates two unrelated words, so it&#39;s a <strong>false positive</strong>. Back to <a href="#5-stemming">§5</a>.</p>
+<h3 id="152-porter-step-1-by-hand-l13-p22">15.2 Porter Step 1 by hand (L13 p22)</h3>
+<p>Using only Step 1a then Step 1b as the slide states them, stem: stresses, gaps, gas, ties, cries, agreed, feed, fished, pirating, falling, dripping, hoping.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Rule that fires</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>stresses</td>
+<td>1a: sses → ss</td>
+<td>stress</td>
+</tr>
+<tr>
+<td>gaps</td>
+<td>1a: delete s (vowel &quot;a&quot; before the &quot;p&quot;)</td>
+<td>gap</td>
+</tr>
+<tr>
+<td>gas</td>
+<td>1a: keep s (the vowel &quot;a&quot; is immediately before the s)</td>
+<td>gas</td>
+</tr>
+<tr>
+<td>ties</td>
+<td>1a: ies → ie (only one letter, &quot;t&quot;, before it)</td>
+<td>tie</td>
+</tr>
+<tr>
+<td>cries</td>
+<td>1a: ies → i (more than one letter before it)</td>
+<td>cri</td>
+</tr>
+<tr>
+<td>agreed</td>
+<td>1b: eed → ee (the suffix is after &quot;ag&quot;, the first non-vowel following a vowel)</td>
+<td>agree</td>
+</tr>
+<tr>
+<td>feed</td>
+<td>1b: eed kept (the suffix isn&#39;t in that region)</td>
+<td>feed</td>
+</tr>
+<tr>
+<td>fished</td>
+<td>1b: delete ed</td>
+<td>fish</td>
+</tr>
+<tr>
+<td>pirating</td>
+<td>1b: delete ing, then &quot;at&quot; → add e</td>
+<td>pirate</td>
+</tr>
+<tr>
+<td>falling</td>
+<td>1b: delete ing; &quot;ll&quot; is an allowed double letter</td>
+<td>fall</td>
+</tr>
+<tr>
+<td>dripping</td>
+<td>1b: delete ing, then double &quot;p&quot; → drop one</td>
+<td>drip</td>
+</tr>
+<tr>
+<td>hoping</td>
+<td>1b: delete ing, then short word → add e</td>
+<td>hope</td>
+</tr>
+</tbody></table>
+<p>The demo in <a href="#6-the-porter-stemmer">§6</a> runs exactly these rules and gives the same twelve results.</p>
+<h3 id="153-how-many-n-grams-in-a-1000-word-document-l14-p1415">15.3 How many n-grams in a 1,000-word document? (L14 p14–15)</h3>
+<p>A document has 1,000 words. How many word n-gram instances does it contain for 2 ≤ n ≤ 5, with an overlapping window?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> A window of n words fits in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1000</mn><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">1000 - n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1000</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> positions: 999 bigrams, 998 trigrams, 997 fourgrams and 996 fivegrams. That&#39;s <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>999</mn><mo>+</mo><mn>998</mn><mo>+</mo><mn>997</mn><mo>+</mo><mn>996</mn><mo>=</mo><mn>3</mn><mo separator="true" lspace="0em" rspace="0em">,</mo><mn>990</mn></mrow><annotation encoding="application/x-tex">999 + 998 + 997 + 996 = 3{,}990</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">999</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">998</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">997</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">996</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">3</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">990</span></span></span></span> — four times the document&#39;s length. That&#39;s the storage cost of indexing n-grams. Back to <a href="#10-word-n-grams">§10</a>.</p>
+<h3 id="154-brutus-and-caesar-and-not-calpurnia-l14-p3338">15.4 Brutus AND Caesar AND NOT Calpurnia (L14 p33–38)</h3>
+<p>Using the incidence matrix in §13, which plays match <em>Brutus AND Caesar AND NOT Calpurnia</em>?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Brutus = 110100, Caesar = 110111, Calpurnia = 010000 → NOT Calpurnia = 101111. 110100 AND 110111 = 110100; AND 101111 = <strong>100100</strong>. Columns 1 and 4: <strong>Antony and Cleopatra</strong> and <strong>Hamlet</strong>. Julius Caesar has both names but also Calpurnia, so the NOT removes it. Back to <a href="#13-the-term-document-incidence-matrix">§13</a>.</p>
+<h3 id="155-how-big-is-the-incidence-matrix-l14-p4043">15.5 How big is the incidence matrix? (L14 p40–43)</h3>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span> documents of about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> words, about 6 bytes per word, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn><mtext>K</mtext></mrow><annotation encoding="application/x-tex">M = 500\text{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">500</span><span class="mord text"><span class="mord">K</span></span></span></span></span> distinct terms. How much text is that, how many cells does the matrix have, and at most how many 1s?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Text: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup><mo>×</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">10^6 \times 10^3 \times 6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">6</span></span></span></span> bytes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mn>6</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">= 6 \times 10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> bytes ≈ <strong>6 GB</strong>. Matrix: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>5</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>=</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup></mrow><annotation encoding="application/x-tex">5 \times 10^5 \times 10^6 = 5 \times 10^{11}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span></span></span></span> cells, <strong>half a trillion</strong>. 1s: each word occurrence can add at most one, so at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^6 \times 10^3 = 10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span>, <strong>one billion</strong>. At most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup><mo stretchy="false">)</mo><mo>=</mo><mn>0.2</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">10^9 / (5 \times 10^{11}) = 0.2\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">0.2%</span></span></span></span> of the cells are 1 (our division of the slide&#39;s numbers), so store only the 1 positions. Back to <a href="#14-why-the-matrix-doesnt-scale">§14</a>.</p>
+<hr>
+<h2 id="16-quick-reference--top-5-things-to-remember">16. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Text-processing step</th>
+<th>What it does</th>
+<th>Watch out for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tokenizing</td>
+<td>Characters → tokens; lower-case (case folding)</td>
+<td>Hyphens, apostrophes, periods, numbers; queries must be tokenized like documents</td>
+</tr>
+<tr>
+<td>Stopping</td>
+<td>Remove function words</td>
+<td>&quot;to be or not to be&quot;; best: index all, decide at query time</td>
+</tr>
+<tr>
+<td>Stemming</td>
+<td>Conflate morphological variants to a stem</td>
+<td>False positives (is → i) vs false negatives (centuries ↛ century)</td>
+</tr>
+<tr>
+<td>Phrases</td>
+<td>Multi-word units</td>
+<td>POS tagging (slow) vs n-grams (storage) vs positions + proximity</td>
+</tr>
+<tr>
+<td>Structure / markup</td>
+<td>Weight headers, anchors, bold, metadata</td>
+<td>Anchor text describes the <strong>destination</strong> page</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Stemmer</th>
+<th>Type</th>
+<th>Output</th>
+<th>Errors</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>suffix-s</td>
+<td>Algorithmic</td>
+<td>Stem</td>
+<td>Many false negatives, some false positives</td>
+</tr>
+<tr>
+<td>Porter</td>
+<td>Algorithmic (rules, longest suffix)</td>
+<td>Stems, not words</td>
+<td>Many errors, hard to modify</td>
+</tr>
+<tr>
+<td>Porter2</td>
+<td>Algorithmic</td>
+<td>Stems</td>
+<td>Fixes some Porter issues, allows exceptions</td>
+</tr>
+<tr>
+<td>Dictionary</td>
+<td>Word lists</td>
+<td>Words</td>
+<td>Very few false positives; can&#39;t handle new words</td>
+</tr>
+<tr>
+<td>Krovetz</td>
+<td>Hybrid: dictionary, then suffix removal</td>
+<td>Words</td>
+<td>Fewer false positives, somewhat more false negatives</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Incidence matrix</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Entry</td>
+<td>1 if the document contains the term</td>
+</tr>
+<tr>
+<td>AND / NOT query</td>
+<td>Bitwise AND of rows; NOT = complement</td>
+</tr>
+<tr>
+<td>Size for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N = 10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">M = 5 \times 10^5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span></td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>1</mn><msup><mn>0</mn><mn>11</mn></msup></mrow><annotation encoding="application/x-tex">5 \times 10^{11}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span></span></span></span></span></span></span></span> cells, ≤ <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">10^9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span> ones → sparse, store only the 1s</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Tokenizing decisions are small but can change query effectiveness a lot — and queries must go through exactly the same steps as documents.</li>
+<li>Usual policy for stopwords: index everything and decide at query time; stopwords matter in combinations.</li>
+<li>Stemmers trade false positives against false negatives: Porter produces stems (cri), Krovetz produces words.</li>
+<li>Phrases can be found by POS tagging (accurate, slow), n-grams (fast, storage-hungry: 3,990 per 1,000 words for n = 2–5), or positions + proximity operators; anchor text is a strong signal for the destination page.</li>
+<li>The incidence matrix answers Boolean queries with bitwise AND/OR/NOT, but at web scale it&#39;s huge and sparse — store only the 1s.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-04/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 4</span><span class="pager-title" data-astro-cid-gxyjxt6l>Encodings, Storing Documents, Duplicates, Zipf&#39;s Law</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Course hub<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>CS 121 · Information Retrieval</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-04/en-US/" title="Previous: Encodings, Storing Documents, Duplicates, Zipf's Law ([)" aria-label="Previous: Week 4" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 4</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 5</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

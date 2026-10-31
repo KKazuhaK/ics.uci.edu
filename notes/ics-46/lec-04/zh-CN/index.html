@@ -1,0 +1,835 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 链表与栈 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="单向链表的接口、实现与分析，双向链表，ArrayList 与链表的对比，以及栈（Stack）ADT。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413977" data-source-url="/~kazuhak/notes/ics-46/lec-04/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-04/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-03/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-05/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 4 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 4 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 4 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 16 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-4链表与栈">Information and Computer Science 46 — Lecture 4：链表与栈</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E9%93%BE%E8%A1%A8%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3">1. 链表：基本思想</a></li>
+<li><a href="#2-%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0">2. 单向链表：实现</a></li>
+<li><a href="#3-%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8%E5%88%86%E6%9E%90">3. 单向链表：分析</a></li>
+<li><a href="#4-%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8">4. 双向链表</a></li>
+<li><a href="#5-arraylist-%E4%B8%8E%E9%93%BE%E8%A1%A8%E5%AF%B9%E6%AF%94">5. ArrayList 与链表对比</a></li>
+<li><a href="#6-%E6%A0%88">6. 栈</a></li>
+<li><a href="#7-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">7. 完整实现</a></li>
+<li><a href="#8-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">8. 课堂活动（附解答）</a></li>
+<li><a href="#9-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">9. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46，Prof. Tom Yeh，Fall 2026，10/08/26。依据 Lecture 4 幻灯片（第 1–49 页）整理；补充材料：algs4 §1.3、Thornton 的 ICS 46 讲义。按概念组织，而非按来源顺序。<br>幻灯片 50–51（基于链表的栈、&quot;How do we choose?&quot;）在 Lecture 5 开头重复出现，因此放在 Lecture 5 的笔记里。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>（幻灯片 2–3）：<br>Lab 2（包含实现下文的 SLL）截止 <strong>Mon 10/19/26</strong>；HW 2 截止 <strong>Fri 10/16/26</strong>。<br>周五 discussion 的 Learning Activity A + 下周五的 Activity B = Quiz 1。同意书（Consent form）：1% 额外加分（不同意的话有替代的反思题）。<br>安装 MetaCog Chrome 扩展（bit.ly/MetaCogExt → 解压 → <code>chrome://extensions</code> → 开发者模式 → &quot;Load unpacked&quot; → <code>dist</code> 文件夹 → 点击其 reload 按钮 → 保存你的 5 位学号）。<br>从下周起，课堂活动（lecture activities）计入成绩。</p>
+</blockquote>
+<hr>
+<h2 id="1-链表基本思想">1. 链表：基本思想</h2>
+<p>今天的目标（幻灯片 4）：先讲链表，再讲栈。</p>
+<h3 id="11-用指针连接的节点幻灯片-57">1.1 用指针连接的节点（幻灯片 5–7）</h3>
+<p>ArrayList 把元素存放在一块连续的内存中。<strong>链表（linked list）</strong>仍然是动态线性结构，但每个元素都存放在堆上各自独立的<strong>节点（node）</strong>里，顺序则由节点之间的<strong>指针（pointer）</strong>记录——节点可以位于内存中的任何位置。幻灯片 6 在 0–7 号内存单元上演示了这一点：列表 &quot;CS ? !&quot; 从 3 号单元开始（即<strong>头（head）</strong>），3 号单元链接到 1 号，1 号链接到 6 号；其余单元不属于该列表。</p>
+<p>幻灯片 7 的递归定义：单向链表<strong>要么是空的（<code>nullptr</code>），要么是一个节点，其中包含一个元素和一个指向单向链表的指针</strong>。<code>Node&lt;T&gt;</code> 存放一个 <code>T</code> 类型的元素和指向下一个节点的链接。最后一个节点的 <code>next</code> 是 <code>nullptr</code>（即幻灯片方框里的那条斜线）。</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;幻灯片 6 的列表：要到达最后一个节点就得一路走过去&quot;, &quot;items&quot;: &quot;CS, ?, !&quot;, &quot;ops&quot;: &quot;get(2)&quot;, &quot;start&quot;: 1}</code></pre><blockquote>
+<p>📘 <strong>课外补充</strong>（algs4 §1.3）：递归定义直接给出了标准的遍历循环 <code>for (Node* x = head; x != nullptr; x = x-&gt;next)</code>，打印、析构函数和拷贝都会用到它。</p>
+</blockquote>
+<h3 id="12-api-与一个完整的操作序列幻灯片-815">1.2 API 与一个完整的操作序列（幻灯片 8–15）</h3>
+<p>幻灯片 8 中 <code>SinglyLinkedList&lt;T&gt;</code> 的 API：<code>SinglyLinkedList()</code>、<code>bool isEmpty() const</code>、<code>size_t size() const</code>、<code>T get(size_t index) const</code>、<code>void add(const T&amp; item)</code>（<strong>加在头部</strong>）、<code>void add(size_t index, const T&amp; item)</code>、<code>T remove()</code>（<strong>移除头部</strong>）、<code>T remove(size_t index)</code>。注意：不带索引的 <code>add</code>/<code>remove</code> 作用在<strong>头部</strong>，与 Lecture 3 的 ArrayList 正好相反。</p>
+<p>幻灯片 9–15 逐步演示（索引从头部开始，从 0 计数）：</p>
+<table>
+<thead>
+<tr>
+<th>幻灯片</th>
+<th>调用</th>
+<th>之后的列表</th>
+<th><code>n</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9</td>
+<td><code>SinglyLinkedList&lt;std::string&gt; sll;</code></td>
+<td>空</td>
+<td>0</td>
+</tr>
+<tr>
+<td>10–12</td>
+<td><code>add(&quot;ICS 46&quot;)</code>、<code>add(&quot;ROCKS&quot;)</code>、<code>add(&quot;!&quot;)</code></td>
+<td>! → ROCKS → ICS 46</td>
+<td>3</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>add(1, &quot;?&quot;)</code></td>
+<td>! → ? → ROCKS → ICS 46</td>
+<td>4</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>remove()</code> 返回 &quot;!&quot;</td>
+<td>? → ROCKS → ICS 46</td>
+<td>3</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>remove(1)</code> 返回 &quot;ROCKS&quot;</td>
+<td>? → ICS 46</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p>在下方逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;幻灯片 9–15&quot;, &quot;ops&quot;: &quot;add(ICS 46); add(ROCKS); add(!); add(1, ?); remove(); remove(1)&quot;, &quot;interactive&quot;: true}</code></pre><p>头部插入意味着元素<strong>以插入的相反顺序</strong>取出——这就是 LIFO，即第 6 节的栈行为。</p>
+<hr>
+<h2 id="2-单向链表实现">2. 单向链表：实现</h2>
+<h3 id="21-类嵌套的-nodeheadn幻灯片-1618">2.1 类：嵌套的 <code>Node</code>、<code>head</code>、<code>n</code>（幻灯片 16–18）</h3>
+<p>幻灯片 16 的计划：自己实现链表（Lab 2 的一部分），它是一个<strong>模板（template）</strong>，包含<strong>嵌套类 <code>Node</code></strong>，并维护<strong>元素个数</strong>。幻灯片 17：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#6A9955">    /**</span></span>
+<span class="line"><span style="color:#6A9955">     * Defines the nodes of the singly linked list. Each node holds</span></span>
+<span class="line"><span style="color:#6A9955">     * a value and a pointer to the next node.</span></span>
+<span class="line"><span style="color:#6A9955">     */</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // Pointer to the first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // Number of elements in the list</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~SinglyLinkedList</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Rule of Five: also define copy ctor, copy assign,</span></span>
+<span class="line"><span style="color:#6A9955">    // move ctor, move assign  (see Lab 2 spec)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // isEmpty, size, get, add, remove ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>存储 <code>n</code> 使 <code>size()</code> 为 O(1)，代价是每个修改操作（mutator）都必须更新它。<code>Node</code> <strong>没有默认构造函数</strong>——这与下面两处幻灯片中的 bug 有关。幻灯片 18：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955"> // return size() == 0;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>只要不变式 <strong><code>head == nullptr</code> 当且仅当 <code>n == 0</code></strong> 成立，两种 <code>isEmpty</code> 写法就等价。析构函数（在幻灯片 17 中声明）通过不断移除头节点来释放所有节点，直到列表为空；拷贝/移动操作是 Lab 2 的任务——编译器默认生成的拷贝会让两个列表共享同一条链，从而导致重复释放（double free）。</p>
+<h3 id="22-rangecheck幻灯片-19">2.2 <code>rangeCheck</code>（幻灯片 19）</h3>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">        throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（幻灯片 19）：对 <code>size_t</code> 来说 <code>index &lt; 0</code> 永远为假，而且 <code>index &gt; n</code> 会放过 <code>index == n</code>，于是 <code>get(n)</code> 会解引用 <code>nullptr</code> → <code>get</code>/<code>remove</code> 应使用 <code>if (index &gt;= n)</code>；<code>add(index, item)</code> 允许 <code>index == n</code>（即追加），并自行检查 <code>index &gt; n</code>。</p>
+</blockquote>
+<p>示例（已编译运行）：在 2 个元素的列表上，<code>get(2)</code> 输出 <code>get(2): Index 2 out of bounds</code>。</p>
+<h3 id="23-getindex用手指逐个走幻灯片-2022">2.3 <code>get(index)</code>：用&quot;手指&quot;逐个走（幻灯片 20–22）</h3>
+<p>唯一能直接到达的节点是头节点，所以放一个临时指针——<strong>finger（手指）</strong>——指向它，然后向前移动 <code>index</code> 次（幻灯片 22）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">    // Check whether index is valid</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Start from head of list</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Move forward 'index' times</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        index</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // return the item in the node at position 'index'</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>示例：在 ! → ? → ROCKS → ICS46 上执行 <code>get(2)</code>，finger 依次经过 &quot;!&quot; → &quot;?&quot; → &quot;ROCKS&quot;，返回 &quot;ROCKS&quot;。最多走 <code>n - 1</code> 步，所以是 <strong>O(n)</strong>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（幻灯片 22、38）：<code>get</code> 缺少 <code>const</code>（幻灯片 8 写的是 <code>T get(size_t index) const</code>）→ 加上它，否则无法在 <code>const</code> 列表上调用 <code>get</code>。</p>
+</blockquote>
+<h3 id="24-additem在头部插入幻灯片-2325">2.4 <code>add(item)</code>：在头部插入（幻灯片 23–25）</h3>
+<p>让新节点指向当前的第一个节点，再让 <code>head</code> 指向新节点（幻灯片 25）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> oldHead</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // remember the current first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> newNode</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">       // allocate node (next defaults to nullptr)</span></span>
+<span class="line"><span style="color:#9CDCFE">    newNode</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">oldHead</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">              // link new node to the old head</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                       // new node becomes the head</span></span>
+<span class="line"><span style="color:#D4D4D4">    ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                                  // increase number of nodes</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>示例：在 ! → ? → ROCKS → ICS46 上执行 <code>add(&quot;UCI&quot;)</code>，得到 <code>[UCI, !, ?, ROCKS, ICS46] n=5</code>。没有循环 → <strong>O(1)</strong>，并且对空列表同样适用（<code>oldHead</code> 为 <code>nullptr</code>）。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：先连接，再移动 <code>head</code>。如果先写 <code>head = newNode;</code>，就会丢失指向旧列表的唯一指针。<code>head = new Node(item, head);</code> 一行就能完成这两步。</p>
+</blockquote>
+<h3 id="25-addindex-item在指定索引处插入幻灯片-2630">2.5 <code>add(index, item)</code>：在指定索引处插入（幻灯片 26–30）</h3>
+<p>要在 ! → ? → ROCKS → ICS46 的索引 2 处插入 &quot;UCI&quot;，需要修改的指针是 <strong>&quot;?&quot; 的 <code>next</code></strong>——即插入位置<em>之前</em>的那个节点。所以要用两个指针一起走：<code>finger</code> 停在当前位于 <code>index</code> 的节点上，<code>previous</code> 始终落后一步。幻灯片 27–29 演示 <code>add(2, …)</code> 的移动过程：(<code>previous</code>, <code>finger</code>) 依次为 (nullptr, &quot;!&quot;) → (&quot;!&quot;, &quot;?&quot;) → (&quot;?&quot;, &quot;ROCKS&quot;)，然后停止。幻灯片 30：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">        // check that index is within range</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // if index is 0, then call one-argument add</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">        add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // else</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">        // make two pointers, previous and finger. Point previous to null and finger to head</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // search for index-th position by pointing previous to finger and advancing finger</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">            previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">            finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">            index</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#6A9955">        // create new node to insert in correct position. Set its pointers and contents</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> current</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">        current</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        current</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // make previous point to newly created node.</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">current</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // increase number of nodes</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（幻灯片 30）：<code>new Node()</code> 无法编译（<code>Node</code> 没有默认构造函数）→ <code>Node* current = new Node(item, finger);</code>。另外 <code>int index</code> 应改为 <code>size_t</code>，范围检查必须允许 <code>index == n</code>。</p>
+</blockquote>
+<p>索引 0 是特殊情况，因为此时 <code>previous</code> 仍是 <code>nullptr</code>，而且在最前面插入改变的是 <code>head</code>，而不是某个节点的 <code>next</code>。下面用修正后的那一行，展示走完之后的两步图示：</p>
+<p>在 ! → ? → ROCKS → ICS46 上执行 <code>add(2, &quot;UCI&quot;)</code>，从遍历到拼接的全过程。在下方逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;add(2, \&quot;UCI\&quot;)（幻灯片 26–30）&quot;, &quot;items&quot;: &quot;!, ?, ROCKS, ICS46&quot;, &quot;ops&quot;: &quot;add(2, UCI)&quot;}</code></pre><p>示例（已编译运行）：<code>add(2, &quot;UCI&quot;)</code> → <code>[!, ?, UCI, ROCKS, ICS46] n=5</code>；在 4 个元素的列表上 <code>add(4, &quot;end&quot;)</code> 即追加 → <code>[!, ?, ROCKS, ICS46, end] n=5</code>。最多走 <code>n</code> 步 → <strong>O(n)</strong>。</p>
+<h3 id="26-remove移除头节点幻灯片-3132">2.6 <code>remove()</code>：移除头节点（幻灯片 31–32）</h3>
+<p>把 <code>head</code> 向右移动一个节点，再删除原来的第一个节点（幻灯片 32）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#6A9955">    // Make a temporary pointer to head</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // Move head one to the right</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // Decrease number of nodes</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Delete old head node</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（幻灯片 32、40、41）：<code>temp-&gt;data</code> / <code>finger-&gt;data</code>——字段名叫 <code>item</code> → <code>T data = temp-&gt;item;</code>。</p>
+</blockquote>
+<p>先把元素拷贝出来，<strong>然后</strong> <code>delete</code>，最后返回拷贝——<code>delete</code> 之后 <code>temp</code> 就成了悬空指针。示例：在 ! → ? → ROCKS → ICS 46 上执行 <code>remove()</code> 返回 &quot;!&quot;。<strong>O(1)</strong>。（对空列表它会解引用 <code>nullptr</code>；完整实现会先抛出异常。）</p>
+<h3 id="27-removeindex移除指定索引处的元素幻灯片-333441">2.7 <code>remove(index)</code>：移除指定索引处的元素（幻灯片 33–34、41）</h3>
+<p>走法与 <code>add(index, item)</code> 相同；等 <code>finger</code> 到达要删除的节点后，让 <code>previous</code> 跳过它。幻灯片 34 把 <code>else</code> 分支留作活动 1；幻灯片 41 给出了完成后的方法（代码：<a href="#81-%E6%B4%BB%E5%8A%A8-1%E5%AE%9E%E7%8E%B0%E6%8C%89%E7%B4%A2%E5%BC%95%E5%88%A0%E9%99%A4%E5%B9%BB%E7%81%AF%E7%89%87-34">活动 1 解答</a>，其中用 <code>item</code> 代替幻灯片里的 <code>finger-&gt;data</code>）：</p>
+<p>在 ! → ? → ROCKS → ICS46 上执行 <code>remove(2)</code>：遍历、绕过、删除。在下方逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="linked-list"><code>{&quot;title&quot;: &quot;remove(2)（活动 1）&quot;, &quot;items&quot;: &quot;!, ?, ROCKS, ICS46&quot;, &quot;ops&quot;: &quot;remove(2)&quot;}</code></pre><p>示例（已编译运行）：在 ! → ? → UCI → ROCKS → ICS46 上执行 <code>remove(2)</code> 返回 &quot;UCI&quot;。遍历 → <strong>O(n)</strong>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#81-%E6%B4%BB%E5%8A%A8-1%E5%AE%9E%E7%8E%B0%E6%8C%89%E7%B4%A2%E5%BC%95%E5%88%A0%E9%99%A4%E5%B9%BB%E7%81%AF%E7%89%87-34">活动 1</a>。</p>
+</blockquote>
+<hr>
+<h2 id="3-单向链表分析">3. 单向链表：分析</h2>
+<h3 id="31-各操作的代价幻灯片-3541">3.1 各操作的代价（幻灯片 35–41）</h3>
+<p>幻灯片 35–41 要求分析每个操作的最坏情况。问题始终是：<em>在做常数时间的指针操作之前，必须先走过多少个节点？</em></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>最坏情况</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>在头部 <code>add(item)</code>（幻灯片 35–36）</td>
+<td><strong>O(1)</strong></td>
+<td>没有循环</td>
+</tr>
+<tr>
+<td><code>get(index)</code>（幻灯片 38）</td>
+<td><strong>O(n)</strong></td>
+<td>最多走 <code>n - 1</code> 步</td>
+</tr>
+<tr>
+<td><code>add(index, item)</code>（幻灯片 39）</td>
+<td><strong>O(n)</strong></td>
+<td>先遍历，再 O(1) 拼接</td>
+</tr>
+<tr>
+<td>在头部 <code>remove()</code>（幻灯片 40）</td>
+<td><strong>O(1)</strong></td>
+<td>移动 <code>head</code>，删除一个节点</td>
+</tr>
+<tr>
+<td><code>remove(index)</code>（幻灯片 41）</td>
+<td><strong>O(n)</strong></td>
+<td>先遍历，再 O(1) 绕过</td>
+</tr>
+<tr>
+<td>在尾部 add / remove（只有 head）</td>
+<td><strong>O(n)</strong></td>
+<td>要走到末尾（删除时需要倒数第二个节点）</td>
+</tr>
+</tbody></table>
+<p>幻灯片 35–36 分析的是一个较早版本的 <code>add</code>，它给 <code>first = new Node();</code> 赋值，并设置 <code>first-&gt;item</code> 和 <code>first-&gt;next = oldHead</code>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（幻灯片 35–36）：遗留的 <code>first</code>（没有这个成员，<code>head</code> 也从未更新）和 <code>new Node()</code> → 请使用幻灯片 25 的版本；答案仍是 O(1)。<br>⚠️ <strong>易错点</strong>（幻灯片 38）：<code>public T get(int index)</code> 是 Java 的遗留写法 → 在 C++ 中，访问权限来自 <code>public:</code> 标签。</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，Linked List Variations）：<code>get(i)</code> 实际上是 <strong>Θ(i)</strong>——任何列表上 <code>get(0)</code> 都很快。&quot;O(n)&quot; 是对所有 <code>i</code> 取的最坏情况。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#82-%E6%B4%BB%E5%8A%A8-2%E5%8D%95%E5%90%91%E9%93%BE%E8%A1%A8%E6%93%8D%E4%BD%9C%E7%9A%84%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%B9%BB%E7%81%AF%E7%89%87-37">活动 2</a>。</p>
+</blockquote>
+<h3 id="32-加一个尾指针有帮助吗">3.2 加一个尾指针有帮助吗？</h3>
+<p>增加一个指向最后一个节点的 <code>Node* tail</code> 成员：</p>
+<ul>
+<li><strong>在尾部添加 → O(1)</strong>：<code>tail-&gt;next = newNode; tail = newNode;</code>（空列表时还要设置 <code>head</code>）。</li>
+<li><strong>从尾部删除 → 仍是 O(n)</strong>：需要<em>倒数第二个</em>节点，才能把它的 <code>next</code> 设为 <code>nullptr</code>，而 SLL 无法从 <code>tail</code> 往回走。</li>
+</ul>
+<blockquote>
+<p>💡 <strong>关键洞察</strong>：在 SLL 中，指向某个节点的指针只能改变它<strong>之后</strong>的内容，永远无法改变它<strong>之前</strong>的内容。</p>
+</blockquote>
+<hr>
+<h2 id="4-双向链表">4. 双向链表</h2>
+<h3 id="41-带-prev-的节点以及-head-和-tail幻灯片-4244">4.1 带 <code>prev</code> 的节点，以及 head 和 tail（幻灯片 42–44）</h3>
+<p><strong>双向链表（doubly linked list，DLL）</strong>给每个节点增加第二个指针，指向它前面的节点（幻灯片 42）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 43 中的操作以所作用的一端命名：<code>DoublyLinkedList()</code>、<code>isEmpty()</code>、<code>size()</code>、<code>get(int index)</code>、<code>addFirst(Item item)</code>、<code>addLast(Item item)</code>、<code>add(int index, Item item)</code>、<code>Item removeFirst()</code>、<code>Item removeLast()</code>、<code>Item remove(int index)</code>（<code>Item</code>/<code>int</code> 是幻灯片的命名；在我们的 C++ 里是 <code>T</code>/<code>size_t</code>）。列表同时维护一个 <strong>head</strong>（Head/Beginning/Front/First）和一个 <strong>tail</strong>（Tail/End/Back/Last）。</p>
+<p>幻灯片 44 画了五个小图，图之间没有箭头；按顺序读，就是列表先增长、再缩小：</p>
+<table>
+<thead>
+<tr>
+<th>图</th>
+<th>节点</th>
+<th>head</th>
+<th>tail</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>ICS 46（<code>prev</code> 和 <code>next</code> 都为空）</td>
+<td>ICS 46</td>
+<td>ICS 46（同一个节点）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>ROCKS ⇄ ICS 46</td>
+<td>ROCKS</td>
+<td>ICS 46</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ROCKS ⇄ ICS 46 ⇄ !</td>
+<td>ROCKS</td>
+<td>!</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ROCKS ⇄ ICS 46</td>
+<td>ROCKS</td>
+<td>ICS 46</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ICS 46</td>
+<td>ICS 46</td>
+<td>ICS 46</td>
+</tr>
+</tbody></table>
+<p>下面这个操作序列可以依次产生幻灯片 44 的五个状态。在下方逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="doubly-linked-list"><code>{&quot;title&quot;: &quot;幻灯片 44 的各个状态&quot;, &quot;ops&quot;: &quot;addLast(ICS 46); addFirst(ROCKS); addLast(!); removeLast(); removeFirst()&quot;, &quot;interactive&quot;: true}</code></pre><p>只有一个节点的状态是边界情况：<code>head == tail</code>，所以向空列表添加或移除最后一个节点时，必须<strong>同时</strong>更新两者。</p>
+<h3 id="42-两端都是-o1我自己补全的实现">4.2 两端都是 O(1)（我自己补全的实现）</h3>
+<p>幻灯片只给出了 API 和图示，没有 DLL 的代码；这是我自己的补全（已编译；<code>addLast</code>/<code>addFirst</code>/<code>removeFirst</code> 在第 7 节）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                               // O(1) thanks to prev</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeLast() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                          // second-to-last, one step away</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在中间插入会修改<strong>四个</strong>链接（新节点的 <code>prev</code> 和 <code>next</code>、<code>before-&gt;next</code>、<code>after-&gt;prev</code>）；删除中间节点 <code>x</code> 则是 <code>x-&gt;prev-&gt;next = x-&gt;next; x-&gt;next-&gt;prev = x-&gt;prev;</code>。示例（已编译运行）：<code>addLast(&quot;ICS 46&quot;); addFirst(&quot;ROCKS&quot;); addLast(&quot;!&quot;)</code> → <code>[ROCKS, ICS 46, !] backwards [!, ICS 46, ROCKS]</code>；然后 <code>removeLast()</code> 返回 &quot;!&quot;。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，Linked List Variations）：DLL 可以从离目标更近的一端开始走，需要 Θ(min(i, n − i)) ≤ n/2 步——更快，但<strong>仍然是 O(n)</strong>。</p>
+</blockquote>
+<h3 id="43-dll-分析幻灯片-45">4.3 DLL 分析（幻灯片 45）</h3>
+<table>
+<thead>
+<tr>
+<th>操作（head + tail）</th>
+<th>最坏情况</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>在头部 / 在尾部插入</td>
+<td><strong>O(1)</strong> / <strong>O(1)</strong></td>
+</tr>
+<tr>
+<td><code>get(index)</code>、<code>add(index, item)</code>、<code>remove(index)</code></td>
+<td><strong>O(n)</strong>（遍历）</td>
+</tr>
+<tr>
+<td>从头部 / 从尾部删除</td>
+<td><strong>O(1)</strong> / <strong>O(1)</strong>（<code>tail-&gt;prev</code>）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#83-%E6%B4%BB%E5%8A%A8-3%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8%E7%9A%84%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90%E5%B9%BB%E7%81%AF%E7%89%87-45">活动 3</a>。</p>
+</blockquote>
+<hr>
+<h2 id="5-arraylist-与链表对比">5. ArrayList 与链表对比</h2>
+<p>除非另有标注，均为最坏情况；ArrayList 一列来自 <a href="/~kazuhak/notes/ics-46/lec-03/zh-CN/">Lecture 3</a>。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>ArrayList</th>
+<th>SLL</th>
+<th>SLL + tail</th>
+<th>DLL (head + tail)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按索引 get</td>
+<td><strong>O(1)</strong></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>在头部添加</td>
+<td>O(n) 移位</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>在尾部添加</td>
+<td><strong>O(1) 摊还</strong></td>
+<td>O(n)</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>删除头部</td>
+<td>O(n) 移位</td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>删除尾部</td>
+<td><strong>O(1) 摊还</strong></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td><strong>O(1)</strong></td>
+</tr>
+<tr>
+<td>在索引处添加 / 删除</td>
+<td>O(n) 移位</td>
+<td>O(n) 遍历</td>
+<td>O(n) 遍历</td>
+<td>O(n) 遍历</td>
+</tr>
+</tbody></table>
+<p>在 ArrayList 中，O(n) 来自<strong>移位（shifting）</strong>；在链表中，则来自<strong>遍历（walking）</strong>——拼接本身是 O(1)。此外每个节点还要为指针付出额外内存（在这个 g++ 版本上实测：SLL 的 <code>Node&lt;int&gt;</code> 是 16 字节，DLL 的 <code>Node&lt;int&gt;</code> 是 24 字节，而 ArrayList 每个槽位只要 4 字节）。</p>
+<blockquote>
+<p>💡 <strong>关键洞察</strong>（Thornton）：链接越多，操作越快，但代价是更多内存和更多边界情况——选择能满足所需操作速度的最简单的变体。</p>
+</blockquote>
+<hr>
+<h2 id="6-栈">6. 栈</h2>
+<h3 id="61-栈-adt幻灯片-4647">6.1 栈 ADT（幻灯片 46–47）</h3>
+<p><strong>栈（stack）</strong>是一种动态线性结构，元素按 <strong>LIFO（Last In, First Out，后进先出）</strong>插入和移除：只操作一端，即<strong>栈顶（top）</strong>。煎饼的比喻（幻灯片 47）：加一张 = 在顶部 <strong>push</strong>；拿走一张 = <strong>pop</strong> 顶部；只看顶部而不拿走 = <strong>peek</strong>。目标：让 push 和 pop 尽可能高效。（幻灯片 47 的图：一摞彩色圆盘，顶部有 push/pop 箭头。）</p>
+<h3 id="62-追踪-push-和-pop幻灯片-48">6.2 追踪 push 和 pop（幻灯片 48）</h3>
+<p>输入 <code>To be or not to - be - - that - - - is</code>——单词表示 push，<code>-</code> 表示 pop：</p>
+<table>
+<thead>
+<tr>
+<th>之后</th>
+<th>弹出</th>
+<th>栈（栈底 → 栈顶）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>To be or not to</td>
+<td></td>
+<td>To be or not to</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>to</td>
+<td>To be or not</td>
+</tr>
+<tr>
+<td>be, <code>-</code>, <code>-</code></td>
+<td>be, not</td>
+<td>To be or</td>
+</tr>
+<tr>
+<td>that, <code>-</code>, <code>-</code>, <code>-</code></td>
+<td>that, or, be</td>
+<td>To</td>
+</tr>
+<tr>
+<td>is</td>
+<td></td>
+<td>To is</td>
+</tr>
+</tbody></table>
+<p>编译运行的输出：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">popped: to be not that or be
+left on stack (top first): is To</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在下方逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="stack"><code>{&quot;title&quot;: &quot;幻灯片 48：To be or not to - be - - that - - - is&quot;, &quot;ops&quot;: &quot;To be or not to - be - - that - - - is&quot;, &quot;interactive&quot;: true}</code></pre><h3 id="63-基于-arraylist-的栈幻灯片-49">6.3 基于 ArrayList 的栈（幻灯片 49）</h3>
+<p>幻灯片 49 在槽位 0–2 画出了 &quot;ICS46 ROCKS !&quot;，索引 0 是 <strong>Front</strong>，最后一个元素是 <strong>End/Rear</strong>。把<strong>栈顶放在末尾</strong>：push = <code>add(item)</code>，pop = <code>remove()</code>，peek = <code>at(size() - 1)</code>——其他元素都不用动。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> ArrayStack</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    ArrayList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> push</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); }</span><span style="color:#6A9955">              // append at the end</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> pop</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(); }</span><span style="color:#6A9955">                          // remove from the end</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> peek</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">); }</span><span style="color:#6A9955"> // read the last item</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>示例（已编译运行，统计 n 次 push 的元素拷贝 + 移位次数）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">n=1000  top-at-back moves=2022 (2.022 per push)  top-at-front moves=501522 (501.522 per push)
+n=8000  top-at-back moves=16190 (2.02375 per push)  top-at-front moves=32012190 (4001.52 per push)</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>栈顶在后端时，每次 push 稳定在约 2 次移动（摊还 O(1)）；栈顶在前端时，每次 push 约需 n/2 次移动（O(n)）。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，Amortized Analysis）：摊还 O(1) 是对任意操作序列<strong>总代价</strong>的上界（n 次 push ≤ 3n 的工作量），而不是每次调用的上界——某次让数组翻倍的 push 就是 O(n)。peek 的 O(1) 则是真正的最坏情况。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#84-%E6%B4%BB%E5%8A%A8-4%E5%AE%9E%E7%8E%B0%E6%A0%88%E5%B9%BB%E7%81%AF%E7%89%87-49">活动 4</a>。</p>
+</blockquote>
+<hr>
+<h2 id="7-完整实现">7. 完整实现</h2>
+<p>SLL（幻灯片 17–41，已修正 bug）和 DLL（我对幻灯片 42–45 的补全）。使用 <code>g++ -std=c++17 -Wall -Wextra -fsanitize=address,undefined</code> 编译：无警告，无 sanitizer 报告。</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;cstddef></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;stdexcept></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Singly linked list (slides 17-41, slide bugs fixed)</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // number of items</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">   // 0 &#x3C;= index &#x3C; n</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">            throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~SinglyLinkedList</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    SinglyLinkedList</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">            // Rule of Five: Lab 2</span></span>
+<span class="line"><span style="color:#4EC9B0">    SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> SinglyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">        rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">                          // at head</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">       // 0 &#x3C;= index &#x3C;= n</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">            throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Index "</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">to_string</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">" out of bounds"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                                       // at head</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"remove() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">                      // Activity 1</span></span>
+<span class="line"><span style="color:#DCDCAA">        rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] n="</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Doubly linked list with head and tail (my completion of slides 42-45)</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> pv</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">prev</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pv</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#DCDCAA"> nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">        // walk from the nearer end</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">            Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            for</span><span style="color:#D4D4D4"> (</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            return</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">; --</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    DoublyLinkedList</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">head</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">tail</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">n</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~DoublyLinkedList</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#DCDCAA">removeFirst</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    DoublyLinkedList</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> DoublyLinkedList</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> addLast</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> removeFirst</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeFirst() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"removeLast() on empty list"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">else</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">old</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> old</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> get</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#DCDCAA"> nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">)-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> add</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> after</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> before</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">after</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> node</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">before</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">after</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        before</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        after</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">node</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">out_of_range</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"bad index"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> removeFirst</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> removeLast</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> victim</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">nodeAt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">victim</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> victim</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] backwards ["</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> != </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">prev</span><span style="color:#D4D4D4"> ? </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> : </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"] n="</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    SinglyLinkedList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // slides 9-15</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ROCKS"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"?"</span><span style="color:#D4D4D4">);                 </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"remove() -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"remove(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">    try</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">sll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">); } </span><span style="color:#C586C0">catch</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">out_of_range</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"get(2): "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">what</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    DoublyLinkedList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // slide 44</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addFirst</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ROCKS"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addLast</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"removeLast() -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">removeLast</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"UCI"</span><span style="color:#D4D4D4">);               </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"get(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">", remove(1) -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    dll</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="200"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（200 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">[!, ?, ROCKS, ICS 46] n=4
+remove() -&gt; !
+remove(1) -&gt; ROCKS
+[?, ICS 46] n=2
+get(2): Index 2 out of bounds
+[ROCKS, ICS 46, !] backwards [!, ICS 46, ROCKS] n=3
+removeLast() -&gt; !
+[ROCKS, UCI, ICS 46] backwards [ICS 46, UCI, ROCKS] n=3
+get(1) -&gt; UCI, remove(1) -&gt; UCI
+[ROCKS, ICS 46] backwards [ICS 46, ROCKS] n=2</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<hr>
+<h2 id="8-课堂活动附解答">8. 课堂活动（附解答）</h2>
+<h3 id="81-活动-1实现按索引删除幻灯片-34">8.1 活动 1：实现按索引删除（幻灯片 34）</h3>
+<p>补全 <code>else</code> 分支（幻灯片上显示 ! ? ROCKS ICS46，下面标着 <code>previous</code> 和 <code>finger</code>）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//Retrieves and removes the item at the specified index.</span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> index</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">        // check that index is within range</span></span>
+<span class="line"><span style="color:#DCDCAA">    rangeCheck</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">        // if index is 0, then call remove</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#DCDCAA"> remove</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#6A9955">        // else</span></span>
+<span class="line"><span style="color:#D4D4D4">    } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">        // TODO</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>解答：</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">        Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        Node</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">previous</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">index</span><span style="color:#D4D4D4">--; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        previous</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // bypass the node</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#9CDCFE">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">finger</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">            // copy out BEFORE delete</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> finger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>只有要删除节点<em>之前</em>那个节点的 <code>next</code> 会改变，所以需要 <code>previous</code>；索引 0 单独处理，因为此时要改的指针是 <code>head</code>。</p>
+<h3 id="82-活动-2单向链表操作的时间复杂度幻灯片-37">8.2 活动 2：单向链表操作的时间复杂度（幻灯片 37）</h3>
+<p>填写最坏情况：<code>add(E item)</code>——在头部插入 O(1)，在尾部插入 O( )；<code>get(int index)</code>——O( )；<code>add(int index, T item)</code>——O( )；<code>remove()</code>——从头部 O( )，从尾部 O( )；<code>remove(int index)</code>——O( )。</p>
+<p><strong>解答：</strong>在尾部 add 为 <strong>O(n)</strong>（有尾指针时为 O(1)）；<code>get</code> 为 <strong>O(n)</strong>；<code>add(index)</code> 为 <strong>O(n)</strong>；从头部 remove 为 <strong>O(1)</strong>，从尾部为 <strong>O(n)</strong>（即使有尾指针——也无法回到倒数第二个节点）；<code>remove(index)</code> 为 <strong>O(n)</strong>。</p>
+<h3 id="83-活动-3双向链表的时间复杂度分析幻灯片-45">8.3 活动 3：双向链表的时间复杂度分析（幻灯片 45）</h3>
+<p>对双向链表填同样的表。</p>
+<p><strong>解答：</strong>在头部插入 <strong>O(1)</strong>，在尾部插入 <strong>O(1)</strong>；<code>get</code> 为 <strong>O(n)</strong>；<code>add(index)</code> 为 <strong>O(n)</strong>；从头部删除 <strong>O(1)</strong>，从尾部删除 <strong>O(1)</strong>；<code>remove(index)</code> 为 <strong>O(n)</strong>。只有与尾部相关的行发生变化：<code>tail-&gt;prev</code> 一步就能到达倒数第二个节点。</p>
+<h3 id="84-活动-4实现栈幻灯片-49">8.4 活动 4：实现栈（幻灯片 49）</h3>
+<p>用 <strong>ArrayList</strong>（操作 <code>add(Item item)</code>、<code>add(int index, Item item)</code>、<code>remove()</code>）实现一个栈。(a) 栈顶应该放在哪一端（前端还是后端）？(b) 如何实现 Pop、Push 和 Peek？(c) Pop 和 Push 的<strong>摊还（amortized）</strong>大 O 是多少？(d) Peek 的<strong>最坏情况</strong>大 O 是多少？(e) 如果栈顶放在相反的方向，<strong>最坏情况</strong>大 O 是多少？</p>
+<p><strong>解答：</strong>
+(a) <strong>后端</strong>（End/Rear）——在那里添加/删除不需要移动任何元素。
+(b) push = <code>add(item)</code>，pop = <code>remove()</code>，peek = <code>at(size() - 1)</code>。
+(c) 两者都是 <strong>O(1) 摊还</strong>（数组翻倍或在 ¼ 满时缩小，偶尔会是 O(n)）。
+(d) <strong>O(1)</strong>。
+(e) 栈顶在前端：push = <code>add(0, item)</code>、pop = <code>remove(0)</code> 要移动所有元素 → <strong>O(n)</strong>；peek = <code>at(0)</code> 仍是 O(1)。</p>
+<hr>
+<h2 id="9-速查与必记的-5-个要点">9. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>ArrayList</th>
+<th>SLL</th>
+<th>SLL + tail</th>
+<th>DLL</th>
+<th>基于 ArrayList 的栈（栈顶在末尾）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按索引访问</td>
+<td>O(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>在头部 add / remove</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>在尾部 add</td>
+<td>O(1) 摊还</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>push：O(1) 摊还</td>
+</tr>
+<tr>
+<td>在尾部 remove</td>
+<td>O(1) 摊还</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>pop：O(1) 摊还</td>
+</tr>
+<tr>
+<td>在索引处 add / remove</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>peek</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点：</strong></p>
+<ol>
+<li>链表中每个按索引的操作都是 O(n)，原因在于<strong>遍历</strong>；拼接本身是 O(1)。</li>
+<li>在 SLL 内部插入/删除需要<strong>前一个</strong>节点；索引 0 是特例，因为它改变的是 <code>head</code>。</li>
+<li>即使有尾指针，删除 SLL 的尾节点也是 O(n)；DLL 的 <code>prev</code> 让它变成 O(1)。</li>
+<li>先把元素拷贝出来，<strong>再</strong> <code>delete</code>；每个修改操作都要更新 <code>n</code>；并处理好空列表 / 单节点的情况。</li>
+<li>基于 ArrayList 的栈：栈顶放在<strong>末尾</strong> → push/pop 为 O(1) 摊还，peek 为 O(1)；栈顶放在前端 → O(n)。</li>
+</ol>
+<blockquote>
+<p>➡️ <strong>续见 <a href="/~kazuhak/notes/ics-46/lec-05/zh-CN/">Lecture 5</a></strong>：基于 SLL/DLL 的栈（活动 5 和 6，幻灯片 50）以及 &quot;How do we choose?&quot;（幻灯片 51）。</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-03/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 3 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>算法分析与 ArrayList</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 5 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>队列、双端队列与栈的应用</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-03/zh-CN/" title="上一篇: 算法分析与 ArrayList ([)" aria-label="上一篇: 第 3 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 4 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" title="下一篇: 队列、双端队列与栈的应用 (])" aria-label="下一篇: 第 5 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

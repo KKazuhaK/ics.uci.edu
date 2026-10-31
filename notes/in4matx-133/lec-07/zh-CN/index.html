@@ -1,0 +1,969 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 TypeScript 与数据可视化工具 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="TypeScript 类型、类与接口、tsconfig 与声明文件、用门槛与上限评估 UI 工具、声明式可视化，以及用 Vega-Lite 构建图表。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-07/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413984" data-source-url="/~kazuhak/notes/in4matx-133/lec-07/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-07/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 7 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 7 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 7 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 17 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-7typescript-与数据可视化工具">IN4MATX 133: User Interface Software — Lecture 7：TypeScript 与数据可视化工具</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-typescript">1. 什么是 TypeScript</a></li>
+<li><a href="#2-%E7%B1%BB%E5%9E%8B">2. 类型</a></li>
+<li><a href="#3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E4%B8%8E%E7%BB%A7%E6%89%BF">3. 类、接口与继承</a></li>
+<li><a href="#4-tsconfigjson-%E4%B8%8E%E5%A3%B0%E6%98%8E%E6%96%87%E4%BB%B6">4. tsconfig.json 与声明文件</a></li>
+<li><a href="#5-%E4%BC%98%E7%82%B9%E7%BC%BA%E7%82%B9%E4%B8%8E%E5%85%B6%E4%BB%96%E8%BD%AC%E8%AF%91%E5%99%A8">5. 优点、缺点与其他转译器</a></li>
+<li><a href="#6-%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%BD%AF%E4%BB%B6%E4%B8%8E-ui-%E5%B7%A5%E5%85%B7">6. 交互式软件与 UI 工具</a></li>
+<li><a href="#7-%E8%AF%84%E4%BC%B0%E5%B7%A5%E5%85%B7%E9%97%A8%E6%A7%9B%E4%B8%8E%E5%A4%A9%E8%8A%B1%E6%9D%BF">7. 评估工具：门槛与天花板</a></li>
+<li><a href="#8-%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7%E4%B8%8E%E5%A3%B0%E6%98%8E%E5%BC%8F%E8%AF%AD%E8%A8%80">8. 可视化工具与声明式语言</a></li>
+<li><a href="#9-vega-lite%E5%9B%BE%E5%BD%A2%E8%AF%AD%E6%B3%95">9. Vega-Lite：图形语法</a></li>
+<li><a href="#10-%E5%9C%A8-vega-lite-%E4%B8%AD%E6%9E%84%E5%BB%BA%E7%9B%B4%E6%96%B9%E5%9B%BE">10. 在 Vega-Lite 中构建直方图</a></li>
+<li><a href="#11-%E5%90%88%E7%90%86%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E5%8F%8A%E5%85%B6%E8%A6%86%E7%9B%96">11. 合理的默认值及其覆盖</a></li>
+<li><a href="#12-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">12. 课堂问题与演示（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">13. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周四 10/15<br>内容整理自 Lecture 7 的幻灯片（共 78 页）和 demo 仓库文件夹 <code>W3_L2_Oct15_TypeScript_VegaLite</code>。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：本讲是 A2 所需的最后一部分内容；周五的 discussion 会有更深入的 Vega-Lite 演示。<br>加分幻灯片 p70–78（更多 TypeScript 内容）已并入第 2–4 节，并标注为“（加分幻灯片）”。</p>
+</blockquote>
+<hr>
+<h2 id="1-什么是-typescript">1. 什么是 TypeScript</h2>
+<p><strong>安装</strong>（全局 npm 包，见 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/#11-npm">Lecture 6</a>）：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> typescript</span><span style="color:#6A9955">   # installs tsc, the TypeScript transpiler</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>也可以通过 Homebrew（Mac）或 Chocolatey（PC）安装。</p>
+<p><strong>关于 TypeScript</strong>（幻灯片 6–7）：</p>
+<ul>
+<li><strong>Microsoft，2012 年</strong>；最初只支持 Visual Studio，现在支持 Eclipse、Sublime、WebStorm、Atom 等。最新版本：TypeScript 7.0（2026 年 7 月）。</li>
+<li>为 JavaScript 增加了<strong>静态类型、类型检查和对象</strong>，且这些都是<strong>可选的</strong>。</li>
+<li><strong>转译</strong>（transpile，也叫“transcompile”）成 JavaScript：<code>tsc</code> 把 TS 转换成等价的 JS；浏览器只运行 JS。</li>
+<li>是 <strong>JavaScript 的严格超集</strong>：合法的 JS 就是合法的 TS，所以 TS 可以使用流行的 JS 库。</li>
+</ul>
+<p>类型在编译期检查（和 C++ 一样），之后被<strong>擦除</strong>：<code>.js</code> 里不会留下任何类型。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.typescriptlang.org/download">TypeScript: Download</a></p>
+</blockquote>
+<hr>
+<h2 id="2-类型">2. 类型</h2>
+<h3 id="21-标注变量与转译">2.1 标注变量与转译</h3>
+<p><code>hello.ts</code> 在冒号后写类型：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNumber</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNumber</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>tsc hello.ts</code> 生成 <code>hello.js</code>，类型标注消失：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNumber</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNumber</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>会输出 <code>Hello, IN4MATX 133!</code>（现在的 tsc 还会额外加上 <code>&quot;use strict&quot;;</code>）。（幻灯片的 bug：<code>hello.js</code> 末尾是 <code>‘!&#39;);</code>，用了弯引号，是语法错误 → 应为 <code>&#39;!&#39;</code>。）</p>
+<p><strong>预定义类型</strong>（幻灯片 9）：<code>number</code>、<code>boolean</code>、<code>string</code>、<code>void</code>（通常用作函数返回类型）、<code>null</code>、<code>undefined</code>、<code>any</code>。</p>
+<p><strong>类型是可选的。</strong>下面两种写法都能初始化 <code>courseNum</code>：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNum</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> courseNum</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">133</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, IN4MATX '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">courseNum</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'!'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这是两种备选写法（<code>lecture.ts</code> 里把其中一个注释掉了）；放在一起会冲突，因为第二个会<strong>推断</strong>为 <code>number</code>。（幻灯片的 bug：同样的弯引号，<code>‘!&#39;</code>。）</p>
+<h3 id="22-带类型的函数与错误检查">2.2 带类型的函数与错误检查</h3>
+<p>函数可以指定<strong>参数类型和返回类型</strong>：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) </span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// "better" function</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area2</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两者都返回 <code>I&#39;m a square of area 225 cm^2.</code>；<code>area2</code> 之所以“更好”，是因为它连返回值和局部变量的类型也写明了。</p>
+<p><strong>类型让错误检查成为可能</strong>（幻灯片 12）：参数顺序写反了：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area2</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>tsc 报错：<code>error TS2345: Argument of type &#39;number&#39; is not assignable to parameter of type &#39;string&#39;.</code>（幻灯片上写的是 <code>type &#39;15&#39;</code>；在 <code>lecture.ts</code> 中被注释掉了。）</p>
+<p>演示（tsc 输出的 JS）：第 1 步的错误调用会悄悄地运行，输出 <code>I&#39;m a 15 of area NaN cm^2.</code></p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 11–12 · the JavaScript tsc emits for area2 (the browser runs JS, not TS)&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// compiled from area2 in lecture.ts (types stripped by tsc)\nfunction area2(shape, width, height) {\n    var area = width * height;\n    return \&quot;I&#39;m a \&quot; + shape + \&quot; of area \&quot; + area + \&quot; cm^2.\&quot;;\n}\nconsole.log(area2(&#39;square&#39;, 15, 15));&quot;, &quot;height&quot;: 60, &quot;steps&quot;: [{&quot;note&quot;: &quot;The slide&#39;s bad call: tsc rejects it, but if you skip the type check the JS runs and silently prints NaN.&quot;, &quot;js&quot;: &quot;console.log(area2(15, 15, &#39;square&#39;));&quot;}]}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/lecture/lecture.ts">lecture.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/lecture/lecture.js">lecture.js</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：即使有类型错误，tsc（默认）<strong>仍然会写出 <code>.js</code></strong>，所以一定要看报错信息。</p>
+</blockquote>
+<h3 id="23-联合类型可选参数泛型加分幻灯片">2.3 联合类型、可选参数、泛型（加分幻灯片）</h3>
+<p><strong>联合类型</strong>（union type，幻灯片 77，来自 TypeScript 1.4 的发布公告）：<code>|</code> 表示可以是几种类型之一：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> | </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[]) {</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> === </span><span style="color:#CE9178">"number"</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#C586C0">  else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // return sum of numbers</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>f(5)</code> → <code>15</code>；<code>f([1, 2, 3])</code> → <code>undefined</code>（<code>else</code> 里只有注释）；<code>f(&quot;5&quot;)</code> 是类型错误。</p>
+<p><strong>可选参数与默认参数</strong>（幻灯片 78，TypeScript Handbook）：<code>?</code> 表示参数可选，<code>=</code> 给出默认值：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toFixed</span><span style="color:#D4D4D4">()); </span><span style="color:#6A9955">// 0 arguments</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toFixed</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">)); </span><span style="color:#6A9955">// 1 argument</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">?: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#DCDCAA">f</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">// OK</span></span>
+<span class="line"><span style="color:#DCDCAA">f</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">// OK</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> f</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（这是三段互相独立的代码。）省略的 <code>x?</code> 是 <code>undefined</code>；没有 <code>?</code> 时 <code>f()</code> 会报错；<code>x = 10</code> 的默认值为 10。当 <code>n = 3.14159</code> 时：<code>toFixed()</code> → <code>3</code>，<code>toFixed(3)</code> → <code>3.142</code>。</p>
+<p><strong>泛型</strong>（generics，幻灯片 75）“和 Java 一样”：类型参数 <code>T</code> 保留调用者传入的类型：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> identity</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">arg</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">): </span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> arg</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">let</span><span style="color:#9CDCFE"> output</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">identity</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">>(</span><span style="color:#CE9178">"myString"</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// type of output will be 'string'</span></span>
+<span class="line"><span style="color:#569CD6">let</span><span style="color:#9CDCFE"> output</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">identity</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"myString"</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// type of output will be 'string'</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>第二次调用会<strong>推断</strong> <code>T</code>（类似 C++ 的模板）。（幻灯片的 bug：<code>let output</code> 写了两次 → <code>Cannot redeclare block-scoped variable &#39;output&#39;</code>；改掉其中一个名字即可。）</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E9%97%AE%E9%A2%98-1%E5%93%AA%E4%BA%9B-typescript-%E6%96%87%E4%BB%B6%E4%BC%9A%E8%BD%AC%E8%AF%91%E6%88%90%E8%BF%99%E6%AE%B5-js%E5%B9%BB%E7%81%AF%E7%89%87-14">问题 1</a> · <a href="#122-%E6%BC%94%E7%A4%BA-1%E7%BB%99-joinntimes-%E5%8A%A0%E7%B1%BB%E5%9E%8B%E5%B9%BB%E7%81%AF%E7%89%87-13--setup1--solution1">演示 1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.typescriptlang.org/docs/handbook/generics.html">TypeScript Handbook: Generics</a> · <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-1-4/">Announcing TypeScript 1.4 (union types)</a> · <a href="https://www.typescriptlang.org/docs/handbook/2/functions.html#optional-parameters">TypeScript Handbook: Optional parameters</a></p>
+</blockquote>
+<hr>
+<h2 id="3-类接口与继承">3. 类、接口与继承</h2>
+<h3 id="31-类">3.1 类</h3>
+<p>类“和 Java 一样”：顶部是带类型的字段，然后是构造函数和方法：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    area</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    color</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">    constructor</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">name</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"pink"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#DCDCAA">    shoutout</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">color</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> +  </span><span style="color:#CE9178">" with an area of "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm squared."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> square</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Shape</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"square"</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>square.shoutout()</code> → <code>I&#39;m pink square with an area of 900 cm squared.</code>（<code>lecture.js</code> 中是同样的 JS <code>class</code>，字段没有类型。）</p>
+<h3 id="32-接口加分幻灯片">3.2 接口（加分幻灯片）</h3>
+<p>接口（interface）描述一个对象的“输入”和“输出”：它必需的属性及其类型：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">interface</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    color</span><span style="color:#D4D4D4">?: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">; </span><span style="color:#6A9955">// ? Specifies an "optional" value</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> : </span><span style="color:#4EC9B0">Shape</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" with area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm squared"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">({</span><span style="color:#9CDCFE">name:</span><span style="color:#CE9178"> "rectangle"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height:</span><span style="color:#B5CEA8"> 15</span><span style="color:#D4D4D4">}));</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">({</span><span style="color:#9CDCFE">name:</span><span style="color:#CE9178"> "square"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height:</span><span style="color:#B5CEA8"> 30</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">color:</span><span style="color:#CE9178"> "red"</span><span style="color:#D4D4D4">}));</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>会输出面积 450 和 900。任何带有正确属性的对象字面量都是一个 <code>Shape</code>；省略 <code>height</code> 会报类型错误。（幻灯片的 bug：弯引号 <code>“red&quot;</code> → <code>&quot;red&quot;</code>。）</p>
+<h3 id="33-继承加分幻灯片">3.3 继承（加分幻灯片）</h3>
+<p>类和接口都可以被<strong>扩展</strong>（extend）：<code>super(...)</code> 调用基类构造函数，同名方法会<strong>重写</strong>（override），<code>super.method()</code> 调用基类的版本：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Shape3D</span><span style="color:#569CD6"> extends</span><span style="color:#4EC9B0"> Shape</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    volume</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">    constructor</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#569CD6">        super</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4"> ); </span><span style="color:#6A9955">//calls base class constructor</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">volume</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> * </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#DCDCAA">    shoutout</span><span style="color:#D4D4D4">() { </span><span style="color:#6A9955">//overrides the base class</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#CE9178"> "I'm "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4"> +  </span><span style="color:#CE9178">" with a volume of "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">volume</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm cube."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#DCDCAA">    superShout</span><span style="color:#D4D4D4">() { </span><span style="color:#6A9955">//calls base class shoutout method</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#569CD6"> super</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">shoutout</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4"> </span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cube</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Shape3D</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"cube"</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">cube</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">shoutout</span><span style="color:#D4D4D4">() );</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">( </span><span style="color:#9CDCFE">cube</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">superShout</span><span style="color:#D4D4D4">() );</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>会输出 <code>I&#39;m cube with a volume of 27000 cm cube.</code>，然后（基类方法）输出 <code>I&#39;m pink cube with an area of 900 cm squared.</code> 演示：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 17 &amp; 74 · compiled JS of Shape and Shape3D&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// compiled JavaScript of the slide 17 Shape class + slide 74 Shape3D (types stripped)\nclass Shape {\n    constructor(name, width, height) {\n        this.name = name;\n        this.area = width * height;\n        this.color = \&quot;pink\&quot;;\n    }\n    ;\n    shoutout() {\n        return \&quot;I&#39;m \&quot; + this.color + \&quot; \&quot; + this.name + \&quot; with an area of \&quot; + this.area + \&quot; cm squared.\&quot;;\n    }\n}\nvar square = new Shape(\&quot;square\&quot;, 30, 30);\nconsole.log(square.shoutout());\nclass Shape3D extends Shape {\n    constructor(name, width, height, length) {\n        super(name, width, height); //calls base class constructor\n        this.volume = length * this.area;\n    }\n    ;\n    shoutout() {\n        return \&quot;I&#39;m \&quot; + this.name + \&quot; with a volume of \&quot; + this.volume + \&quot; cm cube.\&quot;;\n    }\n    superShout() {\n        return super.shoutout();\n    }\n}\n\nvar cube = new Shape3D(\&quot;cube\&quot;, 30, 30, 30);\nconsole.log(cube.shoutout());\nconsole.log(cube.superShout());\n&quot;, &quot;height&quot;: 60}</code></pre><h3 id="34-getter-与-setter加分幻灯片">3.4 Getter 与 setter（加分幻灯片）</h3>
+<p><code>get</code>/<code>set</code> 在读取或赋值属性时运行代码；<code>private</code> 隐藏底层字段：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">const</span><span style="color:#4FC1FF"> fullNameMaxLength</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Employee</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#9CDCFE"> _fullName</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">  get</span><span style="color:#DCDCAA"> fullName</span><span style="color:#D4D4D4">(): </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">_fullName</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#569CD6">  set</span><span style="color:#DCDCAA"> fullName</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">fullNameMaxLength</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">      throw</span><span style="color:#569CD6"> new</span><span style="color:#DCDCAA"> Error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"fullName has a max length of "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">fullNameMaxLength</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">_fullName</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newName</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>emp.fullName = &quot;Peter&quot;</code> 会存入该值；一个 14 个字符的名字会抛出异常。从外部访问 <code>emp._fullName</code> 只会产生编译期错误。</p>
+<hr>
+<h2 id="4-tsconfigjson-与声明文件">4. tsconfig.json 与声明文件</h2>
+<p><code>tsconfig.json</code> 文件：</p>
+<ul>
+<li>表明这是一个 TypeScript <strong>项目</strong>；</li>
+<li>指定要转译哪些文件或文件夹；</li>
+<li>选择转译器选项，例如是否删除注释；</li>
+<li>指定要转译到哪个版本的 ECMAScript（JavaScript）。</li>
+</ul>
+<p>用下面的命令构建整个项目：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">tsc</span><span style="color:#569CD6"> --project</span><span style="color:#CE9178"> tsconfig.json</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>声明文件（加分幻灯片 71–72）。</strong><code>.d.ts</code> 保留了被擦除的类型，这样库的使用者就可以检查自己的调用：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">tsc</span><span style="color:#569CD6"> --declaration</span><span style="color:#CE9178"> test.ts</span></span>
+<span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> --save</span><span style="color:#CE9178"> @types/your-library-here</span><span style="color:#6A9955">   # typings for many existing JS libraries</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//test.ts</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// transpiled test.js</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> area</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#CE9178"> "I'm a "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" of area "</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">area</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">" cm^2."</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">body</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">innerHTML</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">area</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'square'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">15</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// generated test.d.ts</span></span>
+<span class="line"><span style="color:#569CD6">declare</span><span style="color:#569CD6"> function</span><span style="color:#DCDCAA"> area</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">shape</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">width</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">height</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">): </span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>.d.ts</code> 就像 C++ 的头文件：只有函数签名，没有函数体。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.typescriptlang.org/docs/handbook/tsconfig-json.html">TypeScript Handbook: tsconfig.json</a></p>
+</blockquote>
+<hr>
+<h2 id="5-优点缺点与其他转译器">5. 优点、缺点与其他转译器</h2>
+<table>
+<thead>
+<tr>
+<th>TypeScript 的优点</th>
+<th>TypeScript 的缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>类型检查</strong>：在代码运行<em>之前</em>就能发现错误</td>
+<td><strong>转译有时很烦人</strong>；大项目里可能很慢</td>
+</tr>
+<tr>
+<td>编辑器可以自动补全方法和 API</td>
+<td>对新的 JavaScript 库可能无法开箱即用</td>
+</tr>
+<tr>
+<td>更容易重构代码</td>
+<td>适配 Angular 和 React 花了一段时间（现在是 Angular 的默认语言）</td>
+</tr>
+<tr>
+<td><strong>面向对象</strong>：更容易管理和维护大型代码库</td>
+<td></td>
+</tr>
+<tr>
+<td>足够简单：与 Java 等面向对象语言原理相同</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>其他值得一提的 JavaScript 转译器：</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Dart</th>
+<th>Kotlin</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发者</td>
+<td>Google</td>
+<td>JetBrains（开发了很多 IDE）</td>
+</tr>
+<tr>
+<td>理念</td>
+<td>引入类型和类似的面向对象实践</td>
+<td>“更好的” Java，与 Java 完全互操作</td>
+</tr>
+<tr>
+<td>转成 JavaScript 的方式</td>
+<td><code>dart2js</code></td>
+<td><code>kotlin.js</code>（配合 React 等使用）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-交互式软件与-ui-工具">6. 交互式软件与 UI 工具</h2>
+<p><em>话题切换：软件工具与可视化</em>，这只是<strong>很窄的一小部分</strong>；想学更多，请选 <strong>IN4MATX 143</strong>。</p>
+<p><strong>顺序式程序（命令行）。</strong>程序先给出提示；使用者等待，然后输入，可以建模成一个文件（<code>input()</code>、<code>std::cin</code>）。</p>
+<p><strong>事件驱动编程（event-driven programming）。</strong>程序等待使用者；输入以<strong>事件</strong>（鼠标按下、拖动、按键松开）的形式到达，所有事件放进同一个有序的<strong>事件队列</strong>（event queue），从而屏蔽设备细节（<code>addEventListener</code>，见 <a href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/#7-%E4%BA%8B%E4%BB%B6%E4%B8%8E%E7%9B%91%E5%90%AC%E5%99%A8">Lecture 6</a>）。</p>
+<p><strong>基本的交互式软件循环</strong>在所有交互式软件的某个地方都存在：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">do</span><span style="color:#D4D4D4"> { </span></span>
+<span class="line"><span style="color:#9CDCFE">  e</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">read_event</span><span style="color:#D4D4D4">();          </span><span style="color:#6A9955">// Input</span></span>
+<span class="line"><span style="color:#DCDCAA">  dispatch_event</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">);         </span><span style="color:#6A9955">// Processing</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">damage_exists</span><span style="color:#D4D4D4">()) </span></span>
+<span class="line"><span style="color:#DCDCAA">     update_display</span><span style="color:#D4D4D4">();       </span><span style="color:#6A9955">// Output</span></span>
+<span class="line"><span style="color:#D4D4D4">} </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">type</span><span style="color:#D4D4D4"> != </span><span style="color:#4FC1FF">WM_QUIT</span><span style="color:#D4D4D4">); </span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>给每个网页或应用都写一遍这个循环会很繁琐，所以<strong>我们依赖工具来处理常见操作</strong>。</p>
+<p><strong>例子：按钮。</strong>设置 X/Y 边界，检查鼠标按下<em>和</em>松开是否都在边界内，然后触发事件，每个按钮都要这样做。</p>
+<p><strong>理解工具。</strong></p>
+<ul>
+<li><em>什么是 UI 工具？</em>帮助构建 UI 的软件/库：Bootstrap（响应式）、Angular、React 等。</li>
+<li><em>为什么要用？</em>它们把常见实践打包进框架，让这些实践容易遵循，让你专注于自己的应用。</li>
+<li><em>它们带来</em>更快、更迭代式的设计，更好的实现，以及使用同一工具的各个应用之间的一致性。</li>
+<li><em>为什么工具很难设计？</em>核心实践和人们的任务一直在变。</li>
+</ul>
+<hr>
+<h2 id="7-评估工具门槛与天花板">7. 评估工具：门槛与天花板</h2>
+<p>评估一个工具“有多有用”的四个关键术语（Myers、Hudson &amp; Pausch，TOCHI 2000）：</p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+<th>幻灯片中的说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>门槛</strong>（Threshold）</td>
+<td>上手有多难</td>
+<td>取决于已有知识；新语言会提高门槛，借用已有概念会降低门槛。</td>
+</tr>
+<tr>
+<td><strong>天花板</strong>（Ceiling）</td>
+<td>能做到多少事</td>
+<td>与直接访问设备相比，工具会限制可能性。</td>
+</tr>
+<tr>
+<td><strong>阻力最小的路径</strong>（Path of least resistance）</td>
+<td>工具会影响人们做出什么样的界面</td>
+<td>Bootstrap 页面看起来都差不多（<a href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/">Lecture 4</a>）。<strong>Sapir-Whorf 假说</strong>：语言限制思维；工具框定了我们思考设计的方式。</td>
+</tr>
+<tr>
+<td><strong>移动靶</strong>（Moving targets）</td>
+<td>需求变化会让工具过时</td>
+<td>固化的规范会约束设计；认知和技术（例如 VR）一直在演进。</td>
+</tr>
+</tbody></table>
+<p><strong>两者都是相对的。</strong>最好的工具是<strong>低门槛</strong>、<strong>高天花板</strong>（Photoshop 通过提供教程来降低门槛）。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E9%97%AE%E9%A2%98-2photoshop-%E4%B8%8E-paint-%E7%9A%84%E9%97%A8%E6%A7%9B%E5%92%8C%E5%A4%A9%E8%8A%B1%E6%9D%BF%E5%B9%BB%E7%81%AF%E7%89%87-38">问题 2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://doi.org/10.1145/344949.344959">Myers, Hudson &amp; Pausch (2000): Past, present, and future of user interface software tools</a></p>
+</blockquote>
+<hr>
+<h2 id="8-可视化工具与声明式语言">8. 可视化工具与声明式语言</h2>
+<p><em>这和可视化有什么关系？</em>可视化工具遵循同样的原则。</p>
+<h3 id="81-svg-与-excel">8.1 SVG 与 Excel</h3>
+<p><strong>SVG（Scalable Vector Graphics，可缩放矢量图形）</strong>：基于 XML、类似 HTML 的标记，用来描述线、圆、矩形；浏览器负责渲染。（幻灯片：由像素组成的位图“S”与平滑的矢量“S”的对比。）</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">svg</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100"</span><span style="color:#9CDCFE"> height</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">circle</span><span style="color:#9CDCFE"> cx</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"50"</span><span style="color:#9CDCFE"> cy</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"50"</span><span style="color:#9CDCFE"> r</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"40"</span><span style="color:#9CDCFE"> stroke</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"green"</span><span style="color:#9CDCFE"> stroke-width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"4"</span><span style="color:#9CDCFE"> fill</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"yellow"</span><span style="color:#808080"> /></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">svg</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>一个黄色的圆，绿色边框，圆心 (50, 50)，半径 40：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 43 · an SVG circle&quot;, &quot;interactive&quot;: true, &quot;html&quot;: &quot;&lt;svg width=\&quot;100\&quot; height=\&quot;100\&quot;&gt;\n  &lt;circle cx=\&quot;50\&quot; cy=\&quot;50\&quot; r=\&quot;40\&quot; stroke=\&quot;green\&quot; stroke-width=\&quot;4\&quot; fill=\&quot;yellow\&quot; /&gt;\n&lt;/svg&gt;&quot;, &quot;height&quot;: 120, &quot;steps&quot;: [{&quot;note&quot;: &quot;Add a rectangle: SVG is built from shapes like this.&quot;, &quot;html&quot;: &quot;&lt;svg width=\&quot;100\&quot; height=\&quot;100\&quot;&gt;\n  &lt;circle cx=\&quot;50\&quot; cy=\&quot;50\&quot; r=\&quot;40\&quot; stroke=\&quot;green\&quot; stroke-width=\&quot;4\&quot; fill=\&quot;yellow\&quot; /&gt;\n  &lt;rect x=\&quot;35\&quot; y=\&quot;35\&quot; width=\&quot;30\&quot; height=\&quot;30\&quot; fill=\&quot;blue\&quot; /&gt;\n&lt;/svg&gt;&quot;}]}</code></pre><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>门槛</th>
+<th>天花板</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SVG</td>
+<td>高</td>
+<td>高（什么都能画，例如 Minard 的拿破仑远征图）</td>
+</tr>
+<tr>
+<td>Microsoft Excel</td>
+<td>低</td>
+<td>低（标准图表，例如幻灯片上的“Wildlife Population”条形图）</td>
+</tr>
+</tbody></table>
+<h3 id="82-可视化工具的谱系">8.2 可视化工具的谱系</h3>
+<p>幻灯片 45，从门槛较低（上）到天花板较高（下）：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>类型</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>图表工具（Charting tools）</td>
+<td>图表类型库</td>
+<td>Excel、Google Charts</td>
+</tr>
+<tr>
+<td>声明式语言</td>
+<td>可视分析语法</td>
+<td>ggplot、VizQL</td>
+</tr>
+<tr>
+<td>声明式语言</td>
+<td><strong>可视化语法</strong>（幻灯片中高亮）</td>
+<td>Protovis、D3.js、<strong>Vega-Lite</strong></td>
+</tr>
+<tr>
+<td>编程语言</td>
+<td>图形 API</td>
+<td>Processing、SVG、OpenGL</td>
+</tr>
+</tbody></table>
+<h3 id="83-声明式与命令式">8.3 声明式与命令式</h3>
+<p><strong>声明式语言</strong>（declarative language）描述的是<strong>做什么</strong>（what），而不是<strong>怎么做</strong>（how），把<strong>规范</strong>（specification）与<strong>执行</strong>（execution）分离；<strong>命令式</strong>（imperative）代码则给出明确的步骤。</p>
+<p>幻灯片把 HTML（标记）和 CSS（样式）重新归为<strong>声明式</strong>，把 JavaScript（编程）归为<strong>命令式</strong>。幻灯片 49：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">main</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-3"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">B</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-4"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">main</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">'1'</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'fish'</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">] = </span><span style="color:#CE9178">'dog'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'2'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">] - </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">] = </span><span style="color:#569CD6">typeof</span><span style="color:#9CDCFE"> array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">indexOf</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'blue'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">array</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'*'</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>网格：描述<em>是什么</em>。JS：<em>一步一步</em>地执行，最终输出 <code>number*fish*-2*blue*3*dog*2</code>（<a href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/">Lecture 5</a>）。（幻灯片的 bug：弯引号 <code>“col-4&quot;</code>、<code>“col&quot;</code>；已修正。）</p>
+<p><strong>为什么用声明式？</strong>迭代更快，代码更少，门槛更低，而且可以用程序生成。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://en.wikipedia.org/wiki/Vector_graphics">Wikipedia: Vector graphics</a> · <a href="https://www.edwardtufte.com/tufte/posters">Edward Tufte: posters</a></p>
+</blockquote>
+<hr>
+<h2 id="9-vega-lite图形语法">9. Vega-Lite：图形语法</h2>
+<p><strong>目标</strong>（Satyanarayan 等，IEEE Vis 2017）：“一种表达力强（高天花板）又简洁（低门槛）的、用于描述可视化的声明式语言”。</p>
+<p><strong>图形语法</strong>（grammar of graphics）：一张图表由以下几部分组成：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data</strong>（数据）</td>
+<td>要可视化的输入数据</td>
+</tr>
+<tr>
+<td><strong>Mark</strong>（标记）</td>
+<td>代表数据的图形：面积（area）、柱（bar）、点（point）、图像（image）、线（line）、标签（text）、规则线（rule）、弧（arc）</td>
+</tr>
+<tr>
+<td><strong>Transform</strong>（变换）</td>
+<td>是否过滤、聚合、分箱等</td>
+</tr>
+<tr>
+<td><strong>Encoding</strong>（编码）</td>
+<td>数据字段与标记属性（x、y、color 等）之间的映射</td>
+</tr>
+<tr>
+<td><strong>Scale</strong>（比例尺）</td>
+<td>（编码的一部分）把数据值映射成视觉值</td>
+</tr>
+<tr>
+<td><strong>Guides</strong>（引导元素）</td>
+<td>把比例尺可视化的坐标轴和图例</td>
+</tr>
+</tbody></table>
+<p>一份规范（spec）就是一个 JSON 对象；数据通常是由记录组成的 JSON 数组（仓库里的 <code>seattle-weather.json</code>，2015 年共 365 行）：</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">[</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        "date"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"2015/01/01"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "weather"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"sun"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "temperature"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">1.1999999999999997</span></span>
+<span class="line"><span style="color:#D4D4D4">    }, </span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        "date"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"2015/01/02"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "weather"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"fog"</span><span style="color:#D4D4D4">, </span></span>
+<span class="line"><span style="color:#9CDCFE">        "temperature"</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">2.8</span></span>
+<span class="line"><span style="color:#D4D4D4">    }, </span></span>
+<span class="line"><span style="color:#F44747">    ...</span></span>
+<span class="line"><span style="color:#D4D4D4">]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>加载 vega、vega-lite 和 vega-embed 脚本之后，用 <code>vegaEmbed(&#39;#id&#39;, spec)</code> 把它画出来（<a href="#124-%E6%BC%94%E7%A4%BA-22000-%E5%B9%B4%E7%BE%8E%E5%9B%BD%E5%B9%B4%E9%BE%84%E5%88%86%E5%B8%83%E6%9D%A1%E5%BD%A2%E5%9B%BE%E5%B9%BB%E7%81%AF%E7%89%87-63--setup2--solution2">演示 2</a>）。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://doi.org/10.1109/TVCG.2016.2599030">Satyanarayan et al. (2017): Vega-Lite: A Grammar of Interactive Graphics</a></p>
+</blockquote>
+<hr>
+<h2 id="10-在-vega-lite-中构建直方图">10. 在 Vega-Lite 中构建直方图</h2>
+<p><strong>直方图 = 柱状图，x = 分箱后的字段，y = 计数</strong>，再按 weather 着色。一次只改一处，逐步构建：</p>
+<p><strong>第 1 步：每条记录一个刻度线</strong>（幻灯片 55）：mark 为 <code>&quot;tick&quot;</code>，x = <code>&quot;temperature&quot;</code>：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">  data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">  mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"tick"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"temperature"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>每个字段都属于<strong>四种类型</strong>之一：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>quantitative</code></td>
+<td>数值型</td>
+<td>temperature</td>
+</tr>
+<tr>
+<td><code>temporal</code></td>
+<td>时间</td>
+<td>date</td>
+</tr>
+<tr>
+<td><code>ordinal</code></td>
+<td>有序类别</td>
+<td>年龄段、月份</td>
+</tr>
+<tr>
+<td><code>nominal</code></td>
+<td>无序类别</td>
+<td>weather、origin</td>
+</tr>
+</tbody></table>
+<p><strong>第 2 步：分箱</strong>（幻灯片 56）：在 x 上加 <code>bin: true</code>；坐标轴标题变成 <code>BIN(temperature)</code>，每个箱一个刻度线，还没有计数。</p>
+<p><strong>第 3 步：计数</strong>（幻灯片 57）：y 使用 <code>aggregate: &quot;count&quot;</code>；仍然是刻度线，位于各自计数的高度。</p>
+<p><strong>第 4 步：柱</strong>（幻灯片 58）：<code>mark: &quot;bar&quot;</code> 就变成了直方图：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">  data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">  mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      bin</span><span style="color:#D4D4D4">: </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"temperature"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    },</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">      aggregate</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"count"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">      type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>第 5 步：颜色</strong>（幻灯片 59）：<code>color: {field: &quot;weather&quot;, type: &quot;nominal&quot;}</code> 把每根柱拆成<strong>堆叠</strong>的多段，并带有图例。</p>
+<p>演示用了 12 行内联数据（<code>data: {values: …}</code>），所以计数很小：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 55–59 · building the histogram one encoding at a time (inline rows from seattle-weather.json)&quot;, &quot;interactive&quot;: true, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// 12 rows from the repo&#39;s seattle-weather.json (the demo can&#39;t load the file)\nvar weather = [\n  {\&quot;date\&quot;: \&quot;2015/01/01\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 1.2},\n  {\&quot;date\&quot;: \&quot;2015/01/02\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 2.8},\n  {\&quot;date\&quot;: \&quot;2015/01/18\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 10.55},\n  {\&quot;date\&quot;: \&quot;2015/03/25\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 10.8},\n  {\&quot;date\&quot;: \&quot;2015/04/01\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 9.2},\n  {\&quot;date\&quot;: \&quot;2015/05/22\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 14.2},\n  {\&quot;date\&quot;: \&quot;2015/06/15\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 23.05},\n  {\&quot;date\&quot;: \&quot;2015/07/08\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 22.2},\n  {\&quot;date\&quot;: \&quot;2015/07/31\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 26.1},\n  {\&quot;date\&quot;: \&quot;2015/08/14\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 16.65},\n  {\&quot;date\&quot;: \&quot;2015/08/22\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 19.45},\n  {\&quot;date\&quot;: \&quot;2015/10/19\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 14.7}\n];\n\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;, &quot;height&quot;: 260, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 56: bin: true groups the temperatures into bins.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 57: y counts the records in each bin (still ticks).&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;tick\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 58: change the mark to bar, and it&#39;s a histogram.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}, {&quot;note&quot;: &quot;Slide 59: color by the nominal weather field; the bars stack automatically.&quot;, &quot;js&quot;: &quot;vegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;},\n    color: {field: \&quot;weather\&quot;, type: \&quot;nominal\&quot;}\n  }\n}, {actions: false});&quot;}]}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/seattle-weather.json">seattle-weather.json</a></p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片加载的是 <code>&quot;weather-seattle.json&quot;</code>，而仓库里的文件叫 <code>seattle-weather.json</code>；<code>url</code> 写错会得到一张空图表，且不报错。（幻灯片里的 <code>snow</code> 在仓库的 2015 年数据中并不存在。）</p>
+</blockquote>
+<hr>
+<h2 id="11-合理的默认值及其覆盖">11. 合理的默认值及其覆盖</h2>
+<p>幻灯片 59 从未指定颜色、分箱宽度、坐标轴标签或堆叠方式：Vega-Lite 自己选了<strong>“合理的默认值”</strong>（sensible defaults）。</p>
+<p><strong>覆盖默认值</strong>（幻灯片 61）：自定义颜色比例尺，把每个 <code>domain</code> 值映射到一个 <code>range</code> 颜色：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">color</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">  field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  scale</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    domain</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"sun"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"fog"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"drizzle"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"rain"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"snow"</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#C8C8C8">    range</span><span style="color:#D4D4D4">: [</span><span style="color:#CE9178">"#e7ba52"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#c7c7c7"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#aec7e8"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#1f77b4"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"#9467bd"</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片的 bug：<code>scale</code> 被放在了 <code>color</code> <em>旁边</em>，所以 Vega-Lite 会丢弃它（并给出警告）→ 应像上面这样放进 <code>color</code> 里面（弯引号 <code>“#1f77b4&quot;</code> 也已修正）。</p>
+<p><strong>每月降水量</strong>（幻灯片 62）：<code>timeUnit: &quot;month&quot;</code> 按月份对日期（例如 &quot;2018-10-17&quot;）分组并标注；<code>aggregate: &quot;mean&quot;</code> 求平均值：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C8C8C8">data</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">url</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"weather-seattle.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">x</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">timeUnit</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"month"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"date"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">y</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">aggregate</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"mean"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"precipitation"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片的 bug：仓库数据里没有 <code>precipitation</code>（演示改用 temperature），而且 <code>quantitative</code> 类型的月份<strong>画不出柱</strong>；请使用 <code>&quot;ordinal&quot;</code>（如幻灯片所示）或 <code>&quot;temporal&quot;</code>。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 61–62 · overriding the color scale, then a monthly mean (inline rows from seattle-weather.json)&quot;, &quot;interactive&quot;: true, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// 12 rows from the repo&#39;s seattle-weather.json (the demo can&#39;t load the file)\nvar weather = [\n  {\&quot;date\&quot;: \&quot;2015/01/01\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 1.2},\n  {\&quot;date\&quot;: \&quot;2015/01/02\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 2.8},\n  {\&quot;date\&quot;: \&quot;2015/01/18\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 10.55},\n  {\&quot;date\&quot;: \&quot;2015/03/25\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 10.8},\n  {\&quot;date\&quot;: \&quot;2015/04/01\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 9.2},\n  {\&quot;date\&quot;: \&quot;2015/05/22\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 14.2},\n  {\&quot;date\&quot;: \&quot;2015/06/15\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 23.05},\n  {\&quot;date\&quot;: \&quot;2015/07/08\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 22.2},\n  {\&quot;date\&quot;: \&quot;2015/07/31\&quot;, \&quot;weather\&quot;: \&quot;sun\&quot;, \&quot;temperature\&quot;: 26.1},\n  {\&quot;date\&quot;: \&quot;2015/08/14\&quot;, \&quot;weather\&quot;: \&quot;rain\&quot;, \&quot;temperature\&quot;: 16.65},\n  {\&quot;date\&quot;: \&quot;2015/08/22\&quot;, \&quot;weather\&quot;: \&quot;drizzle\&quot;, \&quot;temperature\&quot;: 19.45},\n  {\&quot;date\&quot;: \&quot;2015/10/19\&quot;, \&quot;weather\&quot;: \&quot;fog\&quot;, \&quot;temperature\&quot;: 14.7}\n];\n\n// slide 61, with scale moved inside color (see the note above)\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {bin: true, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;},\n    y: {aggregate: \&quot;count\&quot;, type: \&quot;quantitative\&quot;},\n    color: {\n      field: \&quot;weather\&quot;, type: \&quot;nominal\&quot;,\n      scale: {\n        domain: [\&quot;sun\&quot;,\&quot;fog\&quot;,\&quot;drizzle\&quot;,\&quot;rain\&quot;,\&quot;snow\&quot;],\n        range: [\&quot;#e7ba52\&quot;,\&quot;#c7c7c7\&quot;,\&quot;#aec7e8\&quot;,\&quot;#1f77b4\&quot;,\&quot;#9467bd\&quot;]\n      }\n    }\n  }\n}, {actions: false});&quot;, &quot;height&quot;: 260, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Slide 62&#39;s idea on the repo data: timeUnit month on date, y = mean temperature (the repo file has no precipitation field).&quot;, &quot;js&quot;: &quot;// slide 62 (ordinal month; temperature instead of precipitation)\nvegaEmbed(\&quot;#vis\&quot;, {\n  data: {values: weather},\n  mark: \&quot;bar\&quot;,\n  encoding: {\n    x: {timeUnit: \&quot;month\&quot;, field: \&quot;date\&quot;, type: \&quot;ordinal\&quot;},\n    y: {aggregate: \&quot;mean\&quot;, field: \&quot;temperature\&quot;, type: \&quot;quantitative\&quot;}\n  }\n}, {actions: false});&quot;}]}</code></pre><p><strong>合理的默认值是 Vega-Lite 的秘诀</strong>（幻灯片 67）：<strong>更低的门槛</strong>（规范简洁），<strong>同样的天花板</strong>（可以覆盖）。缺点：图表<strong>看起来很相似</strong>（阻力最小的路径，和栅格框架一样）（<a href="#7-%E8%AF%84%E4%BC%B0%E5%B7%A5%E5%85%B7%E9%97%A8%E6%A7%9B%E4%B8%8E%E5%A4%A9%E8%8A%B1%E6%9D%BF">第 7 节</a>）。</p>
+<p>课堂上的 <strong>Vega-Lite 演示</strong>（幻灯片 63，<code>setup2.js</code>，“Not TypeScript!”）就是<a href="#124-%E6%BC%94%E7%A4%BA-22000-%E5%B9%B4%E7%BE%8E%E5%9B%BD%E5%B9%B4%E9%BE%84%E5%88%86%E5%B8%83%E6%9D%A1%E5%BD%A2%E5%9B%BE%E5%B9%BB%E7%81%AF%E7%89%87-63--setup2--solution2">演示 2</a>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#124-%E6%BC%94%E7%A4%BA-22000-%E5%B9%B4%E7%BE%8E%E5%9B%BD%E5%B9%B4%E9%BE%84%E5%88%86%E5%B8%83%E6%9D%A1%E5%BD%A2%E5%9B%BE%E5%B9%BB%E7%81%AF%E7%89%87-63--setup2--solution2">演示 2</a> · <a href="#125-%E9%97%AE%E9%A2%98-3%E5%93%AA%E4%B8%AA-vega-lite-%E8%A7%84%E8%8C%83%E8%83%BD%E7%94%BB%E5%87%BA%E8%BF%99%E5%BC%A0%E6%95%A3%E7%82%B9%E5%9B%BE%E5%B9%BB%E7%81%AF%E7%89%87-64">问题 3</a></p>
+</blockquote>
+<hr>
+<h2 id="12-课堂问题与演示附解答">12. 课堂问题与演示（附解答）</h2>
+<h3 id="121-问题-1哪些-typescript-文件会转译成这段-js幻灯片-14">12.1 问题 1：哪些 TypeScript 文件会转译成这段 JS？（幻灯片 14）</h3>
+<p>下面哪些 TypeScript 文件会转译成</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// 1</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// 2</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// 3</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> pythagorean</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> cSq</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sqrt</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">cSq</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>A</strong> 1</li>
+<li><strong>B</strong> 2</li>
+<li><strong>C</strong> 3</li>
+<li><strong>D</strong> 1 和 2</li>
+<li><strong>E</strong> 1、2 和 3</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：E</strong>（幻灯片 16 公布）。</p>
+<ul>
+<li>类型会被<strong>擦除</strong>：文件 1 和 2 的 <code>:number</code> 都会消失（用 tsc 转译仓库里 <code>q1.ts</code> 的各个版本可以确认）。</li>
+<li>文件 3 是纯 JS，而 TS 是超集，所以它转译后还是它自己。</li>
+<li>陷阱：严格模式会对文件 3 报错（<code>implicitly has an &#39;any&#39; type</code>），但<strong>仍然会输出同样的 JS</strong>。</li>
+</ul>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/q1/q1.ts">q1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/q1/q1.js">q1.js</a></p>
+</blockquote>
+<p>返回 <a href="#2-%E7%B1%BB%E5%9E%8B">2. 类型</a>。</p>
+<h3 id="122-演示-1给-joinntimes-加类型幻灯片-13--setup1--solution1">12.2 演示 1：给 joinNTimes 加类型（幻灯片 13 · setup1 → solution1）</h3>
+<p>任务，来自 <code>setup1.ts</code>：</p>
+<ul>
+<li>用纯 JavaScript 写出这个函数：把字符串数组用“join”字符连接起来，并在每次结果后拼上换行符（<code>&#39;\n&#39;</code>）。</li>
+<li>给该函数的所有参数和返回值加上类型。</li>
+<li>这会如何改变哪些函数调用是合法的？</li>
+</ul>
+<p>要尝试的三个调用（在起始代码中被注释掉了）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['hello', 'my', 'name', 'is', 'theresa'], ' ', 3));</span></span>
+<span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['in4matx', 133], '-', 2))</span></span>
+<span class="line"><span style="color:#6A9955">//console.log(joinNTimes(['two', 'too', 'to'], 2, 4))</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案。</strong>纯 JS（仓库里的 <code>setup1.js</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> joinNTimes</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">''</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        joinedStr</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>没有类型时，<strong>三个调用都能运行</strong>（幻灯片上的 console 输出）：</p>
+<div class="code-wrap"><pre><code>hello my name is theresa
+hello my name is theresa
+hello my name is theresa
+
+in4matx-133
+in4matx-133
+
+two2too2to
+two2too2to
+two2too2to
+two2too2to</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>join</code> 会把 <code>133</code> 强制转换成 <code>&quot;133&quot;</code>，并把 <code>2</code> 当作分隔符 <code>&quot;2&quot;</code>。</p>
+<p>加上类型后（来自 <code>solution1.ts</code>）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> joinNTimes</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">[], </span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">):</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">''</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">	for</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">=</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#9CDCFE">		joinedStr</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">arrOfStr</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">joinStr</span><span style="color:#D4D4D4">) + </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#C586C0">	return</span><span style="color:#9CDCFE"> joinedStr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>现在<strong>只有第一个调用是合法的</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>tsc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>joinNTimes([&#39;hello&#39;, …, &#39;theresa&#39;], &#39; &#39;, 3)</code></td>
+<td>通过</td>
+</tr>
+<tr>
+<td><code>joinNTimes([&#39;in4matx&#39;, 133], &#39;-&#39;, 2)</code></td>
+<td><code>Type &#39;number&#39; is not assignable to type &#39;string&#39;.</code>（<code>string[]</code> 里有 <code>133</code>）</td>
+</tr>
+<tr>
+<td><code>joinNTimes([&#39;two&#39;, &#39;too&#39;, &#39;to&#39;], 2, 4)</code></td>
+<td><code>Argument of type &#39;number&#39; is not assignable to parameter of type &#39;string&#39;.</code>（<code>joinStr</code>）</td>
+</tr>
+</tbody></table>
+<p><code>solution1.js</code> 只保留了第一个调用。（仓库里的小怪癖：<code>solution1.ts</code> 整个都在 <code>/* … */</code> 里。）</p>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.ts">setup1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution1.ts">solution1.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution1.js">solution1.js</a></p>
+</blockquote>
+<p>返回 <a href="#2-%E7%B1%BB%E5%9E%8B">2. 类型</a>。</p>
+<h3 id="123-问题-2photoshop-与-paint-的门槛和天花板幻灯片-38">12.3 问题 2：Photoshop 与 Paint 的门槛和天花板（幻灯片 38）</h3>
+<p>相对而言，Adobe Photoshop 和 Microsoft Paint 的<em>门槛</em>和<em>天花板</em>分别如何？（它们是制作图像的工具，但原则同样适用。）</p>
+<ul>
+<li><strong>A</strong> Photoshop：高天花板、高门槛；Paint：低天花板、低门槛</li>
+<li><strong>B</strong> Photoshop：高天花板、低门槛；Paint：低天花板、高门槛</li>
+<li><strong>C</strong> Photoshop：低天花板、高门槛；Paint：高天花板、低门槛</li>
+<li><strong>D</strong> Photoshop：低天花板、低门槛；Paint：高天花板、高门槛</li>
+<li><strong>E</strong> 我很困惑，只是点一下拿参与分</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：A</strong>（幻灯片 40 公布）。</p>
+<ul>
+<li><strong>天花板</strong>：Photoshop 能做的事多得多（图层、滤镜、照片编辑），因此排除 C 和 D。</li>
+<li><strong>门槛</strong>：Paint 很容易上手；Photoshop 需要学习（所以它提供教程，幻灯片 41），因此排除 B。</li>
+<li>两个术语都是相对的。</li>
+</ul>
+<p>返回 <a href="#7-%E8%AF%84%E4%BC%B0%E5%B7%A5%E5%85%B7%E9%97%A8%E6%A7%9B%E4%B8%8E%E5%A4%A9%E8%8A%B1%E6%9D%BF">7. 评估工具</a>。</p>
+<h3 id="124-演示-22000-年美国年龄分布条形图幻灯片-63--setup2--solution2">12.4 演示 2：2000 年美国年龄分布条形图（幻灯片 63 · setup2 → solution2）</h3>
+<p>任务（<code>setup2.js</code>）：画一张美国年龄分布的条形图，<strong>年龄在 Y 轴，人数在 X 轴</strong>。<code>population.json</code> 的记录（从网上加载；文件夹里也有一份副本）：</p>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">[{</span><span style="color:#9CDCFE">"year"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1850</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"age"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"sex"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"people"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1483789</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">"year"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1850</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"age"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"sex"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">,</span><span style="color:#9CDCFE">"people"</span><span style="color:#D4D4D4">:</span><span style="color:#B5CEA8">1450376</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#F44747">...</span><span style="color:#D4D4D4">]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>起始代码（<code>setup2.html</code> 从 jsDelivr 加载 vega 5.21.0、vega-lite 5.2.0、vega-embed 6.20.2，外加一个 <code>&lt;h1&gt;</code> 和一个空的 <code>&lt;div id=&quot;plot&quot;&gt;</code>）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">event</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> schema</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#CE9178">		"$schema"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "https://vega.github.io/schema/vega-lite/v4.json"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">		"data"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> { </span><span style="color:#CE9178">"url"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "https://vega.github.io/editor/data/population.json"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#CE9178">		"transform"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> [{</span><span style="color:#CE9178">"filter"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "datum.year == 2000"</span><span style="color:#D4D4D4">}], </span><span style="color:#6A9955">/*Only select population data from 2000*/</span></span>
+<span class="line"><span style="color:#6A9955">		/*Make a bar chart, encode the X and Y axes*/</span></span>
+<span class="line"><span style="color:#D4D4D4">	}</span></span>
+<span class="line"><span style="color:#DCDCAA">	vegaEmbed</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'#plot'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">schema</span><span style="color:#D4D4D4">, {</span><span style="color:#9CDCFE">actions:</span><span style="color:#569CD6">false</span><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>按原样运行会失败：<code>Invalid specification … includes at least one of … &quot;mark&quot;, &quot;layer&quot;, …</code>。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution2.js</code> 用来替换那行注释的部分）：</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#CE9178">		"mark"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"bar"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">		"encoding"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#CE9178">			"y"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#CE9178">			  "field"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "age"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"type"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "ordinal"</span></span>
+<span class="line"><span style="color:#D4D4D4">			},</span></span>
+<span class="line"><span style="color:#CE9178">			"x"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#CE9178">			  "aggregate"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "sum"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"field"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "people"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"type"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "quantitative"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">			  "axis"</span><span style="color:#9CDCFE">:</span><span style="color:#D4D4D4"> {</span><span style="color:#CE9178">"title"</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> "population"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>mark: &quot;bar&quot;</code>，<strong>y = age，类型 <code>ordinal</code></strong>：每个年龄组一根柱，按顺序排列。</li>
+<li><strong>x = <code>people</code> 的 <code>sum</code></strong>：把每个年龄的两条记录（sex 1 和 2）加起来。</li>
+<li><code>axis: {&quot;title&quot;: &quot;population&quot;}</code> 覆盖了默认标题（<code>Sum of people</code>）。</li>
+<li><code>transform</code> 过滤器只保留 2000 年的行。</li>
+</ul>
+<p>结果：19 根柱，年龄 0–90，最长的在 35–40 岁（约 2300 万）。v4 的 <code>$schema</code> 会产生一条无害的警告。</p>
+<p>演示：包含 0、10、…、90 岁的 2000 年数据，外加一行会被过滤器丢弃的 1990 年数据：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Demo 2 · solution2.js with inline rows (DOMContentLoaded wrapper dropped; the demo runs after the page)&quot;, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;h1&gt;U.S. age distribution in 2000&lt;/h1&gt;\n&lt;div id=\&quot;plot\&quot;&gt;\n&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// population.json, year 2000 rows for ages 0,10,...,90 (+ one 1990 row the filter drops)\nvar population = [\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9735380},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 9310714},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 10, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 10563233},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 10, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 10022524},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 20, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9731315},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 20, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 9324244},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 30, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 10205879},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 30, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 10119296},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 40, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 11320252},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 40, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 11488578},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 50, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 8507934},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 50, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 8911133},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 60, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 5123399},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 60, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 5668961},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 70, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 3792145},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 70, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 5184855},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 80, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 1902638},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 80, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 3221898},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 90, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 336303},\n  {\&quot;year\&quot;: 2000, \&quot;age\&quot;: 90, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 1064581},\n  {\&quot;year\&quot;: 1990, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 1, \&quot;people\&quot;: 9307465},\n  {\&quot;year\&quot;: 1990, \&quot;age\&quot;: 0, \&quot;sex\&quot;: 2, \&quot;people\&quot;: 8894007}\n];\n\nvar schema = {\n    \&quot;data\&quot;: { \&quot;values\&quot;: population },\n    \&quot;transform\&quot;: [{\&quot;filter\&quot;: \&quot;datum.year == 2000\&quot;}], /*Only select population data from 2000*/\n    \&quot;mark\&quot;: \&quot;bar\&quot;,\n    \&quot;encoding\&quot;: {\n        \&quot;y\&quot;: {\n          \&quot;field\&quot;: \&quot;age\&quot;, \&quot;type\&quot;: \&quot;ordinal\&quot;\n        },\n        \&quot;x\&quot;: {\n          \&quot;aggregate\&quot;: \&quot;sum\&quot;, \&quot;field\&quot;: \&quot;people\&quot;, \&quot;type\&quot;: \&quot;quantitative\&quot;,\n          \&quot;axis\&quot;: {\&quot;title\&quot;: \&quot;population\&quot;}\n        }\n    }\n}\nvegaEmbed(&#39;#plot&#39;, schema, {actions:false});&quot;, &quot;height&quot;: 340, &quot;tab&quot;: &quot;js&quot;}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup2.html">setup2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution2.html">solution2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/solution/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W3_L2_Oct15_TypeScript_VegaLite/demos/setup/population.json">population.json</a></p>
+</blockquote>
+<p>返回 <a href="#11-%E5%90%88%E7%90%86%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E5%8F%8A%E5%85%B6%E8%A6%86%E7%9B%96">11. 合理的默认值</a>。</p>
+<h3 id="125-问题-3哪个-vega-lite-规范能画出这张散点图幻灯片-64">12.5 问题 3：哪个 Vega-Lite 规范能画出这张散点图？（幻灯片 64）</h3>
+<p>这张可视化图在 Vega-Lite 中应该怎么写？（假设字段名都是正确的。）图表：空心圆，<strong>Horsepower</strong> 在 x 轴（0–200+），<strong>Miles_per_Gallon</strong> 在 y 轴（0–50），按 <strong>Origin</strong> 着色（Europe 蓝、Japan 橙、USA 红）。</p>
+<ul>
+<li><strong>A</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: “</span><span style="color:#9CDCFE">Horsepower</span><span style="color:#CE9178">", type: "</span><span style="color:#9CDCFE">ordinal</span><span style="color:#CE9178">"}</span><span style="color:#F44747">,</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>B</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>C</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ticks"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>D</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"point"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Horsepower"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPG"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"quantitative"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+<li><strong>E</strong><div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C8C8C8">mark</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ticks"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#C8C8C8">  encoding</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#C8C8C8">    x</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"MPT"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"ordinal"</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#C8C8C8">    y</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: “</span><span style="color:#9CDCFE">Horsepower</span><span style="color:#CE9178">", type: "</span><span style="color:#9CDCFE">ordinal</span><span style="color:#CE9178">"}</span><span style="color:#F44747">,</span></span>
+<span class="line"><span style="color:#C8C8C8">    color</span><span style="color:#D4D4D4">: {</span><span style="color:#C8C8C8">field</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Origin"</span><span style="color:#D4D4D4">, </span><span style="color:#C8C8C8">type</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"nominal"</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+</li>
+</ul>
+<p>（选项字母以公布答案的幻灯片 66 为准；题目幻灯片上的顺序不同。A 和 E 保留了幻灯片中的弯引号 <code>“</code>。）</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：B</strong>（幻灯片 66 公布）。</p>
+<ul>
+<li><strong>Mark</strong>：空心圆 = <code>&quot;point&quot;</code>；<code>&quot;ticks&quot;</code> 不是合法的 mark（C 会报错），因此排除 C 和 E。</li>
+<li><strong>坐标轴</strong>：Horsepower 在 x，MPG 在 y，都是 <code>quantitative</code>；A 和 E 把它们互换并设成了 <code>ordinal</code>（E 里还有拼写错误 <code>&quot;MPT&quot;</code>）。</li>
+<li><strong>颜色</strong>：Origin 是无序的，所以用 <code>nominal</code>（三种色相）。D 的 <code>ordinal</code> 会给出同一色相的不同深浅：</li>
+</ul>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Question 3 · option B (nominal color), then option D (ordinal color)&quot;, &quot;libs&quot;: [&quot;vega-lite&quot;], &quot;html&quot;: &quot;&lt;div id=\&quot;vis\&quot;&gt;&lt;/div&gt;&quot;, &quot;js&quot;: &quot;// three made-up rows, just to compare B (nominal) with D (ordinal)\nvar cars = [\n  {\&quot;Horsepower\&quot;: 130, \&quot;MPG\&quot;: 18, \&quot;Origin\&quot;: \&quot;USA\&quot;},\n  {\&quot;Horsepower\&quot;: 95, \&quot;MPG\&quot;: 24, \&quot;Origin\&quot;: \&quot;Japan\&quot;},\n  {\&quot;Horsepower\&quot;: 46, \&quot;MPG\&quot;: 26, \&quot;Origin\&quot;: \&quot;Europe\&quot;}\n];\nfunction show(colorType) {\n  vegaEmbed(\&quot;#vis\&quot;, {\n    data: {values: cars},\n    mark: \&quot;point\&quot;,\n    encoding: {\n      x: {field: \&quot;Horsepower\&quot;, type: \&quot;quantitative\&quot;},\n      y: {field: \&quot;MPG\&quot;, type: \&quot;quantitative\&quot;},\n      color: {field: \&quot;Origin\&quot;, type: colorType}\n    }\n  }, {actions: false});\n}\nshow(\&quot;nominal\&quot;); // option B&quot;, &quot;height&quot;: 240, &quot;tab&quot;: &quot;js&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Option D: ordinal color turns the three origins into shades of one hue, unlike the slide&#39;s chart.&quot;, &quot;js&quot;: &quot;show(\&quot;ordinal\&quot;); // option D&quot;}]}</code></pre><p>返回 <a href="#11-%E5%90%88%E7%90%86%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E5%8F%8A%E5%85%B6%E8%A6%86%E7%9B%96">11. 合理的默认值</a>。</p>
+<hr>
+<h2 id="13-速查与必记的-5-个要点">13. 速查与必记的 5 个要点</h2>
+<p><strong>TypeScript</strong></p>
+<table>
+<thead>
+<tr>
+<th>语法 / 命令</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm install -g typescript</code></td>
+<td>安装 <code>tsc</code></td>
+</tr>
+<tr>
+<td><code>tsc hello.ts</code></td>
+<td>写出 <code>hello.js</code>（类型被去掉）</td>
+</tr>
+<tr>
+<td><code>tsc --project tsconfig.json</code></td>
+<td>按配置文件构建项目</td>
+</tr>
+<tr>
+<td><code>tsc --declaration test.ts</code></td>
+<td>同时写出 <code>test.d.ts</code>（只含类型）</td>
+</tr>
+<tr>
+<td><code>npm install --save @types/lib</code></td>
+<td>某个 JS 库的类型声明</td>
+</tr>
+<tr>
+<td><code>var x:number = 133;</code></td>
+<td>带标注的变量；<code>var x = 133;</code> 推断为 <code>number</code></td>
+</tr>
+<tr>
+<td><code>number</code>, <code>boolean</code>, <code>string</code>, <code>void</code>, <code>null</code>, <code>undefined</code>, <code>any</code></td>
+<td>预定义类型</td>
+</tr>
+<tr>
+<td><code>function f(a: string, b: number): string</code></td>
+<td>参数类型与返回类型</td>
+</tr>
+<tr>
+<td><code>string[]</code></td>
+<td>字符串数组</td>
+</tr>
+<tr>
+<td><code>x: number | number[]</code></td>
+<td>联合类型</td>
+</tr>
+<tr>
+<td><code>f(x?: number)</code> / <code>f(x = 10)</code></td>
+<td>可选参数 / 默认参数</td>
+</tr>
+<tr>
+<td><code>interface Shape { color?: string; }</code></td>
+<td>对象的形状；<code>?</code> = 可选属性</td>
+</tr>
+<tr>
+<td><code>class B extends A { constructor(){ super(...) } }</code></td>
+<td>继承；<code>super.m()</code> 调用基类方法</td>
+</tr>
+<tr>
+<td><code>private</code>, <code>get</code> / <code>set</code></td>
+<td>隐藏字段；访问器属性</td>
+</tr>
+<tr>
+<td><code>function identity&lt;T&gt;(arg: T): T</code></td>
+<td>泛型函数</td>
+</tr>
+</tbody></table>
+<p><strong>工具评估</strong></p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>门槛（Threshold）</td>
+<td>上手有多难（希望低）</td>
+</tr>
+<tr>
+<td>天花板（Ceiling）</td>
+<td>能做到多少事（希望高）</td>
+</tr>
+<tr>
+<td>阻力最小的路径（Path of least resistance）</td>
+<td>工具塑造了人们做出的东西（所有 Bootstrap / Vega-Lite 的产出看起来都很像）</td>
+</tr>
+<tr>
+<td>移动靶（Moving targets）</td>
+<td>需求变化会让工具过时</td>
+</tr>
+</tbody></table>
+<p><strong>Vega-Lite</strong></p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>data</td>
+<td><code>data: {url: &quot;file.json&quot;}</code> 或 <code>data: {values: [...]}</code></td>
+</tr>
+<tr>
+<td>mark</td>
+<td><code>&quot;bar&quot;</code>, <code>&quot;tick&quot;</code>, <code>&quot;point&quot;</code>, <code>&quot;line&quot;</code>, <code>&quot;area&quot;</code>, <code>&quot;rule&quot;</code>, <code>&quot;text&quot;</code>, <code>&quot;arc&quot;</code></td>
+</tr>
+<tr>
+<td>字段类型</td>
+<td><code>quantitative</code>, <code>temporal</code>, <code>ordinal</code>, <code>nominal</code></td>
+</tr>
+<tr>
+<td>bin</td>
+<td><code>x: {bin: true, field: &quot;temperature&quot;, type: &quot;quantitative&quot;}</code></td>
+</tr>
+<tr>
+<td>aggregate</td>
+<td><code>y: {aggregate: &quot;count&quot;, type: &quot;quantitative&quot;}</code>；还有 <code>&quot;sum&quot;</code>、<code>&quot;mean&quot;</code></td>
+</tr>
+<tr>
+<td>color</td>
+<td><code>color: {field: &quot;weather&quot;, type: &quot;nominal&quot;}</code></td>
+</tr>
+<tr>
+<td>自定义 scale</td>
+<td><code>color: {…, scale: {domain: [...], range: [...]}}</code>（写在通道内部）</td>
+</tr>
+<tr>
+<td>time</td>
+<td><code>x: {timeUnit: &quot;month&quot;, field: &quot;date&quot;, type: &quot;ordinal&quot;}</code></td>
+</tr>
+<tr>
+<td>filter</td>
+<td><code>transform: [{&quot;filter&quot;: &quot;datum.year == 2000&quot;}]</code></td>
+</tr>
+<tr>
+<td>画出来</td>
+<td><code>vegaEmbed(&#39;#plot&#39;, spec, {actions: false})</code></td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>TS 的类型是<strong>先检查，再擦除</strong>：有类型和没类型的代码输出同样的 JS，即使有类型错误也一样。</li>
+<li>类型是可选的：<code>var x = 133</code> 会被<strong>推断</strong>为 <code>number</code>；参数类型决定哪些调用是合法的。</li>
+<li><strong>门槛</strong> = 上手有多难，<strong>天花板</strong> = 能做到多少事；希望门槛低、天花板高；两者都是相对的（Photoshop 高/高，Paint 低/低）。</li>
+<li>声明式 = <em>做什么</em>（HTML、CSS、Vega-Lite）；命令式 = 一步步的<em>怎么做</em>（JS）。Vega-Lite 的<strong>合理默认值</strong>降低了门槛；可以覆盖则保住了天花板。</li>
+<li>Vega-Lite 规范 = <strong>data + mark + encoding</strong>，并为字段选对类型；直方图 = <code>bar</code>、分箱的 x、<code>count</code> 的 y。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 6 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>DOM 操作与包管理</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 8 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>AJAX、Fetch 与 Promise</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-06/zh-CN/" title="上一篇: DOM 操作与包管理 ([)" aria-label="上一篇: 第 6 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 6 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 7 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" title="下一篇: AJAX、Fetch 与 Promise (])" aria-label="下一篇: 第 8 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 8 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

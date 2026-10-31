@@ -1,0 +1,867 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Smart Pointers, Arrays &amp; Empirical Analysis | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Finishing smart-pointer ownership, 1D array review, multidimensional arrays, why we analyze algorithms, empirical timing of running time, and mathematical cost models."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-02/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413975" data-source-url="/~kazuhak/notes/ics-46/lec-02/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-02/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-01/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-03/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 2</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-02/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 2 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 2 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-2-smart-pointers-multi-dimensional-arrays-empirical-analysis">Information and Computer Science 46 — Lecture 2: Smart Pointers, Multi-dimensional Arrays, Empirical Analysis</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-smart-pointers-ownership-finished">1. Smart Pointers: Ownership, Finished</a></li>
+<li><a href="#2-c-1d-arrays-self-review">2. C++ 1D Arrays (Self Review)</a></li>
+<li><a href="#3-multidimensional-arrays">3. Multidimensional Arrays</a></li>
+<li><a href="#4-why-analyze-algorithms">4. Why Analyze Algorithms?</a></li>
+<li><a href="#5-empirical-analysis-of-running-time">5. Empirical Analysis of Running Time</a></li>
+<li><a href="#6-mathematical-models-of-running-time">6. Mathematical Models of Running Time</a></li>
+<li><a href="#7-in-class-activities-with-solutions">7. In-class Activities (with Solutions)</a></li>
+<li><a href="#8-quick-reference--top-5-things-to-remember">8. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46 — Prof. Tom Yeh, Fall 2026, 10/1/26. Built from the Lecture 2 slides; Thornton&#39;s ICS 46/45C notes and the algs4 booksite §1.4 only as short supplements. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>:<br>Lab 1 due <strong>Mon 10/5</strong>. HW 1 released (no submission required).<br>Updated slides with activity solutions are posted at the end of each week.<br>Extra credit (1%): consent to AI-activity data use in research, or do the alternate task — details on Ed.<br>Today&#39;s goals (slide 3): finish smart pointers, multidimensional data, algorithm analysis.</p>
+</blockquote>
+<hr>
+<h2 id="1-smart-pointers-ownership-finished">1. Smart Pointers: Ownership, Finished</h2>
+<p>Lecture 1 ran out of time before its tree activity, so the smart-pointer review, the activity and its solutions landed here (slides 4–11). For raw pointers, references and <code>new</code>/<code>delete</code>, see the <a href="/~kazuhak/notes/ics-46/lec-01/en-US/">Lecture 1 notes</a>.</p>
+<h3 id="11-smart-pointer-review">1.1 Smart pointer review</h3>
+<p>Smart pointers (<code>#include &lt;memory&gt;</code>) delete their object for you when the pointer itself dies. Slide 5 lists three (the slide spells one &quot;<code>std::share_ptr</code>&quot;; the real name is <code>std::shared_ptr</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Pointer</th>
+<th>Ownership</th>
+<th>Object destroyed when…</th>
+<th>Copyable?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::unique_ptr</code></td>
+<td>1-to-1</td>
+<td>that pointer is destroyed</td>
+<td>no — transfer with <code>std::move</code></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr</code></td>
+<td>many-to-1 (reference count)</td>
+<td>the <strong>last</strong> owning pointer is destroyed</td>
+<td>yes (count +1)</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr</code></td>
+<td>none — &quot;loaning&quot;</td>
+<td>never: no cleanup when it dies</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p><code>weak_ptr</code> is for function parameters and <strong>cyclic data structures</strong>. <strong><code>.get()</code></strong> extracts the raw address from a smart pointer.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">p</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                  // * and -> work like a raw pointer</span></span>
+<span class="line"><span style="color:#6A9955">// std::unique_ptr&#x3C;int> q = p;          // error: copy is deleted</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">  // OK: q owns it, p is now nullptr</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>shared_ptr</code> is not garbage collection — a <strong>cycle</strong> of <code>shared_ptr</code>s (parent owns child, child owns parent) never reaches count 0 and leaks. That&#39;s the trap in the tree activity below.</p>
+</blockquote>
+<h3 id="12-raw-and-smart-pointers-together">1.2 Raw and smart pointers together</h3>
+<p>Slide 11&#39;s rule of thumb:</p>
+<ul>
+<li><strong>Owners</strong> — smart pointers control the resource&#39;s lifespan.</li>
+<li><strong>Observers</strong> — raw pointers may look at (read, write, inspect) an object <strong>without responsibility for destroying it</strong>.</li>
+<li><strong><code>.get()</code></strong> passes out a temporary, non-owning raw pointer <strong>without giving up ownership</strong>.</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">   // parent observes root; root still owns it</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>Working design for a tree with parent links</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>shared_ptr</code> down + <code>weak_ptr</code> up</td>
+<td>shared or unpredictable lifetimes, breaking cycles; the observer can check if the object is gone (<code>lock()</code>, <code>expired()</code>)</td>
+</tr>
+<tr>
+<td><code>unique_ptr</code> down + raw <code>Node*</code> up (via <code>.get()</code>)</td>
+<td>faster (no counting); safe <strong>only if the owner outlives the observer</strong> — true in a tree, since a parent&#39;s destructor destroys its children</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Thornton&#39;s rule for &quot;loan this object to a function&quot;: prefer a reference (<code>const Node&amp;</code>) since it can&#39;t be null; use a raw pointer if <code>nullptr</code> is a legal argument, and <code>weak_ptr</code> only if the borrower might outlive the owner.</p>
+</blockquote>
+<h3 id="13-the-tree-activity-four-designs">1.3 The tree activity: four designs</h3>
+<p>The activity (slide 6) starts from a raw-pointer <code>Node</code> with <code>left</code>, <code>right</code>, <code>parent</code>, three <code>new Node()</code>s linked parent↔child, and three manual <code>delete</code>s (the slide&#39;s comment: &quot;Manual cleanup is fragile. Deleting out-of-order causes crash&quot;). The four designs, all compiled with <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Design (slide)</th>
+<th><code>left</code> / <code>right</code></th>
+<th><code>parent</code></th>
+<th>Compiles?</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Raw (p6)</td>
+<td><code>Node*</code></td>
+<td><code>Node*</code></td>
+<td>yes</td>
+<td>correct only if every <code>delete</code> is written by hand; after <code>delete root</code> three pointers dangle</td>
+</tr>
+<tr>
+<td>(a)/(b) naive (p7–8)</td>
+<td><code>unique_ptr</code></td>
+<td><code>unique_ptr</code></td>
+<td><strong>no</strong></td>
+<td><code>root-&gt;left = leftChild;</code> copies a <code>unique_ptr</code> → &quot;use of deleted function … <code>operator=</code>&quot;</td>
+</tr>
+<tr>
+<td>(c) (p9)</td>
+<td><code>shared_ptr</code></td>
+<td><code>weak_ptr</code></td>
+<td>yes</td>
+<td>all 3 destructors run, no leak</td>
+</tr>
+<tr>
+<td>(c′) all shared (counter-example)</td>
+<td><code>shared_ptr</code></td>
+<td><code>shared_ptr</code></td>
+<td>yes</td>
+<td><strong>leaks</strong>: no destructor runs (ASan: 216 bytes in 6 allocations)</td>
+</tr>
+<tr>
+<td>(d) (p10)</td>
+<td><code>unique_ptr</code></td>
+<td>raw <code>Node*</code></td>
+<td>yes</td>
+<td>all 3 destructors run, no leak, no counting</td>
+</tr>
+</tbody></table>
+<p>Slide 10&#39;s version (d):</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node created</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Downward links hold exclusive ownership</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Upward link is a non-owning observer</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#6A9955">        // 1. Initialize nodes as unique pointers</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">root</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">leftChild</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">rightChild</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // 2. Transfer ownership downward using std::move</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // 3. Set upward back-pointers using the raw address (.get())</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span><span style="color:#6A9955"> // &#x3C;-- All 3 nodes are completely destroyed here automatically!</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"End of main.</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="32"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 32 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Design (d) in memory: owning <code>unique_ptr</code>s point down, raw <code>parent</code> pointers point up, and the moved-from locals are <code>nullptr</code>. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;Design (d): unique_ptr down, raw pointer up (slide 10)&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;root-&gt;left = std::move(leftChild); ... root-&gt;left-&gt;parent = root.get(); ...&quot;, &quot;note&quot;: &quot;each Node has exactly one owner; the moved-from locals are nullptr; parent links only observe&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;root (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}, {&quot;name&quot;: &quot;leftChild (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n1&quot;}, {&quot;name&quot;: &quot;rightChild (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n2&quot;}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;n0&quot;, &quot;type&quot;: &quot;Node (root)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n1&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;-&gt;n2&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;nullptr&quot;}]}, {&quot;id&quot;: &quot;n1&quot;, &quot;type&quot;: &quot;Node (left child)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}]}, {&quot;id&quot;: &quot;n2&quot;, &quot;type&quot;: &quot;Node (right child)&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;left (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;right (unique_ptr)&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;parent (Node*)&quot;, &quot;value&quot;: &quot;-&gt;n0&quot;}]}]}, {&quot;code&quot;: &quot;}   // end of block&quot;, &quot;note&quot;: &quot;root dies -&gt; deletes n0 -&gt; n0&#39;s left/right die -&gt; delete n1 and n2. No leak, no double delete&quot;, &quot;free&quot;: [&quot;n0&quot;, &quot;n1&quot;, &quot;n2&quot;], &quot;set&quot;: {&quot;main.root (unique_ptr)&quot;: {&quot;value&quot;: &quot;nullptr&quot;, &quot;old_target&quot;: &quot;n0&quot;}}}]}</code></pre><p>Output (with one extra line after step 2 printing whether <code>leftChild</code> is null):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Node created
+Node created
+Node created
+leftChild is now nullptr
+Node destroyed
+Node destroyed
+Node destroyed
+End of main.</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: After <code>std::move(leftChild)</code>, <code>leftChild</code> is <code>nullptr</code> — that&#39;s why slide 10 writes <code>root-&gt;left-&gt;parent</code>, not <code>leftChild-&gt;parent</code> (which slide 9&#39;s <code>shared_ptr</code> version can still use).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#71-previous-lectures-activity-ad-slides-610">Previous Lecture&#39;s Activity (a)–(d)</a></p>
+</blockquote>
+<hr>
+<h2 id="2-c-1d-arrays-self-review">2. C++ 1D Arrays (Self Review)</h2>
+<p>Slide 12 marks this as self review (ICS 45C material).</p>
+<h3 id="21-statically-vs-dynamically-allocated">2.1 Statically vs dynamically allocated</h3>
+<p>An array is contiguous cells of one type, indexed from 0, with a fixed size you must track yourself (slide 13):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Statically allocated</th>
+<th>Dynamically allocated</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Syntax</td>
+<td><code>int a[10];</code></td>
+<td><code>int* a = new int[size];</code></td>
+</tr>
+<tr>
+<td>Size known</td>
+<td>at compile time</td>
+<td>at run time</td>
+</tr>
+<tr>
+<td>Lives on</td>
+<td>run-time stack</td>
+<td>heap; <code>new</code> returns a pointer to the first element</td>
+</tr>
+<tr>
+<td>Cleanup</td>
+<td>automatic</td>
+<td><code>delete[] a;</code></td>
+</tr>
+</tbody></table>
+<p>The slide&#39;s <code>void foo(unsigned int n) { int a[n]; }</code> is a <strong>variable-length array</strong>: some compilers accept it, but it&#39;s <strong>not standard C++</strong> (g++ <code>-pedantic</code>: <code>warning: ISO C++ forbids variable length array &#39;a&#39; [-Wvla]</code>), and a large <code>n</code> can overflow the stack.</p>
+<h3 id="22-passing-arrays-and-pointer-arithmetic">2.2 Passing arrays and pointer arithmetic</h3>
+<p>Slide 14: an array can be passed as a parameter <strong>regardless of allocation method</strong> — you pass a <strong>pointer to the first element</strong> plus the <strong>size</strong> for manual bounds checking.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> zeroArray</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> size</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">size</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">zeroFill</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">50</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">zeroFill</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">50</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Both calls compile without a warning and write 40 ints past the end; the size is just a number C++ trusts. ASan catches the dynamic one: <code>heap-buffer-overflow … 0 bytes after 40-byte region … in zeroFill(int*, unsigned int)</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Slide note (p14)</strong>: the function is named <code>zeroArray</code> in the definition but called as <code>zeroFill</code> — same function, pick one name.</p>
+</blockquote>
+<p>Pointer arithmetic (slide 14):</p>
+<ul>
+<li><code>p + k</code> adds <code>k * sizeof(type)</code> bytes to the address.</li>
+<li><code>(a + 1)</code> is the address of <code>a[1]</code>; <code>(a - 1)</code> is &quot;<code>a[-1]</code>&quot; — allowed by the compiler, but <strong>undefined</strong>.</li>
+<li><code>(a - b)</code> = difference between <code>a[0]</code> and <code>b[0]</code>, divided by the size of the type.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Slide note (p14)</strong>: the slide writes <code>(a + 1) == a[1]</code>, missing a <code>*</code> → <code>*(a + 1) == a[1]</code> (or <code>a + 1 == &amp;a[1]</code>).</p>
+</blockquote>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Verified: <code>sizeof(int) = 4</code>, <code>(char*)(a + 1) - (char*)a = 4 bytes</code>, after <code>*(a + 1) = 3</code> → <code>a[1] = 3</code>, and <code>&amp;a[7] - a = 7 elements</code>.</p>
+<p>Slide 18 summarizes <code>int x[10];</code> (<code>x</code> decays to an <code>int*</code> to <code>&amp;x[0]</code>):</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pointer address</td>
+<td><code>&amp;x[i] == x + i</code> (scaled by type size automatically)</td>
+</tr>
+<tr>
+<td>Byte address</td>
+<td><code>Base + (i × sizeof(int))</code></td>
+</tr>
+<tr>
+<td>Value</td>
+<td><code>x[i] == *(x + i)</code></td>
+</tr>
+</tbody></table>
+<p>One multiply and one add, so <strong>every index costs the same constant time</strong>.</p>
+<h3 id="23-stdvector">2.3 <code>std::vector</code></h3>
+<p>Slide 15: <code>std::vector</code> is a dynamic 1D array <strong>managed with RAII</strong> (it frees its array in its destructor, so it can&#39;t leak), and <strong><code>at()</code></strong> is <code>[ ]</code> <strong>plus a range check</strong>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push_back</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) += </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output (shown on one line), plus an extra <code>v.at(10) = 1;</code>:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">10 11 12 13 14 15 16 17 18 19
+v.at(10) threw std::out_of_range</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>v[10] = 1</code> would be silent undefined behaviour. Review link on the slide: Thornton&#39;s <a href="http://www.ics.uci.edu/~thornton/ics45c/Notes/SingleDimensionArrays">ICS 45C Single-Dimension Arrays</a>.</p>
+<hr>
+<h2 id="3-multidimensional-arrays">3. Multidimensional Arrays</h2>
+<h3 id="31-declaring-and-storing-an-nd-array">3.1 Declaring and storing an nd array</h3>
+<p>Slide 17: declare a <strong>fixed, compile-time size for each dimension</strong>; what each dimension <em>means</em> (rows vs columns) is up to you. In memory the array is <strong>flattened into one row</strong>, in <strong>row-major order</strong>: the rightmost index varies fastest, so elements with the same first index are contiguous.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">][</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">        a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">][</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Layout of <code>int a[4][5]</code> (slides 17/19): every element in memory order, then where <code>a[2][3]</code> lands. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="array-2d"><code>{&quot;title&quot;: &quot;int a[4][5] in row-major order&quot;, &quot;dims&quot;: [4, 5], &quot;find&quot;: [2, 3]}</code></pre><p>Reading the block straight through as <code>int*</code> prints slide 17&#39;s value row:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">flat: 0 0 0 0 0 0 1 2 3 4 0 2 4 6 8 0 3 6 9 12</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="32-indexing-the-address-formula">3.2 Indexing: the address formula</h3>
+<p>Slide 19, <code>int a[4][5];</code> — <code>a</code> decays to a pointer to a whole row (<code>int(*)[5]</code>), so <code>a + i</code> skips <code>i</code> rows of 5 ints:</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Element address</td>
+<td><code>&amp;a[i][j] == *(a + i) + j == (int*)a + (i × 5 + j)</code></td>
+</tr>
+<tr>
+<td>Byte address</td>
+<td><code>Base + (i × 5 + j) × sizeof(int)</code></td>
+</tr>
+<tr>
+<td>Element value</td>
+<td><code>a[i][j] == *(*(a + i) + j) == *((int*)a + (i × 5 + j))</code></td>
+</tr>
+</tbody></table>
+<p>Worked case, <code>i = 2, j = 3</code> (real output):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">a[2][3] = 6, *(*(a + i) + j) = 6, *((int*)a + (i * 5 + j)) = 6
+byte offset of a[2][3] = 52 = (2*5+3)*4
+sizeof(a) = 80, sizeof(a[0]) = 20, (char*)(a + 1) - (char*)a = 20</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>N-dimensional rule</strong> (slide 19): the address calculation needs the sizes of <strong>all inner dimensions</strong> — everything except the leftmost. The 5 appears in <code>i × 5 + j</code>; the 4 never does.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: That rule is why a 2D array parameter must carry its inner size in the type — <code>void fill(int a[][5], int rows)</code> compiles, <code>void fill(int* a, int rows, int cols)</code> with <code>a[i][j]</code> does not (Thornton, <em>Multidimensional Data</em>).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#72-activity-1-slide-20">Activity 1</a> — layout and formula for <code>int a[3][2][4]</code>.</p>
+</blockquote>
+<hr>
+<h2 id="4-why-analyze-algorithms">4. Why Analyze Algorithms?</h2>
+<p>Slide 22: you are often three people at once — the <strong>programmer</strong> (needs a working solution), the <strong>client</strong> (wants an efficient one) and the <strong>theoretician</strong> (wants to understand). Slide 23&#39;s reasons to analyze efficiency: <strong>predict</strong> performance, <strong>compare</strong> algorithms, <strong>provide</strong> guarantees, <strong>understand</strong> the theory, and <strong>avoid</strong> performance bugs.</p>
+<p><strong>Computational complexity</strong> = <strong>time complexity</strong> (how running time grows with input size) + <strong>space complexity</strong> (how memory grows). This lecture covers time, two ways: measure it (§5) and model it (§6).</p>
+<hr>
+<h2 id="5-empirical-analysis-of-running-time">5. Empirical Analysis of Running Time</h2>
+<h3 id="51-the-running-example-3-sum">5.1 The running example: 3-SUM</h3>
+<p>Slide 24: given n distinct numbers, how many <strong>unordered triplets</strong> sum to 0? Input <code>30 -40 -20 -10 40 0 10 5</code> → <strong>4</strong> (<code>30 -40 10</code>, <code>30 -20 -10</code>, <code>-40 40 0</code>, <code>-10 0 10</code>).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> count</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">                count</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">            }</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 25 times it on files of random ints:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>n</th>
+<th>Triples</th>
+<th>Time (s)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8ints.txt</td>
+<td>8</td>
+<td>4</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1Kints.txt</td>
+<td>1000</td>
+<td>70</td>
+<td>0.081</td>
+</tr>
+<tr>
+<td>2Kints.txt</td>
+<td>2000</td>
+<td>528</td>
+<td>0.38 (rerun: 0.371)</td>
+</tr>
+<tr>
+<td>4Kints.txt</td>
+<td>4000</td>
+<td>4039</td>
+<td>2.792</td>
+</tr>
+<tr>
+<td>8Kints.txt</td>
+<td>8000</td>
+<td>32074</td>
+<td>21.623</td>
+</tr>
+<tr>
+<td>16Kints.txt</td>
+<td>16000</td>
+<td>255181</td>
+<td>177.344</td>
+</tr>
+</tbody></table>
+<p>Same input, different times (0.38 vs 0.371): measurements are noisy.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: algs4 frames this as the scientific method — observe, hypothesize a model, predict an unmeasured case, verify, repeat. The doubling test below is exactly that loop.</p>
+</blockquote>
+<h3 id="52-log-log-plots-and-power-laws">5.2 Log-log plots and power laws</h3>
+<p>Slide 26: plot T(n) vs n, then re-plot on a <strong>log-log</strong> chart. If it&#39;s a straight line, the running time is a <strong>power law</strong>:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mtext> </mtext><msup><mi>n</mi><mi>b</mi></msup><mspace width="1em"/><mo>⟹</mo><mspace width="1em"/><mi>log</mi><mo>⁡</mo><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>b</mi><mi>log</mi><mo>⁡</mo><mi>n</mi><mo>+</mo><mi>log</mi><mo>⁡</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">T(n) = a\,n^b \quad\Longrightarrow\quad \log T(n) = b \log n + \log a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9231em;vertical-align:-0.024em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">a</span></span></span></span></span></div>
+<p>The slope is <strong>b</strong>. The slide 25/27 measurements for 3-SUM, added one at a time on a log-log plot with the doubling ratios (step through it below (← / → keys work when the demo is focused)):</p>
+<pre data-language="viz" data-viz="doubling-test"><code>{&quot;title&quot;: &quot;3-SUM doubling test (slides 25, 27)&quot;, &quot;n&quot;: [1000, 2000, 4000, 8000, 16000], &quot;times&quot;: [0.081, 0.38, 2.792, 21.623, 177.344]}</code></pre><p>From lg n = 11.97 to 13.97 the line rises 7.47 − 1.48 ≈ 6.0 over 2.0: slope <strong>b = 3</strong>. The slide&#39;s fit: <strong>T(n) ≈ 0.42 × 10⁻¹⁰ n³</strong> s.</p>
+<h3 id="53-the-doubling-hypothesis">5.3 The doubling hypothesis</h3>
+<p>Slide 27: double n and take the ratio — a cancels:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mfrac><mrow><mi>a</mi><mtext> </mtext><msup><mi>n</mi><mi>b</mi></msup></mrow><mrow><mi>a</mi><mtext> </mtext><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><msup><mo stretchy="false">)</mo><mi>b</mi></msup></mrow></mfrac><mo>=</mo><msup><mn>2</mn><mi>b</mi></msup></mrow><annotation encoding="application/x-tex">\frac{T(n)}{T(n/2)} = \frac{a\,n^b}{a\,(n/2)^b} = 2^b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4621em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5261em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7751em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8991em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span></span></span></span></span></span></span></span></span></div>
+<ul>
+<li><strong>b</strong>: for 8000 → 16000 the ratio is 177.344 / 21.623 ≈ <strong>8.2</strong>, so b ≈ lg 8.2 ≈ <strong>3</strong>.</li>
+<li><strong>a</strong>: T(16000) = 177.34 = a × 16000³ → a = 0.42 × 10⁻¹⁰.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Slide note (p27)</strong>: 177.34 / 16000³ actually computes to <strong>0.43 × 10⁻¹⁰</strong>; the slide&#39;s 0.42 comes from the fitted line.</p>
+</blockquote>
+<p>All ratios from the p27 table:</p>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>T(n) (s)</th>
+<th>T(n)/T(n/2)</th>
+<th>lg ratio</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8</td>
+<td>0</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>0.081</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2000</td>
+<td>0.38</td>
+<td>4.7</td>
+<td>2.2</td>
+</tr>
+<tr>
+<td>4000</td>
+<td>2.792</td>
+<td>7.3</td>
+<td>2.9</td>
+</tr>
+<tr>
+<td>8000</td>
+<td>21.623</td>
+<td>7.7</td>
+<td>2.95</td>
+</tr>
+<tr>
+<td>16000</td>
+<td>177.344</td>
+<td>8.2</td>
+<td>3.04</td>
+</tr>
+</tbody></table>
+<p><strong>Why pick the 2 larger input sizes?</strong> (slide 27&#39;s question) At small n the times are tiny, so timer resolution and noise are a big fraction (n = 8 even reads 0), and lower-order terms and fixed overheads aren&#39;t yet negligible next to n³. The ratio only settles near 8 for large n.</p>
+<p>Reproduced on my machine (<code>-O2</code>, min of 3 runs, random ints): ratios 7.97, 7.60, 8.25, 7.81 from n = 500 to 8000 — <strong>b ≈ 3</strong> again, but a ≈ 1.7 × 10⁻¹⁰ (86.949 s at n = 8000), a different constant on different hardware.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#73-activity-2-slide-28">Activity 2</a> — pick the model T(n) from a table of timings.</p>
+</blockquote>
+<h3 id="54-what-determines-a-and-b">5.4 What determines a and b</h3>
+<p>Slide 29, for T(n) = a·n^b:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>System-independent factors</th>
+<th>System-dependent factors</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Determine</td>
+<td>the exponent <strong>b</strong> (and affect a)</td>
+<td>only the constant <strong>a</strong></td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>data structures + algorithm for the operations; the algorithm; the input data</td>
+<td>hardware (CPU, memory, cache); software (compiler, garbage collector); system (OS, network, etc.)</td>
+</tr>
+</tbody></table>
+<p>So b is a property of the algorithm and its input; a faster machine changes a, never b.</p>
+<hr>
+<h2 id="6-mathematical-models-of-running-time">6. Mathematical Models of Running Time</h2>
+<h3 id="61-total-time--σ-cost--frequency">6.1 Total time = Σ cost × frequency</h3>
+<p>Slide 31 (Donald Knuth, 1960s): <strong>total running time = sum of cost × frequency over all operations.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Cost</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>system &amp; machine dependent</td>
+<td>algorithm &amp; data dependent</td>
+</tr>
+<tr>
+<td>exact cost depends on machine and compiler; analyze the program to find its basic operations</td>
+<td>depends on data structures, algorithm design and input; accurate mathematical models are available in principle</td>
+</tr>
+</tbody></table>
+<p>Slide 32, relative cost of basic C++ operations: <code>int add &lt; int multiply &lt; int divide &lt; float add &lt; float multiply &lt; float divide</code>; memory access varies, but basic models assume it costs about an add.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Example</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Variable declaration</td>
+<td><code>int a;</code></td>
+<td>c1</td>
+</tr>
+<tr>
+<td>Assignment</td>
+<td><code>a = b;</code></td>
+<td>c2</td>
+</tr>
+<tr>
+<td>Integer comparison</td>
+<td><code>a &lt; b;</code></td>
+<td>c3</td>
+</tr>
+<tr>
+<td>Array / vector access</td>
+<td><code>a[i]</code>, <code>v[i]</code></td>
+<td>c4</td>
+</tr>
+<tr>
+<td>Container size</td>
+<td><code>v.size()</code></td>
+<td>c5</td>
+</tr>
+<tr>
+<td>Dynamic allocation</td>
+<td><code>new int[n]</code>, <code>std::vector&lt;int&gt; v(n)</code></td>
+<td>c6·n</td>
+</tr>
+</tbody></table>
+<p>Allocation is the odd one: proportional to n, not constant. (The slide&#39;s column header shows a raw <code>$c_i$</code> — a LaTeX rendering slip.)</p>
+<h3 id="62-counting-operations-1-sum">6.2 Counting operations: 1-Sum</h3>
+<p>Slide 33: given n distinct numbers, how many single numbers equal 0?</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> count</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        count</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Frequency</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Variable declaration</td>
+<td>2</td>
+<td><code>count</code>, <code>i</code></td>
+</tr>
+<tr>
+<td>Assignment</td>
+<td>2</td>
+<td><code>count = 0</code>, <code>i = 0</code></td>
+</tr>
+<tr>
+<td>Less than</td>
+<td><strong>n + 1</strong></td>
+<td><code>i &lt; n</code> is true n times, then false once to exit</td>
+</tr>
+<tr>
+<td>Equal to</td>
+<td>n</td>
+<td><code>a[i] == 0</code></td>
+</tr>
+<tr>
+<td>Array access</td>
+<td>n</td>
+<td><code>a[i]</code></td>
+</tr>
+<tr>
+<td>Increment</td>
+<td><strong>n to 2n</strong></td>
+<td><code>i++</code> n times, plus 0..n <code>count++</code> depending on data</td>
+</tr>
+</tbody></table>
+<p>Instrumented at n = 10: <code>less=11 equal=10 access=10</code>; <code>incr=10</code> with no zero, <code>incr=11</code> with one zero.</p>
+<blockquote>
+<p>⚠️ <strong>Slide note (p33)</strong>: with <strong>distinct</strong> numbers at most one can be 0, so the increment count is really <strong>n to n + 1</strong> (n to 2n is the bound without &quot;distinct&quot;).</p>
+</blockquote>
+<h3 id="63-tilde-notation">6.3 Tilde notation</h3>
+<p>Slide 35: estimate running time (or memory) by keeping only the <strong>leading term</strong> — for large n the lower-order terms are negligible.</p>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Tilde</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(1/6)n³ + 10n + 100</td>
+<td>~ n³</td>
+</tr>
+<tr>
+<td>(1/6)n³ + 100n² + 47</td>
+<td>~ n³</td>
+</tr>
+<tr>
+<td>(1/6)n³ + 100n^(2/3) + (1/2)/n</td>
+<td>~ n³</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: algs4 defines g(n) ~ f(n) as g(n)/f(n) → 1, which keeps the coefficient: the first row is strictly ~ (1/6)n³. The slide&#39;s &quot;~ n³&quot; is shorthand for the order of growth. Big-O comes in Lecture 3.</p>
+</blockquote>
+<h3 id="64-simplification-cost-model--tilde">6.4 Simplification: cost model + tilde</h3>
+<p>Slide 36: (1) <strong>cost model</strong> — use one basic operation as a proxy for running time, e.g. <strong>array accesses</strong>; (2) describe its frequency with tilde notation. Applied to 2-Sum:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Frequency</th>
+<th>Tilde</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Variable declaration</td>
+<td>n + 2</td>
+<td>~ n</td>
+</tr>
+<tr>
+<td>Assignment</td>
+<td>n + 2</td>
+<td>~ n</td>
+</tr>
+<tr>
+<td>Less than</td>
+<td>(n + 1)(n + 2)/2</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>Equal to</td>
+<td>n(n − 1)/2</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>Array access</td>
+<td>n(n − 1)</td>
+<td>~ n²</td>
+</tr>
+<tr>
+<td>Increment</td>
+<td>n(n + 1)/2 to n²</td>
+<td>~ n²</td>
+</tr>
+</tbody></table>
+<p>Result: <strong>~n² array accesses for the 2-SUM problem.</strong> Same reasoning for 3-SUM: C(n, 3) ~ n³/6 triples × 3 accesses = <strong>~n³/2 array accesses</strong>, matching the b = 3 the experiment found.</p>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-03/en-US/">Lecture 3</a></strong>: Activity 3 (2-Sum operation counts, slide 34) is worked and solved at the start of Lecture 3, followed by growth rates and Big-O/Ω/Θ.</p>
+</blockquote>
+<hr>
+<h2 id="7-in-class-activities-with-solutions">7. In-class Activities (with Solutions)</h2>
+<h3 id="71-previous-lectures-activity-ad-slides-610">7.1 Previous Lecture&#39;s Activity a–d (slides 6–10)</h3>
+<p>Starting code (slide 6):</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node created</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Node</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Node destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Member pointers initialized safely to nullptr</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> left</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> right</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> parent</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"--- Initializing Tree Elements ---</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> leftChild</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> rightChild</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // Linking parent-to-child and child-to-parent</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955"> // Complete relationship mapping</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"--- Tearing Down Tree Elements ---</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">        // ⚠ Manual cleanup is fragile. Deleting out-of-order causes cras[h]</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> leftChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> rightChild</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"End of main.</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 37 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>(a)</strong> Convert raw pointers to unique pointers.
+<strong>(b)</strong> What happens when you try to compile? Why?
+<strong>(c)</strong> Fix any necessary smart pointer types to ensure no memory leaks.
+<strong>(d)</strong> Convert to using only <code>unique_ptr</code> and raw ptrs for performance.</p>
+<p><strong>Solution.</strong></p>
+<p><strong>(a)</strong> Make every <code>Node*</code> (members and locals) a <code>std::unique_ptr&lt;Node&gt;</code> and drop the <code>delete</code>s.</p>
+<p><strong>(b)</strong> Compile error: <code>root-&gt;left = leftChild;</code>, <code>root-&gt;right = rightChild;</code> and <code>root-&gt;left-&gt;parent = root;</code> each <strong>copy</strong> a <code>unique_ptr</code>, and its copy assignment is deleted (two unique owners would delete the same Node twice). The parent link is also a design error — a child can&#39;t own its parent.</p>
+<p><strong>(c)</strong> Ownership down, observation up: <code>left</code>/<code>right</code> (and locals) become <code>std::shared_ptr&lt;Node&gt;</code>, <code>parent</code> becomes <code>std::weak_ptr&lt;Node&gt;</code>. The <code>weak_ptr</code> doesn&#39;t count, so root&#39;s count drops to 0 at the end of the block and all three Nodes are destroyed. With <code>parent</code> as <code>shared_ptr</code> too, the cycle leaks all three.</p>
+<p><strong>(d)</strong> <code>unique_ptr</code> down, raw pointer up:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightChild</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">();</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Faster (no reference counts) and safe because the parent always outlives its children.</p>
+<h3 id="72-activity-1-slide-20">7.2 Activity 1 (slide 20)</h3>
+<p><code>int a[3][2][4];</code>
+<strong>(a)</strong> Draw the 1D continuous memory layout of this 3d array.
+<strong>(b)</strong> What is the pointer arithmetic formula for accessing <code>a[i][j][k]</code>?</p>
+<p><strong>Solution.</strong></p>
+<p><strong>(a)</strong> 24 ints in one block; <code>k</code> varies fastest, then <code>j</code>, then <code>i</code>. Each <code>a[i]</code> is 8 ints, each <code>a[i][j]</code> is 4:</p>
+<table>
+<thead>
+<tr>
+<th>Flat positions</th>
+<th>0–3</th>
+<th>4–7</th>
+<th>8–11</th>
+<th>12–15</th>
+<th>16–19</th>
+<th>20–23</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Elements</td>
+<td><code>a[0][0][0..3]</code></td>
+<td><code>a[0][1][0..3]</code></td>
+<td><code>a[1][0][0..3]</code></td>
+<td><code>a[1][1][0..3]</code></td>
+<td><code>a[2][0][0..3]</code></td>
+<td><code>a[2][1][0..3]</code></td>
+</tr>
+</tbody></table>
+<p><strong>(b)</strong> <code>&amp;a[i][j][k] == (int*)a + (i * 2 * 4 + j * 4 + k)</code>, so <code>a[i][j][k] == *((int*)a + (i * 8 + j * 4 + k))</code> (also <code>*(*(*(a + i) + j) + k)</code>); byte address <code>Base + (i × 8 + j × 4 + k) × sizeof(int)</code>. Only the inner sizes 2 and 4 appear. Checked for all 24 cells: <code>correct for all 24 cells? 1</code>.</p>
+<h3 id="73-activity-2-slide-28">7.3 Activity 2 (slide 28)</h3>
+<p>Suppose you time your code and make the following observations. Which function is the closest model of T(n)? Show your work.</p>
+<p>A. n²  B. 6 × 10⁻⁴ n  C. 5 × 10⁻⁹ n²  D. 7 × 10⁻⁹ n²</p>
+<table>
+<thead>
+<tr>
+<th>Input size</th>
+<th>1000</th>
+<th>2000</th>
+<th>4000</th>
+<th>8000</th>
+<th>16000</th>
+<th>32000</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Time</td>
+<td>0</td>
+<td>0.0</td>
+<td>0.1</td>
+<td>0.3</td>
+<td>1.3</td>
+<td>5.1</td>
+</tr>
+</tbody></table>
+<p><strong>Solution: C.</strong></p>
+<ol>
+<li>b from the two largest sizes: 5.1 / 1.3 ≈ 3.9 ≈ 2² → <strong>b ≈ 2</strong>. Rules out B (linear).</li>
+<li>a from n = 32000: a = 5.1 / 32000² = 5.1 / (1.024 × 10⁹) ≈ <strong>5 × 10⁻⁹</strong>.</li>
+<li>Check: A predicts ~10⁹ s; D predicts 7.2 s at 32000. C predicts 5.1 s and 1.28 s at 16000. ✓</li>
+</ol>
+<p>Ignore the small sizes: 0.3 / 0.1 = 3 is mostly rounding.</p>
+<hr>
+<h2 id="8-quick-reference--top-5-things-to-remember">8. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Key fact</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>unique_ptr</code></td>
+<td>one owner, no copy; <code>std::move</code> transfers, source becomes <code>nullptr</code></td>
+</tr>
+<tr>
+<td><code>shared_ptr</code></td>
+<td>reference count; object dies with the last owner; cycles leak</td>
+</tr>
+<tr>
+<td><code>weak_ptr</code></td>
+<td>non-owning; breaks cycles; <code>lock()</code> / <code>expired()</code></td>
+</tr>
+<tr>
+<td>raw <code>T*</code> via <code>.get()</code></td>
+<td>observer; owner must outlive it</td>
+</tr>
+<tr>
+<td>1D address</td>
+<td><code>&amp;x[i] == x + i</code>, <code>x[i] == *(x + i)</code>, byte <code>Base + i × sizeof(T)</code></td>
+</tr>
+<tr>
+<td>2D <code>T a[R][C]</code></td>
+<td>row-major; <code>a[i][j] == *((T*)a + (i × C + j))</code></td>
+</tr>
+<tr>
+<td>3D <code>T a[D0][D1][D2]</code></td>
+<td><code>*((T*)a + (i × D1 × D2 + j × D2 + k))</code></td>
+</tr>
+<tr>
+<td>Power law</td>
+<td>T(n) = a·n^b; slope b on a log-log plot</td>
+</tr>
+<tr>
+<td>Doubling</td>
+<td>T(n)/T(n/2) = 2^b; b = lg(ratio), then a = T(n)/n^b</td>
+</tr>
+<tr>
+<td>Math model</td>
+<td>T = Σ cost × frequency; tilde keeps the leading term</td>
+</tr>
+<tr>
+<td>1-Sum / 2-Sum / 3-Sum</td>
+<td>~n / ~n² / ~n³/2 array accesses</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Copying a <code>unique_ptr</code> is a compile error; use <code>std::move</code>, after which the source is <code>nullptr</code>.</li>
+<li>Parent ↔ child both <code>shared_ptr</code> leaks; make the back-pointer <code>weak_ptr</code>, or use <code>unique_ptr</code> down + raw <code>.get()</code> up.</li>
+<li>C++ arrays are row-major, and an nd address needs every dimension size except the first.</li>
+<li>Doubling n multiplies time by 2^b; compute b and a from the largest inputs.</li>
+<li>A <code>for</code> loop&#39;s test runs n + 1 times, and tilde notation keeps only the leading term (2-Sum: ~n² array accesses).</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-01/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 1</span><span class="pager-title" data-astro-cid-gxyjxt6l>Randomness, References &amp; Pointers</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-03/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 3 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Algorithm Analysis &amp; ArrayList</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-01/en-US/" title="Previous: Randomness, References &amp; Pointers ([)" aria-label="Previous: Lecture 1" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 1</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 2</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-02/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-03/en-US/" title="Next: Algorithm Analysis &amp; ArrayList (])" aria-label="Next: Lecture 3" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 3</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Sorting | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Circular array queues and deques, sorting basics (cost model, memory, stability), selection sort vs. insertion sort."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-07/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-07/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-07/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413977" data-source-url="/~kazuhak/notes/ics-46/lec-07/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-07/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-06/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-08/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 7</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 7 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 7 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 22, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-7-sorting">Information and Computer Science 46 — Lecture 7: Sorting</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-circular-array-queue">1. Circular Array Queue</a></li>
+<li><a href="#2-deques">2. Deques</a></li>
+<li><a href="#3-why-study-sorting">3. Why Study Sorting</a></li>
+<li><a href="#4-sorting-basics-keys-cost-model-memory-stability">4. Sorting Basics: Keys, Cost Model, Memory, Stability</a></li>
+<li><a href="#5-selection-sort">5. Selection Sort</a></li>
+<li><a href="#6-insertion-sort">6. Insertion Sort</a></li>
+<li><a href="#7-selection-vs-insertion-sort">7. Selection vs Insertion Sort</a></li>
+<li><a href="#8-in-class-activities-with-solutions">8. In-class Activities (with Solutions)</a></li>
+<li><a href="#9-quick-reference--top-5-things-to-remember">9. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/20/26<br>Built from the Lecture 7 slides (pages 1–27; the merge-sort part, pages 28–44, is repeated in Lecture 8 and lives in those notes). Lecture 6&#39;s sorting slides (its pages 18–39, Activities 3–6) are the same material and are covered here. Supplements: Alex Thornton&#39;s ICS 46 notes &quot;Stacks, Queues, and Deques&quot; and &quot;Comparison-Based Sorting&quot;, and algs4 §2.1 Elementary Sorts. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Today&#39;s OH hosted by LAs.<br>Quiz 2 on Friday — paper assessment, arrive on time; covers Algorithm Analysis, ArrayList, Linked List.<br>HW 3 due Friday; Lab 3 due next Monday.<br>A course-approved AI tool will be released soon for lab and project assignments. Plagiarism checks run at the end of the quarter; an academic-integrity violation means a zero and loss of flexibility (low-grade drops).</p>
+</blockquote>
+<hr>
+<h2 id="1-circular-array-queue">1. Circular Array Queue</h2>
+<h3 id="11-why-not-a-plain-arraylist">1.1 Why not a plain ArrayList?</h3>
+<p>A queue enqueues at the rear and dequeues at the front. If you keep the queue in an ArrayList with the front fixed at index 0, every <code>dequeue()</code> must shift all remaining elements left, which costs O(n) (slide p4: <code>[A B C D]</code> → dequeue → <code>[B C D]</code>).</p>
+<p>A <strong>circular array</strong> lets the starting index move instead. On dequeue, the <strong>front index</strong> just advances. No element moves, so dequeue is O(1) (slide p4: after dequeuing A, <code>front</code> moves from 0 to 1 and B, C stay where they are).</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, <em>Stacks, Queues, and Deques</em>): <code>std::vector</code> used normally has the same problem. It always keeps its elements in cells 0…size−1, so one end of the queue is stuck at cell 0, and either enqueue or dequeue becomes Θ(n). The fix is a plain array whose front and back indices &quot;float&quot;.</p>
+</blockquote>
+<h3 id="12-front-rear-and-wrap-around">1.2 Front, rear and wrap-around</h3>
+<p>A circular-array queue implements a queue in a <strong>fixed-size array</strong> and keeps two indices:</p>
+<ul>
+<li><code>front_idx</code>: the position of the front element.</li>
+<li><code>rear_idx</code>: by one convention the <strong>last valid entry</strong>, by the other the <strong>next empty index</strong>. The slides&#39; algorithms use &quot;next empty index&quot;.</li>
+</ul>
+<p>Both indices only move forward. When one reaches the end of the array it <strong>wraps around</strong> to 0 with modulo arithmetic:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">index = (index + 1) % capacity</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>So the queue&#39;s elements are the slots from <code>front</code> going right, possibly continuing at slot 0 (slide p5: capacity 6, <code>front_idx = 1</code>, the queue is A B C D in slots 1–4, and the rear is at slot 4).</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Algorithm (slide p6)</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>enqueue(value)</td>
+<td><code>array[rear_idx] = value;</code> <code>rear_idx = (rear_idx + 1) % capacity;</code></td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>dequeue()</td>
+<td><code>val = array[front_idx];</code> <code>front_idx = (front_idx + 1) % capacity;</code> return <code>val</code></td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<p>Step through it below (← / → keys work when the demo is focused). The site&#39;s demo uses the &quot;track the size&quot; convention from 1.3: rear slot = <code>(front + n) % capacity</code>. Watch F wrap into slot 0:</p>
+<pre data-language="viz" data-viz="circular-queue"><code>{&quot;title&quot;: &quot;Slides p4–6: queue on a circular array, capacity 5&quot;, &quot;ops&quot;: &quot;A B C D - - E F G&quot;, &quot;capacity&quot;: 5, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: slide p6 labels enqueue and dequeue &quot;amortized O(1)&quot;. For a fixed-capacity circular array both are plain <strong>O(1) worst case</strong>. &quot;Amortized&quot; only enters if the array <strong>resizes</strong> when full (the challenge question in <a href="#81-activity-1-circular-array-implementation-slide-8">Activity 1</a>).</p>
+</blockquote>
+<h3 id="13-full-vs-empty">1.3 Full vs empty</h3>
+<p>If <code>rear_idx</code> is the next empty slot, then <code>front == rear</code> both when the queue is empty and when it has filled every slot. The slides give two ways to tell them apart:</p>
+<ol>
+<li><p><strong>Always keep one slot empty.</strong> Then</p>
+<ul>
+<li>empty: <code>front == rear</code></li>
+<li>full: <code>(rear + 1) % capacity == front</code></li>
+</ul>
+<p>The cost is one wasted slot.</p>
+</li>
+<li><p><strong>Track the size</strong> <code>n</code>. Empty is <code>n == 0</code>, full is <code>n == capacity</code>, and you don&#39;t need <code>rear</code> at all, because it equals <code>(front + n) % capacity</code>.</p>
+</li>
+</ol>
+<hr>
+<h2 id="2-deques">2. Deques</h2>
+<p>A <strong>deque</strong> (double-ended queue, pronounced &quot;deck&quot;) adds and removes at <strong>both</strong> ends (slide p7):</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>enqueueFront(x)</code> / <code>enqueueBack(x)</code></td>
+<td>add at the front / back</td>
+</tr>
+<tr>
+<td><code>dequeueFront()</code> / <code>dequeueBack()</code></td>
+<td>remove and return from the front / back</td>
+</tr>
+<tr>
+<td><code>front()</code> / <code>back()</code></td>
+<td>look at the front / back element without removing it</td>
+</tr>
+</tbody></table>
+<ul>
+<li>With a <strong>front index</strong> pointing at the first element and a <strong>rear index</strong> pointing at where the next element goes (or at the last element), a deque is a circular array in which <strong>both indices move in both directions</strong>. <code>enqueueFront</code> steps <code>front</code> <em>left</em>, wrapping from 0 to <code>capacity − 1</code>: <code>front = (front - 1 + capacity) % capacity</code>. <code>dequeueBack</code> steps the rear left the same way.</li>
+<li>It is a <strong>versatile structure</strong>: use only one end and you have a stack; add at one end and remove at the other and you have a queue.</li>
+<li>C++ ships one: <code>std::deque</code>.</li>
+<li>As a <strong>linked list</strong>, a deque needs removals at both ends, so use a <strong>doubly linked list</strong> (a singly linked list can&#39;t remove its last node in O(1)). See <a href="/~kazuhak/notes/ics-46/lec-04/en-US/">Lecture 4</a>.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>(front - 1) % capacity</code> is <strong>−1</strong> in C++ when <code>front</code> is 0, because <code>%</code> keeps the sign of the left operand. Add <code>capacity</code> before taking <code>%</code>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#81-activity-1-circular-array-implementation-slide-8">Activity 1</a> implements all four deque operations on a circular array, including resizing.</p>
+</blockquote>
+<hr>
+<h2 id="3-why-study-sorting">3. Why Study Sorting</h2>
+<p>Slide p10 gives three reasons:</p>
+<ol>
+<li><strong>Practical utility.</strong> Sorting is everywhere: by price, last name, size, date, zip code. It underlies user interfaces, database queries and data presentation.</li>
+<li><strong>Benchmark.</strong> It is a good way to compare the performance of different algorithms on exactly the same problem, and some sorting strategies are tied to specific data structures.</li>
+<li><strong>Problem-solving tool.</strong> Sorting your data first is often a good starting point (keep this in mind for interviews). It changes what you can do next: for example, a sorted array allows binary search.</li>
+</ol>
+<p>There are many sorting algorithms (slide p11): adaptive heapsort, bitonic sorter (highly parallel, popular on GPUs), block sort, bubble sort, bucket sort, cascade mergesort, cocktail sort, comb sort, flashsort, gnome sort, <strong>heapsort</strong>, <strong>insertion sort</strong>, library sort, <strong>mergesort</strong>, odd-even sort, pancake sort, <strong>quicksort</strong>, radixsort, <strong>selection sort</strong>, shell sort, spaghetti sort, treesort, and more. The ones in bold are the ones this course studies. Today covers selection and insertion sort.</p>
+<hr>
+<h2 id="4-sorting-basics-keys-cost-model-memory-stability">4. Sorting Basics: Keys, Cost Model, Memory, Stability</h2>
+<p><strong>Definitions (slide p12).</strong></p>
+<ul>
+<li><strong>Sorting</strong> arranges the n items of a collection in non-decreasing order, numerically or alphabetically.</li>
+<li>When an item has several components, the <strong>key</strong> is the component we sort by. It decides the relative order. Example: a book can be sorted by title, by author (both alphabetical) or by ISBN (numerical).</li>
+</ul>
+<p><strong>Two abstractions (slide p13).</strong> Every algorithm today touches the data only through:</p>
+<ul>
+<li><strong>compare</strong>: is <code>v</code> less than <code>w</code>? In C++ this is <code>operator&lt;</code> (overloaded for your type) or a custom comparator function.</li>
+<li><strong>exchange</strong>: swap <code>a[i]</code> and <code>a[j]</code>.</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">];</span><span style="color:#6A9955">      // manual swap</span></span>
+<span class="line"><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span><span style="color:#6A9955">   // standard library (#include &#x3C;utility>)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Cost model (slide p14).</strong> We count <strong>compares and exchanges</strong>. For an algorithm that doesn&#39;t exchange, count array accesses instead. Not every sort is comparison-based: radix sort, for example, never compares two keys.</p>
+<p><strong>Memory (slide p15).</strong> Extra memory matters as much as running time.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Extra memory</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>In place</strong></td>
+<td>constant or logarithmic extra memory beyond the items being sorted</td>
+</tr>
+<tr>
+<td><strong>Not in place</strong></td>
+<td>linear extra memory, proportional to the input size</td>
+</tr>
+</tbody></table>
+<p><strong>Stability (slide p16).</strong> A sort is <strong>stable</strong> if items with equal keys come out in the same relative order they went in. The slide uses cards sorted by rank. Input 7♠ 5♥ 2♥ 5♠: a stable sort gives 2♥ <strong>5♥ 5♠</strong> 7♠ (5♥ was first, so it stays first). An unstable sort may give 2♥ <strong>5♠ 5♥</strong> 7♠.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (Thornton, <em>Comparison-Based Sorting</em>): stability is what lets you sort by several keys in turn. Sort people by first name, then <strong>stably</strong> by last name. The result is ordered by last name, and people with the same last name stay ordered by first name. An unstable second sort could scramble those ties.</p>
+</blockquote>
+<hr>
+<h2 id="5-selection-sort">5. Selection Sort</h2>
+<p><strong>Idea (slides p18–19).</strong> Divide the array into a <strong>sorted subarray on the left</strong> and an <strong>unsorted subarray on the right</strong>. Repeat:</p>
+<ul>
+<li>find the <strong>smallest</strong> element in the unsorted part,</li>
+<li>exchange it with the <strong>leftmost unsorted</strong> element,</li>
+<li>move the boundary one element to the right.</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span><span style="color:#6A9955">// for std::swap</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> selectionSort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> arr</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> size</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">size</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#6A9955">      // Find index of smallest remaining element</span></span>
+<span class="line"><span style="color:#569CD6">      int</span><span style="color:#9CDCFE"> min</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">      for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">size</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">         if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">min</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#9CDCFE">            min</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">         }</span></span>
+<span class="line"><span style="color:#D4D4D4">      }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">      // efficient swap using move semantics</span></span>
+<span class="line"><span style="color:#4EC9B0">      std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">min</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">   }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Invariants (slide p20).</strong> At the end of iteration i:</p>
+<ul>
+<li><code>arr[0…i]</code> is sorted in ascending order, and</li>
+<li>no entry in <code>arr[i+1…n−1]</code> is smaller than any entry in <code>arr[0…i]</code>.</li>
+</ul>
+<p>So after iteration i, <code>arr[0…i]</code> holds the final values for those positions and is never touched again. The last element is automatically in place, which is why the outer loop stops at <code>size − 1</code>.</p>
+<p>Step through it on the slide&#39;s array <code>3 44 38 5 47 1 36 26</code> (→ <code>1 3 5 26 36 38 44 47</code>):</p>
+<pre data-language="viz" data-viz="selection-sort"><code>{&quot;title&quot;: &quot;Slides p18–19: selection sort on the slide&#39;s array&quot;, &quot;array&quot;: [3, 44, 38, 5, 47, 1, 36, 26], &quot;interactive&quot;: true}</code></pre><p><strong>Analysis.</strong></p>
+<ul>
+<li><strong>Comparisons:</strong> iteration i scans n − 1 − i elements, so the total is (n−1) + (n−2) + … + 1 = n(n−1)/2 ≈ n²/2, i.e. <strong>O(n²)</strong>. This is the same for every input, because the scan can&#39;t stop early.</li>
+<li><strong>Exchanges:</strong> one per iteration, n − 1 in total, so <strong>O(n)</strong> (the slide&#39;s code also &quot;swaps&quot; when <code>min == i</code>).</li>
+<li><strong>Already sorted?</strong> Still n(n−1)/2 comparisons, so still O(n²). Selection sort can&#39;t notice that the data is sorted.</li>
+<li><strong>In place:</strong> yes, only <code>i</code>, <code>j</code> and <code>min</code> are extra.</li>
+<li><strong>Stable:</strong> no. The long-distance swap can jump an element over an equal one. Example: <code>5♥ 5♠ 2♥</code>. Pass 0 swaps 2♥ with 5♥, giving <code>2♥ 5♠ 5♥</code>, so the two fives are now reversed.</li>
+</ul>
+<p>Measured with counters on n = 1000 (this matches the formulas: 1000·999/2 = 499,500):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">n=1000 sorted:   selection cmps=499500 swaps=999
+n=1000 reversed: selection cmps=499500 swaps=999</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (algs4 §2.1): because selection sort does at most n − 1 exchanges, it is the one to choose when <strong>moving</strong> items is far more expensive than comparing them. algs4&#39;s example is a warehouse clerk reordering heavy crates by reading their labels.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#82-activity-2-selection-sort-slide-21">Activity 2</a> traces selection sort by hand and answers these analysis questions.</p>
+</blockquote>
+<hr>
+<h2 id="6-insertion-sort">6. Insertion Sort</h2>
+<p><strong>Idea (slides p23–25).</strong> Keep a <em>partially</em> sorted subarray on the left and an unsorted subarray on the right. Repeat:</p>
+<ul>
+<li>take the next element of the unsorted part,</li>
+<li>find where it belongs in the sorted part and insert it there,</li>
+<li>move the boundary one element to the right.</li>
+</ul>
+<p>This is how most people sort a hand of cards. Unlike selection sort, the left part is sorted only <em>relative to itself</em>: later elements can still be inserted into it.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span><span style="color:#6A9955">// for std::swap</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> insertionSort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> arr</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> size</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">size</span><span style="color:#D4D4D4"> ; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">      for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">--) {</span><span style="color:#6A9955">      // slide: "j–" (see bug note)</span></span>
+<span class="line"><span style="color:#C586C0">         if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#4EC9B0">            std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">         }</span></span>
+<span class="line"><span style="color:#C586C0">         else</span><span style="color:#C586C0"> break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">      }</span></span>
+<span class="line"><span style="color:#D4D4D4">   }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Slide bug</strong>: slide p26 has <code>j–</code> (an en dash) in the inner loop, which doesn&#39;t compile. It must be <code>j--</code>. (The outer loop starting at <code>i = 0</code> is harmless: pass 0 does nothing.)</p>
+</blockquote>
+<p>The inner loop swaps <code>arr[j]</code> <strong>left past every larger neighbour</strong>. At the first neighbour that is not larger it <strong>breaks</strong>: everything further left is sorted, so the element is already in place. That early exit is the whole difference from selection sort.</p>
+<p>Step through it on the same slide array:</p>
+<pre data-language="viz" data-viz="insertion-sort"><code>{&quot;title&quot;: &quot;Slides p23–25: insertion sort on the slide&#39;s array&quot;, &quot;array&quot;: [3, 44, 38, 5, 47, 1, 36, 26], &quot;interactive&quot;: true}</code></pre><p><strong>Analysis.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Comparisons</th>
+<th>Exchanges</th>
+<th>Big-O</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Best</strong>: already sorted</td>
+<td>n − 1 (each pass: one compare, then break)</td>
+<td>0</td>
+<td><strong>O(n)</strong></td>
+</tr>
+<tr>
+<td><strong>Worst</strong>: reverse sorted</td>
+<td>n(n−1)/2 (each element travels all the way to the front)</td>
+<td>n(n−1)/2</td>
+<td><strong>O(n²)</strong></td>
+</tr>
+<tr>
+<td>Average (random)</td>
+<td>≈ n²/4</td>
+<td>≈ n²/4</td>
+<td>O(n²)</td>
+</tr>
+</tbody></table>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">n=1000 sorted:   insertion cmps=999    swaps=0
+n=1000 reversed: insertion cmps=499500 swaps=499500</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>In place:</strong> yes.</li>
+<li><strong>Stable:</strong> yes. It swaps only when <code>arr[j] &lt; arr[j-1]</code> (strictly less), so an element never moves past an equal one. Sorting the slide&#39;s cards 7♠ 5♥ 2♥ 5♠ by rank gives <code>2H 5H 5S 7S</code>: 5♥ stays ahead of 5♠.</li>
+</ul>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong> (algs4 §2.1): the number of exchanges insertion sort makes is exactly the number of <strong>inversions</strong>, the pairs of items that are out of order. So on a <em>partially sorted</em> array (few inversions, e.g. a sorted list with a few new items appended) insertion sort runs in nearly linear time. This is why it is used for small or nearly sorted inputs.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#83-activity-3-insertion-sort-slide-27">Activity 3</a> traces insertion sort by hand and asks for the best and worst case.</p>
+</blockquote>
+<hr>
+<h2 id="7-selection-vs-insertion-sort">7. Selection vs Insertion Sort</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Selection sort</th>
+<th>Insertion sort</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Comparisons, worst</td>
+<td>n(n−1)/2 → O(n²)</td>
+<td>n(n−1)/2 → O(n²) (reverse sorted)</td>
+</tr>
+<tr>
+<td>Comparisons, best</td>
+<td>n(n−1)/2 → O(n²) (always)</td>
+<td>n − 1 → O(n) (already sorted)</td>
+</tr>
+<tr>
+<td>Exchanges</td>
+<td>n − 1 → O(n), always</td>
+<td>0 (best) to n(n−1)/2 (worst)</td>
+</tr>
+<tr>
+<td>In place</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Stable</td>
+<td><strong>no</strong> (long-distance swaps)</td>
+<td><strong>yes</strong> (swaps only adjacent, strictly smaller)</td>
+</tr>
+<tr>
+<td>Strength</td>
+<td>fewest exchanges</td>
+<td>fast on sorted / nearly sorted data</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: both are O(n²) in the worst case. Selection sort pays n²/2 comparisons <em>every</em> time. Insertion sort pays only for the disorder that is actually there.</p>
+</blockquote>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-08/en-US/">Lecture 8</a></strong>: merge sort (merge implementation and trace, slides p28–44 of this deck, repeated in Lecture 8).</p>
+</blockquote>
+<hr>
+<h2 id="8-in-class-activities-with-solutions">8. In-class Activities (with Solutions)</h2>
+<h3 id="81-activity-1-circular-array-implementation-slide-8">8.1 Activity 1: Circular Array Implementation (slide 8)</h3>
+<p>Implement the following methods of a deque on a circular array and update the front/rear indices:</p>
+<ol>
+<li><code>enqueueFront(val)</code>: add element to the front of the deque</li>
+<li><code>enqueueBack(val)</code>: add element to the rear of the deque</li>
+<li><code>dequeueFront()</code>: remove and return the element from the front</li>
+<li><code>dequeueBack()</code>: remove and return the element from the rear</li>
+</ol>
+<p><strong>Challenge question:</strong> how do we update the deque when dynamically resizing the circular array? (Adding to a full deque requires expanding capacity.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: keep <code>front</code> and the size <code>n</code>; then the back element is at <code>(front + n − 1) % capacity</code>.</p>
+</blockquote>
+<p><strong>Solution.</strong> Track <code>front</code> and <code>n</code> (option 2 of <a href="#13-full-vs-empty">section 1.3</a>). The rear slot is <code>(front + n) % capacity</code>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> enqueueFront</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">) </span><span style="color:#DCDCAA">resize</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    front</span><span style="color:#D4D4D4"> = (</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">) % </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // step left, wrapping</span></span>
+<span class="line"><span style="color:#9CDCFE">    data</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">val</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> enqueueBack</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">) </span><span style="color:#DCDCAA">resize</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    data</span><span style="color:#D4D4D4">[(</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) % </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">val</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // rear slot</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> dequeueFront</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"empty deque"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#9CDCFE">    front</span><span style="color:#D4D4D4"> = (</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) % </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> dequeueBack</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"empty deque"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">[(</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) % </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">];</span><span style="color:#6A9955">    // last element</span></span>
+<span class="line"><span style="color:#9CDCFE">    n</span><span style="color:#D4D4D4">--;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Challenge: resizing.</strong> You can&#39;t copy the old array cell by cell into the same positions, because the elements may wrap around the end. The slide&#39;s three steps:</p>
+<ol>
+<li><strong>Allocate</strong> a larger array (double the capacity).</li>
+<li><strong>Unroll</strong> the elements into it sequentially, in deque order: new <code>[k]</code> = old <code>[(front + k) % oldCapacity]</code> for k = 0 … n−1.</li>
+<li><strong>Reset</strong> <code>front = 0</code> and <code>rear = size</code> (with the size-tracking version, <code>rear</code> simply follows from <code>n</code>).</li>
+</ol>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> resize</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> newCap</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> bigger</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> T</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">newCap</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++)</span><span style="color:#6A9955">                  // unroll in deque order</span></span>
+<span class="line"><span style="color:#9CDCFE">        bigger</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">[(</span><span style="color:#9CDCFE">front</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">) % </span><span style="color:#9CDCFE">capacity</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    delete[]</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">bigger</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    capacity</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newCap</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    front</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                                   // rear slot is now n</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With doubling, each enqueue is <strong>amortized O(1)</strong> (the same argument as the ArrayList in Lecture 3); the dequeues are O(1). Test run starting at capacity 2: <code>enqueueBack(1); enqueueBack(2); enqueueFront(0); enqueueFront(-1); enqueueBack(3)</code>, then one <code>dequeueFront()</code>, one <code>dequeueBack()</code>, and dequeueFront until empty:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">deque size=5 capacity=8 : -1 3 0 1 2</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="82-activity-2-selection-sort-slide-21">8.2 Activity 2: Selection Sort (slide 21)</h3>
+<p><strong>(a)</strong> Using selection sort, sort the array with elements [12, 10, 16, 11, 9, 7]. Visualize your work for every iteration of the algorithm.</p>
+<p><strong>(b)</strong> Runtime analysis:</p>
+<ul>
+<li>What is the Big-O notation of the worst-case running time? Number of comparisons? Number of exchanges?</li>
+<li>What if the data is already sorted?</li>
+<li>Is selection sort in-place? Why?</li>
+<li>Is it stable? Why?</li>
+</ul>
+<p>(Lecture 6&#39;s Activities 3 and 4 ask the same questions.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution (a).</strong> After each iteration i (the sorted prefix is <code>arr[0…i]</code>):</p>
+<table>
+<thead>
+<tr>
+<th>After i</th>
+<th>Array</th>
+<th>Swapped</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>start</td>
+<td>12 10 16 11 9 7</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td><strong>7</strong> 10 16 11 9 12</td>
+<td>12 ↔ 7</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>7 9</strong> 16 11 10 12</td>
+<td>10 ↔ 9</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>7 9 10</strong> 11 16 12</td>
+<td>16 ↔ 10</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>7 9 10 11</strong> 16 12</td>
+<td>11 is already the min (self-swap)</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>7 9 10 11 12 16</strong></td>
+<td>16 ↔ 12</td>
+</tr>
+</tbody></table>
+<p>That is 15 comparisons (5 + 4 + 3 + 2 + 1 = 6·5/2) and 5 swaps. Check it below:</p>
+<pre data-language="viz" data-viz="selection-sort"><code>{&quot;title&quot;: &quot;Activity 2(a): selection sort on [12, 10, 16, 11, 9, 7]&quot;, &quot;array&quot;: [12, 10, 16, 11, 9, 7]}</code></pre><p><strong>Solution (b).</strong></p>
+<ul>
+<li>Worst case <strong>O(n²)</strong>: n(n−1)/2 comparisons, n − 1 exchanges (O(n)).</li>
+<li>Already sorted: <strong>no help</strong>, still n(n−1)/2 comparisons, O(n²). The scan for the minimum always runs to the end.</li>
+<li><strong>In place:</strong> yes. O(1) extra memory (<code>i</code>, <code>j</code>, <code>min</code>).</li>
+<li><strong>Not stable:</strong> swapping <code>arr[i]</code> with a far-away minimum can jump <code>arr[i]</code> over an equal key (<code>5♥ 5♠ 2♥</code> → <code>2♥ 5♠ 5♥</code>). See <a href="#5-selection-sort">section 5</a>.</li>
+</ul>
+<h3 id="83-activity-3-insertion-sort-slide-27">8.3 Activity 3: Insertion Sort (slide 27)</h3>
+<p><strong>(a)</strong> Using insertion sort, sort the array with elements [12, 10, 16, 11, 9, 7]. Visualize your work for every iteration of the algorithm.</p>
+<p><strong>(b)</strong> Worst-case time complexity?</p>
+<ul>
+<li>Best case: when?</li>
+<li>Number of comparisons? Exchanges?</li>
+</ul>
+<p>(Lecture 6&#39;s Activities 5 and 6 ask the same questions.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution (a).</strong> After each pass i (the sorted prefix is <code>arr[0…i]</code>, the inserted element in bold):</p>
+<table>
+<thead>
+<tr>
+<th>After i</th>
+<th>Array</th>
+<th>Comparisons</th>
+<th>Swaps</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td><strong>12</strong> 10 16 11 9 7</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>10</strong> 12 16 11 9 7</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>10 12 <strong>16</strong> 11 9 7</td>
+<td>1 (16 &gt; 12, break)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>10 <strong>11</strong> 12 16 9 7</td>
+<td>3 (stops at 10)</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>9</strong> 10 11 12 16 7</td>
+<td>4 (reaches the front)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>7</strong> 9 10 11 12 16</td>
+<td>5 (reaches the front)</td>
+<td>5</td>
+</tr>
+</tbody></table>
+<p>Total: 14 comparisons, 12 swaps. 12 is the number of inversions in the input. Check it below:</p>
+<pre data-language="viz" data-viz="insertion-sort"><code>{&quot;title&quot;: &quot;Activity 3(a): insertion sort on [12, 10, 16, 11, 9, 7]&quot;, &quot;array&quot;: [12, 10, 16, 11, 9, 7]}</code></pre><p><strong>Solution (b).</strong></p>
+<ul>
+<li><strong>Worst case O(n²)</strong>, when the input is <strong>reverse sorted</strong>: element i is swapped all the way to the front, so n(n−1)/2 comparisons and n(n−1)/2 exchanges.</li>
+<li><strong>Best case O(n)</strong>, when the input is <strong>already sorted</strong>: each pass does one comparison, then <code>break</code>. That is n − 1 comparisons and 0 exchanges.</li>
+<li>The trap: selection sort&#39;s best case is still O(n²). Insertion sort&#39;s <code>break</code> is what makes its best case linear.</li>
+</ul>
+<hr>
+<h2 id="9-quick-reference--top-5-things-to-remember">9. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Circular array (queue / deque)</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>advance an index</td>
+<td><code>i = (i + 1) % capacity</code></td>
+</tr>
+<tr>
+<td>step an index back</td>
+<td><code>i = (i - 1 + capacity) % capacity</code></td>
+</tr>
+<tr>
+<td>rear slot (tracking size n)</td>
+<td><code>(front + n) % capacity</code></td>
+</tr>
+<tr>
+<td>last element</td>
+<td><code>(front + n - 1) % capacity</code></td>
+</tr>
+<tr>
+<td>empty / full (one slot kept empty)</td>
+<td><code>front == rear</code> / <code>(rear + 1) % capacity == front</code></td>
+</tr>
+<tr>
+<td>empty / full (tracking size)</td>
+<td><code>n == 0</code> / <code>n == capacity</code></td>
+</tr>
+</tbody></table>
+<p>Queue and deque operations are O(1) on a fixed array, and amortized O(1) with doubling when full. A linked deque needs a doubly linked list.</p>
+<p><strong>Elementary sorts</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Best</th>
+<th>Worst</th>
+<th>Exchanges</th>
+<th>In place</th>
+<th>Stable</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Selection</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>n − 1</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Insertion</td>
+<td>O(n) (sorted)</td>
+<td>O(n²) (reversed)</td>
+<td>= # inversions</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>A circular array avoids shifting: dequeue moves the front index, with wrap-around by <code>% capacity</code>, so enqueue and dequeue are O(1).</li>
+<li><code>front == rear</code> is ambiguous: either keep one slot empty or track the size. When stepping left, add <code>capacity</code> before <code>%</code>.</li>
+<li>Selection sort always makes n(n−1)/2 comparisons, even on sorted input, but only n − 1 exchanges. It is in place and <strong>not</strong> stable.</li>
+<li>Insertion sort is O(n) on sorted input (break after one comparison) and O(n²) on reversed input. Its exchanges equal the number of inversions, and it is in place and stable.</li>
+<li>Stable = equal keys keep their input order. It matters when you sort the same data by more than one key.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-06/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 6</span><span class="pager-title" data-astro-cid-gxyjxt6l>Analysis of Recursion</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-08/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 8 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Merge Sort, Quick Sort</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-06/en-US/" title="Previous: Analysis of Recursion ([)" aria-label="Previous: Lecture 6" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 6</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 7</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-08/en-US/" title="Next: Merge Sort, Quick Sort (])" aria-label="Next: Lecture 8" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 8</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

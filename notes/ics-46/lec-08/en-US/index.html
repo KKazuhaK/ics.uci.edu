@@ -1,0 +1,480 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Merge Sort, Quick Sort | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Merging sorted halves, top-down merge sort and its N log N analysis, stability and improvements, plus quick sort's background (continued in Lecture 9)."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413978" data-source-url="/~kazuhak/notes/ics-46/lec-08/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-08/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-07/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-09/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 8</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 8 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 8 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 29, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-8-merge-sort-quick-sort">Information and Computer Science 46 — Lecture 8: Merge Sort, Quick Sort</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-merge-sort-the-idea">1. Merge Sort: the Idea</a></li>
+<li><a href="#2-merging-two-sorted-halves">2. Merging Two Sorted Halves</a></li>
+<li><a href="#3-the-recursive-sort-and-the-wrapper">3. The Recursive sort and the Wrapper</a></li>
+<li><a href="#4-tracing-merge-sort-on-m-e-r-g-e-s-r-t">4. Tracing Merge Sort on M E R G E S R T</a></li>
+<li><a href="#5-analysis-of-merge-sort">5. Analysis of Merge Sort</a></li>
+<li><a href="#6-merge-sort-properties-and-improvements">6. Merge Sort Properties and Improvements</a></li>
+<li><a href="#7-quick-sort-background">7. Quick Sort: Background</a></li>
+<li><a href="#8-complete-implementation">8. Complete Implementation</a></li>
+<li><a href="#9-in-class-activities-with-solutions">9. In-class Activities (with Solutions)</a></li>
+<li><a href="#10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/22/26<br>Built from the Lecture 8 slides (p1–49); supplements: algs4 §2.2 Mergesort, Thornton&#39;s &quot;Comparison-Based Sorting&quot;. Organized by concept, not by source.<br>Slides 50–83 (quick sort algorithm, code, partitioning, traces, Activity 4) are repeated in the Lecture 9 deck, so they are covered in the <a href="/~kazuhak/notes/ics-46/lec-09/en-US/">Lecture 9 notes</a>.<br>Today&#39;s goals (slide 3): merge sort and its analysis, quick sort. The merge part (slides 4–20) was also at the end of Lecture 7 and is covered here. Selection and insertion sort are in the <a href="/~kazuhak/notes/ics-46/lec-07/en-US/">Lecture 7 notes</a>; recurrences and the master theorem are in the <a href="/~kazuhak/notes/ics-46/lec-06/en-US/">Lecture 6 notes</a>.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong> (slide 2):<br>Quiz 2 this <strong>Friday</strong><br>HW 3 due <strong>Friday</strong><br>Lab 3 due <strong>next Monday</strong><br>A course-approved AI tool will be released soon</p>
+</blockquote>
+<hr>
+<h2 id="1-merge-sort-the-idea">1. Merge Sort: the Idea</h2>
+<p>Merge sort was invented by John von Neumann in 1945 and is &quot;the quintessential example of divide and conquer&quot; (slide 22). The algorithm (slide 21):</p>
+<ol>
+<li><strong>Divide</strong> the array into two halves.</li>
+<li><strong>Recursively sort</strong> each half.</li>
+<li><strong>Merge</strong> the two sorted halves.</li>
+</ol>
+<p>Slide 5&#39;s overview on <code>M E R G E S O R T E X A M P L E</code>:</p>
+<table>
+<thead>
+<tr>
+<th>step</th>
+<th>array</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>input</td>
+<td>M E R G E S O R T E X A M P L E</td>
+</tr>
+<tr>
+<td>sort left half</td>
+<td>E E G M O R R S | T E X A M P L E</td>
+</tr>
+<tr>
+<td>sort right half</td>
+<td>E E G M O R R S | A E E L M P T X</td>
+</tr>
+<tr>
+<td>merge results</td>
+<td>A E E E E G L M M O P R R S T X</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Splitting is trivial (cut at the middle index). All the real work, every comparison, happens in <code>merge()</code>.</p>
+</blockquote>
+<h2 id="2-merging-two-sorted-halves">2. Merging Two Sorted Halves</h2>
+<p><code>merge</code> takes <code>a[lo..mid]</code> and <code>a[mid+1..hi]</code>, which are <strong>each already sorted</strong>, and makes <code>a[lo..hi]</code> sorted (slide 6). It first copies the range into the auxiliary array <code>aux</code>, then writes back into <code>a</code> one position <code>k</code> at a time:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> merge</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++)</span><span style="color:#6A9955">       // Copy from a to aux</span></span>
+<span class="line"><span style="color:#9CDCFE">        aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span><span style="color:#6A9955">     // Merge back into a</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                     // Left subarray is exhausted</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                 // Right subarray is exhausted</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">])</span><span style="color:#6A9955">        // Select from right subarray</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#6A9955">                             // Select from left subarray</span></span>
+<span class="line"><span style="color:#9CDCFE">            a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>What each index tracks (slides 8–9):</p>
+<ul>
+<li><code>i</code> = next unused item of the <strong>left</strong> half in <code>aux</code> (valid while <code>i &lt;= mid</code>)</li>
+<li><code>j</code> = next unused item of the <strong>right</strong> half in <code>aux</code> (valid while <code>j &lt;= hi</code>)</li>
+<li><code>k</code> = next slot of <code>a</code> to fill</li>
+</ul>
+<p><code>i &gt; mid</code> means the left half is used up, <code>j &gt; hi</code> means the right half is used up; then the rest is copied without comparing. Only when both halves still have items does the third branch compare <code>aux[j] &lt; aux[i]</code>, and the smaller one wins. The slide&#39;s &quot;cards demo&quot;: two sorted piles face up, always take the smaller top card.</p>
+<p>Slides 7–18 merge <code>aux = A G L O R | H I M S T</code> (lo = 0, mid = 4, hi = 9):</p>
+<table>
+<thead>
+<tr>
+<th>k</th>
+<th>case</th>
+<th>assignment</th>
+<th>a after</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>aux[i] &lt; aux[j] (A vs H)</td>
+<td>a[0] = aux[0]</td>
+<td><strong>A</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>G vs H</td>
+<td>a[1] = aux[1]</td>
+<td>A <strong>G</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>aux[i] &gt; aux[j] (L vs H)</td>
+<td>a[2] = aux[5]</td>
+<td>A G <strong>H</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>L vs I</td>
+<td>a[3] = aux[6]</td>
+<td>A G H <strong>I</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>L vs M</td>
+<td>a[4] = aux[2]</td>
+<td>… <strong>L</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>O vs M</td>
+<td>a[5] = aux[7]</td>
+<td>… <strong>M</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>O vs S</td>
+<td>a[6] = aux[3]</td>
+<td>… <strong>O</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>R vs S</td>
+<td>a[7] = aux[4]</td>
+<td>… <strong>R</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>i &gt; mid</td>
+<td>a[8] = aux[8]</td>
+<td>… <strong>S</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>i &gt; mid</td>
+<td>a[9] = aux[9]</td>
+<td>A G H I L M O R S T</td>
+</tr>
+</tbody></table>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;Slides 7–18: merge A G L O R | H I M S T&quot;, &quot;items&quot;: &quot;A, G, L, O, R, H, I, M, S, T&quot;, &quot;mode&quot;: &quot;merge&quot;, &quot;mid&quot;: 4}</code></pre><p>Slide 19 links the Algorithms 2.2 &quot;Merging Demo&quot; video showing the same process.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>merge</code> is only correct if both halves are already sorted. It never looks back, so an unsorted half just comes out in its original order mixed with the other half.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#91-activity-1-comparisons-in-merge-slide-20">Activity 1</a> counts the comparisons <code>merge</code> makes.</p>
+</blockquote>
+<h2 id="3-the-recursive-sort-and-the-wrapper">3. The Recursive sort and the Wrapper</h2>
+<p>Slides 22–23:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                        // Base case for recursion</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> + (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // calculate midpoint, split in half</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">               // recursively sort left subarray</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">             // recursively sort right subarray</span></span>
+<span class="line"><span style="color:#DCDCAA">    merge</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">          // merge left and right</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> T</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span><span style="color:#6A9955">              // Dynamically allocate aux array</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    delete[]</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>lo</code> and <code>hi</code> are <strong>inclusive</strong>, so the wrapper passes <code>length - 1</code>.</li>
+<li>Base case <code>hi &lt;= lo</code>: a range of 0 or 1 items is already sorted.</li>
+<li><code>mid = lo + (hi - lo) / 2</code> equals <code>(lo + hi) / 2</code> but cannot overflow <code>int</code>. Left half <code>lo..mid</code> gets the extra item when the length is odd.</li>
+<li>The two <code>sort</code> functions are <strong>overloads</strong>. The user calls <code>sort(a, length)</code>; the wrapper allocates <code>aux</code> <strong>once</strong> and passes it down, instead of allocating inside every <code>merge</code>.</li>
+<li><code>new T[length]</code> pairs with <code>delete[]</code>.</li>
+</ul>
+<p>Note from slide 23: <code>std::sort</code> and <code>std::merge</code> are already in <code>&lt;algorithm&gt;</code>; we write our own to understand them.</p>
+<h2 id="4-tracing-merge-sort-on-m-e-r-g-e-s-r-t">4. Tracing Merge Sort on M E R G E S R T</h2>
+<p>Slides 24–41 follow <code>sort([M,E,R,G,E,S,R,T])</code>. The call order is <strong>depth-first</strong>: keep going left until a base case (the slides draw a brick wall), then do the right side, then merge on the way back up.</p>
+<table>
+<thead>
+<tr>
+<th>call</th>
+<th>what happens</th>
+<th>a afterwards</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sort(0,7)</td>
+<td>mid = 3, go left</td>
+<td>M E R G E S R T</td>
+</tr>
+<tr>
+<td>sort(0,3)</td>
+<td>mid = 1, go left</td>
+<td></td>
+</tr>
+<tr>
+<td>sort(0,1)</td>
+<td>mid = 0; sort(0,0) and sort(1,1) hit the base case; merge(0,0,1)</td>
+<td><strong>E M</strong> R G E S R T</td>
+</tr>
+<tr>
+<td>sort(2,3)</td>
+<td>sort(2,2), sort(3,3) return; merge(2,2,3)</td>
+<td>E M <strong>G R</strong> E S R T</td>
+</tr>
+<tr>
+<td>back in sort(0,3)</td>
+<td>merge(0,1,3)</td>
+<td><strong>E G M R</strong> E S R T</td>
+</tr>
+<tr>
+<td>sort(4,7)</td>
+<td>same pattern on E S R T</td>
+<td>E G M R <strong>E R S T</strong></td>
+</tr>
+<tr>
+<td>back in sort(0,7)</td>
+<td>merge(0,3,7)</td>
+<td><strong>E E G M R R S T</strong></td>
+</tr>
+</tbody></table>
+<p>Slide 41 shows the whole recursion tree: <code>MERG | ESRT</code> → <code>ME RG ES RT</code> → single letters → <code>EM GR ES RT</code> → <code>EGMR ERST</code> → <code>EEGMRRST</code>. The <code>aux</code> array keeps old copies between merges (e.g. <code>[M, E, R, G, , , , ]</code>); that is harmless because each <code>merge</code> re-copies its own range first.</p>
+<p>Step through the whole recursion (edit the items to try your own):</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;Slides 24–41: sort M E R G E S R T&quot;, &quot;items&quot;: &quot;M, E, R, G, E, S, R, T&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#92-activity-2-subarray-lengths-slide-42">Activity 2</a> asks which subarray lengths appear for n = 10.</p>
+</blockquote>
+<h2 id="5-analysis-of-merge-sort">5. Analysis of Merge Sort</h2>
+<p><strong>Why it matters</strong> (slide 43): with 10¹⁰ comparisons/s (laptop) vs 10¹⁷ (supercomputer):</p>
+<table>
+<thead>
+<tr>
+<th>computer</th>
+<th>insertion sort: thousand</th>
+<th>million</th>
+<th>billion</th>
+<th>mergesort: thousand</th>
+<th>million</th>
+<th>billion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>laptop</td>
+<td>instant</td>
+<td>2 hours</td>
+<td>300 years</td>
+<td>instant</td>
+<td>1 sec</td>
+<td>15 min</td>
+</tr>
+<tr>
+<td>supercomputer</td>
+<td>instant</td>
+<td>1 sec</td>
+<td>1 week</td>
+<td>instant</td>
+<td>instant</td>
+<td>instant</td>
+</tr>
+</tbody></table>
+<p>A laptop running merge sort beats a supercomputer running insertion sort: good algorithms are better than supercomputers.</p>
+<p><strong>Counting comparisons</strong> (Activity 3, slide 44). One <code>merge</code> of n items makes at most <strong>n − 1</strong> comparisons: each comparison places one item, and the last item is always placed without one (the other half is already empty). So the worst-case count satisfies</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mtext> </mtext><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi>C</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">C(n) = 2\,C(n/2) + (n - 1), \qquad C(1) = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span></div>
+<p>(the two recursive sorts, plus the final merge; computing <code>mid</code> costs no comparisons). For growth order, write <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">T(n) = 2T(n/2) + n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>.</p>
+<ul>
+<li><strong>Recursion tree</strong>: level k has 2ᵏ subproblems of size n/2ᵏ, so each level merges n items in total. Halving n until it reaches 1 takes log₂ n levels. Total ≈ n · log₂ n. Exactly, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>n</mi><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mi>n</mi><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">C(n) = n\log_2 n - n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9386em;vertical-align:-0.2441em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> for n a power of 2 (n = 8 → 17).</li>
+<li><strong>Master theorem</strong> (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><msup><mi>n</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">T(n) = aT(n/b) + n^d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/</span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span></span>): a = 2, b = 2, d = 1, and a = bᵈ, so <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Θ</mi><mo stretchy="false">(</mo><mi>n</mi><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T(n) = \Theta(n^d \log n) = \Theta(n \log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord">Θ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Θ</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>.</li>
+</ul>
+<p>Counting all work (copies to <code>aux</code>, index updates) instead of comparisons only changes the constant: each <code>merge</code> is still Θ(n), so the answer is the same <strong>Θ(n log n)</strong> in the best, average and worst case.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: algs4 §2.2 states the full range: merge sort uses between ½ n lg n and n lg n comparisons for any input of size n. The best case is half the worst because one merge needs at least n/2 comparisons (one half runs out first).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#93-activity-3-worst-case-analysis-slide-44">Activity 3</a> is this derivation.</p>
+</blockquote>
+<h2 id="6-merge-sort-properties-and-improvements">6. Merge Sort Properties and Improvements</h2>
+<p>Slide 45:</p>
+<ul>
+<li><strong>Extra memory ∝ n</strong>: <code>aux</code> must hold n items for the last merge.</li>
+<li><strong>Not in-place</strong> in its simplest form. There are modifications that halve the auxiliary array (the slide says &quot;halting&quot;, a typo for &quot;halving&quot;), but a truly in-place merge is very hard.</li>
+<li><strong>Stable</strong>: equal keys keep their original order. In <code>merge</code>, the right item is taken only if <code>aux[j] &lt; aux[i]</code>; on a tie the <code>else</code> branch takes the <strong>left</strong> one, which came first.</li>
+</ul>
+<p>Improvements (slide 46):</p>
+<ol>
+<li>Use <strong>insertion sort</strong> for small subarrays.</li>
+<li><strong>Stop</strong> if already sorted.</li>
+<li><strong>Eliminate the copy</strong> to the auxiliary array to save time.</li>
+</ol>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: what the three improvements mean concretely (algs4 §2.2): (1) cutting off to insertion sort below ~10–15 items speeds up a typical merge sort by 10–15%; (2) skip <code>merge</code> when <code>a[mid] &lt;= a[mid+1]</code>, which makes an already sorted input linear; (3) alternate the roles of <code>a</code> and <code>aux</code> at each recursion level, saving the copy time (not the space).</p>
+</blockquote>
+<p>Sorting so far (slide 47):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>in place</th>
+<th>stable</th>
+<th>best</th>
+<th>average</th>
+<th>worst</th>
+<th>remarks</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>selection</td>
+<td>✓</td>
+<td></td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>n exchanges</td>
+</tr>
+<tr>
+<td>insertion</td>
+<td>✓</td>
+<td>✓</td>
+<td>O(n)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>use for small arrays or partially sorted</td>
+</tr>
+<tr>
+<td>merge sort</td>
+<td></td>
+<td>✓</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>guaranteed performance; stable</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: change the tie-break to <code>aux[j] &lt;= aux[i]</code> and merge sort is no longer stable (equal items from the right jump ahead).</p>
+</blockquote>
+<h2 id="7-quick-sort-background">7. Quick Sort: Background</h2>
+<p>Quick sort (slide 49) is also divide-and-conquer, invented by Sir Tony Hoare in 1959. He wanted to sort words before looking them up in a dictionary, came up with quicksort but did not know how to implement it, then learned Algol 60 and recursion and implemented it. He won the 1980 Turing Award (and also invented null, which he regretted).</p>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-09/en-US/">Lecture 9</a></strong>: the algorithm sketch, quick sort code and random shuffle, partitioning, the partition and full-sort traces, and this deck&#39;s Activity 4 (Lecture 9&#39;s Activity 1). Slides 50–83 are repeated at the start of the Lecture 9 deck, so they are covered there.</p>
+</blockquote>
+<h2 id="8-complete-implementation">8. Complete Implementation</h2>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">namespace</span><span style="color:#4EC9B0"> mergesort</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> merge</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">++) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">)              </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">)          </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#C586C0"> if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">]) </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#9CDCFE">                      a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++];</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> + (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    merge</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> T</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">aux</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    delete[]</span><span style="color:#9CDCFE"> aux</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Tested with <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code> (comparisons counted with an instrumented <code>operator&lt;</code>):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">merge example: AGHILMORST  compares=8
+best 123|456 compares=3
+worst 135|246 compares=5
+MERGESRT -&gt; EEGMRRST  compares=15
+worst n=8 compares=17 (n lg n - n + 1 = 17)
+mergesort wrapper: 1 2 3 5 8 9</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-in-class-activities-with-solutions">9. In-class Activities (with Solutions)</h2>
+<h3 id="91-activity-1-comparisons-in-merge-slide-20">9.1 Activity 1: comparisons in merge (slide 20)</h3>
+<p>How many calls does <code>merge()</code> make to <code>&lt;</code> in order to merge two already sorted subarrays, each of length n/2, into a sorted array of length n?</p>
+<p>A. ~ n/4 to ~ n/2
+B. ~ n/2
+C. ~ n/2 to n
+D. ~ n
+E. ~ n to 2n</p>
+<p>Provide a best case example and a worst case example (use 3 elements in each sorted subarray).</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: every comparison places exactly one item; no comparisons happen once a half runs out.</p>
+</blockquote>
+<p><strong>Solution: C.</strong> Best case: one half runs out after n/2 comparisons, e.g. <code>1 2 3 | 4 5 6</code> → 3 comparisons (1, 2, 3 each beat 4; then 4 5 6 are copied). Worst case: the halves interleave so neither runs out until the end, e.g. <code>1 3 5 | 2 4 6</code> → 5 = n − 1 comparisons. So between ~n/2 and ~n. Check the worst case:</p>
+<pre data-language="viz" data-viz="merge-sort"><code>{&quot;title&quot;: &quot;Activity 1 worst case: 1 3 5 | 2 4 6&quot;, &quot;items&quot;: &quot;1, 3, 5, 2, 4, 6&quot;, &quot;mode&quot;: &quot;merge&quot;, &quot;mid&quot;: 2}</code></pre><p>Back to <a href="#2-merging-two-sorted-halves">Merging Two Sorted Halves</a>.</p>
+<h3 id="92-activity-2-subarray-lengths-slide-42">9.2 Activity 2: subarray lengths (slide 42)</h3>
+<p>Which of the following subarray lengths will occur when running merge sort on an array of length 10?</p>
+<p>A. { 1, 2, 3, 5, 7, 10 }
+B. { 2, 4, 6, 8, 10 }
+C. { 1, 2, 5, 10 }
+D. { 1, 2, 3, 4, 5, 10 }
+E. { 1, 2, 3, 5, 10 }</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution: E.</strong> A length-n range splits into ⌈n/2⌉ (left, it gets <code>mid</code>) and ⌊n/2⌋: 10 → 5 + 5, 5 → 3 + 2, 3 → 2 + 1, 2 → 1 + 1. Lengths: 10, 5, 3, 2, 1. A has 7, B and D have even lengths that never appear (and B lacks 1, which every recursion reaches), C misses 3. Back to <a href="#4-tracing-merge-sort-on-m-e-r-g-e-s-r-t">the trace</a>.</p>
+<h3 id="93-activity-3-worst-case-analysis-slide-44">9.3 Activity 3: worst-case analysis (slide 44)</h3>
+<p><strong>(a)</strong> Analyze the worst-case time complexity of merge sort (number of comparisons).
+<strong>(b)</strong> Write the recurrence to describe worst-case time complexity.
+<strong>(c)</strong> Use recursion tree or master theorem to solve the recurrence.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> <strong>(a)</strong> All comparisons happen in <code>merge</code>; merging n items takes at most n − 1. <strong>(b)</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C(n) = 2C(n/2) + (n - 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">C(1) = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>; as growth order <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">T(n) = 2T(n/2) + n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>. <strong>(c)</strong> Tree: log₂ n levels × n per level = n log₂ n (exactly n log₂ n − n + 1). Master theorem: a = 2, b = 2, d = 1, a = bᵈ → Θ(n log n). Back to <a href="#5-analysis-of-merge-sort">Analysis of Merge Sort</a>.</p>
+<h2 id="10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>merge sort</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>split</td>
+<td>at the middle index (<code>mid</code>)</td>
+</tr>
+<tr>
+<td>work done</td>
+<td>after the recursive calls (<code>merge</code>)</td>
+</tr>
+<tr>
+<td>comparisons happen</td>
+<td><code>aux[j] &lt; aux[i]</code> in merge</td>
+</tr>
+<tr>
+<td>extra memory</td>
+<td><code>aux</code> of size n (not in-place)</td>
+</tr>
+<tr>
+<td>stable</td>
+<td>yes (ties go left)</td>
+</tr>
+<tr>
+<td>time</td>
+<td>Θ(n log n) best/average/worst</td>
+</tr>
+<tr>
+<td>comparisons to merge two halves of n/2</td>
+<td>between ~n/2 and n − 1</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li><code>merge</code> compares <code>aux[j] &lt; aux[i]</code> only while both halves have items; <code>i &gt; mid</code> / <code>j &gt; hi</code> mean a half is exhausted, and ties take the left item, which makes merge sort stable.</li>
+<li>Merge sort&#39;s recurrence is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi>C</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">C(n) = 2C(n/2) + (n - 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/2</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>: log₂ n levels × n per level = Θ(n log n) in every case, at the cost of an O(n) <code>aux</code> array (not in-place).</li>
+<li>Subarray lengths come from repeatedly splitting into ⌈n/2⌉ and ⌊n/2⌋ (n = 10 → 10, 5, 3, 2, 1).</li>
+<li>Merging two sorted halves of n/2 takes between n/2 (one half runs out first) and n − 1 comparisons (the halves interleave).</li>
+<li>The three improvements: insertion sort for small subarrays, skip <code>merge</code> when <code>a[mid] &lt;= a[mid+1]</code>, and alternate <code>a</code>/<code>aux</code> to avoid the copy.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-07/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 7</span><span class="pager-title" data-astro-cid-gxyjxt6l>Sorting</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-09/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 9 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Quick Sort</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-07/en-US/" title="Previous: Sorting ([)" aria-label="Previous: Lecture 7" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 7</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 8</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-09/en-US/" title="Next: Quick Sort (])" aria-label="Next: Lecture 9" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 9</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

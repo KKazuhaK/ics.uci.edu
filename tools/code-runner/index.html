@@ -1,0 +1,1539 @@
+<!DOCTYPE html><html lang="en"><head><title>Code Runner | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/tools/code-runner/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><style>
+			:root {
+				--cr-blue: #244f8f;
+				--cr-blue-bg: rgba(36, 79, 143, 0.10);
+				--cr-blue-border: rgba(36, 79, 143, 0.22);
+				--cr-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--cr-blue-hover: #183b73;
+				--cr-border: rgba(42, 79, 133, 0.16);
+				--cr-border-soft: rgba(42, 79, 133, 0.12);
+				--cr-ink: #23324a;
+				--cr-muted: #516074;
+				--cr-green: #27ae60;
+				--cr-green-hover: #219a52;
+				--cr-red: #e74c3c;
+				--cr-dark: #1e1e1e;
+				--cr-card-bg: #ffffff;
+				--cr-card-bg-soft:
+					radial-gradient(circle at top right, rgba(36, 79, 143, 0.08), transparent 18rem),
+					linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,249,255,0.99) 58%, rgba(250,252,255,0.98) 100%);
+				--cr-card-shadow: 0 1.25rem 3rem rgba(23, 43, 77, 0.08);
+				--cr-card-shadow-lg: 0 1.5rem 3.5rem rgba(23, 43, 77, 0.08);
+				--cr-toolbar-bg: #f5f7fa;
+				--cr-lang-select-bg: #ffffff;
+				--cr-lang-arrow: #244f8f;
+				--cr-crumb-sep: #97a7bb;
+				--cr-chip-current-text: #ffffff;
+			}
+
+			html[data-theme="dark"] {
+				--cr-blue: #6aa3f5;
+				--cr-blue-bg: rgba(106, 163, 245, 0.15);
+				--cr-blue-border: rgba(106, 163, 245, 0.32);
+				--cr-blue-bg-strong: rgba(106, 163, 245, 0.24);
+				--cr-blue-hover: #a8c9ff;
+				--cr-border: rgba(255, 255, 255, 0.1);
+				--cr-border-soft: rgba(255, 255, 255, 0.07);
+				--cr-ink: #dde4f0;
+				--cr-muted: #8c9cb5;
+				--cr-green: #4ec9a9;
+				--cr-green-hover: #3eb897;
+				--cr-red: #f28b8b;
+				--cr-card-bg: #14181f;
+				--cr-card-bg-soft:
+					radial-gradient(circle at top right, rgba(106, 163, 245, 0.08), transparent 18rem),
+					linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--cr-card-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+				--cr-card-shadow-lg: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.4);
+				--cr-toolbar-bg: #181d26;
+				--cr-lang-select-bg: #1a1f28;
+				--cr-lang-arrow: #6aa3f5;
+				--cr-crumb-sep: #54627a;
+				--cr-chip-current-text: #0a0d12;
+			}
+
+			#main > * > .inner.cr-shell {
+				max-width: none;
+				width: calc(100% - 8em);
+				min-width: 820px;
+			}
+
+			/* Shell */
+			.cr-shell {
+				display: flex; flex-direction: column;
+				min-height: calc(100vh - 4rem);
+				position: relative;
+				background: var(--cr-card-bg);
+				border: 1px solid var(--cr-border);
+				border-radius: 1.4rem;
+				box-shadow: var(--cr-card-shadow-lg);
+				overflow: hidden;
+			}
+			.cr-shell > header.major { display: none; }
+			.cr-shell > :last-child { border-bottom: 0 !important; }
+
+			/* Width drag handles */
+			.cr-edge {
+				position: absolute; top: 0; bottom: 0; width: 8px;
+				cursor: ew-resize; z-index: 5;
+				display: flex; align-items: center; justify-content: center;
+			}
+			.cr-edge::after {
+				content: '';
+				width: 4px; height: 32px;
+				border-radius: 2px;
+				background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
+				background-size: 4px 4px;
+				opacity: 0; transition: opacity 0.2s;
+			}
+			.cr-edge:hover::after,
+			.cr-edge.dragging::after { opacity: 1; }
+			.cr-edge-l { left: -4px; }
+			.cr-edge-r { right: -4px; }
+
+			/* Breadcrumb */
+			.cr-intro {
+				padding: 0.75rem 1.5rem;
+				border-bottom: 1px solid var(--cr-border);
+				background: var(--cr-card-bg-soft);
+			}
+			.cr-intro .crumbs { margin-bottom: 0; }
+
+			.cr-breadcrumb {
+				display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;
+			}
+
+			.cr-chip {
+				display: inline-flex; align-items: center;
+				padding: 0.38rem 0.8rem; border-radius: 999px;
+				font-size: 0.86rem; font-weight: 700;
+				text-decoration: none; border-bottom: 0 !important;
+				background: var(--cr-blue-bg);
+				box-shadow: inset 0 0 0 1.5px var(--cr-blue-border);
+				color: var(--cr-blue) !important;
+				transition: background 0.2s ease, transform 0.2s ease;
+			}
+			.cr-chip:hover { background: var(--cr-blue-bg-strong); transform: translateY(-1px); color: var(--cr-blue-hover) !important; }
+			.cr-chip-current { background: var(--cr-blue); box-shadow: none; color: var(--cr-chip-current-text) !important; cursor: default; }
+			.cr-chip-current:hover { background: var(--cr-blue); transform: none; color: var(--cr-chip-current-text) !important; }
+			.cr-sep { font-size: 1.18rem; font-weight: 700; color: var(--cr-crumb-sep); user-select: none; line-height: 1; }
+
+			/* Card */
+			.cr-card {
+				background: var(--cr-card-bg);
+				overflow: hidden;
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+			}
+
+			/* Toolbar */
+			.cr-toolbar {
+				display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+				padding: 0.7rem 1rem;
+				background: var(--cr-toolbar-bg);
+				border-bottom: 1px solid var(--cr-border-soft);
+			}
+			.cr-toolbar-left { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+			.cr-toolbar-right { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+
+			/* Language selector */
+			.cr-lang-select {
+				appearance: none; -webkit-appearance: none;
+				height: 2rem; padding: 0 2rem 0 0.8rem;
+				border: 1.5px solid var(--cr-blue-border);
+				border-radius: 0.6rem;
+				background-color: var(--cr-lang-select-bg);
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23244f8f' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-position: right 0.6rem center;
+				background-size: 0.7rem;
+				font-size: 0.8rem; font-weight: 600; color: var(--cr-blue);
+				cursor: pointer; outline: none;
+				font-family: inherit;
+			}
+			html[data-theme="dark"] .cr-lang-select {
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236aa3f5' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+			}
+			.cr-lang-select:focus { border-color: var(--cr-blue); box-shadow: 0 0 0 2px rgba(36, 79, 143, 0.15); }
+
+			.cr-card .cr-btn,
+			.cr-card .cr-btn:hover,
+			.cr-card .cr-btn:active,
+			.cr-card .cr-btn:focus,
+			.cr-card .cr-btn:disabled {
+				all: unset !important;
+				box-sizing: border-box !important;
+				display: inline-flex !important; align-items: center !important; gap: 0.3rem !important;
+				height: 2rem !important;
+				padding: 0 0.75rem !important;
+				border-radius: 0.5rem !important;
+				font-size: 0.8rem !important; font-weight: 700 !important;
+				font-family: inherit !important; line-height: 2rem !important;
+				white-space: nowrap !important; cursor: pointer !important;
+				pointer-events: auto !important;
+				transition: background 0.15s, opacity 0.15s !important;
+			}
+			.cr-card .cr-btn-run { background: var(--cr-green) !important; color: var(--cr-chip-current-text) !important; }
+			.cr-card .cr-btn-run:hover { background: var(--cr-green-hover) !important; }
+			.cr-card .cr-btn-run:disabled {
+				background: var(--cr-green) !important; color: var(--cr-chip-current-text) !important;
+				opacity: 0.55 !important; cursor: not-allowed !important;
+			}
+
+			.cr-card .cr-btn-secondary,
+			.cr-card .cr-btn-secondary:focus {
+				background: var(--cr-blue-bg) !important;
+				color: var(--cr-blue) !important;
+				border: 1.5px solid var(--cr-blue-border) !important;
+				cursor: pointer !important;
+			}
+			.cr-card .cr-btn-secondary:hover {
+				background: var(--cr-blue-bg-strong) !important;
+				color: var(--cr-blue) !important;
+				border: 1.5px solid var(--cr-blue-border) !important;
+				cursor: pointer !important;
+			}
+			.cr-card .cr-btn-secondary.active {
+				background: var(--cr-blue) !important; color: var(--cr-chip-current-text) !important;
+				border-color: var(--cr-blue) !important;
+			}
+			.cr-card .cr-btn-secondary.active:hover { background: var(--cr-blue-hover) !important; }
+
+			/* Fullscreen mode */
+			.cr-card.cr-fullscreen {
+				position: fixed !important;
+				inset: 0 !important;
+				z-index: 10010 !important;
+				border-radius: 0 !important;
+				border: none !important;
+				margin: 0 !important;
+			}
+			.cr-card.cr-fullscreen .cr-body {
+				min-height: 0;
+				height: calc(100vh - 2.8rem);
+			}
+			.cr-card.cr-fullscreen #cr-editor {
+				min-height: 0;
+			}
+
+			/* Split body */
+			.cr-body {
+				display: grid;
+				grid-template-columns: 2fr 8px 1fr;
+				flex: 1;
+				min-height: 0;
+			}
+			.cr-body-left {
+				min-width: 0;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+			}
+
+			/* Web mode: file tabs above the editor, live preview + console on the right */
+			.cr-web-tabs {
+				display: flex; align-items: center; gap: 2px;
+				padding: 0 0.5rem; background: #252526; border-bottom: 1px solid #1e1e1e;
+			}
+			.cr-web-tabs[hidden] { display: none; }
+			.cr-web-tab {
+				padding: 0.45rem 0.85rem; border: 0; border-bottom: 2px solid transparent; background: transparent;
+				color: rgba(255,255,255,0.5); font: 12.5px/1.2 "Consolas", "Cascadia Code", "Menlo", monospace; cursor: pointer;
+			}
+			.cr-web-tab:hover { color: rgba(255,255,255,0.8); }
+			.cr-web-tab.active { color: #fff; border-bottom-color: #3b82f6; }
+			.cr-web-auto {
+				margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;
+				color: rgba(255,255,255,0.55); font-size: 0.75rem; cursor: pointer; user-select: none;
+			}
+			.cr-web-auto input { accent-color: #3b82f6; }
+			.cr-preview-body { padding: 0 !important; background: rgba(255,255,255,0.04); }
+			.cr-preview-body iframe { flex: 1; width: 100%; min-height: 8rem; border: 0; background: #fff; }
+			.cr-preview-size { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.4); font-family: "Consolas", "Cascadia Code", monospace; }
+			.cr-con-warn { color: #cca700; }
+			.cr-con-info { color: rgba(255,255,255,0.5); }
+			.cr-body-right {
+				display: flex;
+				flex-direction: column;
+				min-width: 0;
+				overflow: hidden;
+				background: var(--cr-dark);
+			}
+			.cr-section {
+				display: flex;
+				flex-direction: column;
+				min-height: 0;
+				overflow: hidden;
+			}
+			.cr-section.collapsed { flex: 0 0 auto !important; }
+			.cr-section-body {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				min-height: 0;
+				overflow: auto;
+			}
+
+			/* Resizers */
+			.cr-resizer {
+				flex-shrink: 0;
+				background: #2a2a2a;
+				position: relative;
+				transition: background 0.15s;
+				z-index: 2;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			.cr-resizer:hover,
+			.cr-resizer.dragging {
+				background: #3a3a3a;
+			}
+			.cr-resizer-h {
+				cursor: col-resize;
+				width: 8px;
+			}
+			.cr-resizer-h::after {
+				content: '';
+				width: 4px; height: 28px;
+				border-radius: 2px;
+				background-image: radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px);
+				background-size: 4px 4px;
+				background-position: center;
+			}
+
+			/* Editor */
+			#cr-editor {
+				flex: 1;
+				min-height: 0;
+				font-size: 14px;
+			}
+
+			/* Stdin */
+			/* Collapsible section headers */
+			.cr-section-hdr {
+				display: flex; align-items: center; gap: 0.5rem;
+				padding: 0.5rem 1rem;
+				background: #252526;
+				cursor: pointer;
+				user-select: none;
+				transition: background 0.12s;
+			}
+			.cr-section-hdr:hover { background: #2d2d2d; }
+			.cr-section-chevron {
+				width: 14px; height: 14px; flex-shrink: 0;
+				stroke: rgba(255,255,255,0.4); fill: none;
+				stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+				transition: transform 0.2s;
+			}
+			.cr-section-hdr.collapsed .cr-section-chevron {
+				transform: rotate(-90deg);
+			}
+			.cr-section-title {
+				font-size: 0.78rem; font-weight: 700;
+				text-transform: uppercase; letter-spacing: 0.5px;
+				color: #93c5fd;
+			}
+			.cr-stdin-hint {
+				font-weight: 400; text-transform: none;
+				letter-spacing: 0; color: rgba(255,255,255,0.25); font-size: 0.68rem;
+			}
+			.cr-stdin-body {
+				padding: 0.4rem 1rem 0.5rem;
+			}
+			.cr-stdin-area {
+				display: block; width: 100%; box-sizing: border-box;
+				padding: 0.4rem 0.6rem;
+				border: 1px solid rgba(255,255,255,0.08);
+				border-radius: 0.4rem;
+				outline: none; resize: none;
+				font: 13px/1.5 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				background: rgba(255,255,255,0.04); color: #d4d4d4;
+				flex: 1;
+				min-height: 3.5rem;
+				transition: border-color 0.15s;
+			}
+			.cr-stdin-area:focus { border-color: rgba(255,255,255,0.2); }
+			.cr-stdin-area::placeholder { color: rgba(255,255,255,0.18); }
+
+			/* Output */
+			.cr-output-status {
+				font-size: 0.75rem; color: rgba(255,255,255,0.45);
+				font-family: "Consolas", "Cascadia Code", monospace;
+			}
+			.cr-exit-ok { color: #4ec9b0; }
+			.cr-exit-err { color: #f48771; }
+
+			.cr-output {
+				margin: 0;
+				padding: 0.85rem 1rem;
+				background: var(--cr-dark);
+				color: #d4d4d4;
+				font: 13.5px/1.6 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				flex: 1;
+				min-height: 4rem;
+				overflow: auto;
+				white-space: pre-wrap;
+				word-break: break-all;
+			}
+			.cr-stderr { color: #f48771; }
+			.cr-compile-err { color: #f48771; }
+			.cr-placeholder { color: rgba(255,255,255,0.3); font-style: italic; }
+			.cr-error-msg { color: var(--cr-red); font-weight: 600; }
+
+			/* Spinner */
+			@keyframes cr-spin { to { transform: rotate(360deg); } }
+			.cr-spinner {
+				display: inline-block; width: 0.8em; height: 0.8em;
+				border: 2px solid rgba(255,255,255,0.3);
+				border-top-color: #fff; border-radius: 50%;
+				animation: cr-spin 0.6s linear infinite;
+				vertical-align: middle;
+			}
+
+			/* Shortcut hint — inherit button color so it adapts to theme */
+			.cr-shortcut {
+				font-size: 0.68rem; color: currentColor; opacity: 0.6;
+				margin-left: 0.35rem; font-weight: 400;
+			}
+
+			/* Test Cases Panel */
+			.cr-tc-addbtn {
+				all: unset !important;
+				box-sizing: border-box !important;
+				display: inline-flex !important; align-items: center !important;
+				gap: 0.2rem !important; padding: 0.18rem 0.55rem !important;
+				font-size: 0.72rem !important; font-weight: 700 !important;
+				color: #93c5fd !important;
+				background: rgba(147,197,253,0.1) !important;
+				border: 1px solid rgba(147,197,253,0.25) !important;
+				border-radius: 0.4rem !important;
+				cursor: pointer !important; transition: background 0.15s !important;
+			}
+			.cr-tc-addbtn:hover { background: rgba(147,197,253,0.2) !important; }
+
+			.cr-tc-list { padding: 0 1rem 0.5rem; }
+
+			.cr-tc-case {
+				display: grid; grid-template-columns: 1fr 1fr 1.3rem;
+				gap: 0.4rem; align-items: start;
+				padding: 0.5rem 0;
+				border-bottom: 1px dashed rgba(255,255,255,0.06);
+			}
+			.cr-tc-case:last-child { border-bottom: none; }
+
+			.cr-tc-num {
+				grid-column: 1 / -1;
+				font-size: 0.68rem; font-weight: 700;
+				color: rgba(255,255,255,0.4); letter-spacing: 0.3px;
+			}
+			.cr-tc-field { display: flex; flex-direction: column; gap: 0.08rem; }
+			.cr-tc-field label {
+				font-size: 0.62rem; font-weight: 600;
+				text-transform: uppercase; letter-spacing: 0.3px;
+				color: rgba(255,255,255,0.35);
+			}
+			.cr-tc-field textarea {
+				width: 100%; box-sizing: border-box;
+				padding: 0.3rem 0.5rem;
+				border: 1px solid rgba(255,255,255,0.08);
+				border-radius: 0.4rem;
+				font: 12.5px/1.35 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+				background: rgba(255,255,255,0.04); color: #d4d4d4;
+				resize: vertical; min-height: 1.8rem; max-height: 6rem;
+				outline: none; transition: border-color 0.15s;
+			}
+			.cr-tc-field textarea:focus { border-color: rgba(255,255,255,0.2); }
+			.cr-tc-field textarea::placeholder { color: rgba(255,255,255,0.18); }
+
+			.cr-tc-delbtn {
+				background: none !important; border: none !important;
+				color: rgba(255,255,255,0.3) !important; font-size: 1.05rem !important;
+				cursor: pointer !important; padding: 0 !important;
+				line-height: 1 !important; margin-top: 0.95rem !important;
+				transition: color 0.15s !important;
+				box-shadow: none !important; min-width: 0 !important;
+				height: auto !important;
+			}
+			.cr-tc-delbtn:hover { color: var(--cr-red) !important; }
+
+			.cr-tc-empty {
+				text-align: center; padding: 0.7rem;
+				font-size: 0.82rem; color: rgba(255,255,255,0.25); font-style: italic;
+			}
+
+			/* Small select (version / input mode) */
+			.cr-input-select {
+				appearance: none; -webkit-appearance: none;
+				height: 2rem; padding: 0 1.4rem 0 0.55rem;
+				border: 1.5px solid var(--cr-blue-border);
+				border-radius: 0.6rem;
+				background-color: var(--cr-lang-select-bg);
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23244f8f' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-position: right 0.35rem center;
+				background-size: 0.55rem;
+				font-size: 0.78rem; font-weight: 600; color: var(--cr-blue);
+				cursor: pointer; outline: none; font-family: inherit;
+			}
+			html[data-theme="dark"] .cr-input-select {
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236aa3f5' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+			}
+			.cr-input-select:focus { border-color: var(--cr-blue); box-shadow: 0 0 0 2px rgba(36, 79, 143, 0.15); }
+
+
+			/* Judge Results */
+			.cr-judge-table {
+				width: 100%; border-collapse: collapse;
+				font: 13px/1.5 "Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace;
+			}
+			.cr-judge-table td {
+				padding: 0.35rem 0.5rem;
+				border-bottom: 1px solid rgba(255,255,255,0.04);
+				vertical-align: top;
+			}
+			.cr-judge-table tr:last-child td { border-bottom: none; }
+			.cr-jpass { color: #4ec9b0; }
+			.cr-jfail { color: #f48771; }
+			.cr-jidx { color: rgba(255,255,255,0.4); width: 5.5rem; white-space: nowrap; }
+			.cr-jdetail { font-size: 12.5px; }
+			.cr-jdetail code {
+				background: rgba(255,255,255,0.06); padding: 0.05rem 0.3rem;
+				border-radius: 3px; color: #d4d4d4;
+			}
+			.cr-jdiff code { color: #f48771; }
+			.cr-jexpected { color: rgba(255,255,255,0.3); }
+			.cr-judge-summary {
+				margin-top: 0.4rem; padding-top: 0.5rem;
+				border-top: 1px solid rgba(255,255,255,0.06);
+				font-size: 13.5px; font-weight: 700;
+			}
+
+			/* Footer left-align */
+			#footer .copyright { text-align: left; }
+
+			/* Mobile */
+			@media screen and (max-width: 736px) {
+				#main > * > .inner {
+					width: 100% !important; max-width: 100vw !important;
+					box-sizing: border-box !important;
+					padding: 0.75rem 0 1rem 0 !important;
+				}
+				.cr-shell {
+					border-radius: 0; border-left: none; border-right: none;
+				}
+				.cr-intro { padding: 0.5rem 1rem; }
+				.cr-toolbar { padding: 0.5rem 0.75rem; gap: 0.4rem; }
+				.cr-toolbar-left { flex-basis: 100%; }
+				.cr-lang-select { width: 100%; }
+				.cr-shell { min-height: 0; }
+				.cr-body { grid-template-columns: 1fr !important; flex: none; }
+				.cr-resizer-h { display: none; }
+				#cr-editor { flex: none; height: 280px; font-size: 13px; }
+				.cr-preview-body iframe { min-height: 16rem; }
+				.cr-output { font-size: 12.5px; min-height: 4rem; max-height: 16rem; }
+				.cr-shortcut { display: none; }
+				.cr-tc-case { grid-template-columns: 1fr 1fr 1.3rem; gap: 0.3rem; }
+				.cr-tc-field textarea { font-size: 11.5px; }
+				.cr-input-select { font-size: 0.72rem; }
+			}
+		</style>
+</head><body><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><div id="main" class="alt">
+				<section id="one">
+					<div class="inner cr-shell" id="cr-shell">
+						<div class="cr-edge cr-edge-l" id="cr-edge-l"></div>
+						<div class="cr-edge cr-edge-r" id="cr-edge-r"></div>
+						<header class="major" style="display:none;"><h1>Code Runner</h1></header>
+
+						<div class="cr-intro">
+							<nav class="crumbs" aria-label="Breadcrumb">
+								<a href="../../tools/" class="crumb">Tools</a>
+								<span class="crumb-sep">›</span>
+								<span class="crumb crumb-current">Code Runner</span>
+							</nav>
+						</div>
+
+						<div class="cr-card">
+							<!-- Toolbar -->
+							<div class="cr-toolbar">
+								<div class="cr-toolbar-left">
+									<select id="cr-lang" class="cr-lang-select"></select>
+									<select id="cr-ver" class="cr-input-select" title="Compiler/runtime version"></select>
+								</div>
+								<input type="file" id="cr-file-input" style="display:none" />
+								<div class="cr-toolbar-right">
+									<button type="button" id="cr-btn-open" class="cr-btn cr-btn-secondary" title="Open file"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>Open</button>
+									<button type="button" id="cr-btn-save" class="cr-btn cr-btn-secondary" title="Download code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Save</button>
+									<button type="button" id="cr-btn-clear" class="cr-btn cr-btn-secondary" title="Clear all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Clear All</button>
+									<button type="button" id="cr-btn-fs" class="cr-btn cr-btn-secondary" title="Toggle fullscreen"><svg class="cr-fs-expand" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg><svg class="cr-fs-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg><span class="cr-fs-text">Fullscreen</span></button>
+									<button type="button" id="cr-btn-run" class="cr-btn cr-btn-run" title="Run code"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>Run<span class="cr-shortcut">Ctrl+Enter</span></button>
+								</div>
+							</div>
+
+							<!-- Split body -->
+							<div class="cr-body" id="cr-body">
+								<!-- Left: Editor -->
+								<div class="cr-body-left">
+									<div class="cr-web-tabs" id="cr-web-tabs" hidden>
+										<button type="button" class="cr-web-tab" data-tab="html">index.html</button>
+										<button type="button" class="cr-web-tab" data-tab="css">style.css</button>
+										<button type="button" class="cr-web-tab" data-tab="js">script.js</button>
+										<label class="cr-web-auto" title="Re-run the page as you type"><input type="checkbox" id="cr-web-auto" checked />Auto-run</label>
+									</div>
+									<div id="cr-editor"></div>
+								</div>
+
+								<!-- Horizontal resizer -->
+								<div class="cr-resizer cr-resizer-h" id="cr-resizer-h"></div>
+
+								<!-- Right: Stdin + Test Cases + Output -->
+								<div class="cr-body-right" id="cr-body-right">
+									<div class="cr-section" id="cr-sec-stdin">
+										<div class="cr-section-hdr" data-section="stdin">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Stdin</span>
+											<span class="cr-stdin-hint">— Leave empty if not needed</span>
+										</div>
+										<div class="cr-section-body cr-stdin-body">
+											<textarea id="cr-stdin" class="cr-stdin-area" placeholder="(empty)" rows="3"></textarea>
+										</div>
+									</div>
+
+									<div class="cr-section" id="cr-sec-tc">
+										<div class="cr-section-hdr" data-section="tc">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Test Cases</span>
+											<button type="button" class="cr-tc-addbtn" id="cr-tc-add" style="margin-left:auto">+ Add</button>
+										</div>
+										<div class="cr-section-body cr-tc-list" id="cr-tc-list"></div>
+									</div>
+
+									<div class="cr-section" id="cr-sec-preview" style="display:none">
+										<div class="cr-section-hdr" data-section="preview">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title">Preview</span>
+											<span class="cr-preview-size" id="cr-preview-size"></span>
+										</div>
+										<div class="cr-section-body cr-preview-body">
+											<iframe id="cr-preview" sandbox="allow-scripts allow-forms" title="Page preview"></iframe>
+										</div>
+									</div>
+
+									<div class="cr-section" id="cr-sec-output">
+										<div class="cr-section-hdr" data-section="output">
+											<svg class="cr-section-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+											<span class="cr-section-title" id="cr-output-title">Output</span>
+											<span class="cr-output-status" id="cr-status" style="margin-left:auto"></span>
+										</div>
+										<pre class="cr-section-body cr-output" id="cr-output"><span class="cr-placeholder">Click Run or press Ctrl+Enter to execute your code.</span></pre>
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+					</div>
+				</section>
+			</div>
+<!-- Scripts -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js" crossorigin="anonymous"></script>
+
+		<script>
+		(function() {
+			'use strict';
+
+			var WANDBOX = 'https://wandbox.org/api/compile.json';
+
+			var LANGS = [
+				{ id: 'python',     label: 'Python',      ace: 'python',     ext: '.py',   tpl: 'print("Hello, World!")', versions: [
+					{ label: '3.14',  compiler: 'cpython-3.14.0' },
+					{ label: '3.13',  compiler: 'cpython-3.13.8' },
+					{ label: '3.12',  compiler: 'cpython-3.12.7' },
+					{ label: '3.11',  compiler: 'cpython-3.11.10' },
+					{ label: '3.10',  compiler: 'cpython-3.10.15' },
+					{ label: '3.9',   compiler: 'cpython-3.9.20' },
+				]},
+				{ id: 'cpp',        label: 'C++',          ace: 'c_cpp',      ext: '.cpp',  tpl: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}', versions: [
+					{ label: 'GCC 13.2', compiler: 'gcc-13.2.0' },
+					{ label: 'GCC 12.3', compiler: 'gcc-12.3.0' },
+					{ label: 'GCC 11.4', compiler: 'gcc-11.4.0' },
+					{ label: 'GCC 10.5', compiler: 'gcc-10.5.0' },
+				]},
+				{ id: 'c',          label: 'C',            ace: 'c_cpp',      ext: '.c',    tpl: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}', versions: [
+					{ label: 'GCC 13.2', compiler: 'gcc-13.2.0-c' },
+					{ label: 'GCC 12.3', compiler: 'gcc-12.3.0-c' },
+					{ label: 'GCC 11.4', compiler: 'gcc-11.4.0-c' },
+					{ label: 'GCC 10.5', compiler: 'gcc-10.5.0-c' },
+				]},
+				{ id: 'javascript', label: 'JavaScript',   ace: 'javascript', ext: '.js',   tpl: 'console.log("Hello, World!");', versions: [
+					{ label: 'Node 20', compiler: 'nodejs-20.17.0' },
+					{ label: 'Node 18', compiler: 'nodejs-18.20.4' },
+				]},
+				{ id: 'typescript', label: 'TypeScript',   ace: 'typescript', ext: '.ts',   tpl: 'const greeting: string = "Hello, World!";\nconsole.log(greeting);', versions: [
+					{ label: '5.6', compiler: 'typescript-5.6.2' },
+				]},
+				{ id: 'java',       label: 'Java',         ace: 'java',       ext: '.java', tpl: 'class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}', versions: [
+					{ label: 'JDK 22', compiler: 'openjdk-jdk-22+36' },
+					{ label: 'JDK 21', compiler: 'openjdk-jdk-21+35' },
+				]},
+				{ id: 'go',         label: 'Go',           ace: 'golang',     ext: '.go',   tpl: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, World!")\n}', versions: [
+					{ label: '1.23', compiler: 'go-1.23.2' },
+					{ label: '1.22', compiler: 'go-1.22.8' },
+					{ label: '1.16', compiler: 'go-1.16.3' },
+				]},
+				{ id: 'rust',       label: 'Rust',         ace: 'rust',       ext: '.rs',   tpl: 'fn main() {\n    println!("Hello, World!");\n}', versions: [
+					{ label: '1.82', compiler: 'rust-1.82.0' },
+					{ label: '1.81', compiler: 'rust-1.81.0' },
+					{ label: '1.80', compiler: 'rust-1.80.1' },
+				]},
+				// Runs in the browser, not on Wandbox: the "version" select picks a library.
+				{ id: 'web',        label: 'Web (HTML/CSS/JS)', ace: 'html', ext: '.html', web: true, tpl: {
+					html: '<h1>Hello, World!</h1>\n<button id="btn">Click me</button>',
+					css: 'body {\n  font-family: system-ui, sans-serif;\n  padding: 1rem;\n}\n\nh1 {\n  color: #0064a4;\n}',
+					js: 'const btn = document.querySelector("#btn");\nbtn.addEventListener("click", () => {\n  console.log("clicked!");\n});'
+				}, versions: [
+					{ label: 'No library',      compiler: '' },
+					{ label: '+ Bootstrap 5.3', compiler: 'bootstrap' },
+					{ label: '+ Vega-Lite 5',   compiler: 'vega-lite' },
+					{ label: '+ math.js',       compiler: 'mathjs' },
+					{ label: '+ Moment.js',     compiler: 'moment' },
+				]},
+				{ id: 'bash',       label: 'Bash',         ace: 'sh',         ext: '.sh',   tpl: 'echo "Hello, World!"', versions: [
+					{ label: 'Bash', compiler: 'bash' },
+				]},
+			];
+
+			/* ── Compile backend ───────────────────────── */
+			function getCompiler() {
+				return verSelect.value || currentLang.versions[0].compiler;
+			}
+
+			function compile(code, stdin) {
+				return fetch(WANDBOX, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						code: code,
+						compiler: getCompiler(),
+						stdin: stdin || ''
+					})
+				}).then(function(res) {
+					if (!res.ok) throw new Error('API returned HTTP ' + res.status);
+					return res.json();
+				});
+			}
+
+			/* ── Language & version selector ─────────────── */
+			var langSelect = document.getElementById('cr-lang');
+			var verSelect  = document.getElementById('cr-ver');
+			var currentLang = LANGS[0];
+
+			LANGS.forEach(function(l) {
+				var opt = document.createElement('option');
+				opt.value = l.id;
+				opt.textContent = l.label;
+				langSelect.appendChild(opt);
+			});
+
+			function populateVersions() {
+				verSelect.innerHTML = '';
+				currentLang.versions.forEach(function(v) {
+					var opt = document.createElement('option');
+					opt.value = v.compiler;
+					opt.textContent = v.label;
+					verSelect.appendChild(opt);
+				});
+				// Restore saved version for this language
+				var savedVer = localStorage.getItem('cr-ver-' + currentLang.id);
+				if (savedVer) {
+					var exists = currentLang.versions.some(function(v) { return v.compiler === savedVer; });
+					if (exists) verSelect.value = savedVer;
+				}
+			}
+
+			verSelect.addEventListener('change', function() {
+				localStorage.setItem('cr-ver-' + currentLang.id, verSelect.value);
+				if (currentLang.web) runWeb();
+			});
+
+			var savedLang = localStorage.getItem('cr-lang');
+			if (savedLang) {
+				var found = LANGS.find(function(l) { return l.id === savedLang; });
+				if (found) { currentLang = found; langSelect.value = savedLang; }
+			}
+			populateVersions();
+
+			/* ── Ace Editor ─────────────────────────────── */
+			ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/');
+
+			/* ── VS Code Dark+ theme for Ace ───────────── */
+			ace.define("ace/theme/vscode_dark_plus",["require","exports","module","ace/lib/dom"],function(require,exports,module){
+				exports.isDark=true;
+				exports.cssClass="ace-vscode-dark-plus";
+				exports.cssText="\
+.ace-vscode-dark-plus{background:#1e1e1e;color:#d4d4d4}\
+.ace-vscode-dark-plus .ace_gutter{background:#1e1e1e;color:#858585}\
+.ace-vscode-dark-plus .ace_gutter-active-line{background:transparent;color:#c6c6c6}\
+.ace-vscode-dark-plus .ace_cursor{color:#d4d4d4}\
+.ace-vscode-dark-plus .ace_marker-layer .ace_selection{background:#264f78}\
+.ace-vscode-dark-plus .ace_marker-layer .ace_active-line{background:rgba(255,255,255,0.04)}\
+.ace-vscode-dark-plus .ace_invisible{color:#404040}\
+.ace-vscode-dark-plus .ace_fold{background:#569cd6;border-color:#d4d4d4}\
+.ace-vscode-dark-plus .ace_keyword{color:#569cd6}\
+.ace-vscode-dark-plus .ace_keyword.ace_control{color:#c586c0}\
+.ace-vscode-dark-plus .ace_keyword.ace_operator{color:#d4d4d4}\
+.ace-vscode-dark-plus .ace_storage{color:#569cd6}\
+.ace-vscode-dark-plus .ace_storage.ace_type{color:#569cd6}\
+.ace-vscode-dark-plus .ace_constant{color:#569cd6}\
+.ace-vscode-dark-plus .ace_constant.ace_numeric{color:#b5cea8}\
+.ace-vscode-dark-plus .ace_constant.ace_language{color:#569cd6}\
+.ace-vscode-dark-plus .ace_constant.ace_character.ace_escape{color:#d7ba7d}\
+.ace-vscode-dark-plus .ace_string{color:#ce9178}\
+.ace-vscode-dark-plus .ace_string.ace_regexp{color:#d16969}\
+.ace-vscode-dark-plus .ace_comment{color:#6a9955;font-style:italic}\
+.ace-vscode-dark-plus .ace_support{color:#4ec9b0}\
+.ace-vscode-dark-plus .ace_support.ace_function{color:#dcdcaa}\
+.ace-vscode-dark-plus .ace_support.ace_type{color:#4ec9b0}\
+.ace-vscode-dark-plus .ace_support.ace_constant{color:#569cd6}\
+.ace-vscode-dark-plus .ace_entity.ace_name.ace_function{color:#dcdcaa}\
+.ace-vscode-dark-plus .ace_entity.ace_name.ace_tag{color:#569cd6}\
+.ace-vscode-dark-plus .ace_meta.ace_tag{color:#808080}\
+.ace-vscode-dark-plus .ace_meta.ace_tag.ace_tag-name{color:#569cd6}\
+.ace-vscode-dark-plus .ace_string.ace_attribute-value{color:#ce9178}\
+.ace-vscode-dark-plus .ace_entity.ace_other.ace_attribute-name{color:#9cdcfe}\
+.ace-vscode-dark-plus .ace_variable{color:#9cdcfe}\
+.ace-vscode-dark-plus .ace_variable.ace_parameter{color:#9cdcfe}\
+.ace-vscode-dark-plus .ace_variable.ace_language{color:#569cd6}\
+.ace-vscode-dark-plus .ace_meta.ace_preprocessor{color:#c586c0}\
+.ace-vscode-dark-plus .ace_paren{color:#ffd700}\
+.ace-vscode-dark-plus .ace_bracket{border:1px solid #888}\
+.ace-vscode-dark-plus .ace_indent-guide{border-right:1px solid #404040}\
+.ace-vscode-dark-plus .ace_marker-layer .ace_selected-word{border:1px solid #575757;background:transparent}\
+.ace-vscode-dark-plus .ace_marker-layer .ace_search-result{background:rgba(255,150,50,.3);border:1px solid rgba(255,150,50,.5)}\
+";
+				require("ace/lib/dom").importCssString(exports.cssText,exports.cssClass,false);
+			});
+
+			var editor = ace.edit('cr-editor');
+			editor.setTheme('ace/theme/vscode_dark_plus');
+			editor.session.setMode('ace/mode/' + currentLang.ace);
+			editor.setOptions({
+				fontSize: '14px',
+				showPrintMargin: false,
+				tabSize: 4,
+				useSoftTabs: true,
+				wrap: false,
+				showGutter: true,
+				fontFamily: '"Consolas", "Cascadia Code", "Fira Code", "Menlo", monospace'
+			});
+
+			/* ── Web mode: one Ace session per file ───────── */
+			var WEB_TABS = { html: 'html', css: 'css', js: 'javascript' };
+			var WEB_TPL = LANGS.find(function(l) { return l.web; }).tpl;
+			var mainSession = editor.getSession();
+			var webSessions = {};
+			var webTab = localStorage.getItem('cr-web-tab') || 'html';
+			Object.keys(WEB_TABS).forEach(function(k) {
+				var saved = localStorage.getItem('cr-code-web-' + k);
+				var sess = ace.createEditSession(saved !== null ? saved : WEB_TPL[k], 'ace/mode/' + WEB_TABS[k]);
+				sess.setTabSize(2);
+				sess.setUseSoftTabs(true);
+				webSessions[k] = sess;
+			});
+			var webTabsEl = document.getElementById('cr-web-tabs');
+			var webAuto = document.getElementById('cr-web-auto');
+			webAuto.checked = localStorage.getItem('cr-web-auto') !== 'off';
+			webAuto.addEventListener('change', function() {
+				localStorage.setItem('cr-web-auto', webAuto.checked ? 'on' : 'off');
+				if (webAuto.checked) runWeb();
+			});
+
+			function showWebTab(k) {
+				webTab = k;
+				localStorage.setItem('cr-web-tab', k);
+				editor.setSession(webSessions[k]);
+				webTabsEl.querySelectorAll('.cr-web-tab').forEach(function(b) {
+					b.classList.toggle('active', b.dataset.tab === k);
+				});
+				editor.focus();
+			}
+			webTabsEl.addEventListener('click', function(e) {
+				var b = e.target.closest('.cr-web-tab');
+				if (b) showWebTab(b.dataset.tab);
+			});
+
+			function saveCode() {
+				if (currentLang.web) {
+					Object.keys(webSessions).forEach(function(k) {
+						localStorage.setItem('cr-code-web-' + k, webSessions[k].getValue());
+					});
+				} else {
+					localStorage.setItem('cr-code-' + currentLang.id, editor.getValue());
+				}
+			}
+
+			if (!currentLang.web) {
+				var savedCode = localStorage.getItem('cr-code-' + currentLang.id);
+				editor.setValue(savedCode || currentLang.tpl, -1);
+			}
+			editor.focus();
+
+			var saveTimer = null;
+			var autoTimer = null;
+			editor.on('change', function() {
+				clearTimeout(saveTimer);
+				saveTimer = setTimeout(saveCode, 800);
+				if (currentLang.web && webAuto.checked) {
+					clearTimeout(autoTimer);
+					autoTimer = setTimeout(runWeb, 700);
+				}
+			});
+
+			/* ── Language switch ─────────────────────────── */
+			langSelect.addEventListener('change', function() {
+				saveCode();
+				var newLang = LANGS.find(function(l) { return l.id === langSelect.value; });
+				if (!newLang) return;
+				currentLang = newLang;
+				localStorage.setItem('cr-lang', currentLang.id);
+				if (!currentLang.web) {
+					editor.setSession(mainSession);
+					editor.session.setMode('ace/mode/' + currentLang.ace);
+					var saved = localStorage.getItem('cr-code-' + currentLang.id);
+					editor.setValue(saved || currentLang.tpl, -1);
+					editor.focus();
+				}
+				populateVersions();
+				loadTestCases();
+				applyMode();
+			});
+
+			/* ── Fullscreen ─────────────────────────────── */
+			var card  = document.querySelector('.cr-card');
+			var fsBtn = document.getElementById('cr-btn-fs');
+
+			var fsExpand = fsBtn.querySelector('.cr-fs-expand');
+			var fsShrink = fsBtn.querySelector('.cr-fs-shrink');
+			var fsText   = fsBtn.querySelector('.cr-fs-text');
+
+			function updateFsBtn() {
+				var isFs = card.classList.contains('cr-fullscreen');
+				fsExpand.style.display = isFs ? 'none' : '';
+				fsShrink.style.display = isFs ? '' : 'none';
+				fsText.textContent = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+			}
+
+			fsBtn.addEventListener('click', function() {
+				card.classList.toggle('cr-fullscreen');
+				editor.resize();
+				updateFsBtn();
+			});
+
+			document.addEventListener('keydown', function(e) {
+				if (e.key === 'Escape' && card.classList.contains('cr-fullscreen')) {
+					card.classList.remove('cr-fullscreen');
+					editor.resize();
+					updateFsBtn();
+				}
+			});
+
+			/* ── Width drag ─────────────────────────────── */
+			(function() {
+				var shell = document.getElementById('cr-shell');
+				var edgeL = document.getElementById('cr-edge-l');
+				var edgeR = document.getElementById('cr-edge-r');
+
+				function startDrag(e, side) {
+					e.preventDefault();
+					var startX = e.clientX;
+					var startW = shell.offsetWidth;
+					var handle = side === 'l' ? edgeL : edgeR;
+
+					handle.classList.add('dragging');
+					document.body.style.cursor = 'ew-resize';
+					document.body.style.userSelect = 'none';
+
+					function onMove(e) {
+						var dx = e.clientX - startX;
+						// Both edges move symmetrically (centered layout)
+						var newW = side === 'r' ? startW + dx * 2 : startW - dx * 2;
+						var maxW = window.innerWidth - 32;
+						newW = Math.max(820, Math.min(maxW, newW));
+						shell.style.maxWidth = newW + 'px';
+						editor.resize();
+					}
+					function onUp() {
+						handle.classList.remove('dragging');
+						document.body.style.cursor = '';
+						document.body.style.userSelect = '';
+						document.removeEventListener('mousemove', onMove);
+						document.removeEventListener('mouseup', onUp);
+					}
+					document.addEventListener('mousemove', onMove);
+					document.addEventListener('mouseup', onUp);
+				}
+
+				edgeL.addEventListener('mousedown', function(e) { startDrag(e, 'l'); });
+				edgeR.addEventListener('mousedown', function(e) { startDrag(e, 'r'); });
+			})();
+
+			/* ── Resizable panes ────────────────────────── */
+			(function() {
+				var body     = document.getElementById('cr-body');
+				var rH       = document.getElementById('cr-resizer-h');
+
+				// ── Horizontal: left/right split ──
+				rH.addEventListener('mousedown', function(e) {
+					e.preventDefault();
+					var startX = e.clientX;
+					var totalW = body.offsetWidth;
+					var leftW  = body.querySelector('.cr-body-left').offsetWidth;
+
+					rH.classList.add('dragging');
+					document.body.style.cursor = 'col-resize';
+					document.body.style.userSelect = 'none';
+
+					function onMove(e) {
+						var pct = (leftW + e.clientX - startX) / totalW * 100;
+						pct = Math.max(20, Math.min(75, pct));
+						body.style.gridTemplateColumns = pct + '% 8px 1fr';
+						editor.resize();
+					}
+					function onUp() {
+						rH.classList.remove('dragging');
+						document.body.style.cursor = '';
+						document.body.style.userSelect = '';
+						document.removeEventListener('mousemove', onMove);
+						document.removeEventListener('mouseup', onUp);
+					}
+					document.addEventListener('mousemove', onMove);
+					document.addEventListener('mouseup', onUp);
+				});
+
+			})();
+
+			/* ── Open / Save file ───────────────────────── */
+			var fileInput = document.getElementById('cr-file-input');
+			var EXT_TO_LANG = {};
+			LANGS.forEach(function(l) { EXT_TO_LANG[l.ext] = l.id; });
+
+			document.getElementById('cr-btn-open').addEventListener('click', function() {
+				fileInput.value = '';
+				fileInput.click();
+			});
+
+			fileInput.addEventListener('change', function() {
+				var file = fileInput.files[0];
+				if (!file) return;
+				if (file.size > 5 * 1024 * 1024) { alert('File too large (max 5 MB)'); return; }
+				var reader = new FileReader();
+				reader.onload = function() {
+					var dot = file.name.lastIndexOf('.');
+					var lower = dot !== -1 ? file.name.substring(dot).toLowerCase() : '';
+					// Web files go into their tab: .html/.htm/.css always, .js when already in Web mode
+					var webTabFor = { '.html': 'html', '.htm': 'html', '.css': 'css' }[lower] || (lower === '.js' && currentLang.web ? 'js' : null);
+					if (webTabFor) {
+						if (!currentLang.web) {
+							langSelect.value = 'web';
+							langSelect.dispatchEvent(new Event('change'));
+						}
+						webSessions[webTabFor].setValue(reader.result);
+						saveCode(); // the tab may not be on screen, so no editor 'change' fires
+						showWebTab(webTabFor);
+						runWeb();
+						return;
+					}
+					// Auto-detect language from extension
+					if (dot !== -1) {
+						var ext = file.name.substring(dot).toLowerCase();
+						var langId = EXT_TO_LANG[ext];
+						if (langId && langId !== currentLang.id) {
+							langSelect.value = langId;
+							langSelect.dispatchEvent(new Event('change'));
+						}
+					}
+					editor.setValue(reader.result, -1);
+					editor.focus();
+				};
+				reader.readAsText(file);
+			});
+
+			document.getElementById('cr-btn-save').addEventListener('click', function() {
+				if (currentLang.web) {
+					// One self-contained index.html (CSS and JS inlined)
+					getWebMod().then(function(m) {
+						var page = m.pageDocument(webSource(), null, verSelect.value ? [verSelect.value] : []);
+						var url = URL.createObjectURL(new Blob([page], { type: 'text/html;charset=utf-8' }));
+						var link = document.createElement('a');
+						link.href = url;
+						link.download = 'index.html';
+						link.click();
+						URL.revokeObjectURL(url);
+					});
+					return;
+				}
+				var code = editor.getValue();
+				var blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+				var a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = 'code' + currentLang.ext;
+				a.click();
+				URL.revokeObjectURL(a.href);
+			});
+
+			/* ── Stdin ──────────────────────────────────── */
+			var stdinArea = document.getElementById('cr-stdin');
+
+			function getStdin() {
+				return stdinArea.value;
+			}
+
+			/* ── Shared refs (needed early) ──────────────── */
+			var outputEl = document.getElementById('cr-output');
+			var statusEl = document.getElementById('cr-status');
+			var runBtn   = document.getElementById('cr-btn-run');
+			var running  = false;
+
+			/* ── Test Cases ─────────────────────────────── */
+			var tcList   = document.getElementById('cr-tc-list');
+			var tcAddBtn = document.getElementById('cr-tc-add');
+			var testCases = [];
+
+			function esc(s) {
+				var d = document.createElement('div');
+				d.textContent = s;
+				return d.innerHTML;
+			}
+
+			function renderTestCases() {
+				if (testCases.length === 0) {
+					tcList.innerHTML = '<div class="cr-tc-empty">No test cases yet. Click "+ Add" to create one.</div>';
+					updateRunBtn();
+					return;
+				}
+				var html = '';
+				testCases.forEach(function(tc, i) {
+					html += '<div class="cr-tc-case">' +
+						'<span class="cr-tc-num">Case ' + (i + 1) + '</span>' +
+						'<div class="cr-tc-field"><label>Input (stdin)</label>' +
+						'<textarea data-i="' + i + '" data-f="input" placeholder="(empty)">' + esc(tc.input) + '</textarea></div>' +
+						'<div class="cr-tc-field"><label>Expected Output</label>' +
+						'<textarea data-i="' + i + '" data-f="expected" placeholder="expected stdout">' + esc(tc.expected) + '</textarea></div>' +
+						'<button type="button" class="cr-tc-delbtn" data-del="' + i + '" title="Remove">\u00d7</button>' +
+						'</div>';
+				});
+				tcList.innerHTML = html;
+
+				tcList.querySelectorAll('textarea').forEach(function(ta) {
+					ta.addEventListener('input', function() {
+						testCases[parseInt(this.dataset.i)][this.dataset.f] = this.value;
+						saveTestCases();
+					});
+				});
+				tcList.querySelectorAll('[data-del]').forEach(function(btn) {
+					btn.addEventListener('click', function() {
+						testCases.splice(parseInt(this.dataset.del), 1);
+						renderTestCases();
+						saveTestCases();
+					});
+				});
+				updateRunBtn();
+			}
+
+			function saveTestCases() {
+				localStorage.setItem('cr-tc-' + currentLang.id, JSON.stringify(testCases));
+			}
+
+			function loadTestCases() {
+				try {
+					testCases = JSON.parse(localStorage.getItem('cr-tc-' + currentLang.id)) || [];
+				} catch(e) { testCases = []; }
+				renderTestCases();
+			}
+
+			tcAddBtn.addEventListener('click', function() {
+				testCases.push({ input: '', expected: '' });
+				renderTestCases();
+				saveTestCases();
+				var fields = tcList.querySelectorAll('textarea[data-f="input"]');
+				if (fields.length) fields[fields.length - 1].focus();
+			});
+
+			var stdinSec  = document.getElementById('cr-sec-stdin');
+			var tcSec     = document.getElementById('cr-sec-tc');
+			var outputSec = document.getElementById('cr-sec-output');
+			var previewSec = document.getElementById('cr-sec-preview');
+			var allSections = [stdinSec, tcSec, previewSec, outputSec];
+
+			/* ── Distribute flex: last expanded visible section fills ── */
+			function syncSections() {
+				var expanded = allSections.filter(function(s) {
+					return s.style.display !== 'none' && !s.classList.contains('collapsed');
+				});
+				allSections.forEach(function(s) { s.style.flex = ''; });
+				if (currentLang.web) {
+					// Preview gets most of the height, the console the rest
+					if (expanded.indexOf(previewSec) !== -1) previewSec.style.flex = '3 1 0';
+					if (expanded.indexOf(outputSec) !== -1) outputSec.style.flex = expanded.length > 1 ? '1 1 0' : '1';
+				} else if (expanded.length) {
+					expanded[expanded.length - 1].style.flex = '1';
+				}
+			}
+
+			/* ── Collapsible section headers ── */
+			document.querySelectorAll('.cr-section-hdr[data-section]').forEach(function(hdr) {
+				hdr.addEventListener('click', function(e) {
+					if (e.target.closest('button')) return;
+					var sec = hdr.closest('.cr-section');
+					var body = sec.querySelector('.cr-section-body');
+					var isCollapsed = sec.classList.toggle('collapsed');
+					body.style.display = isCollapsed ? 'none' : '';
+					hdr.classList.toggle('collapsed', isCollapsed);
+					syncSections();
+					updateRunBtn();
+				});
+			});
+
+			function isJudgeMode() {
+				return !currentLang.web && !tcSec.classList.contains('collapsed') && testCases.length > 0;
+			}
+
+			var RUN_ICON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+			function updateRunBtn() {
+				if (!running) {
+					runBtn.innerHTML = isJudgeMode()
+						? RUN_ICON_SVG + 'Judge<span class="cr-shortcut">Ctrl+Enter</span>'
+						: RUN_ICON_SVG + 'Run<span class="cr-shortcut">Ctrl+Enter</span>';
+				}
+			}
+
+			loadTestCases();
+			syncSections();
+
+			/* ── Clear all ──────────────────────────────── */
+			document.getElementById('cr-btn-clear').addEventListener('click', function() {
+				if (currentLang.web) {
+					Object.keys(webSessions).forEach(function(k) {
+						webSessions[k].setValue('');
+						localStorage.removeItem('cr-code-web-' + k);
+					});
+					preview.srcdoc = '';
+					outputEl.innerHTML = CONSOLE_EMPTY;
+					statusEl.textContent = '';
+					editor.focus();
+					return;
+				}
+				editor.setValue('', -1);
+				editor.focus();
+				stdinArea.value = '';
+				outputEl.innerHTML = '<span class="cr-placeholder">Click Run or press Ctrl+Enter to execute your code.</span>';
+				statusEl.textContent = '';
+				localStorage.removeItem('cr-code-' + currentLang.id);
+			});
+
+			/* ── Run / Judge ────────────────────────────── */
+
+			/* ── Web: render in a sandboxed iframe, console from the page ── */
+			var preview = document.getElementById('cr-preview');
+			var previewSize = document.getElementById('cr-preview-size');
+			var outputTitle = document.getElementById('cr-output-title');
+			var CONSOLE_EMPTY = '<span class="cr-placeholder">(console empty)</span>';
+			var webToken = null;
+			var webModPromise = null;
+			var consoleLines = 0;
+
+			// Shared with the notes' live demos (assets/viz/web-demo.js): same page
+			// builder and console/alert/error hook.
+			function getWebMod() {
+				if (!webModPromise) webModPromise = import('../../assets/viz/web-demo.js');
+				return webModPromise;
+			}
+
+			function webSource() {
+				return { html: webSessions.html.getValue(), css: webSessions.css.getValue(), js: webSessions.js.getValue() };
+			}
+
+			// A pasted course file links style.css / script.js etc.; those files don't
+			// exist here, so drop local <link>/<script src> and use the tabs instead.
+			function dropLocalRefs(html, notes) {
+				var local = function(url) { return !/^(?:[a-z]+:)?\/\//i.test(url); };
+				return html
+					.replace(/<link\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi, function(tag, url) {
+						if (!/stylesheet/i.test(tag) || !local(url)) return tag;
+						notes.push(url + ' \u2192 style.css tab');
+						return '';
+					})
+					.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, function(tag, url) {
+						if (!local(url)) return tag;
+						notes.push(url + ' \u2192 script.js tab');
+						return '';
+					});
+			}
+
+			function consoleLine(kind, text) {
+				if (consoleLines === 0) outputEl.innerHTML = '';
+				consoleLines++;
+				var cls = { error: 'cr-stderr', warn: 'cr-con-warn', info: 'cr-con-info' }[kind];
+				outputEl.insertAdjacentHTML('beforeend', (cls ? '<span class="' + cls + '">' + esc(text) + '</span>' : esc(text)) + '\n');
+				outputEl.scrollTop = outputEl.scrollHeight;
+				if (kind === 'error') {
+					statusEl.innerHTML = '<span class="cr-exit-err">error</span> &middot; ' + new Date().toLocaleTimeString();
+				}
+			}
+
+			window.addEventListener('message', function(e) {
+				var d = e.data;
+				if (!d || !webToken || d.__webDemo !== webToken || e.source !== preview.contentWindow) return;
+				consoleLine(d.kind, d.text);
+			});
+
+			function runWeb() {
+				if (!currentLang.web) return;
+				getWebMod().then(function(m) {
+					var notes = [];
+					var src = webSource();
+					src.html = dropLocalRefs(src.html, notes);
+					webToken = 'cr' + Math.random().toString(36).slice(2);
+					consoleLines = 0;
+					outputEl.innerHTML = CONSOLE_EMPTY;
+					notes.forEach(function(n) { consoleLine('info', '[runner] ' + n); });
+					preview.srcdoc = m.pageDocument(src, webToken, verSelect.value ? [verSelect.value] : []);
+					statusEl.innerHTML = '<span class="cr-exit-ok">rendered</span> &middot; ' + new Date().toLocaleTimeString();
+				}).catch(function(err) {
+					outputEl.innerHTML = '<span class="cr-error-msg">Error: ' + esc(err.message) + '</span>';
+				});
+			}
+
+			if (typeof ResizeObserver !== 'undefined') {
+				new ResizeObserver(function() {
+					previewSize.textContent = preview.clientWidth ? preview.clientWidth + ' \u00d7 ' + preview.clientHeight : '';
+				}).observe(preview);
+			}
+
+			// Show / hide the pieces that belong to Web vs. the compiled languages.
+			function applyMode() {
+				var web = !!currentLang.web;
+				webTabsEl.hidden = !web;
+				stdinSec.style.display = web ? 'none' : '';
+				tcSec.style.display = web ? 'none' : '';
+				previewSec.style.display = web ? '' : 'none';
+				outputTitle.textContent = web ? 'Console' : 'Output';
+				verSelect.title = web ? 'Library to load' : 'Compiler/runtime version';
+				if (web) {
+					showWebTab(webTab);
+					runWeb();
+				} else {
+					// Stop the hidden page: its timers/listeners would keep logging into Output
+					webToken = null;
+					clearTimeout(autoTimer);
+					preview.srcdoc = '';
+					outputEl.innerHTML = '<span class="cr-placeholder">Click Run or press Ctrl+Enter to execute your code.</span>';
+					statusEl.textContent = '';
+				}
+				syncSections();
+				updateRunBtn();
+				editor.resize();
+			}
+
+			function runCode() {
+				if (currentLang.web) { runWeb(); return; }
+				if (running) return;
+				if (isJudgeMode()) { judgeCode(); return; }
+				normalRun();
+			}
+
+			function normalRun() {
+				running = true;
+				runBtn.disabled = true;
+				runBtn.innerHTML = '<span class="cr-spinner"></span> Running\u2026';
+				outputEl.innerHTML = '<span class="cr-placeholder">Running\u2026</span>';
+				statusEl.textContent = '';
+
+				var code  = editor.getValue();
+				var stdin = getStdin();
+				var t0    = performance.now();
+
+				compile(code, stdin)
+				.then(function(data) {
+					var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+					var html = '';
+					var exitCode = parseInt(data.status, 10) || 0;
+
+					if (data.compiler_error) {
+						html += '<span class="cr-compile-err">' + esc(data.compiler_error) + '</span>';
+					}
+
+					var hasOutput = false;
+					if (data.program_output) { html += esc(data.program_output); hasOutput = true; }
+					if (data.program_error)  { html += '<span class="cr-stderr">' + esc(data.program_error) + '</span>'; hasOutput = true; }
+					if (!hasOutput && !data.compiler_error) { html += '<span class="cr-placeholder">(no output)</span>'; }
+					if (data.signal) { html += '\n<span class="cr-stderr">Signal: ' + esc(data.signal) + '</span>'; }
+
+					outputEl.innerHTML = html;
+					var exitOk = exitCode === 0 && !data.signal;
+					statusEl.innerHTML =
+						'<span class="' + (exitOk ? 'cr-exit-ok' : 'cr-exit-err') + '">Exit: ' + exitCode + '</span>' +
+						(data.signal ? ' (' + esc(data.signal) + ')' : '') +
+						' &middot; ' + elapsed + 's &middot; ' + getCompiler();
+				})
+				.catch(function(err) {
+					outputEl.innerHTML = '<span class="cr-error-msg">Error: ' + esc(err.message) + '</span>';
+					statusEl.textContent = '';
+				})
+				.finally(function() {
+					running = false;
+					runBtn.disabled = false;
+					updateRunBtn();
+				});
+			}
+
+			function judgeCode() {
+				running = true;
+				runBtn.disabled = true;
+				runBtn.innerHTML = '<span class="cr-spinner"></span> Judging\u2026';
+				outputEl.innerHTML = '<span class="cr-placeholder">Running ' + testCases.length + ' test case' + (testCases.length > 1 ? 's' : '') + '\u2026</span>';
+				statusEl.textContent = '';
+
+				var code = editor.getValue();
+				var t0 = performance.now();
+				var results = new Array(testCases.length);
+
+				// Run all test cases in parallel
+				var promises = testCases.map(function(tc, i) {
+					return compile(code, tc.input).then(function(data) {
+						var actual   = (data.program_output || '').replace(/\r\n/g, '\n').replace(/\s+$/, '');
+						var expected = tc.expected.replace(/\r\n/g, '\n').replace(/\s+$/, '');
+						var compErr  = data.compiler_error || '';
+						var runErr   = data.program_error || '';
+						var signal   = data.signal || '';
+						var pass     = !compErr && !signal && actual === expected;
+
+						results[i] = {
+							pass: pass,
+							actual: data.program_output || '',
+							compErr: compErr,
+							runErr: runErr,
+							signal: signal
+						};
+					}).catch(function(err) {
+						results[i] = { pass: false, actual: '', compErr: '', runErr: '', signal: '', error: err.message };
+					});
+				});
+
+				Promise.all(promises).then(function() {
+					var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+					var passed = results.filter(function(r) { return r.pass; }).length;
+					var total = results.length;
+
+					function trunc(s, n) { s = s.replace(/\s+$/, ''); return s.length > n ? s.substring(0, n) + '\u2026' : s; }
+
+					var html = '<table class="cr-judge-table">';
+					results.forEach(function(r, i) {
+						var tc = testCases[i];
+						var icon = r.pass
+							? '<span class="cr-jpass">\u2713</span>'
+							: '<span class="cr-jfail">\u2717</span>';
+						var cls = r.pass ? 'cr-jpass' : 'cr-jfail';
+
+						html += '<tr>';
+						html += '<td class="cr-jidx ' + cls + '">' + icon + ' Case ' + (i + 1) + '</td>';
+
+						if (r.error) {
+							html += '<td class="cr-jfail cr-jdetail">' + esc(r.error) + '</td>';
+						} else if (r.compErr) {
+							html += '<td class="cr-jfail cr-jdetail">' + esc(trunc(r.compErr, 150)) + '</td>';
+						} else if (r.pass) {
+							html += '<td class="cr-jdetail"><code>' + esc(trunc(r.actual, 80) || '(empty)') + '</code></td>';
+						} else {
+							html += '<td class="cr-jdetail">' +
+								'<span class="cr-jexpected">expected </span><code>' + esc(trunc(tc.expected, 60) || '(empty)') + '</code>' +
+								'<span class="cr-jexpected"> got </span><span class="cr-jdiff"><code>' + esc(trunc(r.actual, 60) || '(empty)') + '</code></span>' +
+								(r.signal ? ' <span class="cr-jfail">[' + esc(r.signal) + ']</span>' : '') +
+								'</td>';
+						}
+						html += '</tr>';
+					});
+					html += '</table>';
+
+					var allPass = passed === total;
+					html += '<div class="cr-judge-summary ' + (allPass ? 'cr-jpass' : 'cr-jfail') + '">' +
+						(allPass ? '\u2713 ' : '\u2717 ') + passed + '/' + total + ' passed</div>';
+
+					outputEl.innerHTML = html;
+					statusEl.innerHTML =
+						'<span class="' + (allPass ? 'cr-exit-ok' : 'cr-exit-err') + '">' +
+						passed + '/' + total + ' passed</span> &middot; ' + elapsed + 's';
+				}).finally(function() {
+					running = false;
+					runBtn.disabled = false;
+					updateRunBtn();
+				});
+			}
+
+			runBtn.addEventListener('click', runCode);
+
+			// Hand-off from a notes demo ("Code Runner" button in assets/viz/web-demo.js)
+			if (/[?&]from=viz\b/.test(location.search)) {
+				try {
+					var handoff = JSON.parse(localStorage.getItem('cr-web-transfer') || 'null');
+					localStorage.removeItem('cr-web-transfer');
+					// Don't silently replace the reader's own Web code
+					var mine = ['html', 'css', 'js'].some(function(k) {
+						var v = localStorage.getItem('cr-code-web-' + k);
+						return v !== null && v !== WEB_TPL[k] && v !== (handoff && handoff[k] || '');
+					});
+					if (handoff && mine && !confirm('Replace your current Web (HTML/CSS/JS) code with the code from the notes demo?\n\nCancel keeps your code.')) handoff = null;
+					if (handoff) {
+						currentLang = LANGS.find(function(l) { return l.web; });
+						langSelect.value = 'web';
+						localStorage.setItem('cr-lang', 'web');
+						populateVersions();
+						verSelect.value = (handoff.libs && handoff.libs[0]) || '';
+						localStorage.setItem('cr-ver-web', verSelect.value);
+						['html', 'css', 'js'].forEach(function(k) { webSessions[k].setValue(handoff[k] || ''); });
+						webTab = handoff.js && !handoff.css ? 'js' : 'html';
+						saveCode();
+					}
+				} catch (err) { /* ignore a malformed hand-off */ }
+				history.replaceState(null, '', location.pathname);
+			}
+			applyMode();
+
+			editor.commands.addCommand({
+				name: 'runCode',
+				bindKey: { win: 'Ctrl-Enter', mac: 'Command-Enter' },
+				exec: runCode
+			});
+
+		})();
+		</script>
+
+		<!-- Header scroll detection (Type B — no banner) -->
+		<script>
+			(function() {
+				var header = document.getElementById("header");
+				var isRevealed = false;
+				window.addEventListener("scroll", function() {
+					var y = window.scrollY;
+					if (!isRevealed && y > 80) {
+						isRevealed = true;
+						header.classList.remove("alt");
+						header.classList.add("reveal");
+					} else if (isRevealed && y <= 0) {
+						isRevealed = false;
+						header.classList.remove("reveal");
+						header.classList.add("alt");
+					}
+				}, { passive: true });
+			})();
+		</script>
+<footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

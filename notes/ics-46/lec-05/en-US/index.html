@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Queues, Deques &amp; Stack Applications | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Stacks on linked lists, the Queue ADT and its implementations, expression evaluation with stacks, and queue applications."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-05/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413977" data-source-url="/~kazuhak/notes/ics-46/lec-05/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-05/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-04/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-06/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 5</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 5 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 5 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-5-queues-deques-analysis-of-recursion">Information and Computer Science 46 — Lecture 5: Queues, Deques, Analysis of Recursion</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-stacks-on-linked-lists">1. Stacks on Linked Lists</a></li>
+<li><a href="#2-the-queue-adt">2. The Queue ADT</a></li>
+<li><a href="#3-implementing-queues">3. Implementing Queues</a></li>
+<li><a href="#4-stack-applications-expression-evaluation">4. Stack Applications: Expression Evaluation</a></li>
+<li><a href="#5-queue-applications">5. Queue Applications</a></li>
+<li><a href="#6-complete-implementation">6. Complete Implementation</a></li>
+<li><a href="#7-in-class-activities-with-solutions">7. In-class Activities (with Solutions)</a></li>
+<li><a href="#8-quick-reference--top-5-things-to-remember">8. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/13/26<br>Built from the Lecture 5 slides (p1–19) plus Lecture 4 slide 51; supplements: algs4 §1.3, Thornton&#39;s &quot;Stacks, Queues, and Deques&quot; and &quot;Amortized Analysis&quot;. Organized by concept, not by source.<br>Today&#39;s goals (slide 3): finish stacks, queues, analysis of recursion. The analysis-of-recursion part (slides 20–28) was repeated at the start of Lecture 6, so it lives in the <a href="/~kazuhak/notes/ics-46/lec-06/en-US/">Lecture 6 notes</a>. The stack ADT and its ArrayList version come from the <a href="/~kazuhak/notes/ics-46/lec-04/en-US/">Lecture 4 notes</a>.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong> (slide 2, updated on Lec 06 slide 2):<br>HW 2 due <strong>Fri 10/16/26</strong> (Lec 05 slide said &quot;Fri 10/15/26&quot;; 10/15 is a Thursday and the Lec 06 update says 10/16)<br>Learning Activity 2 this <strong>Fri 10/16/26</strong> — the 2nd half of Quiz 1<br>Lab 2 due <strong>Mon 10/19</strong><br>Quiz 2 <strong>Fri 10/23</strong> — Algorithm Analysis, ArrayList, Linked List</p>
+</blockquote>
+<hr>
+<h2 id="1-stacks-on-linked-lists">1. Stacks on Linked Lists</h2>
+<h3 id="11-top-of-the-stack--head-of-the-list">1.1 Top of the stack = head of the list</h3>
+<p>A stack (LIFO) only touches its top. In a singly linked list (SLL) with only <code>head</code> (slide 4&#39;s picture: head → item1 → … → item5 → null), the only end you can change in O(1) is the head. So put the <strong>top at the head</strong>: push = Lecture 4&#39;s &quot;insert at head&quot; (<code>add(item)</code>, slide 25), pop = &quot;remove head&quot; (<code>remove()</code>, slide 31). All three operations are <strong>O(1) worst case</strong>. This is the opposite end from the ArrayList stack, whose top is at the back.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// inside LinkedStack&#x3C;T>: Node* head (top), std::size_t n</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> push</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> oldHead</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">              // remember the current first node</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> newNode</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">    // next defaults to nullptr</span></span>
+<span class="line"><span style="color:#9CDCFE">    newNode</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">oldHead</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">           // link new node to the old head</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                    // new node becomes the head</span></span>
+<span class="line"><span style="color:#D4D4D4">    ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> pop</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"pop from empty stack"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // move head one to the right</span></span>
+<span class="line"><span style="color:#D4D4D4">    --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">               // copy the item out BEFORE deleting</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> peek</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955">   // (after the same empty check)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Push ICS46, ROCKS, ! and pop everything (full class in <a href="#6-complete-implementation">§6</a>):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">peek: !, size 3
+pop: ! ROCKS ICS46
+error: pop from empty stack</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Lecture 4 slide 31 writes <code>T data = temp-&gt;data;</code> but the slide-17 <code>Node</code> has <code>item</code>, not <code>data</code> → use <code>temp-&gt;item</code>. The slide also has no empty check; <code>pop()</code> needs one.</p>
+</blockquote>
+<h3 id="12-dll-and-the-reversed-direction">1.2 DLL, and the reversed direction</h3>
+<ul>
+<li><strong>DLL with head and tail</strong>: O(1) at both ends, so the top can go at either end — but every node carries a <code>prev</code> the stack never uses.</li>
+<li><strong>Top at the tail of an SLL</strong> (reversed): with only <code>head</code>, push/pop/peek are all <strong>O(n)</strong> (walk to the end). Adding a <code>tail</code> pointer makes push and peek O(1), but <strong>pop stays O(n)</strong>: after removing the last node you need the second-to-last node, which an SLL can only find by walking from the head.</li>
+</ul>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#71-activity-0-implementing-stacks-slide-4">Activity 0</a>.</p>
+</blockquote>
+<h3 id="13-how-do-we-choose-slide-5">1.3 How do we choose? (slide 5)</h3>
+<p>Slide 5 was a live poll with blank answers; the filled-in version is Lecture 4 slide 51:</p>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>push / pop / peek</th>
+<th>Trade-off</th>
+<th>When it wins</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ArrayList</td>
+<td>O(1) on average, O(1) on average, O(1)</td>
+<td>less memory, faster overall, <strong>lumpy</strong> performance</td>
+<td>the focus is on overall performance</td>
+</tr>
+<tr>
+<td>Singly linked list</td>
+<td>O(1), O(1), O(1) — <strong>worst case</strong></td>
+<td>extra time and space for links, but a <strong>guarantee</strong> every operation is fast</td>
+<td>planes coming in for landing; an internet switch with packets arriving at a high rate</td>
+</tr>
+<tr>
+<td>Doubly linked list</td>
+<td>O(1)</td>
+<td>extra memory overhead, same performance as SLL</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>🔑 <strong>Best choice depends on the problem.</strong></p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Thornton calls the ArrayList&#39;s &quot;O(1) on average&quot; <strong>amortized</strong> O(1): over any real sequence of pushes, the total cost divided by the number of pushes is constant, because one O(n) resize pays for n cheap pushes. A single push can still take O(n) — that&#39;s the &quot;lumpy&quot; part, and why a system that can&#39;t afford one slow step picks the linked list.</p>
+</blockquote>
+<hr>
+<h2 id="2-the-queue-adt">2. The Queue ADT</h2>
+<h3 id="21-fifo">2.1 FIFO</h3>
+<p>A <strong>queue</strong> (slide 7) is a dynamic linear structure for sequential data that removes the <strong>least recent</strong> item first: items leave in the exact order they arrived (FIFO, First In First Out). Metaphor: a line of people waiting to buy tickets.</p>
+<ul>
+<li><strong>Enqueue</strong>: add a new item to the <strong>end</strong> of the line.</li>
+<li><strong>Dequeue</strong>: remove the item at the <strong>front</strong> of the line.</li>
+<li>Goal: maximize time efficiency for <strong>both</strong> operations — a queue has two &quot;business ends&quot;, a stack only one.</li>
+</ul>
+<h3 id="22-example-of-queue-operations-slide-8">2.2 Example of queue operations (slide 8)</h3>
+<p>A word means enqueue it, <code>-</code> means dequeue and print (same input as Lecture 4&#39;s stack example). Queue written front → back:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Input</th>
+<th>Printed</th>
+<th>Queue after</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1–5</td>
+<td>To be or not to</td>
+<td></td>
+<td>To be or not to</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>-</code></td>
+<td><strong>To</strong></td>
+<td>be or not to</td>
+</tr>
+<tr>
+<td>7</td>
+<td>be</td>
+<td></td>
+<td>be or not to be</td>
+</tr>
+<tr>
+<td>8–9</td>
+<td><code>-</code> <code>-</code></td>
+<td><strong>be</strong>, <strong>or</strong></td>
+<td>not to be</td>
+</tr>
+<tr>
+<td>10</td>
+<td>that</td>
+<td></td>
+<td>not to be that</td>
+</tr>
+<tr>
+<td>11–13</td>
+<td><code>-</code> <code>-</code> <code>-</code></td>
+<td><strong>not</strong>, <strong>to</strong>, <strong>be</strong></td>
+<td>that</td>
+</tr>
+<tr>
+<td>14</td>
+<td>is</td>
+<td></td>
+<td>that is</td>
+</tr>
+</tbody></table>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="queue"><code>{&quot;title&quot;: &quot;Slide 8: To be or not to - be - - that - - - is&quot;, &quot;ops&quot;: &quot;To be or not to - be - - that - - - is&quot;, &quot;interactive&quot;: true}</code></pre><p>The output is the input order, <code>To be or not to be</code> — a queue never reorders. The <a href="#6-complete-implementation">§6</a> program replays it: <code>dequeued: To be or not to be</code>, then <code>left in queue (2): front = that</code>.</p>
+<hr>
+<h2 id="3-implementing-queues">3. Implementing Queues</h2>
+<p>Slides 9–11 ask the same four questions for ArrayList, SLL and DLL: where to enqueue/dequeue, how to implement it, the worst-case (or amortized) run times, and what happens if you reverse the direction. The answers in one table:</p>
+<table>
+<thead>
+<tr>
+<th>Structure &amp; layout</th>
+<th>enqueue</th>
+<th>dequeue</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ArrayList, front = index 0, rear = end</td>
+<td>O(1) amortized</td>
+<td><strong>O(n)</strong> (shift left)</td>
+</tr>
+<tr>
+<td>ArrayList reversed, rear = index 0, front = end</td>
+<td><strong>O(n)</strong> (shift right)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Circular array (📘 beyond the lecture)</td>
+<td>O(1) amortized</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>SLL, head only, front = head</td>
+<td><strong>O(n)</strong> (walk to end)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>SLL, head only, reversed</td>
+<td>O(1)</td>
+<td><strong>O(n)</strong></td>
+</tr>
+<tr>
+<td>✅ SLL, head + tail, front = head, rear = tail</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>❌ SLL, head + tail, reversed</td>
+<td>O(1)</td>
+<td><strong>O(n)</strong></td>
+</tr>
+<tr>
+<td>DLL, head + tail, either direction</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<h3 id="31-arraylist-slide-9">3.1 ArrayList (slide 9)</h3>
+<p>An ArrayList keeps item 0 in cell 0, so whichever end of the queue sits at index 0 costs O(n) — every other item shifts. Usual layout: enqueue with <code>add(item)</code>, dequeue with <code>remove(0)</code>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> ArrayListQueue</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    ArrayList</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> enqueue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">add</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">); }</span><span style="color:#6A9955">   // O(1) amortized</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> dequeue</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                                     // O(n): shifts everyone left</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"dequeue from empty queue"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">remove</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> front</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> list</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">at</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Enqueue ICS46, ROCKS, ! and drain: <code>ICS46 ROCKS !</code> (compiled against a stand-in with Lecture 3&#39;s ArrayList operations).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#72-activity-1-implementing-queues-with-an-arraylist-slide-9">Activity 1</a>.</p>
+</blockquote>
+<h3 id="32-circular-array">3.2 Circular array</h3>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Thornton and algs4 fix the array by letting the front move. Keep <code>f</code> (index of the front item) and <code>n</code> (count). Enqueue writes at <code>(f + n) % capacity</code> and does <code>++n</code>; dequeue reads <code>items[f]</code>, then <code>f = (f + 1) % capacity</code>, <code>--n</code>. Both O(1) (enqueue amortized when the array doubles). Keep the count <code>n</code>: with only front and back indices, &quot;full&quot; and &quot;empty&quot; look the same.</p>
+</blockquote>
+<p>Example (capacity 2 → doubled to 4): enqueue 1, 2, 3; dequeue 1, 2; enqueue 4, 5. Now <code>f = 2</code> and 5 has wrapped to cell 0: cells are <code>[5, _, 3, 4]</code>, queue order 3 4 5.</p>
+<p>The same example on a capacity-4 array (no resize needed here). Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="circular-queue"><code>{&quot;title&quot;: &quot;Circular array: the front moves, nothing shifts&quot;, &quot;ops&quot;: &quot;1 2 3 - - 4 5&quot;, &quot;capacity&quot;: 4, &quot;interactive&quot;: true}</code></pre><h3 id="33-sll-add-a-tail-pointer-slide-10">3.3 SLL: add a tail pointer (slide 10)</h3>
+<p>With only <code>head</code>, one operation is always O(n). <strong>The fix: keep a <code>tail</code> pointer</strong>, and enqueue at the tail, dequeue at the head. Direction still matters: <code>tail</code> lets you <em>add</em> after the last node in O(1), not <em>remove</em> it (removing needs its predecessor).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// inside LinkedQueue&#x3C;T>: Node* head (front), Node* tail (rear), std::size_t n</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> enqueue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">          // O(1)</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> newNode</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">     // first node is both front and rear</span></span>
+<span class="line"><span style="color:#C586C0">    else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> dequeue</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                          // O(1)</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"dequeue from empty queue"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // queue became empty</span></span>
+<span class="line"><span style="color:#D4D4D4">    --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Enqueue onto a non-empty queue, then drain it — watch the last <code>dequeue()</code> reset <code>tail</code>. Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="queue"><code>{&quot;title&quot;: &quot;SLL with head and tail (slide 10)&quot;, &quot;ops&quot;: &quot;enqueue(ICS46); enqueue(ROCKS); enqueue(!); dequeue(); dequeue(); dequeue()&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Two empty-queue cases. Enqueue into an empty queue has no <code>tail-&gt;next</code> to set, so set <code>head</code> too. Dequeue of the last item must reset <code>tail = nullptr</code>, or the next enqueue writes through freed memory.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#73-activity-2-implementing-queues-with-a-singly-linked-list-slide-10">Activity 2</a>.</p>
+</blockquote>
+<h3 id="34-dll-slide-11">3.4 DLL (slide 11)</h3>
+<p>Slide 11&#39;s DLL has Head/Front on ROCKS and Tail/Back on &quot;!&quot;. A DLL with head and tail can insert and remove at <strong>both</strong> ends in O(1) (the new tail after a removal is <code>tail-&gt;prev</code>), so both directions give O(1) enqueue and dequeue. The cost is an extra <code>prev</code> per node with no speed gain over the SLL with tail. A DLL is also what a <strong>deque</strong> (double-ended queue, in the lecture title) needs: add and remove at both ends.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#74-implementing-queues-with-a-doubly-linked-list-slide-11">Slide 11 prompt</a>.</p>
+</blockquote>
+<h3 id="35-what-is-the-best-choice-slide-12">3.5 What is the best choice? (slide 12)</h3>
+<p>Slide 12 (&quot;How do we choose between the queue implementations?&quot;) is a blank live poll; the answers below are mine, by the same reasoning as Lecture 4 slide 51.</p>
+<ul>
+<li><strong>ArrayList</strong>: as-is, dequeue is O(n) — a poor queue. As a circular array: O(1) amortized, least memory, but lumpy.</li>
+<li><strong>Singly linked list</strong>: with a tail pointer, O(1) worst case for both — the guarantee, at one pointer per node.</li>
+<li><strong>Doubly linked list</strong>: O(1) either way, but extra memory for <code>prev</code> with the same performance.</li>
+<li>Best choice depends on the problem (overall throughput → circular array; every operation fast → SLL with tail).</li>
+</ul>
+<hr>
+<h2 id="4-stack-applications-expression-evaluation">4. Stack Applications: Expression Evaluation</h2>
+<h3 id="41-where-stacks-show-up-slide-14">4.1 Where stacks show up (slide 14)</h3>
+<p>Basic mechanisms in compilers and interpreters; the back button in a browser; undo in a word processor. The rest of the lecture is the compiler/interpreter case: evaluating arithmetic.</p>
+<h3 id="42-infix-vs-postfix-slide-14">4.2 Infix vs postfix (slide 14)</h3>
+<ul>
+<li><strong>Infix</strong>: operator <strong>between</strong> operands; standard math notation, needs parentheses for precedence. Example <code>( ( 2 + 3 ) * ( 4 * 5 ) )</code>.</li>
+<li><strong>Postfix</strong>: operator <strong>after</strong> its operands, <strong>no parentheses</strong>; evaluated with one stack left to right, no ambiguity.</li>
+</ul>
+<p>To convert a fully parenthesized infix expression, rewrite each innermost <code>( a op b )</code> as <code>a b op</code>, working outward:
+<code>( ( 2 + 3 ) * ( 4 * 5 ) )</code> ⇒ sub-eval <code>((2 3 +) * (4 5 *))</code> ⇒ <strong><code>2 3 + 4 5 * *</code></strong>. Operands keep their order; only operators move.</p>
+<h3 id="43-dijkstras-two-stack-algorithm-slide-15">4.3 Dijkstra&#39;s two-stack algorithm (slide 15)</h3>
+<p>Read the fully parenthesized infix expression left to right with a <strong>value stack</strong> and an <strong>operator stack</strong>:</p>
+<ul>
+<li>Value: push onto the value stack.</li>
+<li>Operator: push onto the operator stack.</li>
+<li>Left parenthesis: ignore.</li>
+<li>Right parenthesis: pop an operator and two values; push the result of applying that operator to those values onto the value stack.</li>
+</ul>
+<p>Slide 15 is a frame of the algs4 demo showing value stack 1, 2 and operator stack +, +. The expression isn&#39;t on the slide; it is consistent with algs4&#39;s demo expression <code>( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )</code>, so the trace below is inferred from algs4. Stacks bottom → top:</p>
+<table>
+<thead>
+<tr>
+<th>Token(s)</th>
+<th>Value stack</th>
+<th>Operator stack</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>( 1 + ( ( 2 +</code></td>
+<td>1 2</td>
+<td>+ + ← <em>slide 15&#39;s frame</em></td>
+</tr>
+<tr>
+<td><code>3 )</code> → 2 + 3</td>
+<td>1 5</td>
+<td>+</td>
+</tr>
+<tr>
+<td><code>* ( 4 * 5 )</code> → 4 * 5</td>
+<td>1 5 20</td>
+<td>+ *</td>
+</tr>
+<tr>
+<td><code>)</code> → 5 * 20</td>
+<td>1 100</td>
+<td>+</td>
+</tr>
+<tr>
+<td><code>)</code> → 1 + 100</td>
+<td><strong>101</strong></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Every operation must be wrapped in its own parentheses: the <code>)</code> is the signal &quot;apply the most recent operator now&quot;.</p>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="two-stack-eval"><code>{&quot;title&quot;: &quot;Dijkstra&#39;s two-stack algorithm (slide 15)&quot;, &quot;expression&quot;: &quot;( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#75-activity-3-expression-evaluation-slide-18">Activity 3 (a)</a>.</p>
+</blockquote>
+<h3 id="44-operand-order-slide-16">4.4 Operand order (slide 16)</h3>
+<p>Slide 16 links the algs4 &quot;Dijkstra&#39;s 2-Stack Demo&quot; video (<a href="https://docs.google.com/file/d/1kLs501v5QjCoGAp5lO-58KUpNXyibNCm/preview">Google Drive</a>) with the note <em>&quot;video seems to have the order of the operands flipped.&quot;</em> The rule: the <strong>first value popped is the right operand</strong> (it was pushed last), the second popped is the left one. Slide 17 writes it as <code>v1 = pop()</code>, <code>v2 = pop()</code>, <code>push(v2 op v1)</code>.</p>
+<p>Example: <code>( 10 - 4 )</code> pops 4, then 10 → 10 − 4 = <strong>6</strong>. Flipped, you&#39;d get 4 − 10 = −6. For <code>+</code> and <code>*</code> the order doesn&#39;t matter, which is why the demo&#39;s answer still comes out right.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Exam questions use <code>-</code> and <code>/</code>. Write down v1 and v2 and compute <code>v2 op v1</code>.</p>
+</blockquote>
+<h3 id="45-postfix-evaluation-slide-17">4.5 Postfix evaluation (slide 17)</h3>
+<p>Process the expression left to right; if it&#39;s an operand, push it; if it&#39;s an operation, pop 2 operands and push the result of applying it. The answer is the one item left (<code>peek()</code>). Slide 17&#39;s trace of <code>(52 - ((5 + 7) * 4))</code> ⇒ <code>52 5 7 + 4 * -</code> (bottom → top):</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Action</th>
+<th>Stack</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>52</code> <code>5</code> <code>7</code></td>
+<td>push ×3</td>
+<td>52 5 7</td>
+</tr>
+<tr>
+<td><code>+</code></td>
+<td>v1=7, v2=5, push(v2+v1)=12</td>
+<td>52 12</td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td>push(4)</td>
+<td>52 12 4</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>v1=4, v2=12, push(v2*v1)=48</td>
+<td>52 48</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>v1=48, v2=52, push(v2-v1)=4</td>
+<td>4 → peek()=4</td>
+</tr>
+</tbody></table>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="postfix-eval"><code>{&quot;title&quot;: &quot;Slide 17: 52 5 7 + 4 * -&quot;, &quot;expression&quot;: &quot;52 5 7 + 4 * -&quot;, &quot;interactive&quot;: true}</code></pre><div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">long</span><span style="color:#DCDCAA"> evalPostfix</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> expr</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    LinkedStack</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">long</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">istringstream</span><span style="color:#DCDCAA"> in</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">expr</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#9CDCFE"> tok</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">in</span><span style="color:#D4D4D4"> >> </span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"+"</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"*"</span><span style="color:#D4D4D4"> || </span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"/"</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">            long</span><span style="color:#9CDCFE"> v1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">               // right operand (popped first)</span></span>
+<span class="line"><span style="color:#569CD6">            long</span><span style="color:#9CDCFE"> v2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">               // left operand</span></span>
+<span class="line"><span style="color:#9CDCFE">            s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">applyOp</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">v2</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">v1</span><span style="color:#D4D4D4">));</span><span style="color:#6A9955">    // v2 op v1</span></span>
+<span class="line"><span style="color:#D4D4D4">        } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">            s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">stol</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">tok</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    long</span><span style="color:#9CDCFE"> result</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (!</span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">invalid_argument</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"malformed postfix expression"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> result</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>evalPostfix</code> on <code>52 5 7 + 4 * -</code>, <code>5 1 2 + 4 * + 3 -</code> and <code>10 4 -</code> prints <code>4 14 6</code> (<code>applyOp(op, left, right)</code> returns <code>left op right</code>).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#75-activity-3-expression-evaluation-slide-18">Activity 3 (b)–(c)</a>.</p>
+</blockquote>
+<hr>
+<h2 id="5-queue-applications">5. Queue Applications</h2>
+<p>Slide 19: a Spotify playlist (songs play in the order queued), data buffers (Netflix, Hulu), asynchronous data transfer (file I/O, sockets), requests for shared resources (printers), traffic analysis, waiting times at a call center.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Use a queue when there is a <strong>mismatch between input and output rate</strong> (slide 19): items arrive in bursts and are served steadily, and the queue holds the backlog in arrival order.</p>
+</blockquote>
+<hr>
+<h2 id="6-complete-implementation">6. Complete Implementation</h2>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;cstddef></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;sstream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;stdexcept></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Stack on a singly linked list: top = head</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> LinkedStack</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // top</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    LinkedStack</span><span style="color:#D4D4D4">() = </span><span style="color:#569CD6">default</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~LinkedStack</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    LinkedStack</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> LinkedStack</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">             // Rule of Five: Lab 2</span></span>
+<span class="line"><span style="color:#4EC9B0">    LinkedStack</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> LinkedStack</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> push</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">                 // O(1)</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> pop</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                                  // O(1)</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"pop from empty stack"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                   // copy out before delete</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> peek</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">                    // O(1)</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"peek at empty stack"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Queue on a singly linked list with head AND tail: front = head, rear = tail</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> LinkedQueue</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> it</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> nx</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">it</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">next</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nx</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // front: dequeue here</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // rear: enqueue here</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    LinkedQueue</span><span style="color:#D4D4D4">() = </span><span style="color:#569CD6">default</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~LinkedQueue</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">while</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#DCDCAA">dequeue</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    LinkedQueue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> LinkedQueue</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    LinkedQueue</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> LinkedQueue</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#569CD6">size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> enqueue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">              // O(1)</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> newNode</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#9CDCFE"> tail</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        tail</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">newNode</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> dequeue</span><span style="color:#D4D4D4">() {</span><span style="color:#6A9955">                              // O(1)</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"dequeue from empty queue"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">        head</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">next</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">head</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">tail</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // became empty</span></span>
+<span class="line"><span style="color:#D4D4D4">        --</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        T</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> front</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">underflow_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"front of empty queue"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> head</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    LinkedStack</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ICS46"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"ROCKS"</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"peek: "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">peek</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">", size "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">"</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">pop:"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (!</span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">    try</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">st</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">(); } </span><span style="color:#C586C0">catch</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">underflow_error</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">error: "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">e</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">what</span><span style="color:#D4D4D4">(); }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    LinkedQueue</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">istringstream</span><span style="color:#DCDCAA"> in</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"To be or not to - be - - that - - - is"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">dequeued:"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">in</span><span style="color:#D4D4D4"> >> </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">dequeue</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#9CDCFE"> q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">enqueue</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">left in queue ("</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">"): front = "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">front</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="110"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 110 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">peek: !, size 3
+pop: ! ROCKS ICS46
+error: pop from empty stack
+dequeued: To be or not to be
+left in queue (2): front = that</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<hr>
+<h2 id="7-in-class-activities-with-solutions">7. In-class Activities (with Solutions)</h2>
+<h3 id="71-activity-0-implementing-stacks-slide-4">7.1 Activity 0: Implementing Stacks (slide 4)</h3>
+<p>Implementing Stacks using</p>
+<ul>
+<li><strong>singly linked list</strong></li>
+<li><strong>doubly linked list</strong></li>
+</ul>
+<p>(a) Where should the top of the stack be? (b) How do we implement Pop, Push, and Peek with the linked list? (c) What is the worst-case big-O runtime for Pop, Push, and Peek? (d) What is the worst-case big-O if you implement the top of stack in the reverse direction?</p>
+<p><strong>Solution</strong></p>
+<ul>
+<li><strong>(a)</strong> SLL: at the <strong>head</strong>. DLL with head and tail: either end.</li>
+<li><strong>(b)</strong> push = insert at head; pop = save <code>head</code>, advance it, copy the item, delete the old node; peek = <code>head-&gt;item</code> (empty checks on pop/peek). Code in <a href="#11-top-of-the-stack--head-of-the-list">§1.1</a>.</li>
+<li><strong>(c)</strong> All <strong>O(1) worst case</strong>.</li>
+<li><strong>(d)</strong> Top at the tail: SLL head-only → all O(n); SLL head + tail → push/peek O(1) but <strong>pop O(n)</strong>; DLL → all O(1) via <code>tail-&gt;prev</code>.</li>
+</ul>
+<h3 id="72-activity-1-implementing-queues-with-an-arraylist-slide-9">7.2 Activity 1: Implementing Queues with an ArrayList (slide 9)</h3>
+<p>Implementing queue with <strong>ArrayList</strong>: Where should we enqueue and dequeue items? Implement enqueue and dequeue operations. What are the worst-case (or amortized) run-times? What if we reverse the direction of enqueue and dequeue?</p>
+<p><strong>Solution</strong></p>
+<ul>
+<li>Enqueue at the end with <code>list.add(item)</code>, dequeue at index 0 with <code>list.remove(0)</code>.</li>
+<li>Enqueue <strong>O(1) amortized</strong>; dequeue <strong>O(n)</strong> (everything shifts left).</li>
+<li>Reversed (<code>add(0, item)</code> / <code>remove()</code>): enqueue <strong>O(n)</strong>, dequeue O(1).</li>
+<li>Either way one operation is O(n), because the ArrayList pins item 0 to cell 0 (<a href="#32-circular-array">§3.2</a> for the fix).</li>
+</ul>
+<h3 id="73-activity-2-implementing-queues-with-a-singly-linked-list-slide-10">7.3 Activity 2: Implementing Queues with a Singly Linked List (slide 10)</h3>
+<p>Implementing queue with <strong>singly linked list</strong>: Where should we enqueue and dequeue items? Implement enqueue and dequeue operations. What are the worst-case run-times? What if we reverse the direction of enqueue and dequeue? What modification allows us to get O(1) for both ops?</p>
+<p><strong>Solution</strong></p>
+<ul>
+<li>Dequeue at the head, enqueue at the last node.</li>
+<li>Head only: dequeue O(1), enqueue <strong>O(n)</strong>. Reversed: enqueue O(1), dequeue <strong>O(n)</strong>.</li>
+<li>Modification: a <strong>tail pointer</strong>, with front = head and rear = tail → both O(1) (<a href="#33-sll-add-a-tail-pointer-slide-10">§3.3</a>).</li>
+<li>Trap: the reversed direction with a tail pointer is still O(n) for dequeue.</li>
+</ul>
+<h3 id="74-implementing-queues-with-a-doubly-linked-list-slide-11">7.4 Implementing Queues with a Doubly Linked List (slide 11)</h3>
+<p>Implementing queue with <strong>doubly linked list</strong>: Where should we enqueue and dequeue items? Implement enqueue and dequeue operations. What are the worst-case run-times? What if we reverse the direction of enqueue and dequeue?</p>
+<p><strong>Solution</strong></p>
+<ul>
+<li>Enqueue at the tail (<code>newNode-&gt;prev = tail; tail-&gt;next = newNode; tail = newNode;</code>, or set <code>head</code> if empty), dequeue at the head (<code>head = head-&gt;next; head-&gt;prev = nullptr;</code>, or <code>tail = nullptr</code> if it becomes empty).</li>
+<li>Both <strong>O(1)</strong> worst case, and still O(1) reversed. Price: the extra <code>prev</code> pointer.</li>
+</ul>
+<h3 id="75-activity-3-expression-evaluation-slide-18">7.5 Activity 3: expression evaluation (slide 18)</h3>
+<ul>
+<li>Use 2-stack method for <strong>infix</strong> expression evaluation: <code>( ( 2 + 3 ) * ( 4 * 5 ) )</code></li>
+<li>Use a stack to evaluate <strong>postfix</strong> expression: <code>5 1 2 + 4 * + 3 -</code></li>
+<li>Convert the above expression back to infix</li>
+</ul>
+<p><strong>Solution</strong></p>
+<p><strong>(a)</strong> = <strong>100</strong>. Values/operators (bottom → top): after <code>( ( 2 + 3 )</code> → 5 / empty; after <code>* ( 4 * 5 )</code> → 5 20 / <code>*</code>; final <code>)</code> → 5 × 20 = 100.</p>
+<p><strong>(b)</strong> = <strong>14</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Action</th>
+<th>Stack</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>5</code> <code>1</code> <code>2</code></td>
+<td>push ×3</td>
+<td>5 1 2</td>
+</tr>
+<tr>
+<td><code>+</code></td>
+<td>v1=2, v2=1 → 3</td>
+<td>5 3</td>
+</tr>
+<tr>
+<td><code>4</code> <code>*</code></td>
+<td>v1=4, v2=3 → 12</td>
+<td>5 12</td>
+</tr>
+<tr>
+<td><code>+</code></td>
+<td>v1=12, v2=5 → 17</td>
+<td>17</td>
+</tr>
+<tr>
+<td><code>3</code> <code>-</code></td>
+<td>v1=3, v2=17 → 14</td>
+<td>14</td>
+</tr>
+</tbody></table>
+<p>Check (a) and (b) step by step:</p>
+<pre data-language="viz" data-viz="two-stack-eval"><code>{&quot;title&quot;: &quot;Activity 3 (a)&quot;, &quot;expression&quot;: &quot;( ( 2 + 3 ) * ( 4 * 5 ) )&quot;}</code></pre><pre data-language="viz" data-viz="postfix-eval"><code>{&quot;title&quot;: &quot;Activity 3 (b)&quot;, &quot;expression&quot;: &quot;5 1 2 + 4 * + 3 -&quot;}</code></pre><p><strong>(c)</strong> Push expressions instead of numbers: <code>((5 + ((1 + 2) * 4)) - 3)</code>, i.e. 5 + (1 + 2) × 4 − 3 = 14. Operand order 5, 1, 2, 4, 3 is unchanged.</p>
+<hr>
+<h2 id="8-quick-reference--top-5-things-to-remember">8. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>ADT</th>
+<th>Order</th>
+<th>Add / remove / look</th>
+<th>Best linked list</th>
+<th>Where the ends go</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Stack</td>
+<td>LIFO</td>
+<td>push / pop / peek</td>
+<td>SLL, head only</td>
+<td>top = head</td>
+<td>O(1) worst case</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>FIFO</td>
+<td>enqueue / dequeue / front</td>
+<td>SLL, head + tail</td>
+<td>front = head, rear = tail</td>
+<td>O(1) worst case</td>
+</tr>
+<tr>
+<td>Stack on ArrayList</td>
+<td>LIFO</td>
+<td>push / pop / peek</td>
+<td>—</td>
+<td>top = end</td>
+<td>O(1) amortized (&quot;lumpy&quot;)</td>
+</tr>
+<tr>
+<td>Queue on ArrayList</td>
+<td>FIFO</td>
+<td>enqueue / dequeue</td>
+<td>—</td>
+<td>front = index 0</td>
+<td>dequeue O(n)</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>A linked-list stack puts the <strong>top at the head</strong>: push, pop and peek are O(1) worst case; the ArrayList stack is only O(1) on average.</li>
+<li>A queue on an SLL needs a <strong>tail</strong> pointer and must <strong>enqueue at the tail, dequeue at the head</strong> — a tail pointer can&#39;t make removing the last node O(1).</li>
+<li>A plain ArrayList queue always has one O(n) operation; best choice depends on the problem.</li>
+<li>The <strong>first value popped is the right operand</strong>: compute <code>v2 op v1</code> (it matters for <code>-</code> and <code>/</code>).</li>
+<li>Postfix needs one stack and no parentheses; fully parenthesized infix needs Dijkstra&#39;s two stacks.</li>
+</ol>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-06/en-US/">Lecture 6</a></strong>: analysis of recursion — writing recurrences (e.g. for factorial), the recursion-tree method, T(n) = 2T(n/2) + n, and the binary-search activity.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-04/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 4</span><span class="pager-title" data-astro-cid-gxyjxt6l>Linked Lists &amp; Stacks</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-06/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 6 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Analysis of Recursion</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-04/en-US/" title="Previous: Linked Lists &amp; Stacks ([)" aria-label="Previous: Lecture 4" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 4</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 5</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-06/en-US/" title="Next: Analysis of Recursion (])" aria-label="Next: Lecture 6" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 6</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

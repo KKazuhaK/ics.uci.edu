@@ -1,0 +1,1391 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 43 Test Case Selection — Black-Box, White-Box, and Other QA Techniques | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="How do we actually choose test cases? Black-box (specification-based) testing with equivalence class partitioning and boundary value analysis, combinatorial testing, white-box (structural) testing with control-flow graphs and coverage criteria (statement / branch / condition / path), plus inspections and code reviews, formal methods, static analysis, and the Quiz 7 study guide."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413994" data-source-url="/~kazuhak/notes/in4matx-43/week-08/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-08/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-43/week-07/en-US/" data-next-url="/~kazuhak/notes/in4matx-43/week-09/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 8</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 8 · Software Engineering Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 43 Week 8 notes in a reading-friendly format so you can review definitions, principles, frameworks, and lecture highlights efficiently. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on May 25, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--week-8-lecture-notes">Informatics 43 — Week 8 Lecture Notes</h1>
+<blockquote>
+<p>Covers <strong>Lecture 15 &amp; Lecture 16</strong>: <em>&quot;How do we choose test cases?&quot; (Parts 3 &amp; 4)</em></p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-where-we-are--from-why-test-to-which-tests">Where We Are — From &quot;Why Test?&quot; to &quot;Which Tests?&quot;</a></li>
+<li><a href="#2-the-two-overall-testing-approaches">The Two Overall Testing Approaches</a></li>
+<li><a href="#3-black-box--specification-based-testing">Black-Box / Specification-Based Testing</a></li>
+<li><a href="#4-equivalence-class-partitioning">Equivalence Class Partitioning</a></li>
+<li><a href="#5-boundary-value-analysis">Boundary Value Analysis</a></li>
+<li><a href="#6-the-systematic-5-step-procedure">The Systematic 5-Step Procedure</a></li>
+<li><a href="#7-worked-example--the-grading-program">Worked Example — The Grading Program</a></li>
+<li><a href="#8-combinatorial-testing">Combinatorial Testing</a></li>
+<li><a href="#9-white-box--structural-testing">White-Box / Structural Testing</a></li>
+<li><a href="#10-control-flow-graphs-cfgs">Control-Flow Graphs (CFGs)</a></li>
+<li><a href="#11-worked-example-1--getsecondelement">Worked Example 1 — <code>getSecondElement()</code></a></li>
+<li><a href="#12-statement-node-coverage">Statement (Node) Coverage</a></li>
+<li><a href="#13-branch-edge-coverage">Branch (Edge) Coverage</a></li>
+<li><a href="#14-worked-example-2--the-cfg-and-coverage-handout">Worked Example 2 — The CFG-and-Coverage Handout</a></li>
+<li><a href="#15-other-coverage-criteria">Other Coverage Criteria</a></li>
+<li><a href="#16-challenges-with-white-box-testing">Challenges with White-Box Testing</a></li>
+<li><a href="#17-inspections-and-reviews">Inspections and Reviews</a></li>
+<li><a href="#18-formal-methods">Formal Methods</a></li>
+<li><a href="#19-static-analysis">Static Analysis</a></li>
+<li><a href="#20-testing-topics-not-covered">Testing Topics Not Covered</a></li>
+<li><a href="#21-quiz-7-study-guide">Quiz 7 Study Guide</a></li>
+<li><a href="#22-wrap-up-and-memory-framework">Wrap-Up and Memory Framework</a></li>
+</ol>
+<hr>
+<h2 id="1-where-we-are--from-why-test-to-which-tests">1. Where We Are — From &quot;Why Test?&quot; to &quot;Which Tests?&quot;</h2>
+<p>Week 7 answered <em>why</em> we test. Lecture 13 framed Quality Assurance as <strong>verification + validation</strong> and named the four QA technique families (formal methods, static analysis, reviews, <strong>testing</strong>); Lecture 14 introduced the <strong>basic testing process</strong>, the three <strong>levels</strong> (unit / integration / system), <strong>test oracles</strong>, and the realist&#39;s mantra: <em>all software has bugs.</em> The lecture closed on three claims that Week 8 takes as starting points:</p>
+<ul>
+<li><strong>Testing can never be exhaustive.</strong></li>
+<li><strong>Testing can never prove a system&#39;s correctness.</strong></li>
+<li><strong>All software has bugs.</strong></li>
+</ul>
+<p>Given all three, the engineering question becomes operational:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Of</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">(essentially</mtext><mtext> </mtext><mtext mathvariant="bold">infinite)</mtext><mtext> </mtext><mtext mathvariant="bold">possible</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">inputs,</mtext><mtext> </mtext></mrow><mrow><mtext mathvariant="italic">which</mtext><mtext> </mtext><mtext mathvariant="italic">ones</mtext><mtext> </mtext><mtext mathvariant="italic">do</mtext><mtext> </mtext><mtext mathvariant="italic">we</mtext><mtext> </mtext><mtext mathvariant="italic">actually</mtext><mtext> </mtext><mtext mathvariant="italic">run?</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Of the (essentially infinite) possible test inputs, } \textit{which ones do we actually run?}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Of the (essentially infinite) possible test inputs, </span></span><span class="mord text"><span class="mord textit">which ones do we actually run?</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Week 8 (Lectures 15 &amp; 16) answers this with three concrete strategies — <strong>black-box (specification-based)</strong>, <strong>combinatorial</strong>, and <strong>white-box (structural)</strong> testing — plus a brief tour of the other three QA technique families (inspections, formal methods, static analysis) so that the testing unit closes with the whole QA toolbox in view. Lecture 16 also publishes the <strong>Quiz 7 Study Guide</strong>.</p>
+<p>The recurring pattern from Week 7 — <em>use a mixture of techniques</em> — applies here at the next level down: <strong>no single test-case-selection strategy catches all faults</strong>; black-box and white-box have different blind spots and are best used together.</p>
+<hr>
+<h2 id="2-the-two-overall-testing-approaches">2. The Two Overall Testing Approaches</h2>
+<p>The first big distinction in test design is <em>what the tester looks at</em> to design test cases. Everything else this week — equivalence partitioning, boundary analysis, statement coverage, branch coverage — slots under one of these two headings.</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Synonyms</th>
+<th>What the tester looks at</th>
+<th>Mental picture</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Black-box testing</strong></td>
+<td>Functional testing, <strong>Specification-based</strong> testing</td>
+<td>Only the <strong>specification</strong> of what the system should do. The implementation is opaque.</td>
+<td>A sealed box: feed inputs in, observe outputs, compare against the <strong>oracle</strong></td>
+</tr>
+<tr>
+<td><strong>White-box testing</strong></td>
+<td>Structural testing, <strong>Code-based</strong> testing</td>
+<td>The <strong>source code</strong> itself. Tester designs inputs to exercise specific code structures.</td>
+<td>A glass box: tester sees the code and aims tests at chosen statements / branches / paths, with a <strong>coverage criterion</strong> as the stopping rule</td>
+</tr>
+</tbody></table>
+<p>The two diagrams the slide uses make the contrast visible:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Black-box:
+    Input → [ System ] → Output → Oracle → Pass / Fail
+
+White-box:
+    Input → [ System ] → Output → Oracle       → Pass / Fail
+                       ↘ Coverage Criterion? → Stop (when met)</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/black-box-vs-white-box-pipeline.png" alt="Two stacked pipeline diagrams from the "Two Overall Testing Approaches" slide. Top (Black-box / Functional / Specification-based): Input → System (opaque black rectangle) → Output → Oracle → Failure (red) / Success (green). Bottom (White-box / Structural / Code-based): the System box is transparent and shows internal arrows and triangles; the pipeline branches into the same Oracle → Failure/Success arm and a second arm Output → Coverage Criteria? → Stop (orange)."></p>
+<p>The black-box pipeline ends at the <strong>oracle</strong>: did the output match what the spec said? The white-box pipeline adds a second exit — the <strong>coverage criterion</strong> — which is what tells the white-box tester when they&#39;ve tested <em>enough of the code structure</em>.</p>
+<blockquote>
+<p>The two approaches are complementary, not competing. Black-box tests catch <strong>missing features</strong> and <strong>misread specs</strong> that white-box can&#39;t see (the code might be doing exactly what the developer thought it should, but the spec said something different). White-box tests catch <strong>dead branches</strong>, <strong>unreachable code</strong>, and <strong>implementation-specific edge cases</strong> that black-box can miss (the spec doesn&#39;t mention the <code>null</code> head-pointer case, but the code does). A real test plan uses both.</p>
+</blockquote>
+<hr>
+<h2 id="3-black-box--specification-based-testing">3. Black-Box / Specification-Based Testing</h2>
+<p>The defining commitments of black-box testing:</p>
+<ul>
+<li><strong>Use the specification to derive test cases.</strong> Not the code — the spec.</li>
+<li><strong>Choose test cases that guarantee a wide range of coverage</strong> <em>of the input domain</em>, not of the code.</li>
+</ul>
+<p>The lecture lists five kinds of inputs a black-box test suite should reach for:</p>
+<table>
+<thead>
+<tr>
+<th>Kind of input</th>
+<th>Why include it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Typical values</strong></td>
+<td>Confirms the system handles the common case it was designed for</td>
+</tr>
+<tr>
+<td><strong>Boundary values</strong></td>
+<td>Bugs cluster at edges — off-by-one, <code>&lt;</code> vs <code>&lt;=</code>, integer wrap-around</td>
+</tr>
+<tr>
+<td><strong>Special cases</strong></td>
+<td>Empty strings, zero, <code>null</code>, single-element collections, leap days, time-zone transitions</td>
+</tr>
+<tr>
+<td><strong>Invalid input values</strong></td>
+<td>Negative ages, malformed JSON, future birthdates — does the system reject them safely?</td>
+</tr>
+<tr>
+<td><strong>Combinations of values</strong></td>
+<td>When multiple parameters interact, the bug may be in the combination, not in either one alone (see §8)</td>
+</tr>
+</tbody></table>
+<p>Two systematic techniques structure this into a repeatable procedure: <strong>equivalence class partitioning</strong> (§4) and <strong>boundary value analysis</strong> (§5). They work together — partitioning gives you the classes, boundary analysis tells you which points inside each class to pick.</p>
+<hr>
+<h2 id="4-equivalence-class-partitioning">4. Equivalence Class Partitioning</h2>
+<p>The intuition: even though the input space is enormous, <strong>most inputs behave the same way</strong> from the program&#39;s point of view. We don&#39;t need to test every integer between 70 and 79 — we just need to test <em>one</em> of them, because they all map to the letter grade <code>C</code>.</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">An</mtext><mtext> </mtext><mtext mathvariant="bold">equivalence</mtext><mtext> </mtext><mtext mathvariant="bold">class</mtext><mtext> </mtext><mtext mathvariant="bold">is</mtext><mtext> </mtext><mtext mathvariant="bold">a</mtext><mtext> </mtext><mtext mathvariant="bold">set</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">inputs</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">program</mtext><mtext> </mtext><mtext mathvariant="bold">is</mtext><mtext> </mtext><mtext mathvariant="bold">expected</mtext><mtext> </mtext><mtext mathvariant="bold">to</mtext><mtext> </mtext><mtext mathvariant="bold">treat</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">same</mtext><mtext> </mtext><mtext mathvariant="bold">way</mtext><mtext> </mtext><mtext mathvariant="bold">for</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">purpose</mtext><mtext> </mtext><mtext mathvariant="bold">of</mtext><mtext> </mtext><mtext mathvariant="bold">finding</mtext><mtext> </mtext><mtext mathvariant="bold">bugs.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{An equivalence class is a set of inputs the program is expected to treat the same way for the purpose of finding bugs.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">An equivalence class is a set of inputs the program is expected to treat the same way for the purpose of finding bugs.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>So if the program passes for one member, it is <em>likely</em> to pass for all members; if it fails for one member, it is <em>likely</em> to fail for all members. Pick <strong>one representative per class</strong>, and you&#39;ve covered the class.</p>
+<h3 id="how-the-classes-are-determined">How the classes are determined</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>The requirements specification</strong></td>
+<td>&quot;Scores ≥ 90 map to A&quot; — the spec literally names a class</td>
+</tr>
+<tr>
+<td><strong>The tester&#39;s intuition</strong></td>
+<td>Spec doesn&#39;t mention <code>null</code>, but tester knows null inputs are a likely trouble class</td>
+</tr>
+</tbody></table>
+<h3 id="two-properties-the-classes-must-satisfy">Two properties the classes must satisfy</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cover the complete input domain</strong></td>
+<td>Otherwise, some inputs go untested entirely</td>
+</tr>
+<tr>
+<td><strong>Do not overlap</strong></td>
+<td>Otherwise, you waste tests double-covering the same behavior</td>
+</tr>
+</tbody></table>
+<p>Together: the equivalence classes <strong>partition</strong> the input domain — every input belongs to exactly one class.</p>
+<blockquote>
+<p>Equivalence partitioning compresses an infinite (or huge) input space into a small finite collection of <em>representative</em> inputs. The compression ratio is the whole point: a 100-value integer domain (0..100, for the grading example below) collapses to 5 classes, and the test budget compresses by 20×.</p>
+</blockquote>
+<hr>
+<h2 id="5-boundary-value-analysis">5. Boundary Value Analysis</h2>
+<p>A complementary technique built on the same partitioning. The observation behind it is empirical and well-known:</p>
+<blockquote>
+<p><em>Many errors are made at the &quot;boundaries&quot; rather than under normal conditions</em> — e.g., confusion between <code>&lt;</code> and <code>&lt;=</code>, off-by-one in loop bounds, integer overflow at <code>INT_MAX</code>.</p>
+</blockquote>
+<p>Boundary value analysis uses the <strong>same equivalence classes</strong> as partitioning, but instead of picking any representative from inside the class, it picks the values <strong>at the boundaries</strong> of each class — the smallest, the largest, and (if applicable) the values <em>just outside</em> the boundary on either side.</p>
+<table>
+<thead>
+<tr>
+<th>Equivalence partitioning</th>
+<th>Boundary value analysis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pick <em>any</em> representative inside a class</td>
+<td>Pick the values <em>on the edge</em> of each class</td>
+</tr>
+<tr>
+<td>Catches &quot;this whole class is broken&quot; bugs</td>
+<td>Catches off-by-one and edge-case bugs</td>
+</tr>
+<tr>
+<td>Few tests per class</td>
+<td>Two to four tests per class (the boundaries themselves)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>In practice the two are used <strong>together</strong>: partition the domain into classes, then for each class pick <em>one typical interior value</em> (partitioning) <strong>plus the boundary values</strong> (boundary analysis). The grading example in §7 shows what this looks like in practice.</p>
+</blockquote>
+<hr>
+<h2 id="6-the-systematic-5-step-procedure">6. The Systematic 5-Step Procedure</h2>
+<p>Lecture 15 turns the two techniques into a single recipe:</p>
+<ol>
+<li><strong>Identify the set of all possible inputs (the &quot;domain&quot;)</strong> — what is the program actually supposed to accept?</li>
+<li><strong>Identify a basis for subdividing the set of inputs.</strong> Possible bases include:<ul>
+<li><strong>Size / magnitude</strong> — small, medium, large</li>
+<li><strong>Structure</strong> — empty vs. one-element vs. many-element collections</li>
+<li><strong>Correctness</strong> — valid vs. invalid inputs</li>
+<li><strong>Tester&#39;s creative thinking / intuition</strong></li>
+</ul>
+</li>
+<li><strong>Use this basis to divide the set of all possible inputs into classes/subdomains.</strong></li>
+<li><strong>From each subdomain, select a representative (or representatives) to be a test case input.</strong> One test case may suffice per class.</li>
+<li><strong>Test for each subdomain:</strong><ul>
+<li>&quot;Normal&quot; or &quot;representative&quot; values (any value inside the subdomain)</li>
+<li><strong>Boundary or edge input values</strong> (Boundary Value Analysis)</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>The bases in step 2 are not exclusive. A real test design often uses <strong>multiple bases at once</strong> — for example, partitioning by both <em>correctness</em> (valid vs. invalid) and <em>magnitude</em> (small, medium, large). The resulting partition is the <em>intersection</em> of the per-basis partitions: &quot;small-valid&quot;, &quot;small-invalid&quot;, &quot;medium-valid&quot;, etc.</p>
+</blockquote>
+<hr>
+<h2 id="7-worked-example--the-grading-program">7. Worked Example — The Grading Program</h2>
+<p>The lecture&#39;s example:</p>
+<blockquote>
+<p>A program takes a single assignment score from <strong>0 to 100</strong> in integer format and returns a letter grade in the standard scoring (90s are A, 80s are B, 70s are C, 60s are D, 50s and lower are F — no plusses or minuses).</p>
+</blockquote>
+<h3 id="71-step-1--the-domain">7.1 Step 1 — The domain</h3>
+<p>In principle: all integers. In the spec: integers in <strong>[0, 100]</strong>. The spec implicitly defines a <em>second</em> class too: integers <strong>outside [0, 100]</strong> are <strong>invalid</strong> inputs.</p>
+<h3 id="72-steps-23--basis-and-partitions">7.2 Steps 2–3 — Basis and partitions</h3>
+<p>The natural basis here is <em>what the spec says the output should be</em>. That gives six classes:</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Score range</th>
+<th>Expected output</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F</td>
+<td>0–59</td>
+<td><code>F</code></td>
+</tr>
+<tr>
+<td>D</td>
+<td>60–69</td>
+<td><code>D</code></td>
+</tr>
+<tr>
+<td>C</td>
+<td>70–79</td>
+<td><code>C</code></td>
+</tr>
+<tr>
+<td>B</td>
+<td>80–89</td>
+<td><code>B</code></td>
+</tr>
+<tr>
+<td>A</td>
+<td>90–100</td>
+<td><code>A</code></td>
+</tr>
+<tr>
+<td>Invalid</td>
+<td>&lt; 0 or &gt; 100</td>
+<td>error / rejected</td>
+</tr>
+</tbody></table>
+<h3 id="73-step-45--representative--boundary-values-per-class">7.3 Step 4–5 — Representative + boundary values per class</h3>
+<p>For each class, list the <strong>boundaries</strong> (the smallest and largest valid value inside the class). The boundary-value analysis says these are the values most likely to surface bugs.</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Lower boundary</th>
+<th>Upper boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F</td>
+<td>0</td>
+<td>59</td>
+</tr>
+<tr>
+<td>D</td>
+<td>60</td>
+<td>69</td>
+</tr>
+<tr>
+<td>C</td>
+<td>70</td>
+<td>79</td>
+</tr>
+<tr>
+<td>B</td>
+<td>80</td>
+<td>89</td>
+</tr>
+<tr>
+<td>A</td>
+<td>90</td>
+<td>100</td>
+</tr>
+<tr>
+<td>Invalid (below)</td>
+<td>(any value &lt; 0)</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Invalid (above)</td>
+<td>101</td>
+<td>(any value &gt; 100)</td>
+</tr>
+</tbody></table>
+<h3 id="74-the-resulting-test-suite-input-expected-output">7.4 The resulting test suite (input, expected output)</h3>
+<p>The format the lecture asks for is <code>&quot;input, expected output&quot;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Expected output</th>
+<th>Why this test exists</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td><code>F</code></td>
+<td>Boundary — lower edge of F (and of valid domain)</td>
+</tr>
+<tr>
+<td><code>59</code></td>
+<td><code>F</code></td>
+<td>Boundary — upper edge of F</td>
+</tr>
+<tr>
+<td><code>60</code></td>
+<td><code>D</code></td>
+<td>Boundary — lower edge of D (off-by-one candidate vs 59)</td>
+</tr>
+<tr>
+<td><code>69</code></td>
+<td><code>D</code></td>
+<td>Boundary — upper edge of D</td>
+</tr>
+<tr>
+<td><code>70</code></td>
+<td><code>C</code></td>
+<td>Boundary — lower edge of C</td>
+</tr>
+<tr>
+<td><code>79</code></td>
+<td><code>C</code></td>
+<td>Boundary — upper edge of C</td>
+</tr>
+<tr>
+<td><code>80</code></td>
+<td><code>B</code></td>
+<td>Boundary — lower edge of B</td>
+</tr>
+<tr>
+<td><code>89</code></td>
+<td><code>B</code></td>
+<td>Boundary — upper edge of B</td>
+</tr>
+<tr>
+<td><code>90</code></td>
+<td><code>A</code></td>
+<td>Boundary — lower edge of A</td>
+</tr>
+<tr>
+<td><code>100</code></td>
+<td><code>A</code></td>
+<td>Boundary — upper edge of A (and of valid domain)</td>
+</tr>
+<tr>
+<td><code>-1</code></td>
+<td>error</td>
+<td>Invalid — just below lower edge</td>
+</tr>
+<tr>
+<td><code>101</code></td>
+<td>error</td>
+<td>Invalid — just above upper edge</td>
+</tr>
+</tbody></table>
+<p>That&#39;s 12 test cases for a function whose input domain has 101 valid integers — a ~8× compression that still hits every boundary likely to harbor an off-by-one.</p>
+<blockquote>
+<p>Notice what this test suite is <em>good</em> at and <em>bad</em> at. <strong>Good</strong>: catches <code>&lt; 90</code> vs <code>&lt;= 90</code> confusion (the F-vs-A bug), missing invalid-input handling, off-by-one errors at every cutoff. <strong>Bad</strong>: does not catch a subtle bug like &quot;the function returns <code>B</code> when the input is exactly 85&quot; — because we never test 85. That&#39;s why this is paired with §16: black-box testing leaves blind spots that white-box testing is designed to fill.</p>
+</blockquote>
+<hr>
+<h2 id="8-combinatorial-testing">8. Combinatorial Testing</h2>
+<p>So far, every example has a <em>single</em> input parameter. Real functions take many. <strong>What happens to equivalence-class partitioning when there are multiple parameters?</strong></p>
+<p>The lecture&#39;s answer is mechanical but disciplined:</p>
+<ol>
+<li><strong>For each parameter independently</strong>, determine its equivalence partitions and representative (possibly boundary) values — exactly as in §4–§7.</li>
+<li><strong>Then devise combinations</strong> of those per-parameter values to form the test inputs.</li>
+</ol>
+<p>The &quot;devise combinations&quot; step is where the engineering judgment lives, because the full Cartesian product blows up fast. If three parameters each have 5 representative values, the full combination is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><mn>5</mn><mo>×</mo><mn>5</mn><mo>=</mo><mn>125</mn></mrow><annotation encoding="application/x-tex">5 \times 5 \times 5 = 125</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">125</span></span></span></span> tests — and with realistic functions (say, ten parameters with five values each), the full product is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>5</mn><mn>10</mn></msup><mo>≈</mo><mn>9.77</mn></mrow><annotation encoding="application/x-tex">5^{10} \approx 9.77</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">5</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">9.77</span></span></span></span> million.</p>
+<table>
+<thead>
+<tr>
+<th>Combination strategy</th>
+<th>What it covers</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Full Cartesian product</strong></td>
+<td>Every combination of every per-parameter value</td>
+<td>Exponential in the number of parameters — infeasible past a few</td>
+</tr>
+<tr>
+<td><strong>All-pairs (pairwise)</strong></td>
+<td>Every <em>pair</em> of (param-i value, param-j value) appears at least once</td>
+<td>Much smaller; empirically catches most multi-parameter bugs</td>
+</tr>
+<tr>
+<td><strong>Hand-picked combinations</strong></td>
+<td>Cases the tester thinks are interesting</td>
+<td>Cheap but unsystematic</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The empirical justification for <strong>all-pairs</strong> is striking: studies of real-world bug databases show most multi-parameter bugs are triggered by an interaction of <strong>just two</strong> parameters. So testing every pair (rather than every full tuple) captures most of the combinatorial value at a small fraction of the cost. INF 43 doesn&#39;t go deeper, but the term &quot;pairwise testing&quot; / &quot;all-pairs testing&quot; is worth knowing.</p>
+</blockquote>
+<hr>
+<h2 id="9-white-box--structural-testing">9. White-Box / Structural Testing</h2>
+<p>The pivot from black-box to white-box. The defining commitments:</p>
+<ul>
+<li><strong>Use source code to derive test cases</strong> (not the spec).</li>
+<li><strong>Build a graph model of the system</strong> (the <strong>control-flow graph</strong>, §10).</li>
+<li><strong>State test cases in terms of graph coverage</strong> — pick inputs so that the resulting executions visit chosen graph elements.</li>
+</ul>
+<p>The new ingredient that black-box did not need is the <strong>coverage criterion</strong> — a precise rule for <em>which</em> graph elements need to be visited before testing is &quot;done.&quot; The lecture lists six families, in roughly increasing strictness:</p>
+<table>
+<thead>
+<tr>
+<th>Coverage criterion</th>
+<th>What must be visited</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Statement (node) coverage</strong></td>
+<td>Every node</td>
+<td>§12</td>
+</tr>
+<tr>
+<td><strong>Branch (edge) coverage</strong></td>
+<td>Every edge</td>
+<td>§13</td>
+</tr>
+<tr>
+<td><strong>Condition coverage</strong></td>
+<td>Every sub-condition in each boolean expression, both <code>T</code> and <code>F</code></td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>Method coverage</strong></td>
+<td>Every method called at least once</td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>Method-call coverage</strong></td>
+<td>Every call site reaches every possible method (including all polymorphic targets)</td>
+<td>§15</td>
+</tr>
+<tr>
+<td><strong>Path coverage</strong></td>
+<td>Every distinct path from entry to exit</td>
+<td>§15</td>
+</tr>
+</tbody></table>
+<p>Stronger criteria <em>subsume</em> weaker ones: full branch coverage implies full statement coverage (visiting every edge forces visiting every node), and full path coverage implies full branch coverage. <strong>Path coverage is the strongest</strong> — and, as §15 makes clear, <strong>often infeasible</strong>.</p>
+<hr>
+<h2 id="10-control-flow-graphs-cfgs">10. Control-Flow Graphs (CFGs)</h2>
+<p>The graph model that white-box testing operates on. The rules from the slide:</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Entry node</strong></td>
+<td>Every CFG has one — represents all control flow coming <em>into</em> the function</td>
+</tr>
+<tr>
+<td><strong>Exit node</strong></td>
+<td>Every CFG has one — represents all control flow leaving the function</td>
+</tr>
+<tr>
+<td><strong>Nodes</strong></td>
+<td>Each node corresponds to an <strong>atomic instruction</strong>, generally one line of code</td>
+</tr>
+<tr>
+<td><strong>Edges</strong></td>
+<td>Each edge is <strong>directed</strong> (arrow from source to target) and represents possible control flow</td>
+</tr>
+<tr>
+<td><strong>Branches</strong></td>
+<td>Any node with <strong>2 or more outgoing edges</strong>. Those edges must be <strong>labeled</strong> with the condition that selects them (<code>T</code>/<code>F</code> for predicates, the case value for <code>switch</code> statements)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Two facts about CFGs that are worth absorbing now and will come back later: <strong>(1) Loops are cycles in the CFG</strong> — a <code>while</code> or <code>for</code> statement is a node with an outgoing edge that eventually loops back to the loop header. <strong>(2) Every CFG has a single entry and a single exit by construction</strong> — even functions with multiple <code>return</code> statements get a single virtual exit node that all returns flow into.</p>
+</blockquote>
+<hr>
+<h2 id="11-worked-example-1--getsecondelement">11. Worked Example 1 — <code>getSecondElement()</code></h2>
+<p>The lecture&#39;s running example is the Python function:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> getSecondElement</span><span style="color:#D4D4D4">():</span></span>
+<span class="line"><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">   head = getHead()</span></span>
+<span class="line"><span style="color:#B5CEA8">2</span><span style="color:#C586C0">   if</span><span style="color:#D4D4D4"> head == null:</span></span>
+<span class="line"><span style="color:#B5CEA8">3</span><span style="color:#C586C0">       return</span><span style="color:#D4D4D4"> null</span></span>
+<span class="line"><span style="color:#B5CEA8">4</span><span style="color:#C586C0">   if</span><span style="color:#D4D4D4"> head.next == null:</span></span>
+<span class="line"><span style="color:#B5CEA8">5</span><span style="color:#C586C0">       return</span><span style="color:#D4D4D4"> null</span></span>
+<span class="line"><span style="color:#B5CEA8">6</span><span style="color:#C586C0">   return</span><span style="color:#D4D4D4"> head.next.node</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="the-control-flow-graph">The control-flow graph</h3>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TD
+    entry((entry)) --&gt; n1[1: head = getHead]
+    n1 --&gt; n2{2: head == null?}
+    n2 -- T --&gt; n3[3: return null]
+    n2 -- F --&gt; n4{4: head.next == null?}
+    n4 -- T --&gt; n5[5: return null]
+    n4 -- F --&gt; n6[6: return head.next.node]
+    n3 --&gt; ex((exit))
+    n5 --&gt; ex
+    n6 --&gt; ex</code></pre><p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/getsecondelement-cfg.png" alt="Lecture slide "Example 1: Building the control-flow graph" showing the six-line `def getSecondElement()` source on the left and the corresponding CFG on the right as a vertical chain of purple-outlined ovals: entry → 1 → 2, with 2 branching T to 3 and F to 4, and 4 branching T to 5 and F to 6; nodes 3, 5, 6 all converge into a single exit oval at the bottom."></p>
+<p>The graph has three end-to-end paths through the body:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Conditions</th>
+<th>Returned value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 → 2 → 3 → exit</td>
+<td><code>head == null</code> (2T)</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>1 → 2 → 4 → 5 → exit</td>
+<td><code>head != null</code> (2F), <code>head.next == null</code> (4T)</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>1 → 2 → 4 → 6 → exit</td>
+<td><code>head != null</code> (2F), <code>head.next != null</code> (4F)</td>
+<td><code>head.next.node</code></td>
+</tr>
+</tbody></table>
+<p>These three paths are the canonical scenarios — each corresponds to a <em>kind</em> of input list (empty / single-element / multi-element). §12 and §13 design test inputs that hit them under different coverage rules.</p>
+<hr>
+<h2 id="12-statement-node-coverage">12. Statement (Node) Coverage</h2>
+<p>The first and weakest coverage criterion.</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Statement</mtext><mtext> </mtext><mtext mathvariant="bold">coverage:</mtext><mtext> </mtext><mtext mathvariant="bold">every</mtext><mtext> </mtext><mtext mathvariant="bold">node</mtext><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">CFG</mtext><mtext> </mtext><mtext mathvariant="bold">must</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">visited</mtext><mtext> </mtext><mtext mathvariant="bold">by</mtext><mtext> </mtext><mtext mathvariant="bold">at</mtext><mtext> </mtext><mtext mathvariant="bold">least</mtext><mtext> </mtext><mtext mathvariant="bold">one</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">case.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Statement coverage: every node in the CFG must be visited by at least one test case.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Statement coverage: every node in the CFG must be visited by at least one test case.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Also called <strong>node coverage</strong>. For the <code>getSecondElement</code> CFG, the nodes that must be visited are <code>{1, 2, 3, 4, 5, 6}</code>.</p>
+<h3 id="designing-test-cases-for-full-statement-coverage">Designing test cases for full statement coverage</h3>
+<p>We need linked-list inputs that, taken together, exercise nodes 1–6. The lecture&#39;s sample test inputs (notation: a list literal, with <code>null</code> for empty):</p>
+<table>
+<thead>
+<tr>
+<th>Test input</th>
+<th>Path taken</th>
+<th>Nodes hit</th>
+<th>New coverage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{null, 2, 4}</code> (head pointer = <code>null</code>)</td>
+<td>1 → 2 → 3</td>
+<td><code>1, 2, 3</code></td>
+<td>first time at 1, 2, 3</td>
+</tr>
+<tr>
+<td><code>{5, null, 8, 7}</code> (single-element list — <code>head.next == null</code>)</td>
+<td>1 → 2 → 4 → 5</td>
+<td><code>1, 2, 4, 5</code></td>
+<td>adds 4, 5</td>
+</tr>
+<tr>
+<td><code>{9, 2}</code> (two-element list)</td>
+<td>1 → 2 → 4 → 6</td>
+<td><code>1, 2, 4, 6</code></td>
+<td>adds 6</td>
+</tr>
+</tbody></table>
+<p>After all three tests: nodes hit = <code>{1, 2, 3, 4, 5, 6}</code> → <strong>full statement coverage</strong>.</p>
+<blockquote>
+<p>The {null, 2, 4} notation in the slide is shorthand for &quot;a list whose first element is <code>null</code>&quot; — i.e., an empty list, where <code>getHead()</code> returns <code>null</code>. The other elements are unused by the function. Similarly, the second test passes a list whose head&#39;s <code>.next</code> is <code>null</code>. The notation looks confusing because the function under test only inspects <code>head</code> and <code>head.next</code>.</p>
+</blockquote>
+<hr>
+<h2 id="13-branch-edge-coverage">13. Branch (Edge) Coverage</h2>
+<p>A stricter criterion.</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Branch</mtext><mtext> </mtext><mtext mathvariant="bold">coverage:</mtext><mtext> </mtext><mtext mathvariant="bold">every</mtext><mtext> </mtext></mrow><mtext mathvariant="italic">edge</mtext><mrow><mtext> </mtext><mtext mathvariant="bold">in</mtext><mtext> </mtext><mtext mathvariant="bold">the</mtext><mtext> </mtext><mtext mathvariant="bold">CFG</mtext><mtext> </mtext><mtext mathvariant="bold">must</mtext><mtext> </mtext><mtext mathvariant="bold">be</mtext><mtext> </mtext><mtext mathvariant="bold">visited</mtext><mtext> </mtext><mtext mathvariant="bold">by</mtext><mtext> </mtext><mtext mathvariant="bold">at</mtext><mtext> </mtext><mtext mathvariant="bold">least</mtext><mtext> </mtext><mtext mathvariant="bold">one</mtext><mtext> </mtext><mtext mathvariant="bold">test</mtext><mtext> </mtext><mtext mathvariant="bold">case.</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Branch coverage: every } \textit{edge} \textbf{ in the CFG must be visited by at least one test case.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Branch coverage: every </span></span><span class="mord text"><span class="mord textit">edge</span></span><span class="mord text"><span class="mord textbf"> in the CFG must be visited by at least one test case.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>Also called <strong>edge coverage</strong>. For <code>getSecondElement</code> the edges are:</p>
+<p><code>entry→1</code>, <code>1→2</code>, <code>2→3 (T)</code>, <code>2→4 (F)</code>, <code>4→5 (T)</code>, <code>4→6 (F)</code>, <code>3→exit</code>, <code>5→exit</code>, <code>6→exit</code>.</p>
+<p>The branch points are nodes 2 and 4. For full branch coverage we need to take both the <code>T</code> and <code>F</code> outgoing edges at <em>each</em> branch point — so we need a test that takes <code>2T</code>, one that takes <code>2F+4T</code>, and one that takes <code>2F+4F</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Test input</th>
+<th><code>2T/F</code></th>
+<th><code>4T/F</code></th>
+<th>Edges added</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{null, 2, 4}</code></td>
+<td>2T</td>
+<td>(not reached)</td>
+<td><code>2→3</code></td>
+</tr>
+<tr>
+<td><code>{5, null, 8, 7}</code></td>
+<td>2F</td>
+<td>4T</td>
+<td><code>2→4</code>, <code>4→5</code></td>
+</tr>
+<tr>
+<td><code>{9, 2}</code></td>
+<td>2F</td>
+<td>4F</td>
+<td><code>4→6</code></td>
+</tr>
+</tbody></table>
+<p>After all three: every edge hit → <strong>full branch coverage</strong>.</p>
+<blockquote>
+<p>For this example the same three test cases satisfy both statement coverage and branch coverage — they happen to be the <strong>three end-to-end paths</strong> through the function. That&#39;s a coincidence of the small example; in general, branch coverage requires <em>more</em> tests than statement coverage. <strong>Branch coverage is more thorough</strong> because it catches logical errors that statement coverage can miss — e.g., a branch where the <code>else</code> is never taken can still have all its statements covered through the <code>if</code> side, but branch coverage forces both directions.</p>
+</blockquote>
+<hr>
+<h2 id="14-worked-example-2--the-cfg-and-coverage-handout">14. Worked Example 2 — The CFG-and-Coverage Handout</h2>
+<p>The handout (<code>int m(int i)</code>) is a bigger CFG with nested <code>if</code>s on both sides of a top-level <code>if/else</code>. Working it out completely is the canonical exercise for this material.</p>
+<h3 id="141-the-code">14.1 The code</h3>
+<div class="code-wrap"><pre data-language="c" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> m</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 1</span><span style="color:#D4D4D4">    r = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 2</span><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 3</span><span style="color:#D4D4D4">        r = r * </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 4</span><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 5</span><span style="color:#D4D4D4">            r = r * </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">          }</span></span>
+<span class="line"><span style="color:#D4D4D4">      } </span><span style="color:#C586C0">else</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 6</span><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 7</span><span style="color:#D4D4D4">            r = r * </span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#B5CEA8"> 8</span><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> ( (i%</span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">) == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> ) {</span></span>
+<span class="line"><span style="color:#B5CEA8"> 9</span><span style="color:#D4D4D4">                r = r * </span><span style="color:#B5CEA8">11</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">              }</span></span>
+<span class="line"><span style="color:#D4D4D4">          }</span></span>
+<span class="line"><span style="color:#D4D4D4">      }</span></span>
+<span class="line"><span style="color:#B5CEA8">10</span><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> r;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/example2-int-m-source.png" alt="Lecture's "Example 2" slide: the `int m(int i)` source code rendered as a VS Code dark-theme screenshot with 10 numbered lines on the left margin; to the right of the code block is the note "See 'CFG and coverage handout' in Canvas" — the slide itself does not draw the CFG."></p>
+<h3 id="142-the-control-flow-graph">14.2 The control-flow graph</h3>
+<p>Branch points are at nodes 2, 4, 6, 8. The graph:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TD
+    entry((entry)) --&gt; n1[1: r = 1]
+    n1 --&gt; n2{2: i%2 == 0?}
+    n2 -- T --&gt; n3[3: r = r*3]
+    n3 --&gt; n4{4: i%4 == 0?}
+    n4 -- T --&gt; n5[5: r = r*5]
+    n4 -- F --&gt; n10[10: return r]
+    n5 --&gt; n10
+    n2 -- F --&gt; n6{6: i%3 == 0?}
+    n6 -- T --&gt; n7[7: r = r*7]
+    n7 --&gt; n8{8: i%9 == 0?}
+    n8 -- T --&gt; n9[9: r = r*11]
+    n8 -- F --&gt; n10
+    n9 --&gt; n10
+    n6 -- F --&gt; n10
+    n10 --&gt; ex((exit))</code></pre><h3 id="143-tracing-a-few-inputs">14.3 Tracing a few inputs</h3>
+<p>To design test cases we trace by hand what each input does. The function&#39;s logic in words: <em>start at <code>r=1</code>; if <code>i</code> is even, multiply by 3, and if also divisible by 4 multiply by 5; otherwise if <code>i</code> is divisible by 3, multiply by 7, and if also divisible by 9 multiply by 11; return <code>r</code>.</em></p>
+<table>
+<thead>
+<tr>
+<th><code>i</code></th>
+<th>Path through CFG</th>
+<th>Statements visited</th>
+<th>Branches taken</th>
+<th><code>r</code> returned</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>1→2→6→10</td>
+<td>1, 2, 6, 10</td>
+<td>2F, 6F</td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>1→2→3→4→10</td>
+<td>1, 2, 3, 4, 10</td>
+<td>2T, 4F</td>
+<td><code>3</code></td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>1→2→6→7→8→10</td>
+<td>1, 2, 6, 7, 8, 10</td>
+<td>2F, 6T, 8F</td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>4</code></td>
+<td>1→2→3→4→5→10</td>
+<td>1, 2, 3, 4, 5, 10</td>
+<td>2T, 4T</td>
+<td><code>15</code></td>
+</tr>
+<tr>
+<td><code>9</code></td>
+<td>1→2→6→7→8→9→10</td>
+<td>1, 2, 6, 7, 8, 9, 10</td>
+<td>2F, 6T, 8T</td>
+<td><code>77</code></td>
+</tr>
+</tbody></table>
+<h3 id="144-a-minimal-test-set-for-statement-coverage-s1s10">14.4 A minimal test set for <strong>statement coverage</strong> (S1–S10)</h3>
+<p>We need every one of <code>S1, S2, ..., S10</code> visited at least once. From the table:</p>
+<table>
+<thead>
+<tr>
+<th>Test input</th>
+<th>Statements newly covered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i = 4</code></td>
+<td><code>S1, S2, S3, S4, S5, S10</code></td>
+</tr>
+<tr>
+<td><code>i = 9</code></td>
+<td>adds <code>S6, S7, S8, S9</code></td>
+</tr>
+</tbody></table>
+<p>Two test cases — <code>i = 4</code> and <code>i = 9</code> — cover all 10 statements.</p>
+<table>
+<thead>
+<tr>
+<th>Test input →</th>
+<th><code>i=4</code></th>
+<th><code>i=9</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Expected output</td>
+<td><code>15</code></td>
+<td><code>77</code></td>
+</tr>
+<tr>
+<td>S1</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S4</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S5</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>S6</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S7</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S8</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S9</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<h3 id="145-a-minimal-test-set-for-branch-coverage-8-branches">14.5 A minimal test set for <strong>branch coverage</strong> (8 branches)</h3>
+<p>The eight branches to cover are <code>2T, 2F, 4T, 4F, 6T, 6F, 8T, 8F</code>. Two test cases are no longer enough — each input takes exactly one direction at each branch point it reaches, and we need both directions at all four branch points.</p>
+<table>
+<thead>
+<tr>
+<th>Test input</th>
+<th>Branches covered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i = 4</code></td>
+<td><code>2T, 4T</code></td>
+</tr>
+<tr>
+<td><code>i = 2</code></td>
+<td><code>2T, 4F</code></td>
+</tr>
+<tr>
+<td><code>i = 9</code></td>
+<td><code>2F, 6T, 8T</code></td>
+</tr>
+<tr>
+<td><code>i = 3</code></td>
+<td><code>2F, 6T, 8F</code></td>
+</tr>
+<tr>
+<td><code>i = 1</code></td>
+<td><code>2F, 6F</code></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Test input →</th>
+<th><code>i=4</code></th>
+<th><code>i=2</code></th>
+<th><code>i=9</code></th>
+<th><code>i=3</code></th>
+<th><code>i=1</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Expected output</td>
+<td><code>15</code></td>
+<td><code>3</code></td>
+<td><code>77</code></td>
+<td><code>7</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td>2T</td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2F</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>4T</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4F</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6T</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>6F</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>8T</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>8F</td>
+<td></td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Five test cases give <strong>full branch coverage</strong>. Notice they also automatically give full statement coverage (every statement on every branch is visited along the way) — illustrating that <strong>branch coverage subsumes statement coverage</strong>.</p>
+<blockquote>
+<p>A small subtlety from the table: there is no test in this set that covers <code>8T</code> together with <code>4T</code>, because they&#39;re on opposite sides of the top-level <code>if/else</code>. That&#39;s not a flaw — they&#39;re mutually exclusive in this program, so no input can hit both. <strong>Some coverage targets are unreachable in combination; full branch coverage demands hitting each branch at least once, not in every combination with every other.</strong> §16 returns to this idea under the heading <strong>infeasibility</strong>.</p>
+</blockquote>
+<hr>
+<h2 id="15-other-coverage-criteria">15. Other Coverage Criteria</h2>
+<p>Beyond statement and branch coverage, the lecture names four more — included so the vocabulary is complete, but not drilled into.</p>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>What it requires</th>
+<th>What it adds beyond branch coverage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Condition coverage</strong></td>
+<td>In a compound boolean expression like <code>if (a &gt; b || c &gt; d)</code>, <em>each sub-condition</em> (<code>a &gt; b</code>, <code>c &gt; d</code>) must be evaluated to both <code>T</code> and <code>F</code></td>
+<td>Catches bugs where a compound condition is wrong but the top-level branch direction is the same</td>
+</tr>
+<tr>
+<td><strong>Method coverage</strong></td>
+<td>Every method in the system has been called by some test</td>
+<td>Cheap sanity check — finds methods nobody is testing</td>
+</tr>
+<tr>
+<td><strong>Method-call coverage</strong></td>
+<td>Every method-call site has been exercised against every possible target method (considering polymorphism — virtual / overridden methods)</td>
+<td>Critical for OO code: a call <code>shape.draw()</code> could dispatch to <code>Circle.draw</code>, <code>Square.draw</code>, <code>Triangle.draw</code>; method-call coverage requires reaching all of them from that site</td>
+</tr>
+<tr>
+<td><strong>Data-flow coverage</strong></td>
+<td>Every variable assignment reaches all of its reachable uses (def-use pairs)</td>
+<td>Finds bugs where a value is set but never used, or used without being set</td>
+</tr>
+<tr>
+<td><strong>Path coverage</strong></td>
+<td><strong>Every distinct path from entry to exit</strong> is exercised</td>
+<td>The strictest — but generally infeasible (see below)</td>
+</tr>
+</tbody></table>
+<h3 id="why-path-coverage-is-rarely-achievable">Why path coverage is rarely achievable</h3>
+<p>The number of paths grows <strong>multiplicatively</strong> with the number of branches, and <strong>exponentially with loops</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Construct</th>
+<th>Paths added</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>One <code>if/else</code></td>
+<td>× 2</td>
+</tr>
+<tr>
+<td>Two nested <code>if/else</code></td>
+<td>× 4</td>
+</tr>
+<tr>
+<td>A loop iterated 0..N times</td>
+<td>× (N+1)</td>
+</tr>
+<tr>
+<td>A loop iterated 0..∞ times</td>
+<td>infinite paths</td>
+</tr>
+</tbody></table>
+<p>For loops the lecture&#39;s pragmatic compromise is: test <strong>0 iterations</strong>, <strong>1 iteration</strong>, <strong>an average number of iterations</strong>, and the <strong>maximum number of iterations</strong>. That captures the most common loop bugs (off-by-one at the entry, off-by-one at the exit, accumulator overflow) without claiming to enumerate every path.</p>
+<blockquote>
+<p>The trade-off is universal: stronger criteria find more bugs but cost more tests, and at some point the cost goes infinite. The practical recommendation is <strong>branch coverage</strong> as the working standard for most code, with <strong>condition coverage</strong> added for safety-critical compound expressions and <strong>path coverage</strong> reserved for small, critical fragments where the path count is tractable.</p>
+</blockquote>
+<hr>
+<h2 id="16-challenges-with-white-box-testing">16. Challenges with White-Box Testing</h2>
+<p>White-box testing is powerful but has three named limits, all worth memorizing:</p>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>What it means</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Useful for identifying under-tested parts of a program</strong></td>
+<td>Coverage tools tell you <em>what was never run</em></td>
+<td>A clear actionable signal — go write tests for the uncovered lines</td>
+</tr>
+<tr>
+<td><strong>Can cover all nodes or edges without revealing obvious faults</strong></td>
+<td>100% branch coverage does <strong>not</strong> mean bug-free</td>
+<td>Coverage is necessary but not sufficient — you can run every line without exercising the buggy <em>combination</em> of inputs</td>
+</tr>
+<tr>
+<td><strong>Some nodes, edges, or loop combinations may be infeasible</strong></td>
+<td>Logically unreachable code (defensive <code>else</code> branches, &quot;this should never happen&quot; assertions) cannot be covered no matter what input you supply</td>
+<td>Don&#39;t chase 100% coverage at any cost — sometimes &lt;100% is the correct stopping point</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>The deepest of the three is the second. Coverage is a property of the <em>test executions</em>, not of <em>the bugs found</em>. A test suite that runs every line but never <em>checks</em> the output is a useless test suite with 100% coverage. The right slogan: <strong>coverage is necessary but not sufficient — pair it with strong oracles</strong>.</p>
+</blockquote>
+<h3 id="further-reading-from-the-slide">Further reading (from the slide)</h3>
+<p>Two tutorial-style posts the lecturer recommends:</p>
+<ul>
+<li><em>Path Testing: The Theory</em> — <a href="http://testerstories.com/2014/06/path-testing-the-theory/">http://testerstories.com/2014/06/path-testing-the-theory/</a></li>
+<li><em>Path Testing: The Coverage</em> — <a href="http://testerstories.com/2014/06/path-testing-the-coverage/">http://testerstories.com/2014/06/path-testing-the-coverage/</a></li>
+</ul>
+<hr>
+<h2 id="17-inspections-and-reviews">17. Inspections and Reviews</h2>
+<p>After two lectures of executable testing, Lecture 16 returns to the <strong>other three QA technique families</strong> named in Lecture 13 — starting with reviews. The slogan is short and surprising:</p>
+<blockquote>
+<p><strong>Humans read documents and look for defects. Surprisingly effective.</strong></p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/inspections-hands-magnifier.png" alt="Lecture slide illustration for Inspections and Reviews: a flat-design vector graphic of several hands pointing at a laptop screen showing code, with a giant magnifying glass hovering over the screen and zooming in on the source — symbolizing multiple reviewers collectively scrutinizing code."></p>
+<p>Why surprising? Because intuitively, an expensive specialist <em>reading the code</em> sounds slower and weaker than running thousands of automated tests. The empirical finding is that reviews catch a <em>different</em> class of bug — bugs that no test would think to write a case for.</p>
+<h3 id="benefits-from-bacchelli--bird-code-reviewing-in-the-trenches-ieee-software-2018">Benefits (from Bacchelli &amp; Bird, <em>&quot;Code Reviewing in the Trenches,&quot;</em> IEEE Software 2018)</h3>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>One-line description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Improve code quality</strong></td>
+<td>Reviewers push back on shortcuts and ugly patterns</td>
+</tr>
+<tr>
+<td><strong>Improve code understandability</strong></td>
+<td>Forcing yourself to explain code to a reviewer surfaces unclear parts</td>
+</tr>
+<tr>
+<td><strong>Find defects</strong></td>
+<td>The original purpose; still works</td>
+</tr>
+<tr>
+<td><strong>Transfer knowledge</strong></td>
+<td>Reviewers learn the part of the codebase they review</td>
+</tr>
+<tr>
+<td><strong>Explore alternative solutions</strong></td>
+<td>&quot;Have you considered doing this with X instead?&quot;</td>
+</tr>
+<tr>
+<td><strong>Improve the development process</strong></td>
+<td>Patterns of review comments highlight process gaps</td>
+</tr>
+<tr>
+<td><strong>Avoid breaking builds</strong></td>
+<td>Catches obvious mistakes before they hit CI</td>
+</tr>
+<tr>
+<td><strong>Increase team awareness</strong></td>
+<td>Everyone sees what everyone else is working on</td>
+</tr>
+<tr>
+<td><strong>Share code ownership</strong></td>
+<td>Multiple people know each part of the code</td>
+</tr>
+<tr>
+<td><strong>Team assessment</strong></td>
+<td>Managers can see who is reviewing, who is being reviewed</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Modern open-source workflows make this concrete: a <strong>pull request</strong> on GitHub <em>is</em> a code review. Reviewers leave inline comments, the author responds with revisions, and the PR doesn&#39;t merge until the reviewer approves. The PR-review pattern is the industrial form of inspections and is now nearly universal in software development.</p>
+</blockquote>
+<hr>
+<h2 id="18-formal-methods">18. Formal Methods</h2>
+<p>The third QA family — and the one with the highest assurance and the highest cost.</p>
+<p>The lecture&#39;s three-line summary:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Proofs of correctness</strong></td>
+<td>A mathematical proof that the program meets its formal specification</td>
+</tr>
+<tr>
+<td><strong>Verification only</strong></td>
+<td>Formal methods answer &quot;does the system match the spec?&quot; They cannot answer &quot;is the spec right?&quot; — that&#39;s still validation</td>
+</tr>
+<tr>
+<td><strong>Usually done with formal specifications</strong></td>
+<td>The spec itself must be written in a formal language (e.g., <strong>Z</strong>, <strong>TLA+</strong>, <strong>Coq</strong>, <strong>Alloy</strong>) before it can be proved against</td>
+</tr>
+</tbody></table>
+<p>The slide shows a snippet of a <strong>Z specification</strong> (the example uses set-builder notation, universal quantifiers, and predicate logic over an <code>OZSpec → UMLDiagram</code> mapping) — a hint at how dense formal specifications can be. Most students will never write Z, but they should recognize the shape.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/formal-methods-z-spec.png" alt="Lecture slide snippet of a Z-notation formal specification declaring `project : OZSpec → UMLDiagram` and several lines of universally and existentially quantified predicates over `oz`, `uml`, `Classdef`, `Opdef`, `inh`, and class/attribute/operation names — a typical look of dense set-builder Z notation that students may not be able to parse line-by-line but should recognize as "formal spec"."></p>
+<blockquote>
+<p>The trade-off is brutal: formal methods give the strongest possible correctness guarantee, but at a cost that is only justified for very small, very critical components — the math behind a flight-control law, the encryption code in a TLS library, a real-time operating system kernel. They are not used for everyday application code.</p>
+</blockquote>
+<hr>
+<h2 id="19-static-analysis">19. Static Analysis</h2>
+<p>The fourth QA family, and the one most students will actually use.</p>
+<blockquote>
+<p><strong>A computer program analyzes source code and finds possible defects (without running the code).</strong><br><strong>Results are reviewed by a person because many warnings are not actually problems.</strong></p>
+</blockquote>
+<p>Two ideas pack into those two lines:</p>
+<ul>
+<li><strong>Without running the code.</strong> Static analyzers parse the source and reason about it symbolically — types, dataflow, control flow, possible aliasing. They never execute the program. That&#39;s why they&#39;re cheap and fast and can be run on every commit.</li>
+<li><strong>Many warnings are not actually problems.</strong> Static analyzers necessarily approximate. They flag any <em>possible</em> defect — including ones that are unreachable at runtime. The output is a <strong>list of candidate defects</strong>, not a list of bugs. A human triages the list.</li>
+</ul>
+<h3 id="example-tool-findbugs">Example tool: FindBugs</h3>
+<p>The slide screenshots <strong>FindBugs</strong>, a Java static analyzer that flags bug <em>patterns</em> — &quot;Suspicious calls to generic container methods&quot;, &quot;Call to equals() with null argument&quot;, &quot;Call to equals() comparing unrelated class and interface&quot;. The screenshot shows it flagging a specific line <code>if (!enum_.equals(&quot;&quot;))</code> and explaining: <em>&quot;We don&#39;t call nextElement() on <code>enum_</code>, so this will be an infinite loop if it is ever called. Should be <code>if (!enum_.nextElement().equals(&quot;&quot;))</code>.&quot;</em> — a real bug pattern caught without running the code.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-8/findbugs-screenshot.png" alt="Screenshot of the FindBugs static analyzer Eclipse plugin. Left pane lists bug patterns grouped by category and priority — "Suspicious calls to generic container methods (1)", "Call to equals() comparison (20)", with "Call to equals() comparing unrelated class and interface" highlighted. Right pane shows the offending Java source `PartialCompositeContext.java` with the flagged line highlighted in yellow. Bottom pane displays the bug description "Call to equals() comparing unrelated class and interface" and the explanatory text that the comparison will always be false at runtime."></p>
+<p>Other widely-used static analyzers worth knowing the names of:</p>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Tool</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java</td>
+<td>FindBugs / SpotBugs, Checkstyle, PMD</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>mypy (types), pylint, flake8, ruff</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript</td>
+<td>ESLint, TypeScript compiler</td>
+</tr>
+<tr>
+<td>C / C++</td>
+<td>Clang Static Analyzer, Coverity, PVS-Studio</td>
+</tr>
+<tr>
+<td>Multi-language</td>
+<td>SonarQube</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Static analysis is the QA technique with the best <strong>cost / benefit ratio for routine use</strong>. It&#39;s nearly free (run it in CI), it catches whole categories of bugs that no test could reliably find (null derefs, resource leaks, dead code, simple races), and it gets out of the way once you&#39;ve configured it. Every serious project should turn it on. The Power-of-Ten Rule #10 from Week 7 — <em>compile with all warnings enabled, and use one or more source code analyzers</em> — is the safety-critical version of this same recommendation.</p>
+</blockquote>
+<hr>
+<h2 id="20-testing-topics-not-covered">20. Testing Topics Not Covered</h2>
+<p>The lecture closes the testing unit by naming the topics it <em>didn&#39;t</em> cover — so students know what they&#39;re missing and can pursue them independently.</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>One-line summary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Regression testing</strong></td>
+<td>Re-run the existing test suite on every new version to ensure old features still work (Week 7 named it; this week didn&#39;t drill deeper)</td>
+</tr>
+<tr>
+<td><strong>Integration testing</strong></td>
+<td>The &quot;middle level&quot; of the test pyramid — testing interfaces among modules</td>
+</tr>
+<tr>
+<td><strong>Interaction testing (Mocking)</strong></td>
+<td>Replacing real collaborators with <strong>mock objects</strong> that record calls and return fixed values — lets a unit be tested in isolation from its dependencies</td>
+</tr>
+<tr>
+<td><strong>Debugging</strong></td>
+<td>Once a test fails, the process of finding and fixing the underlying fault</td>
+</tr>
+<tr>
+<td><strong>Mutation testing</strong></td>
+<td>The automated form of fault seeding (§19.3 in Week 7) — tools like <strong>PIT</strong>, <strong>Stryker</strong>, <strong>mutmut</strong> systematically inject mutations and measure what fraction the test suite catches</td>
+</tr>
+<tr>
+<td><strong>Fuzz testing</strong></td>
+<td>Feed the program <em>random or malformed</em> inputs and watch for crashes or hangs — extremely effective at finding security vulnerabilities</td>
+</tr>
+<tr>
+<td><strong>Exploratory testing</strong></td>
+<td>Skilled human tester interacts with the system without a predefined script, guided by hypotheses and curiosity</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>All of these are <strong>standard topics in a graduate-level testing course or in industry</strong>. INF 43 is an introduction; you have the vocabulary and core practices now, but real-world testing involves several more techniques on top of this base.</p>
+</blockquote>
+<hr>
+<h2 id="21-quiz-7-study-guide">21. Quiz 7 Study Guide</h2>
+<p>Lecture 16 publishes the study guide explicitly. Quiz 7 covers everything from Lecture 13 (Week 7) through Lecture 16 (Week 8) — Weeks 7 and 8 together.</p>
+<h3 id="211-testing-fundamentals-lectures-1314">21.1 Testing Fundamentals (Lectures 13–14)</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>What you need to be able to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Validation vs. verification</strong></td>
+<td>Define both; explain the diff (&quot;building the right system&quot; vs. &quot;building the system right&quot;)</td>
+</tr>
+<tr>
+<td><strong>Mistake / fault / error / failure (IEEE)</strong></td>
+<td>Define all four; give the causal chain (Mistake → Fault → Error → Failure)</td>
+</tr>
+<tr>
+<td><strong>Testing goals</strong></td>
+<td>Find faults; improve confidence (V+V); accurate / thorough / repeatable / systematic</td>
+</tr>
+<tr>
+<td><strong>Dijkstra quote</strong></td>
+<td>Memorize the wording: <em>&quot;Program testing can be used to show the presence of bugs, but never to show their absence.&quot;</em> Explain <em>why</em></td>
+</tr>
+<tr>
+<td><strong>Levels of testing</strong></td>
+<td>Unit / integration (functional) / system (acceptance) — definition + example for each</td>
+</tr>
+<tr>
+<td><strong>Test oracles</strong></td>
+<td>What is an oracle? Why is automating it hard? (cosine example)</td>
+</tr>
+<tr>
+<td><strong>Different ways to know when we&#39;re done</strong></td>
+<td>Time/budget; find-rate stabilizes; fault seeding; &quot;each requirement tested at least once&quot; (the most common in industry)</td>
+</tr>
+</tbody></table>
+<h3 id="212-black-box-testing-lecture-15">21.2 Black-Box Testing (Lecture 15)</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>What you need to be able to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Equivalence class partitioning</strong></td>
+<td>Define; identify classes from a spec; pick representatives</td>
+</tr>
+<tr>
+<td><strong>Boundary value analysis</strong></td>
+<td>Define; pick boundary values inside each class; explain <em>why</em> boundaries (off-by-one, <code>&lt;</code> vs <code>&lt;=</code>)</td>
+</tr>
+<tr>
+<td><strong>Combinatorial testing</strong></td>
+<td>Explain how to combine partitions across multiple parameters; know the Cartesian-product blow-up</td>
+</tr>
+</tbody></table>
+<h3 id="213-white-box-testing-lectures-1516">21.3 White-Box Testing (Lectures 15–16)</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>What you need to be able to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Statement / node coverage</strong></td>
+<td>Define; given a CFG, design a minimal test set that achieves it</td>
+</tr>
+<tr>
+<td><strong>Branch / edge coverage</strong></td>
+<td>Define; given a CFG, design a minimal test set that achieves it; explain why it&#39;s stronger than statement coverage</td>
+</tr>
+<tr>
+<td><strong>Control-flow graphs</strong></td>
+<td>Build one from source code; label branches correctly (T/F or case values); identify entry and exit</td>
+</tr>
+</tbody></table>
+<h3 id="214-other-qa-topics-lecture-16">21.4 Other QA Topics (Lecture 16)</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>What you need to be able to do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Code inspections</strong></td>
+<td>What they are; <em>why</em> they are &quot;surprisingly effective&quot;; name 2–3 benefits</td>
+</tr>
+<tr>
+<td><strong>Static analyzers</strong></td>
+<td>What they are; that they run <em>without</em> executing the code; that warnings need human triage</td>
+</tr>
+</tbody></table>
+<h3 id="215-worked-example-fluency">21.5 Worked-example fluency</h3>
+<p>The CFG-and-coverage handout (§14) is exactly the kind of mechanical exercise the quiz can repeat: <em>here is a small function, draw the CFG, give a minimal test set for statement coverage, give a minimal test set for branch coverage.</em> Be able to do all three smoothly without drawing the graph twice.</p>
+<hr>
+<h2 id="22-wrap-up-and-memory-framework">22. Wrap-Up and Memory Framework</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 8 knowledge structure
+|
++-- The question this week
+|   +-- Given that we can&#39;t test exhaustively / prove correctness,
+|       which test cases do we actually run?
+|
++-- Two overall testing approaches (Lecture 15)
+|   +-- Black-box / specification-based / functional
+|   |     +-- look only at the SPEC
+|   |     +-- stops via the test oracle (pass/fail)
+|   +-- White-box / structural / code-based
+|         +-- look at the SOURCE CODE
+|         +-- stops via a coverage criterion (statement, branch, ...)
+|
++-- Black-box techniques (Lecture 15)
+|   +-- Equivalence Class Partitioning:
+|   |     +-- group inputs the program treats the same
+|   |     +-- classes must COVER the domain and NOT OVERLAP
+|   |     +-- one representative per class
+|   +-- Boundary Value Analysis:
+|   |     +-- bugs cluster at edges (&lt; vs &lt;=)
+|   |     +-- pick values on the boundaries of each class
+|   +-- Systematic 5-step procedure:
+|   |     1. Identify the domain
+|   |     2. Pick a basis for partitioning
+|   |        (size, structure, correctness, intuition)
+|   |     3. Divide into subdomains
+|   |     4. Pick representative(s) per subdomain
+|   |     5. Test reps + boundaries
+|   +-- Grading example: 0..100 -&gt; A/B/C/D/F + invalid
+|   |     12 tests = boundaries of 5 classes + 2 invalid edges
+|   +-- Combinatorial Testing:
+|         +-- partition each parameter independently
+|         +-- devise combinations (full Cartesian, all-pairs, ...)
+|
++-- White-box techniques (Lectures 15-16)
+|   +-- Control-Flow Graphs:
+|   |     +-- entry + exit nodes
+|   |     +-- node = atomic instruction
+|   |     +-- edge = directed control flow
+|   |     +-- branches = 2+ outgoing edges, labeled T/F
+|   +-- Coverage criteria (increasing strictness):
+|   |     +-- Statement / node:  every node visited
+|   |     +-- Branch / edge:     every edge visited
+|   |     +-- Condition:         every sub-condition T and F
+|   |     +-- Method:            every method called
+|   |     +-- Method-call:       every call site x every target
+|   |     +-- Path:              every path (often infeasible)
+|   +-- Branch SUBSUMES statement (every edge -&gt; every node)
+|   +-- Worked example: int m(int i) with i%2, i%4, i%3, i%9
+|   |     +-- statement coverage minimal: { i=4, i=9 }     (2 tests)
+|   |     +-- branch coverage minimal:    { 4, 2, 9, 3, 1} (5 tests)
+|   +-- Challenges:
+|         +-- great for finding under-tested parts
+|         +-- 100% coverage != bug-free (need strong oracles)
+|         +-- some elements are INFEASIBLE (unreachable code)
+|
++-- The other 3 QA families (Lecture 16)
+|   +-- Inspections &amp; Reviews:
+|   |     +-- humans read code/docs for defects
+|   |     +-- &quot;surprisingly effective&quot;
+|   |     +-- modern form: GitHub Pull Requests
+|   +-- Formal Methods:
+|   |     +-- mathematical proofs of correctness
+|   |     +-- VERIFICATION ONLY (not validation)
+|   |     +-- needs formal specifications (Z, TLA+, Coq, ...)
+|   +-- Static Analysis:
+|         +-- analyze source WITHOUT running it
+|         +-- e.g. FindBugs / SpotBugs / mypy / ESLint / Coverity
+|         +-- humans triage warnings (not all are real bugs)
+|
++-- Topics named but not covered
+|   +-- regression, integration, mocking, debugging,
+|       mutation testing, fuzz testing, exploratory testing
+|
++-- Quiz 7 = Weeks 7 + 8
+    +-- V&amp;V, M/F/E/F, Dijkstra, levels, oracles, when-done
+    +-- Black-box: eq partitioning + boundary + combinatorial
+    +-- White-box: statement + branch + CFG
+    +-- Inspections + static analyzers
+    +-- Be able to: draw a CFG, design min statement-coverage
+        test set, design min branch-coverage test set</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="82"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 82 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="one-sentence-summary">One-sentence summary</h3>
+<blockquote>
+<p>Test-case selection is the engineering art of compressing an effectively infinite input space into a finite test suite: <strong>black-box testing</strong> uses the specification to partition inputs into equivalence classes and pick representatives plus boundary values (and combines partitions across parameters via combinatorial testing), <strong>white-box testing</strong> uses a control-flow graph derived from the source code and demands that test inputs achieve a coverage criterion — most often <strong>statement</strong> or the strictly stronger <strong>branch</strong> coverage — and the broader QA toolbox surrounding testing also includes <strong>inspections and code reviews</strong> (humans reading code), <strong>formal methods</strong> (mathematical proofs of correctness, for the most critical components), and <strong>static analysis</strong> (tools like FindBugs that flag candidate defects without executing the code), with the recurring lesson that no single technique catches every bug and serious projects use a <strong>mixture</strong>.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-07/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 7</span><span class="pager-title" data-astro-cid-gxyjxt6l>Quality Assurance and Software Testing</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-09/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 9 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Software Process and Life Cycle Models</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-07/en-US/" title="Previous: Quality Assurance and Software Testing ([)" aria-label="Previous: Week 7" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 7</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 8</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-09/en-US/" title="Next: Software Process and Life Cycle Models (])" aria-label="Next: Week 9" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 9</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

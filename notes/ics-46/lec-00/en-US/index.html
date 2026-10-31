@@ -1,0 +1,1019 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Course Intro, Unit Tests &amp; Templates | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="What ICS 46 is about, C++ unit testing with Google Test, why templates exist, function templates and compile-time instantiation, .hpp/.tpp layout, implicit type constraints, and class templates (the Box example)."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413974" data-source-url="/~kazuhak/notes/ics-46/lec-00/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-00/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-01/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 0</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-00/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 0 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 0 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 16, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-0-course-introduction-unit-tests-templates">Information and Computer Science 46 — Lecture 0: Course Introduction, Unit Tests, Templates</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-what-ics-46-is-about">1. What ICS 46 Is About</a></li>
+<li><a href="#2-c-unit-tests-with-google-test">2. C++ Unit Tests with Google Test</a></li>
+<li><a href="#3-why-templates-exist">3. Why Templates Exist</a></li>
+<li><a href="#4-writing-a-function-template">4. Writing a Function Template</a></li>
+<li><a href="#5-function-template-instantiation-at-compile-time">5. Function Template Instantiation (at Compile Time)</a></li>
+<li><a href="#6-where-template-code-lives-hpp-and-tpp">6. Where Template Code Lives (.hpp and .tpp)</a></li>
+<li><a href="#7-implicit-constraints-on-type-parameters">7. Implicit Constraints on Type Parameters</a></li>
+<li><a href="#8-class-templates">8. Class Templates</a></li>
+<li><a href="#9-a-class-template-example-box">9. A Class Template Example: Box</a></li>
+<li><a href="#10-complete-implementation">10. Complete Implementation</a></li>
+<li><a href="#11-in-class-activities-with-solutions">11. In-class Activities (with Solutions)</a></li>
+<li><a href="#12-quick-reference--top-5-things-to-remember">12. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 09/24/26 (Week 0, Thursday)<br>Built from the Week 0 slides (title slide reads &quot;Lecture 1: Templates, Randomness&quot;; the randomness part is in the next deck), with Thornton&#39;s ICS 46 notes (Templates, Course Introduction, Contracts and Exceptions), Thornton&#39;s ICS 45C Unit Testing notes, and the Google Test 1.10.0 Primer as supplements. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: No office hours or discussion in Week 0. Lab 0 (environment setup) and Lab 1 (small program to test compilation) released this week.<br>ICS 46 Gen AI Pre-survey: <strong>0.5% extra credit</strong>, closes Sunday.<br>Weekly rhythm: lectures Tue/Thu; in-lecture activities (group) due 1 day after lecture (Tue&#39;s on Wed, Thu&#39;s on Fri); HW due Fri; labs due Mon; quizzes on Fri in discussion (moved there to give more time than in lecture).<br>Prof. Yeh&#39;s OH: right after class, 5–6 pm, ICS1 195 (from Week 1). TA/LA OH TBD — see the OH calendar.<br>Grading: Exams 50% (Midterm 20% + Final 30%), Quizzes 15% (5, drop lowest), Labs 15% (drop lowest), Homeworks 10% (drop lowest), In-class Activities 10% (drop lowest); extra credit = surveys, more TBA.<br>Key dates (schedule, subject to change): Midterm 11/12, no class 11/26 (Thanksgiving), Final 12/8 4:00–6:00 pm.<br>Where things are: Canvas (class webpage); Google Drive class folder (syllabus, schedule, slides, labs, OH schedule — needs your UCI account); Ed Discussion for all course questions (private post if it contains code/solutions); email only for special circumstances; ICS tutors (Zotpass app); iGP AI Assistant (built by Prof. Yeh&#39;s research group, funded by the ICS tutors program).<br>Resources: Sedgewick &amp; Wayne, <em>Algorithms</em> 4th ed. (optional, highly recommended); zyBooks <em>Data Structures in C++</em> (Yeh can provide code); Thornton&#39;s 2022 ICS 45C and ICS 46 notes; VisuAlgo.<br>Programming environment (VS Code, OpenLab JupyterHub) is covered in the <a href="/~kazuhak/notes/ics-46/lec-01/en-US/">Lecture 1 notes</a>.</p>
+</blockquote>
+<hr>
+<h2 id="1-what-ics-46-is-about">1. What ICS 46 Is About</h2>
+<h3 id="11-from-ics-45c-to-ics-46">1.1 From ICS 45C to ICS 46</h3>
+<p>Slide 8 puts the two courses side by side: ICS 45C was about <strong>the C++ language</strong>; ICS 46 uses C++ as the tool and is about <strong>data structures</strong> — arrays, trees, graphs. You&#39;re expected to already know C++ (slide 22 calls the C++ part of today a &quot;review&quot;), and the only &quot;new&quot; C++ this lecture is templates, because every data structure you&#39;ll write this quarter is a template.</p>
+<p>The course has three pillars (slide 9):</p>
+<table>
+<thead>
+<tr>
+<th>Pillar</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Data structures</strong></td>
+<td>How to <strong>organize data</strong> in a computer based on <strong>problem needs</strong>; explore <strong>common abstractions</strong> (list, stack, queue, tree, map, graph)</td>
+</tr>
+<tr>
+<td><strong>Analysis</strong></td>
+<td>Algorithmic analysis for efficiency; choose the data structure that fits the application&#39;s <strong>time and memory</strong> requirements</td>
+</tr>
+<tr>
+<td><strong>Implementation</strong></td>
+<td>Write efficient data structures and algorithms in C++; harness recursion</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: &quot;Which data structure?&quot; is never answered by taste. It&#39;s answered by measuring the operations the problem needs (time) and what you can afford to store (memory). That&#39;s what the Analysis pillar trains.</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Thornton&#39;s course introduction makes the same point more sharply — you trade off speed, memory, power use, or how well something parallelizes, and you should be able to <em>quantify</em> the trade-off, not decide by feel. He also lists what a 45C graduate is assumed to know: built-in types, control flow, header/source files and separate compilation, pointers/references, stack vs heap, <code>const</code>, arrays and <code>std::vector</code>, iterators, standard algorithms, classes/inheritance/virtual functions, and making classes well-behaved (constructors, destructor, copy constructor). Templates, contracts/invariants, and exceptions/RAII are assumed to be <em>lightly</em> covered — which is why templates get re-taught here.</p>
+</blockquote>
+<h3 id="12-a-brief-and-incomplete-history-of-data-structures">1.2 A brief (and incomplete) history of data structures</h3>
+<p>Slide 10 is a timeline. Its point: most of the structures and algorithms in this course are old (post-WW2, peaking in the 1960s–70s), and we&#39;re learning the classics.</p>
+<table>
+<thead>
+<tr>
+<th>Year (approx.)</th>
+<th>Event</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1945</td>
+<td>Arrays implemented by computers; mergesort invented (John von Neumann)</td>
+</tr>
+<tr>
+<td>1946</td>
+<td>Stack operations (Alan M. Turing)</td>
+</tr>
+<tr>
+<td>~1950–54</td>
+<td>More array sorting research</td>
+</tr>
+<tr>
+<td>~1953–55</td>
+<td>Hash table (IBM); linked list (Rand Corporation)</td>
+</tr>
+<tr>
+<td>~1957</td>
+<td>Array sorting algorithms published</td>
+</tr>
+<tr>
+<td>1960</td>
+<td>Binary search trees</td>
+</tr>
+<tr>
+<td>~1962</td>
+<td>&quot;Bubble sort&quot; becomes mainstream</td>
+</tr>
+<tr>
+<td>1964</td>
+<td>Heapsort</td>
+</tr>
+<tr>
+<td>1976</td>
+<td>Computer-aided proof of a graph problem (the four-colour theorem)</td>
+</tr>
+</tbody></table>
+<p>(The slide only labels 1946, 1955, 1960, 1964 and 1976 on the axis; the other positions are read from where the tick marks sit.)</p>
+<h3 id="13-why-data-structures-still-matter-in-the-age-of-ai">1.3 Why data structures still matter in the age of AI</h3>
+<p>Slide 11: math makes AI models possible, but <strong>data structures determine what&#39;s possible, how fast it runs, and how much it costs</strong>. The slide shows five structures and where each appears in an ML workflow:</p>
+<table>
+<thead>
+<tr>
+<th>Data structure</th>
+<th>ML workflow stage (slide 11)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Arrays</td>
+<td>Data storage</td>
+</tr>
+<tr>
+<td>Heaps</td>
+<td>Feature extraction</td>
+</tr>
+<tr>
+<td>Hash tables</td>
+<td>Training</td>
+</tr>
+<tr>
+<td>Binary search trees</td>
+<td>Training</td>
+</tr>
+<tr>
+<td>Graphs</td>
+<td>Network-based modeling</td>
+</tr>
+</tbody></table>
+<p>Slide 11&#39;s picture shows a small example of each: an array <code>3 1 4 1 4 5</code> (indices under the cells) above a partly filled array <code>11 10 21 12 _ _</code>; a min-heap with 1 at the root, 3 and 4 as children, 7 under 3; a hash table mapping key1→10, key2→21, key3→12, key4→33; a BST with root 5, children 3 and 7, leaves 1, 4 and 8; and a small undirected graph. Redrawn:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TB
+  subgraph H[&quot;Heap&quot;]
+    h1((1)) --&gt; h3((3)) &amp; h4((4))
+    h3 --&gt; h7((7))
+  end
+  subgraph B[&quot;Binary search tree&quot;]
+    b5((5)) --&gt; b3((3)) &amp; b7((7))
+    b3 --&gt; b1((1)) &amp; b4((4))
+    b7 --&gt; b8((8))
+  end
+  subgraph T[&quot;Hash table&quot;]
+    k1[&quot;key1&quot;] --&gt; v1[&quot;10&quot;]
+    k2[&quot;key2&quot;] --&gt; v2[&quot;21&quot;]
+    k3[&quot;key3&quot;] --&gt; v3[&quot;12&quot;]
+    k4[&quot;key4&quot;] --&gt; v4[&quot;33&quot;]
+  end</code></pre><p>You&#39;ll build every one of these this quarter.</p>
+<h3 id="14-what-industry-values-critical-thinking">1.4 What industry values: critical thinking</h3>
+<p>Slide 12 lists the skills industry wants, which are exactly the things you can&#39;t hand off to an AI tool:</p>
+<ul>
+<li><strong>Problem articulation</strong> — define the problem from an open-ended description.</li>
+<li><strong>Decomposition</strong> — break a complex problem into logical pieces.</li>
+<li><strong>Testing, verification</strong> — know the edge cases (this is where <a href="#2-c-unit-tests-with-google-test">unit tests</a> come in).</li>
+</ul>
+<p>The common theme is <strong>critical thinking</strong>: move beyond passive execution — avoid the &quot;meat proxy&quot; trap (being a human relay that pastes a prompt in and pastes the answer out) — and engage cognitively with articulation, decomposition, and verification.</p>
+<h3 id="15-topic-overview">1.5 Topic overview</h3>
+<p>Slide 14 (the course schedule on slide 15 gives the week-by-week order):</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Data structures / algorithms</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fundamentals</td>
+<td>C++, OOP, algorithm analysis</td>
+</tr>
+<tr>
+<td>Basic data structures</td>
+<td>Arrays, ArrayLists, linked lists, stacks, queues</td>
+</tr>
+<tr>
+<td>Sorting</td>
+<td>Selection sort, insertion sort, quicksort, mergesort, heapsort, heaps, priority queues</td>
+</tr>
+<tr>
+<td>Searching</td>
+<td>BSTs, balanced trees, hash tables</td>
+</tr>
+<tr>
+<td>Graphs</td>
+<td>BFS, DFS, Prim, Kruskal, Dijkstra</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-c-unit-tests-with-google-test">2. C++ Unit Tests with Google Test</h2>
+<p>Slide 23 is short: the course uses <strong>Google Test</strong>, and it points you at the <strong>Google Test 1.10.0 Primer</strong> and Thornton&#39;s <strong>Unit Testing</strong> notes from ICS 45C. Labs in this course are tested this way, and the &quot;Testing, verification&quot; skill from slide 12 is the reason to learn it. Here&#39;s what those two readings say, compressed.</p>
+<h3 id="21-what-a-unit-test-is">2.1 What a unit test is</h3>
+<p>A <strong>unit test</strong> checks one small piece of a program — one class, one function — <strong>in isolation</strong> from the rest. A data structure is the textbook case: an <code>ArrayList</code> has behaviours (insert at the front, resize when full, remove the last element) that your app might never exercise in an obvious, repeatable way, but you still need to know they work.</p>
+<p>Every test you write has the same shape: <strong>set up a scenario → run it → compare the result to what you expected → report</strong>. A <strong>unit testing framework</strong> does the boring parts: it finds all your tests automatically (no adding calls to <code>main</code>), runs each one independently, and reports which failed, with expected vs. actual values and the line number. C++&#39;s standard library doesn&#39;t have one (Python has <code>unittest</code>; C++ doesn&#39;t), so we use Google&#39;s open-source <strong>Google Test</strong> (a.k.a. googletest/gtest).</p>
+<h3 id="22-writing-a-test">2.2 Writing a test</h3>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">TestSuiteName</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">testName</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // set up, run, check</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>TEST</code> is a macro (it expands to a function plus registration code). It has no return type; the two names in parentheses are the <strong>test suite</strong> (a group of related tests) and the <strong>test&#39;s own name</strong>. Google Test registers every <code>TEST</code> automatically and runs them all from <code>RUN_ALL_TESTS()</code>; linking with <code>gtest_main</code> gives you a ready-made <code>main</code> that does this.</p>
+<p>Inside a test you check results with assertions. They come in pairs:</p>
+<table>
+<thead>
+<tr>
+<th>Fatal (<code>ASSERT_*</code>)</th>
+<th>Non-fatal (<code>EXPECT_*</code>)</th>
+<th>Passes if</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ASSERT_TRUE(c)</code></td>
+<td><code>EXPECT_TRUE(c)</code></td>
+<td><code>c</code> is true</td>
+</tr>
+<tr>
+<td><code>ASSERT_FALSE(c)</code></td>
+<td><code>EXPECT_FALSE(c)</code></td>
+<td><code>c</code> is false</td>
+</tr>
+<tr>
+<td><code>ASSERT_EQ(a, b)</code></td>
+<td><code>EXPECT_EQ(a, b)</code></td>
+<td><code>a == b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_NE(a, b)</code></td>
+<td><code>EXPECT_NE(a, b)</code></td>
+<td><code>a != b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_LT/LE/GT/GE(a, b)</code></td>
+<td><code>EXPECT_LT/LE/GT/GE(a, b)</code></td>
+<td><code>a &lt; b</code>, <code>a &lt;= b</code>, <code>a &gt; b</code>, <code>a &gt;= b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_STREQ(s1, s2)</code></td>
+<td><code>EXPECT_STREQ(s1, s2)</code></td>
+<td>two <strong>C strings</strong> have the same contents</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>ASSERT_*</code></strong> fails the test <strong>and stops it</strong> right there. Use it when continuing makes no sense (e.g. the next line dereferences a pointer you just asserted is non-null).</li>
+<li><strong><code>EXPECT_*</code></strong> fails the test but <strong>keeps going</strong>, so one run can report several broken expectations. The primer prefers <code>EXPECT_*</code> by default.</li>
+<li>You can attach a message: <code>EXPECT_EQ(x[i], y[i]) &lt;&lt; &quot;differ at index &quot; &lt;&lt; i;</code></li>
+</ul>
+<p>Here is a small suite for this lecture&#39;s own templates (<code>myMin</code> from <a href="#111-activity-1-function-template-slides-31-32">Activity 1</a> and <code>Pair</code> from <a href="#112-activity-2-class-template-slides-38-39">Activity 2</a>; code in <a href="#10-complete-implementation">§10</a>):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;gtest/gtest.h></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "templates.hpp"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">MyMinTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">returnsSmallerInt</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(-</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">, -</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">MyMinTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">comparesStringsAlphabetically</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)));</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">PairTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">containTheValuesGivenWhenConstructed</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">PairTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">setSecondReplacesOnlyTheSecondValue</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Built with <code>g++ -std=c++17 -Wall pair_tests.cpp -lgtest -lgtest_main -pthread</code> and run:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from MyMinTests
+[ RUN      ] MyMinTests.returnsSmallerInt
+[       OK ] MyMinTests.returnsSmallerInt (0 ms)
+[ RUN      ] MyMinTests.comparesStringsAlphabetically
+[       OK ] MyMinTests.comparesStringsAlphabetically (0 ms)
+[----------] 2 tests from MyMinTests (0 ms total)
+
+[----------] 2 tests from PairTests
+[ RUN      ] PairTests.containTheValuesGivenWhenConstructed
+[       OK ] PairTests.containTheValuesGivenWhenConstructed (0 ms)
+[ RUN      ] PairTests.setSecondReplacesOnlyTheSecondValue
+[       OK ] PairTests.setSecondReplacesOnlyTheSecondValue (0 ms)
+[----------] 2 tests from PairTests (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 4 tests.</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="23-what-makes-a-good-test">2.3 What makes a good test</h3>
+<ul>
+<li><strong>One behaviour per test, not one function per test.</strong> You can&#39;t test <code>first()</code> on its own — you test &quot;after constructing with (4, 6), <code>first()</code> returns 4&quot;. A behaviour is a <em>sequence of calls with a known result</em>. If you want to check three behaviours, write three tests, so a failure tells you exactly which scenario broke.</li>
+<li><strong>Name the test after the behaviour</strong> (<code>setSecondReplacesOnlyTheSecondValue</code>). The report prints the names of failing tests, so a good name often tells you the bug before you open the code.</li>
+<li><strong>Tests are independent.</strong> There&#39;s no guaranteed order; never rely on another test having run first.</li>
+<li><strong>Vary your test data.</strong> Thornton deliberately uses different constants in each test, so a test can&#39;t pass by accident because of a value that happens to work.</li>
+<li><strong>Edge cases</strong> (empty structure, one element, full array, front vs back) are where data-structure bugs live.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>EXPECT_EQ</code> on two <code>const char*</code> compares <strong>pointers</strong>, not text. Use <code>EXPECT_STREQ</code> for C strings, or compare <code>std::string</code>s with <code>EXPECT_EQ</code> (as above, where <code>&quot;apple&quot;</code> is compared to a <code>std::string</code>, so <code>std::string</code>&#39;s <code>==</code> is used). For floating point, use the floating-point variants (e.g. <code>EXPECT_DOUBLE_EQ</code>) to avoid rounding failures.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Thornton&#39;s 45C notes say <code>ASSERT_EQ(expected, actual)</code>, expected first, so the failure report reads correctly. The 1.10 primer notes that since 2016 <code>*_EQ</code> treats both arguments the same way; either order works, but stay consistent. (The examples here use expected-first.)</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Terminology — what Google Test calls a <strong>test suite</strong> (first argument of <code>TEST</code>) was called a &quot;test case&quot; in older versions; Thornton&#39;s 45C notes use the old name. Test names shouldn&#39;t contain underscores. When many tests need the same setup, a <strong>test fixture</strong> (a class derived from <code>::testing::Test</code>, used with <code>TEST_F</code> instead of <code>TEST</code>) builds fresh objects for each test via <code>SetUp()</code>/<code>TearDown()</code>. If you write your own <code>main</code>, call <code>::testing::InitGoogleTest(&amp;argc, argv)</code> and <code>return RUN_ALL_TESTS();</code>.</p>
+</blockquote>
+<hr>
+<h2 id="3-why-templates-exist">3. Why Templates Exist</h2>
+<p>C++ has a <strong>static type system</strong>: every variable&#39;s type is fixed at compile time. So a function that swaps two <code>int</code>s can&#39;t swap two <code>double</code>s, and to work with different parameter types you end up writing near-identical versions (slide 25):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">noexcept</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">double&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">double&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">noexcept</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    double</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Because C++ allows <strong>overloading</strong> (same name, different parameter types), both can coexist, and you could have a hundred more for every type. But the bodies are identical except for the type name. Copy-paste like this means every bug fix has to be made N times.</p>
+<p>A <strong>template</strong> solves this. It&#39;s a <strong>blueprint for an infinite set of possibilities</strong>: you write the code once and specify <em>how the different instances differ from each other</em> (here: only the type). The compiler stamps out each concrete version when it&#39;s needed. Slide 25&#39;s picture is a blueprint with arrows to <code>myswap1</code>, <code>myswap2</code>, <code>myswap3</code>:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  BP[&quot;template blueprint&lt;br/&gt;myswap(T&amp;, T&amp;)&quot;] --&gt; S1[&quot;myswap1 (T = int)&quot;]
+  BP --&gt; S2[&quot;myswap2 (T = double)&quot;]
+  BP --&gt; S3[&quot;myswap3 (T = std::string)&quot;]</code></pre><p>There are two main kinds:</p>
+<ol>
+<li><strong>Function templates</strong> — a blueprint for functions (§4–§7).</li>
+<li><strong>Class templates</strong> — a blueprint for classes (§8–§9). Data structures are their main use.</li>
+</ol>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: A template is not a function or a class. It&#39;s a recipe the compiler uses to <em>generate</em> functions/classes, one per set of template arguments.</p>
+</blockquote>
+<hr>
+<h2 id="4-writing-a-function-template">4. Writing a Function Template</h2>
+<h3 id="41-syntax">4.1 Syntax</h3>
+<p>Slide 27 gives four steps:</p>
+<ol>
+<li>Start with the <strong><code>template</code></strong> keyword.</li>
+<li>Enclose the template parameters in <strong><code>&lt; &gt;</code></strong>.</li>
+<li>Write <strong><code>typename</code></strong> followed by the type parameter&#39;s name (<code>T</code> by convention).</li>
+<li>Write the function definition as usual, using <code>T</code> wherever the type varies.</li>
+</ol>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li>This is a <strong>blueprint</strong> for any number of <code>myswap</code> functions.</li>
+<li>The keyword <strong><code>typename</code></strong> says this parameter is a <strong>type placeholder</strong> (not, say, an <code>int</code> constant).</li>
+<li><strong><code>T</code></strong> names that type; during instantiation, every <code>T</code> is replaced by the <strong>actual type</strong>.</li>
+</ul>
+<h3 id="42-kinds-of-template-parameters">4.2 Kinds of template parameters</h3>
+<p>Slide 27&#39;s &quot;Parameter Types&quot; box:</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Examples</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Type parameters</strong></td>
+<td><code>typename T</code>, <code>class T</code></td>
+<td>stand for a type; the argument is a type like <code>int</code> or <code>std::string</code></td>
+</tr>
+<tr>
+<td><strong>Non-type parameters</strong></td>
+<td>constants, pointers, references</td>
+<td>stand for a compile-time <em>value</em>, e.g. <code>template &lt;typename T, int N&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Template template parameters</strong></td>
+<td>—</td>
+<td>a parameter that is itself a template (e.g. &quot;some container template&quot;)</td>
+</tr>
+</tbody></table>
+<p><code>typename T</code> and <code>class T</code> mean exactly the same thing inside <code>&lt; &gt;</code> (<code>class</code> here doesn&#39;t require T to be a class; <code>int</code> works). The slide also lists <code>std::string</code> under type parameters — read that as an example of a type you&#39;d <em>pass as the argument</em> (<code>T = std::string</code>), not as something you write in the parameter list.</p>
+<p>A non-type parameter example (mine, compiled):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#4EC9B0"> N</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> sumFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> total</span><span style="color:#D4D4D4">{};</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">N</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#569CD6">static_cast</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">()); ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> total</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// sumFirst&#x3C;int, 3>(std::vector&#x3C;int>{1, 2, 3, 4, 5}) == 6</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>N</code> must be known at compile time; <code>sumFirst&lt;int, 3&gt;</code> and <code>sumFirst&lt;int, 4&gt;</code> are two different generated functions.</p>
+<h3 id="43-why-the-template-dropped-noexcept">4.3 Why the template dropped <code>noexcept</code></h3>
+<p>Notice slide 25&#39;s <code>int</code> and <code>double</code> versions are <code>noexcept</code>, but the template isn&#39;t. That&#39;s deliberate (Thornton): swapping <code>int</code>s can never throw, but swapping <code>std::string</code>s copies strings, and copying a string can allocate memory, which can throw. A single template can&#39;t promise &quot;never throws&quot; for every <code>T</code>.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: <code>noexcept</code> is a promise, not a check — if a <code>noexcept</code> function does throw, the program calls <code>std::terminate()</code>. A template can make the promise <strong>conditional</strong> on <code>T</code>: <code>noexcept(expr)</code> where <code>expr</code> is a compile-time <code>bool</code>. The inner <code>noexcept(...)</code> <em>operator</em> asks &quot;is this expression declared not to throw?&quot; without running it:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#569CD6">    noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">}) &#x26;&#x26; </span><span style="color:#569CD6">noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">))</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>or, more readably, with <code>#include &lt;type_traits&gt;</code>:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#569CD6">    noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">is_nothrow_copy_constructible_v</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">> &#x26;&#x26;</span></span>
+<span class="line"><span style="color:#4EC9B0">             std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">is_nothrow_copy_assignable_v</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">>)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Compiled check: <code>noexcept(myswap(i, j))</code> is <code>true</code> for <code>int</code> and <code>false</code> for <code>std::string</code>. (Thornton&#39;s page writes <code>std::is_nothrow_assignable_v&lt;T&gt;</code> with one argument; that trait actually takes two types, so use <code>is_nothrow_copy_assignable_v&lt;T&gt;</code>.) Library code like the standard containers cares about this because some operations get faster when the compiler knows moves/copies can&#39;t throw.</p>
+</blockquote>
+<hr>
+<h2 id="5-function-template-instantiation-at-compile-time">5. Function Template Instantiation (at Compile Time)</h2>
+<p>A function template generates nothing until it&#39;s <strong>used</strong>. Slide 28 walks through what the compiler does when it hits a call, in three steps:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Name</th>
+<th>What the compiler does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Call encountered</strong></td>
+<td>At a template call, checks whether it recognizes the function template.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Type deduction</strong></td>
+<td>Tries to automatically deduce the template parameter types from the argument types.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Instantiation</strong></td>
+<td>Generates an actual concrete function definition for the deduced types.</td>
+</tr>
+</tbody></table>
+<p>Slide 28&#39;s three panels, as code:</p>
+<p><strong>1. Call location (<code>foo</code>)</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>2. Template (<code>myswap</code>)</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>3. Instantiated (<code>int</code>)</strong> — what the compiler generates for T = <code>int</code>:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Both arguments are <code>int</code>, so <code>T&amp;</code> must be <code>int&amp;</code>, so T = <code>int</code>. The generated function is a real function in your program, called <code>myswap&lt;int&gt;</code>. Calling <code>myswap</code> with two <code>double</code>s later generates a second function <code>myswap&lt;double&gt;</code>; calling it with <code>int</code>s again reuses <code>myswap&lt;int&gt;</code>.</p>
+<p>Here&#39;s what that call does in memory (Python Tutor style). <code>t1</code> and <code>t2</code> are references — dotted arrows — so writes through them land in <code>foo</code>&#39;s variables:</p>
+<p><strong>Memory trace: <code>myswap&lt;int&gt;(i, j)</code></strong> (4 steps)</p>
+<p><strong>Step 1/4:</strong> <code>myswap(i, j);  // enter myswap&lt;int&gt;</code> — t1 and t2 are references: aliases of foo&#39;s i and j, not copies</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 3&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>Step 2/4:</strong> <code>T temp = t1;</code> — copy constructor: temp is a new int initialised from i</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 3&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>Step 3/4:</strong> <code>t1 = t2;</code> — copy assignment through the alias writes foo&#39;s i</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = &lt;s&gt;3&lt;/s&gt; 4&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>Step 4/4:</strong> <code>t2 = temp;</code> — copy assignment writes foo&#39;s j; temp is destroyed when myswap returns</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 4&quot;]
+      F1_j[&quot;j = &lt;s&gt;4&lt;/s&gt; 3&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p>The three operations the trace performs on <code>T</code> — copy-construct <code>temp</code>, copy-assign twice, destroy <code>temp</code> — are exactly the requirements in <a href="#7-implicit-constraints-on-type-parameters">§7</a>.</p>
+<h3 id="51-when-deduction-fails">5.1 When deduction fails</h3>
+<p>Step 2 <strong>fails if the compiler can&#39;t confidently determine the exact type</strong> — e.g. a <strong>conflict</strong> between arguments, or <strong>no hint</strong> at all. Mixing types (compiled with g++ 13):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">; </span><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> d</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">error: no matching function for call to &#39;myswap(int&amp;, double&amp;)&#39;
+note:   deduced conflicting types for parameter &#39;T&#39; (&#39;int&#39; and &#39;double&#39;)</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>From the first argument T would be <code>int</code>, from the second <code>double</code>; the compiler won&#39;t pick one. (For <code>myswap</code> there&#39;s no fix — you can&#39;t bind an <code>int&amp;</code> to a <code>double</code>. For a by-value or <code>const T&amp;</code> function like <code>myMin</code>, you can supply the type yourself, see below.)</p>
+<p>You can always give the template argument <strong>explicitly</strong>:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">   // legal, but unnecessary here — deduction already gets int</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Explicit arguments are required when there&#39;s nothing to deduce from (e.g. T only appears in the return type) and they settle conflicts where conversions are possible: <code>myMin&lt;double&gt;(3, 4.5)</code> compiles and returns 3 (the <code>int</code> 3 is converted to <code>double</code>).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Deduction does <strong>not</strong> do the usual conversions. <code>myMin(3, 4.5)</code> is a compile error even though <code>int</code> → <code>double</code> is a normal conversion; <code>myMin&lt;double&gt;(3, 4.5)</code> is fine.</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: If two <code>.cpp</code> files both call <code>myswap&lt;int&gt;</code>, each one generates its own copy of <code>myswap&lt;int&gt;</code>. Normally two definitions of the same function would be a link error, but the linker is required to accept duplicate template instantiations and keep one. That&#39;s what makes the &quot;put it in the header&quot; rule in §6 work.</p>
+</blockquote>
+<hr>
+<h2 id="6-where-template-code-lives-hpp-and-tpp">6. Where Template Code Lives (.hpp and .tpp)</h2>
+<p>Slide 29&#39;s <strong>instantiation requirement</strong>: the <strong>full template definition</strong> (body included, not just the declaration) must be <strong>visible wherever it&#39;s used</strong>, so the compiler can generate the specialized function at that point. So template code goes in headers. Two options:</p>
+<h3 id="61-option-1--single-header-file-hpp">6.1 Option 1 — single header file (.hpp)</h3>
+<p>Declaration and definition together in the <code>.hpp</code>. Best for smaller utilities and straightforward templates.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.hpp</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 1. Declaration &#x26; definition combined</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">  T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  a</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  b</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="62-option-2--split-header-and-implementation-hpp--tpp">6.2 Option 2 — split header and implementation (.hpp + .tpp)</h3>
+<ul>
+<li><strong>Clean separation</strong>: interface in <code>.hpp</code>, implementation in <code>.tpp</code>.</li>
+<li><strong>&quot;Secret include&quot;</strong>: the <code>.hpp</code> <code>#include</code>s the <code>.tpp</code> <strong>at the bottom</strong>, so anyone who includes the header still gets the full definition.</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.hpp (Header &#x26; Interface)</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#6A9955">// 1. Only declaration is visible first</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">// 2. Include implementation at bottom</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "myswap.tpp"</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.tpp (Template Implementation)</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">  T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  a</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  b</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The <code>.tpp</code> is <strong>not</strong> compiled on its own and must not be listed as a source file; it&#39;s a header in disguise. (<code>.tpp</code> is a naming convention; the compiler doesn&#39;t care about the extension.) Tested: <code>#include &quot;myswap.hpp&quot;</code> then <code>myswap(i, j)</code> with <code>int</code>s, <code>myswap&lt;double&gt;</code> and <code>std::string</code>s gives <code>4 3</code>, <code>2.5 1.5</code>, <code>banana apple</code>.</p>
+<p>This version uses <strong><code>std::move</code></strong> (from <code>&lt;utility&gt;</code>) instead of copying: it lets <code>T</code> <em>move</em> its contents (e.g. steal a string&#39;s buffer) rather than copy them, which is cheaper for big objects. For <code>int</code> it makes no difference. Move semantics come up again with smart pointers in <a href="/~kazuhak/notes/ics-46/lec-02/en-US/">Lecture 2</a>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The 45C habit of &quot;declaration in <code>.hpp</code>, definition in <code>.cpp</code>&quot; <strong>breaks for templates</strong>. A <code>.cpp</code> that only sees the declaration compiles fine, assumes <code>myswap&lt;int&gt;</code> is defined somewhere else, and you get an <em>undefined reference</em> <strong>link error</strong>, because the <code>.cpp</code> with the body never saw a call with <code>int</code> and so never generated it.</p>
+</blockquote>
+<hr>
+<h2 id="7-implicit-constraints-on-type-parameters">7. Implicit Constraints on Type Parameters</h2>
+<p>Can <code>T</code> be anything? Slide 30&#39;s answer:</p>
+<ul>
+<li><strong>T must be a concrete type</strong> — a basic type (<code>int</code>) or a <strong>fully filled-in template type</strong> like <code>std::vector&lt;int&gt;</code> (not bare <code>std::vector</code>; that&#39;s a template, not a type).</li>
+<li><strong>T is subject to implicit restrictions</strong> based on the <strong>operations performed inside the template</strong>. Nothing in <code>template &lt;typename T&gt;</code> says &quot;T must be copyable&quot;; the body says it.</li>
+</ul>
+<p><strong>Required operations for <code>myswap</code></strong> (slide 30):</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Operation</th>
+<th>Where in <code>myswap</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Copy constructor</strong></td>
+<td><code>T temp = t1;</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Copy assignment operator</strong></td>
+<td><code>t1 = t2;</code> and <code>t2 = temp;</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Destructor</strong></td>
+<td><code>temp</code> is a local (stack, &quot;statically allocated&quot;) variable, so its destructor runs automatically when the function ends</td>
+</tr>
+</tbody></table>
+<p><strong>Constraint failure</strong>: a type missing any of these three can&#39;t be used with <code>myswap</code>. Thornton&#39;s example: a class whose copy constructor and assignment are deleted.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> X</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    X</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#DCDCAA">    X</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> X</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    X</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> X</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">X</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">   // compile error</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>g++ 13 (with the <code>.tpp</code> version of <code>myswap</code>):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">myswap.tpp:5:5: error: use of deleted function &#39;X::X(const X&amp;)&#39;
+myswap.tpp:6:5: error: use of deleted function &#39;X&amp; X::operator=(const X&amp;)&#39;</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Note <em>where</em> the error is reported: inside the template&#39;s body, at the line that needs the missing operation, not at your call. That&#39;s typical — template errors point into the template, and you work backwards to the type you passed.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: &quot;Statically allocated&quot; on slide 30 (and in Thornton) means <strong>automatic storage — a local variable on the stack</strong>, not a <code>static</code> variable. It&#39;s the opposite of heap allocation with <code>new</code>.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: To find a template&#39;s requirements on <code>T</code>, read its body and list every operation it does to a <code>T</code>: construct (how?), copy, assign, compare (<code>&lt;</code>, <code>==</code>), call a member, destroy. Each one is a requirement. That&#39;s how both in-class activities are answered.</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: These requirements are part of the template&#39;s <strong>contract</strong> — like a function&#39;s preconditions, but checked by the compiler at instantiation. Thornton&#39;s Contracts notes cover preconditions, postconditions, side effects, and class invariants more generally. (C++20 added <em>concepts</em> to write such requirements explicitly; this course uses C++17-style implicit constraints.)</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#111-activity-1-function-template-slides-31-32">Activity 1</a> — write <code>myMin</code> and work out its constraints.</p>
+</blockquote>
+<hr>
+<h2 id="8-class-templates">8. Class Templates</h2>
+<p><strong>Data structure implementations are the primary use case for class templates</strong> (slide 34). A list works the same way whether it holds <code>int</code>s or <code>std::string</code>s; only the element type changes. Same syntax rules:</p>
+<ul>
+<li>Start with the <strong><code>template</code></strong> keyword.</li>
+<li>Template parameters go in <strong>angle brackets <code>&lt; &gt;</code>, separated by commas</strong>.</li>
+<li><strong><code>ElementType</code></strong> below is a placeholder describing the type of element stored in a particular <code>Vector</code>.</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> ElementType</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Vector</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#D4D4D4">    ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Inside the class, you write <code>ElementType</code> everywhere you mean &quot;the type of element in this Vector&quot;. Slide 34&#39;s picture: one blueprint → <code>Vector1</code>, <code>Vector2</code>, <code>Vector3</code>.</p>
+<h3 id="81-instantiating-a-class-template">8.1 Instantiating a class template</h3>
+<p>Slide 35&#39;s standard-library example is <code>std::vector</code> itself:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::vector&lt;T&gt;</code></td>
+<td>the template class (blueprint)</td>
+</tr>
+<tr>
+<td><code>std::vector&lt;std::string&gt;</code></td>
+<td>creates a vector of strings</td>
+</tr>
+<tr>
+<td><code>std::vector&lt;int&gt;</code></td>
+<td>creates a vector of integers</td>
+</tr>
+</tbody></table>
+<p>The instantiation process is similar to function templates:</p>
+<ol>
+<li><strong>Compiler verification</strong> — at creation or use, the compiler checks that it recognizes the template.</li>
+<li><strong>Type deduction</strong> — typically requires <strong>explicit</strong> type parameters (e.g. <code>&lt;int&gt;</code>). Unlike <code>myswap(i, j)</code>, <code>std::vector v;</code> gives the compiler nothing to deduce from.</li>
+<li><strong>Template instantiation &amp; definition</strong> — the full template definition must be available to generate the code.</li>
+<li><strong>Header implementation</strong> — so class templates go in <code>.hpp</code> or <code>.hpp</code> + <code>.tpp</code> files, exactly as in <a href="#6-where-template-code-lives-hpp-and-tpp">§6</a>.</li>
+</ol>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Since C++17, the compiler <em>can</em> deduce class template arguments from a constructor call: <code>Box b{42};</code> makes a <code>Box&lt;int&gt;</code> (class template argument deduction, &quot;CTAD&quot; — compiled and checked). Yeh&#39;s &quot;typically requires explicit type parameters&quot; is still the safe habit; with no constructor arguments, or for clarity, write the type.</p>
+</blockquote>
+<h3 id="82-each-instantiation-is-a-separate-unrelated-type">8.2 Each instantiation is a separate, unrelated type</h3>
+<p><code>std::vector&lt;int&gt;</code> and <code>std::vector&lt;std::string&gt;</code> contain the same code with different types plugged in, but to the compiler they&#39;re <strong>completely different classes</strong>: not related by inheritance, not convertible, not assignable to each other. You can&#39;t pass a <code>vector&lt;std::string&gt;</code> to a function expecting a <code>vector&lt;int&gt;</code>. Compiled check with <code>Box</code> from §9:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">2.5</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // error: no match for 'operator=' (operand types are 'Box&#x3C;double>' and 'Box&#x3C;int>')</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>…even though <code>int</code> converts to <code>double</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Inside the class template you can write just <code>Vector</code> (it means &quot;this instantiation&quot;), but outside you must always write the arguments: <code>Vector&lt;int&gt;</code>, never bare <code>Vector</code> as a type.</p>
+</blockquote>
+<hr>
+<h2 id="9-a-class-template-example-box">9. A Class Template Example: Box</h2>
+<p>Slides 36 and 37 (the same content, re-laid-out) use a one-item container:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Box</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#6A9955">    // Constructor</span></span>
+<span class="line"><span style="color:#DCDCAA">    Box</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">} {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Getter</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> getValue</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Setter</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setValue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>What can T be?</strong> (slide 36/37, &quot;typename parameter types&quot;)</p>
+<ul>
+<li><strong>Primitive types</strong>: integer types, floating types — <code>Box&lt;int&gt;</code>, <code>Box&lt;double&gt;</code>.</li>
+<li><strong>Non-primitive types</strong>:<ul>
+<li>user-defined: classes or structs — <code>Box&lt;Person&gt;</code>;</li>
+<li>library-defined: e.g. <code>std::vector</code> — <code>Box&lt;std::vector&lt;int&gt;&gt;</code> (a filled-in vector type, per §7).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Compiler type requirements on T</strong>: T must be a type the compiler can properly <strong>copy, store, and destroy</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Where Box needs it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Copy-constructible</strong></td>
+<td><code>Box(const T&amp; value)</code> initializing <code>item{value}</code> (also <code>getValue()</code> returning <code>T</code> by value)</td>
+</tr>
+<tr>
+<td><strong>Copy-assignable</strong></td>
+<td><code>item = value;</code> in <code>setValue</code></td>
+</tr>
+<tr>
+<td><strong>Destructible</strong></td>
+<td><code>item</code> is a member; it&#39;s destroyed when the <code>Box</code> is</td>
+</tr>
+</tbody></table>
+<p><strong>Note</strong> (slide 37): <code>T</code> is used to build other types — <code>const T&amp;</code> is &quot;reference to const T&quot;. Passing <code>const T&amp;</code> instead of <code>T</code> avoids an extra copy of a possibly large object, while still promising not to modify it.</p>
+<p>Tested usage:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 7 ICS 46</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>> </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">{{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                    // 3</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="91-only-the-member-functions-you-use-get-generated">9.1 Only the member functions you use get generated</h3>
+<p>A class template&#39;s member functions are themselves instantiated only <strong>if they&#39;re called</strong> (Thornton). So a requirement attached to one member function only matters if you call that function. Checked: a type <code>NoAssign</code> with a deleted assignment operator:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> NoAssign</span><span style="color:#D4D4D4"> { </span><span style="color:#DCDCAA">NoAssign</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">) {} </span><span style="color:#4EC9B0">NoAssign</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> NoAssign</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">; };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">NoAssign</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">NoAssign</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">            // compiles: constructor and getValue only need copy construction</span></span>
+<span class="line"><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">NoAssign</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">});</span><span style="color:#6A9955"> // adding this line → error: use of deleted function</span></span>
+<span class="line"><span style="color:#6A9955">                         // 'NoAssign&#x26; NoAssign::operator=(const NoAssign&#x26;)'</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>So &quot;copy-assignable&quot; is really &quot;copy-assignable <strong>if you call <code>setValue</code></strong>&quot;. The slides&#39; list is the full set of requirements for using the whole class.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Thornton&#39;s version of the same reasoning: if a member function of <code>Vector</code> contains<br><code>ElementType e; e.foo();</code><br>then <code>ElementType</code> must (1) be default-constructible (<code>e</code> is made with no arguments), (2) have a destructor (<code>e</code> is a local that gets destroyed), and (3) have a member function <code>foo</code> taking no arguments (any return type, since the result is ignored).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#112-activity-2-class-template-slides-38-39">Activity 2</a> — write a <code>Pair</code> class template and list its restrictions on <code>T</code>.</p>
+</blockquote>
+<hr>
+<h2 id="10-complete-implementation">10. Complete Implementation</h2>
+<p>Everything from today in one header (the slides&#39; <code>myMin</code>, <code>Box</code>, and <code>Pair</code>; <code>myswap</code> is in <a href="#6-where-template-code-lives-hpp-and-tpp">§6</a>), plus a test driver. Compiled with <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code>, no warnings.</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// templates.hpp</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> myMin</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) ? </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Box</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#6A9955">    // Constructor</span></span>
+<span class="line"><span style="color:#DCDCAA">    Box</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">} {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Getter</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> getValue</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Setter</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setValue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Pair</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> first</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> second</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">        : </span><span style="color:#DCDCAA">first_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">second_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">second</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">first_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">second_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="47"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 47 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// main.cpp</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;vector></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "templates.hpp"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">>(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4.5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // explicit T fixes the int/double conflict</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>> </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">{{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Zot!"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">() += </span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // non-const overload returns T&#x26;</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> cp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">  // const overload returns const T&#x26;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">cp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">cp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">3
+apple
+3
+7 ICS 46
+3
+Zot! Anteater</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<hr>
+<h2 id="11-in-class-activities-with-solutions">11. In-class Activities (with Solutions)</h2>
+<h3 id="111-activity-1-function-template-slides-31-32">11.1 Activity 1: Function Template (slides 31, 32)</h3>
+<ul>
+<li>Implement a function template called <code>myMin</code> that returns the smaller of 2 inputs.</li>
+<li>Are there any constraints on the type of inputs?</li>
+<li>Implement a main function to test <code>myMin</code> with ints then strings.</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: list every operation the body performs on a <code>T</code>, including the <code>return</code>.</p>
+</blockquote>
+<p><strong>Solution</strong> (slide 32&#39;s solution, compiled — output <code>3</code> then <code>apple</code>):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> myMin</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) ? </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The slide omits the includes: you need <code>&lt;iostream&gt;</code> and <code>&lt;string&gt;</code>.)</p>
+<p><strong>Constraints on T</strong> (slide 32):</p>
+<ul>
+<li>The function <strong>returns by value</strong>, so T needs a <strong>copy (or move) constructor</strong> — the result is copied out of <code>a</code> or <code>b</code>.</li>
+<li>T must support <strong><code>operator&lt;</code></strong>. With a struct that doesn&#39;t define it, g++ says: <code>no match for &#39;operator&lt;&#39; (operand types are &#39;const Point&#39; and &#39;const Point&#39;)</code>.</li>
+<li>Also (implied): both arguments must deduce to the <strong>same</strong> T, and T must be destructible (the returned temporary is destroyed).</li>
+</ul>
+<p>Why <code>std::string(&quot;apple&quot;)</code> and not just <code>&quot;apple&quot;</code>? Traps worth knowing:</p>
+<ul>
+<li><code>myMin(&quot;apple&quot;, &quot;banana&quot;)</code> doesn&#39;t compile: the literals are <code>const char[6]</code> and <code>const char[7]</code>, two different types → &quot;deduced conflicting types&quot;.</li>
+<li>Even same-length literals, <code>myMin(&quot;abc&quot;, &quot;abd&quot;)</code>, fail: T = <code>char[4]</code> and a function can&#39;t return an array.</li>
+<li>With <code>const char*</code> variables it compiles but compares <strong>addresses</strong>, not text — the &quot;smaller&quot; pointer is whichever string sits lower in memory. Wrapping in <code>std::string</code> makes <code>&lt;</code> compare alphabetically.</li>
+<li><code>myMin(3, 4.5)</code> fails (int vs double); <code>myMin&lt;double&gt;(3, 4.5)</code> works.</li>
+</ul>
+<p>↩ Concepts: <a href="#51-when-deduction-fails">§5.1 deduction</a>, <a href="#7-implicit-constraints-on-type-parameters">§7 implicit constraints</a>.</p>
+<h3 id="112-activity-2-class-template-slides-38-39">11.2 Activity 2: Class Template (slides 38, 39)</h3>
+<p>Implement a <code>Pair</code> class template that stores 2 items of the same type T.</p>
+<p>What are some restrictions on the type T?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: do it the way §9 analyses <code>Box</code>.</p>
+</blockquote>
+<p><strong>Solution</strong> (slide 39; the slide&#39;s two setter lines run off the right edge, completed here as <code>first_ = value;</code> / <code>second_ = value;</code>, and the closing <code>};</code> is cut off at the bottom):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Pair</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> first</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> second</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">        : </span><span style="color:#DCDCAA">first_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">second_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">second</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">first_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">second_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Why two versions of each getter? The non-<code>const</code> one returns <code>T&amp;</code> so you can modify the element in place (<code>p.first() += &quot;!&quot;</code>); the <code>const</code> one is the only one callable on a <code>const Pair</code> and returns <code>const T&amp;</code> so the caller can&#39;t modify it. Returning references avoids copying T at all, so — unlike <code>Box::getValue</code> — the getters don&#39;t need T to be copyable.</p>
+<p><strong>Restrictions on T</strong> (slide 39):</p>
+<ul>
+<li>✓ <strong>Copy-constructible</strong> — required by the constructor: <code>first_(first)</code>.</li>
+<li>✓ <strong>Copy-assignable</strong> — required by the setters <code>setFirst</code> and <code>setSecond</code>.</li>
+<li>✓ <strong>Destructible</strong> — the <code>T</code> members are destroyed when the <code>Pair</code> goes out of scope.</li>
+</ul>
+<p>(As §9.1 showed, copy-assignable only matters if you actually call a setter.)</p>
+<p>↩ Concepts: <a href="#8-class-templates">§8 class templates</a>, <a href="#9-a-class-template-example-box">§9 Box</a>.</p>
+<hr>
+<h2 id="12-quick-reference--top-5-things-to-remember">12. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Syntax / rule</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Function template</td>
+<td><code>template &lt;typename T&gt;</code> before a normal function definition</td>
+</tr>
+<tr>
+<td>Class template</td>
+<td><code>template &lt;typename ElementType&gt;</code> before <code>class Vector { ... };</code></td>
+</tr>
+<tr>
+<td><code>typename</code> vs <code>class</code> in <code>&lt; &gt;</code></td>
+<td>identical meaning</td>
+</tr>
+<tr>
+<td>Non-type parameter</td>
+<td><code>template &lt;typename T, int N&gt;</code> — N is a compile-time constant</td>
+</tr>
+<tr>
+<td>Deduction</td>
+<td>function templates: from argument types; class templates: usually explicit <code>&lt;int&gt;</code> (C++17 can deduce from constructor args)</td>
+</tr>
+<tr>
+<td>Explicit argument</td>
+<td><code>myswap&lt;int&gt;(i, j)</code>, <code>myMin&lt;double&gt;(3, 4.5)</code></td>
+</tr>
+<tr>
+<td>Deduction fails</td>
+<td>conflicting types (<code>int</code> vs <code>double</code>) or no hint</td>
+</tr>
+<tr>
+<td>Where to put the code</td>
+<td><code>.hpp</code>, or <code>.hpp</code> that <code>#include</code>s a <code>.tpp</code> at the bottom — never a separate <code>.cpp</code></td>
+</tr>
+<tr>
+<td>myswap needs</td>
+<td>copy constructor, copy assignment, destructor</td>
+</tr>
+<tr>
+<td>myMin needs</td>
+<td><code>operator&lt;</code>, copy/move constructor (returns by value)</td>
+</tr>
+<tr>
+<td>Box / Pair need</td>
+<td>copy-constructible, copy-assignable, destructible</td>
+</tr>
+<tr>
+<td>Instantiations</td>
+<td><code>Box&lt;int&gt;</code> and <code>Box&lt;double&gt;</code> are unrelated, incompatible types</td>
+</tr>
+<tr>
+<td>Google Test</td>
+<td><code>TEST(Suite, name) { EXPECT_EQ(expected, actual); }</code>; <code>ASSERT_*</code> stops the test, <code>EXPECT_*</code> continues</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>A template is a <strong>blueprint</strong>: nothing exists until the compiler instantiates it for specific types, and each instantiation is a separate type/function.</li>
+<li>The <strong>full template definition must be visible where it&#39;s used</strong>, so it lives in a header (<code>.hpp</code> or <code>.hpp</code> + bottom-<code>#include</code>d <code>.tpp</code>); a definition in a <code>.cpp</code> gives a link error.</li>
+<li>Constraints on <code>T</code> are <strong>implicit</strong>: read the body and list every operation on a <code>T</code> (copy-construct, assign, <code>&lt;</code>, destroy…) — that list is your answer to every &quot;restrictions on T?&quot; question.</li>
+<li><strong>Type deduction does no conversions</strong>: <code>myMin(3, 4.5)</code> and <code>myMin(&quot;apple&quot;, &quot;banana&quot;)</code> fail; fix with an explicit <code>&lt;double&gt;</code> or with <code>std::string(...)</code>.</li>
+<li>In Google Test, <strong>test one behaviour per test</strong>, name it after that behaviour, use <code>EXPECT_*</code> by default and <code>ASSERT_*</code> when continuing makes no sense, and compare C strings with <code>STREQ</code>, not <code>EQ</code>.</li>
+</ol>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/~kazuhak/notes/ics-46/lec-01/en-US/">Lecture 1</a></strong>: Randomness (the second half of slide 1&#39;s title) and the programming environment setup.</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><span data-astro-cid-gxyjxt6l></span><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-01/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 1 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Randomness, References &amp; Pointers</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 0</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-00/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-01/en-US/" title="Next: Randomness, References &amp; Pointers (])" aria-label="Next: Lecture 1" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 1</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

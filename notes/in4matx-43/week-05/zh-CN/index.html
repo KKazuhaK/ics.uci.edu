@@ -1,0 +1,931 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 43 软件设计与 UML | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="从架构走向详细设计、六种设计方法、抽象、UML 类图(关联、多重性、聚合与组合)、内聚、耦合,以及信息隐藏。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-05/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413993" data-source-url="/~kazuhak/notes/in4matx-43/week-05/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-05/en-US/" data-prev-url="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-43/week-06/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 5 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 5 周 · 软件工程课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 43 第 5 周 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 5 月 31 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--第五周课程笔记">Informatics 43 — 第五周课程笔记</h1>
+<blockquote>
+<p>涵盖 <strong>Lecture 9 与 Lecture 10</strong>：<em>&quot;如何在细节层面构建软件结构？（第 1、2 部分）&quot;</em></p>
+</blockquote>
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#1-%E4%BB%8E%E6%9E%B6%E6%9E%84%E8%B5%B0%E5%90%91%E8%AE%BE%E8%AE%A1--lecture-9-%E7%9A%84%E8%B5%B7%E7%82%B9">从架构走向设计 — Lecture 9 的起点</a></li>
+<li><a href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1">什么是软件设计</a></li>
+<li><a href="#3-%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%AD%E7%9A%84%E8%AE%BE%E8%AE%A1%E9%98%B6%E6%AE%B5">软件工程中的设计阶段</a></li>
+<li><a href="#4-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E7%9A%84%E7%9B%AE%E6%A0%87%E4%B8%8E%E6%B4%BB%E5%8A%A8">软件设计的目标与活动</a></li>
+<li><a href="#5-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%85%AD%E7%A7%8D%E6%96%B9%E6%B3%95">软件设计的六种方法</a></li>
+<li><a href="#6-%E8%AE%BE%E8%AE%A1%E4%B8%8E%E6%A8%A1%E5%9E%8B--%E5%AE%83%E4%BB%AC%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7">设计与模型 — 它们长什么样</a></li>
+<li><a href="#7-%E8%AE%BE%E8%AE%A1%E7%9A%84%E7%9B%AE%E7%9A%84%E6%80%9D%E8%80%83%E4%BA%A4%E6%B5%81%E8%A7%84%E7%BA%A6">设计的目的：思考、交流、规约</a></li>
+<li><a href="#8-%E6%8A%BD%E8%B1%A1--%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8A%A8%E4%BD%9C">抽象 — 软件工程的核心动作</a></li>
+<li><a href="#9-%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%8F%B7%E4%B8%8E%E8%AF%AD%E8%A8%80lecture-10">设计记号与语言（Lecture 10）</a></li>
+<li><a href="#10-uml-%E7%B1%BB%E5%9B%BE">UML 类图</a></li>
+<li><a href="#11-%E7%B1%BB%E4%B8%8E%E7%B1%BB%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB">类与类之间的关系</a></li>
+<li><a href="#12-%E5%85%B6%E4%BB%96-uml-%E5%9B%BE">其他 UML 图</a></li>
+<li><a href="#13-%E5%85%B6%E4%BB%96%E9%9D%9E-uml%E5%9B%BE">其他（非 UML）图</a></li>
+<li><a href="#14-%E4%BB%80%E4%B9%88%E6%98%AF%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E5%86%8D%E6%AC%A1%E5%AE%9A%E4%B9%89">什么是软件工程？（再次定义）</a></li>
+<li><a href="#15-%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99--%E5%86%85%E8%81%9A%E8%80%A6%E5%90%88%E4%BF%A1%E6%81%AF%E9%9A%90%E8%97%8F">设计原则 — 内聚、耦合、信息隐藏</a></li>
+<li><a href="#16-quiz-5-%E5%A4%8D%E4%B9%A0%E8%A6%81%E7%82%B9">Quiz 5 复习要点</a></li>
+<li><a href="#17-%E6%80%BB%E7%BB%93%E4%B8%8E%E8%AE%B0%E5%BF%86%E6%A1%86%E6%9E%B6">总结与记忆框架</a></li>
+</ol>
+<hr>
+<h2 id="1-从架构走向设计--lecture-9-的起点">1. 从架构走向设计 — Lecture 9 的起点</h2>
+<p>第四周以<strong>架构（architecture）</strong>收尾：那些<strong>主要的（principal）</strong>、塑造系统整体形态的决策，被打包成一组有名字的<strong>架构风格</strong>（MVC、客户端-服务器、分层、点对点、管道-过滤器、发布-订阅）。同时也强调了一个事实：<strong>所有成功的软件都会演化</strong>，而架构正是我们用来为这种演化提前规划的主要工具。</p>
+<p>第五周把镜头<strong>再向下</strong>推一层。一旦主要决策已经定下，<em>我们如何在细节层面把软件组织起来？</em> 这就是设计阶段，它涵盖从系统级决策（用什么语言、什么库、什么协议）一路下沉到具体的类、方法、屏幕布局。</p>
+<p>我们到目前为止建立起来的演进顺序是：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Architecture</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">Design</mtext><mtext> </mtext><mtext mathvariant="bold">(in</mtext><mtext> </mtext><mtext mathvariant="bold">detail)</mtext></mrow><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">Code</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} \;\longrightarrow\; \textbf{Architecture} \;\longrightarrow\; \textbf{Design (in detail)} \;\longrightarrow\; \textbf{Code}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Architecture</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Design (in detail)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf">Code</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<hr>
+<h2 id="2-什么是软件设计">2. 什么是软件设计</h2>
+<h3 id="21-设计--所有创造性决策架构是它的子集">2.1 设计 = 所有创造性决策；架构是它的子集</h3>
+<p>一个有用的心理图像：<strong>设计决策（design decisions）</strong>构成一个大集合，而<strong>架构决策（architectural decisions）</strong>是其中的<em>子集</em> —— 具体来说，是那些重要到足以被称为<em>主要（principal）</em>的决策。</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>范围</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>架构决策</strong></td>
+<td>&quot;主要&quot;那一部分子集</td>
+<td>风格、组件、连接器、配置</td>
+</tr>
+<tr>
+<td><strong>设计决策（整体）</strong></td>
+<td>关于系统如何被构建的全部创造性决策</td>
+<td>架构<em>加上</em>所有更小的决策</td>
+</tr>
+</tbody></table>
+<p>两个层次都覆盖系统的同样四个方面：</p>
+<table>
+<thead>
+<tr>
+<th>方面</th>
+<th>它捕捉什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>结构（Structure）</strong></td>
+<td>系统如何被划分成各部分</td>
+</tr>
+<tr>
+<td><strong>行为（Behavior）</strong></td>
+<td>这些部分随时间如何动作</td>
+</tr>
+<tr>
+<td><strong>交互（Interaction）</strong></td>
+<td>各部分如何相互通信</td>
+</tr>
+<tr>
+<td><strong>非功能属性（Non-functional properties）</strong></td>
+<td>性能、可扩展性、安全性、可靠性等</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>&quot;principal&quot;（主要）</strong> 这个词正是把架构和设计区分开来的关键。架构是塑造其他一切的那一小核心决策；设计是整座冰山，包括那些核心决策以及它们下面所有更小的决策。</p>
+</blockquote>
+<hr>
+<h2 id="3-软件工程中的设计阶段">3. 软件工程中的设计阶段</h2>
+<p>设计在经典瀑布图中处于需求与实现之间：</p>
+<div class="code-wrap"><pre><code>Requirements (what)  →  Design (how)  →  Implementation  →  Verification  →  Maintenance</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>值得记住的心理速记是：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Requirements</mtext><mo>=</mo><mtext mathvariant="italic">what</mtext><mspace width="1em"/><mspace width="1em"/><mtext mathvariant="bold">Design</mtext><mo>=</mo><mtext mathvariant="italic">how</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Requirements} = \textit{what} \quad\quad \textbf{Design} = \textit{how}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Requirements</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textit">what</span></span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord textbf">Design</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textit">how</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>设计就是我们承诺一种<em>实现需求的方式</em> —— 它是从&quot;系统应当做 X&quot;到&quot;真正实现 X 的代码&quot;之间的桥梁。</p>
+<hr>
+<h2 id="4-软件设计的目标与活动">4. 软件设计的目标与活动</h2>
+<p>设计<strong>不是单一动作</strong>。它由两类工作混合而成：一类大而靠前，一类小而迭代。</p>
+<h3 id="41-系统级决策">4.1 系统级决策</h3>
+<p>这些决策作用于整个系统，通常在早期一次性确定：</p>
+<ul>
+<li>架构（风格、组件、连接器）</li>
+<li>编程语言</li>
+<li>库与框架</li>
+<li>平台（Web、移动、桌面、嵌入式）</li>
+<li>通信协议（HTTP、gRPC、MQTT、……）</li>
+</ul>
+<h3 id="42-较低层级的迭代式决策">4.2 较低层级的<em>迭代式</em>决策</h3>
+<p>设计工作的大部分是小规模、不断重复的循环：</p>
+<ol>
+<li><strong>研究问题</strong> — 理解眼前的需求或子问题</li>
+<li><strong>识别解法</strong> — 草拟候选设计</li>
+<li><strong>创建抽象</strong> — 选定结构、类、屏幕或数据格式</li>
+<li><strong>评估</strong> — 检验候选方案，再次迭代</li>
+</ol>
+<blockquote>
+<p>设计不是&quot;决定一次，永远写代码&quot;。它是嵌套在循环里的循环：高层有一个面向系统级决策的大循环，模块、类、UI 层面则有许多小循环。<strong>迭代（iterative）</strong>这个词在这一讲里出现的次数和架构那一讲一样多。</p>
+</blockquote>
+<hr>
+<h2 id="5-软件设计的六种方法">5. 软件设计的六种方法</h2>
+<p>课程列出<strong>六种设计方法</strong>（也是 Quiz 5 会考的那六种）。每一种都是一个不同的<em>视角</em> —— 一种把系统拆解开来、让设计问题变得可处理的方式。</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>方法</th>
+<th>它按什么对系统进行分解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>软件架构（Software architecture）</strong></td>
+<td>主要的/结构性的决策（第四周）</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>功能分解（Functional decomposition）</strong></td>
+<td>功能</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>关系数据库设计（Relational database design）</strong></td>
+<td>数据</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>面向对象设计与 UML（Object-oriented design and UML）</strong></td>
+<td>领域中的实体 + 每个实体的功能</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>用户界面设计（User interface design）</strong></td>
+<td>面向用户的屏幕，反复迭代</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>草图（Sketching）</strong></td>
+<td>自由形式的画图（Lecture 10 中详细介绍）</td>
+</tr>
+</tbody></table>
+<h3 id="51-功能分解">5.1 功能分解</h3>
+<p>构建一棵从根到叶的功能树。讲义示例 —— 一个名为 &quot;Achieve&quot; 的目标追踪 app：</p>
+<div class="code-wrap"><pre><code>0. Achieve
+├── 1. Authenticate
+│   ├── 1.1 Login
+│   └── 1.2 Logout
+├── 2. Goal Setting
+│   ├── 2.1 Create goal
+│   ├── 2.2 Edit goal
+│   ├── 2.3 Delete goal
+│   └── 2.4 Mark goal complete
+└── 3. Messaging
+    ├── 3.1 View message
+    ├── 3.2 Send message
+    └── 3.3 Delete message</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>通过<em>分解功能</em>来驱动设计过程。当系统的本质最适合被表述为&quot;它能做的一组事情&quot;时，这种方法很有用。</p>
+</blockquote>
+<h3 id="52-关系数据库设计">5.2 关系数据库设计</h3>
+<p>通过<em>分解数据</em>来驱动设计过程。系统被描述为<strong>表（tables）</strong>、表中的<strong>列（columns）</strong>，以及把它们连接在一起的<strong>键（keys）</strong>（例如 <code>Publishers</code> 表、<code>Authors</code> 表与 <code>Books</code> 表通过 <code>PubID</code> 和 <code>AuthorID</code> 关联）。</p>
+<blockquote>
+<p>当系统的本质最适合被表述为&quot;它存储的数据以及数据之间的关系&quot;时，这种方法很有用。</p>
+</blockquote>
+<h3 id="53-面向对象设计与-uml">5.3 面向对象设计与 UML</h3>
+<ul>
+<li><strong>对象（object）</strong>同时包含<strong>数据</strong>和<strong>方法</strong>。</li>
+<li><strong>类（class）</strong>是<strong>用来制造对象的蓝图</strong>。</li>
+</ul>
+<p>通过<em>分解领域中的实体以及伴随每个实体的功能</em>来驱动设计过程。讲义中的 <strong>Student / Enrollment / Seminar / Professor</strong> UML 图就是经典示例 —— 每一个现实世界的事物都成为一个类，带有自己的属性（数据）和操作（方法），并通过关系与其他类相连。</p>
+<blockquote>
+<p>当系统的本质最适合被表述为&quot;一组相互交互的事物&quot;时，这种方法很有用。</p>
+</blockquote>
+<h3 id="54-用户界面设计">5.4 用户界面设计</h3>
+<p>通过<em>设想用户界面并不断迭代</em>来驱动设计过程。Mockup（线框稿）和 wireframe（有时手绘，有时使用 <strong>InVision</strong>、<strong>Balsamiq</strong> 这样的工具完成）就是设计产物，每一轮迭代都让 UI 更精确。</p>
+<blockquote>
+<p>当系统的本质最适合被表述为&quot;用户看到什么、做什么&quot;时，这种方法很有用。</p>
+</blockquote>
+<h3 id="55-草图sketching">5.5 草图（Sketching）</h3>
+<p>最非正式的方法 —— 用铅笔/白板的画作快速探索想法。在 Lecture 10 中作为&quot;其他图示&quot;之一更深入展开。</p>
+<hr>
+<h2 id="6-设计与模型--它们长什么样">6. 设计与模型 — 它们长什么样</h2>
+<p>Lecture 9 用了好几张幻灯片展示<em>设计</em>在实际中究竟长什么样。这部分的目的是<strong>拓宽</strong>学生对&quot;设计&quot;的心理图像，让它不再局限于类似代码的产物：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>讲义中展示的例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>草图（Sketches）</strong></td>
+<td>餐巾纸上手绘的草稿、笔记本上潦草的形状与箭头</td>
+</tr>
+<tr>
+<td><strong>物理模型（Physical models）</strong></td>
+<td>建筑物、街区的 3D 实物模型</td>
+</tr>
+<tr>
+<td><strong>蓝图（Blueprints）</strong></td>
+<td>建筑的平面图（标注房间名称、尺寸）</td>
+</tr>
+<tr>
+<td><strong>白板模型（Whiteboard models）</strong></td>
+<td>一整面墙的多色白板涂鸦 —— 方框、箭头、公式，全景照拍下</td>
+</tr>
+<tr>
+<td><strong>UML 类图（UML class diagrams）</strong></td>
+<td>正式的&quot;三段式带箭头的方框&quot;</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>共同模式：设计是<strong>任何对未来系统的结构或行为的外部表示</strong>。它可以是涂鸦，也可以是精确的 UML 图，它们都处在同一个连续谱上。</p>
+</blockquote>
+<hr>
+<h2 id="7-设计的目的思考交流规约">7. 设计的目的：思考、交流、规约</h2>
+<p>设计师生产设计有<strong>三个</strong>理由，再加一个所有设计共有的元属性。</p>
+<table>
+<thead>
+<tr>
+<th>目的</th>
+<th>设计是为了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Designs to think（用于思考的设计）</strong></td>
+<td>辅助设计师本人的推理 —— 把系统画到纸上，让大脑可以操控它</td>
+</tr>
+<tr>
+<td><strong>Designs to talk（用于交流的设计）</strong></td>
+<td>一份共享产物，用来与队友、客户或其他利益相关者讨论系统</td>
+</tr>
+<tr>
+<td><strong>Designs to prescribe（用于规约的设计）</strong></td>
+<td>一份规格说明，<em>明确</em>告诉实现者要构建什么</td>
+</tr>
+</tbody></table>
+<p>而那个元属性是：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Designs</mtext><mtext> </mtext><mtext mathvariant="bold">are</mtext><mtext> </mtext><mtext mathvariant="bold">developed</mtext><mtext> </mtext><mtext mathvariant="bold">iteratively.</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Designs are developed iteratively.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Designs are developed iteratively.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>设计很少是一次写就的 —— 它会经过多次迭代被草拟、讨论、修订、收紧，最终才足够规约性以交给实现者。同一份设计可能<em>开始</em>是一张&quot;用于思考&quot;的涂鸦，<em>在会议中</em>变成&quot;用于交流&quot;的图，<em>最后</em>在设计文档里变成&quot;用于规约&quot;的 UML 类图。</p>
+<blockquote>
+<p>Quiz 5 提示：讲义里写的是 <em>think, talk, prescribe</em>，而 Quiz 复习页用的是 <em>think, communicate, prescribe</em> —— 它们意思相同。这里的 &quot;talk&quot; 与 &quot;communicate&quot; 可以互换。</p>
+</blockquote>
+<hr>
+<h2 id="8-抽象--软件工程的核心动作">8. 抽象 — 软件工程的核心动作</h2>
+<h3 id="81-什么是抽象">8.1 什么是抽象</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">Abstraction</mtext><mo>=</mo><mtext>removing irrelevant information and retaining/highlighting the relevant information</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Abstraction} = \text{removing irrelevant information and retaining/highlighting the relevant information}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Abstraction</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">removing irrelevant information and retaining/highlighting the relevant information</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>我们使用的每一种设计记号 —— UML 类图、ER 图、Mockup、伪代码、架构图 —— 都是一种<strong>抽象</strong>的方式。每种记号都丢弃了某些东西，强调了另一些东西。</p>
+<h3 id="82-每种记号都有自己专属的抽象">8.2 每种记号都有自己专属的抽象</h3>
+<table>
+<thead>
+<tr>
+<th>记号</th>
+<th>它强调什么</th>
+<th>它抽象掉了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>功能分解树</td>
+<td>系统<strong>做什么</strong></td>
+<td>数据、类、屏幕</td>
+</tr>
+<tr>
+<td>关系模式</td>
+<td><strong>数据</strong>及其关系</td>
+<td>行为、屏幕</td>
+</tr>
+<tr>
+<td>UML 类图</td>
+<td><strong>实体</strong>及其静态关系</td>
+<td>时间、动态行为、UI</td>
+</tr>
+<tr>
+<td>UI Mockup</td>
+<td>用户<strong>看到什么</strong></td>
+<td>内部逻辑、数据布局</td>
+</tr>
+<tr>
+<td>架构图</td>
+<td>高层<strong>组件与连接器</strong></td>
+<td>内部类结构、代码</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>每一个可执行细节</td>
+<td>没有抽象 —— 但你也再看不见整片森林</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>没有任何单一的记号能捕捉一切。不同的设计问题需要不同的记号，这也是设计师为什么要学很多种记号的原因。</p>
+</blockquote>
+<h3 id="83-那个核心论断">8.3 那个核心论断</h3>
+<blockquote>
+<p><strong>软件工程的本质是构建并精化抽象/模型（abstractions/models）。</strong></p>
+</blockquote>
+<p>这是 Lecture 9 的总结性命题，并在 Lecture 10 中再次出现，措辞稍变：<em>&quot;软件工程是构建一组相互关联的模型，用以表示未来系统的过程。&quot;</em> 当课程说软件工程是关于&quot;模型&quot;的，它指的是<strong>一组相互关联的模型</strong> —— 不是一张总图，而是好几张，每一张都从不同角度抽象出系统的某一面。</p>
+<hr>
+<h2 id="9-设计记号与语言lecture-10">9. 设计记号与语言（Lecture 10）</h2>
+<p>Lecture 10 重新框定设计阶段，先后退一步问：<em>在软件开发的每个阶段，我们使用的是什么语言？</em></p>
+<h3 id="91-不同阶段使用不同语言">9.1 不同阶段使用不同语言</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>语言</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>需求（Requirements）</strong></td>
+<td>英语（或其他自然语言）</td>
+</tr>
+<tr>
+<td><strong>设计（Design）</strong></td>
+<td><strong>图示 / UML</strong></td>
+</tr>
+<tr>
+<td><strong>编码 / 测试（Coding / Testing）</strong></td>
+<td>Java、Python 等</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>设计记号是<em>设计阶段的语言</em> —— 它们在精确度的连续谱上处于英语与代码之间。图示足够精确，可以支持推理；又足够宽松，可以与非程序员讨论。</p>
+</blockquote>
+<h3 id="92-记号为什么重要">9.2 记号为什么重要</h3>
+<p>讲义引用了 A.N. Whitehead 在 1911 年的话：</p>
+<blockquote>
+<p><em>A good notation relieves the brain of unnecessary work and frees it to concentrate on more advanced problems.</em><br>（好的记号能减轻大脑的不必要负担，让它专注于更高级的问题。）</p>
+</blockquote>
+<p>要点：<strong>好的记号不是装饰性的选择</strong> —— 它就是设计师思考方式的一部分。UML、ER 图、Mockup、伪代码，都是为了提供一种能让设计师在合适抽象层级上推理的记号。</p>
+<hr>
+<h2 id="10-uml-类图">10. UML 类图</h2>
+<h3 id="101-什么是-uml">10.1 什么是 UML</h3>
+<p><strong>UML（Unified Modeling Language，统一建模语言）</strong>是软件设计与建模的<strong>行业标准</strong>。它是一<em>族</em>图示类型，每一种捕捉系统的不同方面：</p>
+<ul>
+<li><strong>类图（Class diagrams）</strong> — 结构（Lecture 10 的重点）</li>
+<li><strong>活动图（Activity diagrams）</strong> — 工作流 / 控制流</li>
+<li><strong>顺序图（Sequence diagrams）</strong> — 随时间的交互</li>
+<li><strong>用例图（Use case diagrams）</strong> — 参与者与系统的交互</li>
+<li>……以及更多</li>
+</ul>
+<h3 id="102-类图是用来做什么的">10.2 类图是用来做什么的</h3>
+<p>UML 类图用于<strong>把系统分解成称为 &quot;类（classes）&quot; 的模块</strong>。典型用途：</p>
+<ul>
+<li><strong>建模领域概念</strong>（问题空间中的实体）</li>
+<li><strong>创建详细的、面向对象的代码设计</strong></li>
+</ul>
+<h3 id="103-类的方框">10.3 类的方框</h3>
+<p>一个类被画成带有<strong>三个分区</strong>的方框：</p>
+<table>
+<thead>
+<tr>
+<th>分区</th>
+<th>包含什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>上</td>
+<td>类名</td>
+</tr>
+<tr>
+<td>中</td>
+<td>属性（数据字段），带类型</td>
+</tr>
+<tr>
+<td>下</td>
+<td>操作（方法），带参数和返回类型</td>
+</tr>
+</tbody></table>
+<p><strong>可见性标记：</strong></p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>+</code></td>
+<td><strong>public（公有）</strong></td>
+</tr>
+<tr>
+<td><code>−</code></td>
+<td><strong>private（私有）</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>可见性标记（<code>+</code> / <code>−</code>）和返回类型在 UML 记号里都是<em>可选的</em>。</strong> 在类图中省略其中部分或全部是很常见的 —— 尤其是在早期/非正式的设计中，目标只是传达结构。它们会随着图变得更<em>规约性</em>而被逐渐填上。</p>
+</blockquote>
+<p>通用模板：</p>
+<div class="code-wrap"><pre><code>+-----------------------------------------+
+|              Class Name                 |
++-----------------------------------------+
+| -attribute : Type                       |
+| -attribute : Type                       |
++-----------------------------------------+
+| +operation(parameter) : ReturnType      |
+| +operation(parameter) : ReturnType      |
++-----------------------------------------+</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/uml-class-box-template.png" alt="UML 类图的标准三段式方框结构：上方写类名，中间列属性（带类型），下方列操作（带参数和返回类型）。"></p>
+<h3 id="104-翻译为代码--airplane-示例">10.4 翻译为代码 — <code>Airplane</code> 示例</h3>
+<p>UML 类：</p>
+<div class="code-wrap"><pre><code>+--------------------------+
+|        Airplane          |
++--------------------------+
+| - speed : int            |
++--------------------------+
+| + getSpeed() : int       |
+| + setSpeed(int) : void   |
++--------------------------+</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>等价的 Java 代码：</p>
+<div class="code-wrap"><pre data-language="java" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">public</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Airplane</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    private</span><span style="color:#4EC9B0"> int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#DCDCAA"> Airplane</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">speed</span><span style="color:#D4D4D4"> = speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#4EC9B0"> int</span><span style="color:#DCDCAA"> getSpeed</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#D4D4D4"> speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    public</span><span style="color:#4EC9B0"> void</span><span style="color:#DCDCAA"> setSpeed</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">int</span><span style="color:#9CDCFE"> speed</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">speed</span><span style="color:#D4D4D4"> = speed;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用：</p>
+<div class="code-wrap"><pre data-language="java" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Airplane</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Airplane</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSpeed</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">System</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">out</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">println</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">""</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getSpeed</span><span style="color:#D4D4D4">());</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/airplane-class-to-code.png" alt="Airplane 类图与 Java 代码的对应关系：UML 中的属性 -speed:int 翻译为 private int speed，操作 +getSpeed():int / +setSpeed(int):void 直接对应 public 方法。"></p>
+<blockquote>
+<p>注意这种直接对应：<code>−</code> 变成 <code>private</code>，<code>+</code> 变成 <code>public</code>，属性变成字段，操作变成方法，参数与返回类型一一对照。这正是 UML 类图在面向对象设计中如此常用的原因 —— 它几乎可以机械地翻译成代码。</p>
+</blockquote>
+<h3 id="105-规范性-vs-描述性-uml--与第四周的呼应">10.5 规范性 vs. 描述性 UML — 与第四周的呼应</h3>
+<p>第四周讲架构时讨论的<strong>规范性（prescriptive）vs. 描述性（descriptive）</strong>区分，同样适用于 UML 类图：</p>
+<table>
+<thead>
+<tr>
+<th>视角</th>
+<th>这张图从何而来</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>规范性 UML</strong></td>
+<td>由<em>设计师</em>在写代码之前画出 —— <em>预期的</em>类结构</td>
+</tr>
+<tr>
+<td><strong>描述性 UML</strong></td>
+<td>由工具<strong>从已有代码中自动生成</strong> —— <em>实际的</em>类结构</td>
+</tr>
+</tbody></table>
+<p>读取源码并产出 UML 类图的工具（&quot;逆向工程 / reverse engineering&quot;）让团队可以<strong>比较规范性与描述性</strong>，从而检测<strong>设计侵蚀（design erosion）</strong> —— 与架构侵蚀完全类比。如果描述性图中包含规范性图所没有的类、字段或关系（或反之），就说明实现已经偏离了设计。</p>
+<blockquote>
+<p>规范性/描述性这一视角，从架构层级再向下推一层就到了类设计层级。侵蚀不是只在第四周出现的现象 —— 凡是有&quot;计划好的模型&quot;必须跟上&quot;不断演化的代码&quot;的地方，它都会出现。</p>
+</blockquote>
+<hr>
+<h2 id="11-类与类之间的关系">11. 类与类之间的关系</h2>
+<p>类从不孤立存在。UML 定义了多种关系类型；本讲覆盖的四种是<strong>继承、关联（带多重性）、聚合、组合</strong>。</p>
+<h3 id="111-继承inheritance">11.1 继承（Inheritance）</h3>
+<p>画作一支<strong>空心三角箭头</strong>，从子类指向父类。子类继承父类的属性和方法，并可以自己增加新的。</p>
+<p>例子：<code>Hippo</code> 继承自 <code>Animal</code>。<code>Animal</code> 拥有 <code>food type</code>、<code>location</code>、<code>makeNoise()</code>、<code>eat()</code>、<code>roam()</code>。<code>Hippo</code> 添加 <code>submerged: boolean</code> 和 <code>submerge()</code>，并覆盖 <code>makeNoise()</code> 与 <code>eat()</code>。</p>
+<div class="code-wrap"><pre><code>        Animal
+        ▲
+        │  (inheritance)
+        │
+        Hippo</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/inheritance-hippo-animal.png" alt="UML 继承关系：Hippo 通过空心三角箭头指向 Animal，表示 Hippo 是一种 Animal，继承父类的属性与方法，并可以覆盖（如 makeNoise/eat）或新增（如 submerged/submerge()）。"></p>
+<h3 id="112-关联association">11.2 关联（Association）</h3>
+<p>两个类之间的一条普通连线表示这两个类<strong>以某种方式连接在一起</strong>。关联可以通过三种方式被丰富：</p>
+<table>
+<thead>
+<tr>
+<th>丰富方式</th>
+<th>它增加了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标签</strong>（例如 <code>takes class from</code>）</td>
+<td>描述这个关系的名字</td>
+</tr>
+<tr>
+<td><strong>方向</strong>（箭头）</td>
+<td>哪个类&quot;知道&quot;另一个类</td>
+</tr>
+<tr>
+<td><strong>多重性</strong>（两端的数字）</td>
+<td>每个类各有多少个参与其中</td>
+</tr>
+</tbody></table>
+<p>讲义中持续使用的例子是 <strong>Student</strong> 和 <strong>Instructor</strong>：</p>
+<ul>
+<li>普通连线 = &quot;Student 与 Instructor 关联&quot;</li>
+<li>Student 端 <code>1...*</code> 与 Instructor 端 <code>1</code> = &quot;一个 Instructor 对多个 Student&quot;</li>
+<li>两个标签（<code>listens to</code> / <code>teaches</code>）= 这个关系有方向性的读法</li>
+<li>从 Router 指向 DomainNameServer 的箭头 = &quot;Router 知道 DNS，但 DNS 不知道 Router&quot;</li>
+</ul>
+<p><strong>当注解缺失时的默认约定：</strong></p>
+<table>
+<thead>
+<tr>
+<th>当你看到……</th>
+<th>默认含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>没有箭头</strong>（普通连线）</td>
+<td><strong>双向</strong> —— 两个类都互相知道对方</td>
+</tr>
+<tr>
+<td><strong>只有一端有箭头</strong></td>
+<td><strong>单向</strong> —— 只有源类知道目标类</td>
+</tr>
+<tr>
+<td><strong>没有多重性数字</strong></td>
+<td>默认是 <strong>1 对 1</strong></td>
+</tr>
+<tr>
+<td><strong>没有标签</strong></td>
+<td>关联存在，但没有名字</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这些默认值在小测中很重要：两个类之间一条无装饰的连线<em>不是</em>&quot;未提供信息&quot;，它<strong>明确表示双向 1 对 1</strong>。加上箭头或多重性正是用来从这个默认值<em>收紧</em>关系的方式。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/association-student-instructor.png" alt="Student / Instructor 关联示例：从最朴素的"takes class from"标签连线，到带 1...* 与 1 多重性的"一个 Instructor 对应多个 Student"，再到带方向标签 listens to / teaches 的双向描述，最后是 Router → DomainNameServer 的"只能单向导航"箭头。"></p>
+<h3 id="113-多重性multiplicity">11.3 多重性（Multiplicity）</h3>
+<p>多重性标注在关联线的<strong>端点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>记号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>恰好一个</td>
+</tr>
+<tr>
+<td><code>0..1</code></td>
+<td>零个或一个（可选）</td>
+</tr>
+<tr>
+<td><code>*</code> 或 <code>0..*</code></td>
+<td>零个或多个</td>
+</tr>
+<tr>
+<td><code>1..*</code></td>
+<td>一个或多个（至少一个）</td>
+</tr>
+<tr>
+<td><code>2..5</code></td>
+<td>二到五（含两端）</td>
+</tr>
+</tbody></table>
+<p>讲义中的六行表：</p>
+<table>
+<thead>
+<tr>
+<th>A — B</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>A —— B</code>（无数字）</td>
+<td>每个 A 对应一个 B；每个 B 对应一个 A</td>
+</tr>
+<tr>
+<td><code>A 1 ←→ 1 B</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td><code>A 1 —— * B</code></td>
+<td>每个 A 对应零或多个 B；每个 B 对应一个 A</td>
+</tr>
+<tr>
+<td><code>A * —— * B</code></td>
+<td>每个 A 对应零或多个 B；反之亦然</td>
+</tr>
+<tr>
+<td><code>A 1 —— 2..5 B</code></td>
+<td>每个 A 对应二到五个 B；每个 B 对应一个 A</td>
+</tr>
+<tr>
+<td><code>A —→ * B</code></td>
+<td>每个 A 对应零或多个 B；<strong>B 对 A 一无所知</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>最后一行里箭头承担了额外的工作：这个关系<strong>只能在一个方向上导航（navigable）</strong>。A 持有指向若干 B 的引用，但 B 不持有指回 A 的引用。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/multiplicity-examples.png" alt="多重性记号六例：1↔1（双向单数）、1↔1（带数字版）、1—*（一对多）、*—*（多对多）、1—2..5（一对二到五）、—→*（单向多对一无所知）。每一行都用一对 A、B 类方框 + 端点数字 + 连线/箭头 表达。"></p>
+<h3 id="114-整体-部分聚合aggregation">11.4 整体-部分：聚合（Aggregation）</h3>
+<p><strong>聚合</strong> = &quot;一个对象<strong>包含</strong>（或由）一组其他对象<strong>组成</strong>&quot;。在<em>整体</em>那一端画<strong>空心菱形</strong>。</p>
+<ul>
+<li>聚合关系是<strong>可传递的</strong>（如果 A 聚合 B，B 聚合 C，那么 A 聚合 C）</li>
+<li>聚合关系是<strong>非对称的</strong>（如果 A 聚合 B，那么 B 不聚合 A）</li>
+</ul>
+<p>例子：一个 <code>Crate</code>（板条箱）包含若干 <code>Bottle</code>（瓶子）。瓶子可以独立于板条箱存在；板条箱只是<em>装着</em>它们。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/aggregation-crate-bottle.png" alt="聚合（Aggregation）：在整体一端画空心菱形。Crate 聚合 Bottle —— 板条箱"装着"瓶子，但瓶子可以独立于板条箱存在。"></p>
+<h3 id="115-整体-部分组合composition">11.5 整体-部分：组合（Composition）</h3>
+<p><strong>组合</strong> = 聚合的<em>更强</em>变体，<strong>额外引入存在依赖（existence dependency）</strong>。在整体那一端画<strong>实心菱形</strong>。</p>
+<p>定义性的属性：<strong>如果整体被销毁，部分也随之被销毁</strong>。部分不能独立存在。</p>
+<p>例子：一个 <code>House</code> 由若干 <code>Room</code> 组成。如果 House 被拆除，它的 Room 也就不再作为存在物存续了。</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>聚合（◇）</th>
+<th>组合（◆）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>整体&quot;包含&quot;部分</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>部分可以独立存在</td>
+<td>是</td>
+<td><strong>否</strong></td>
+</tr>
+<tr>
+<td>符号</td>
+<td>空心菱形</td>
+<td>实心菱形</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>&quot;板条箱/瓶子&quot;对比&quot;房屋/房间&quot;是记忆这两者差别的标准方式：瓶子能离开板条箱，房间不能离开房屋。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/composition-house-room.png" alt="组合（Composition）：在整体一端画实心菱形。House 组合 Room —— 房间不能独立于房屋而存在；房屋被拆除时房间也随之消亡。"></p>
+<hr>
+<h2 id="12-其他-uml-图">12. 其他 UML 图</h2>
+<p>除了类图之外，讲义简要预览了另外三种 UML 图。这些不是 Quiz 5 的重点，但能展现 UML 的广度。</p>
+<h3 id="121-活动图activity-diagram">12.1 活动图（Activity diagram）</h3>
+<p>像是一张活动流程图。讲义示例是一台 ATM：</p>
+<div class="code-wrap"><pre><code>Insert Card → Enter PIN → ◇ decision
+                          │
+                  [Invalid PIN] → Confiscate PIN
+                  [Valid PIN]   → Display Menu → ●</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>捕捉<strong>控制流（control flow）</strong>：哪个活动接哪个，决策在哪里分支。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/activity-diagram-atm.png" alt="ATM 取款的 UML 活动图：从 Insert Card 流向 Enter PIN，再到决策菱形 —— 无效 PIN 流向 Confiscate Card，有效 PIN 流向 Display Menu，最终走到结束节点（实心圆）。"></p>
+<h3 id="122-顺序图sequence-diagram">12.2 顺序图（Sequence diagram）</h3>
+<p>由若干<strong>生命线（lifeline）</strong>（垂直的虚线，每条对应一个参与者或系统）构成的网格，<strong>横向箭头</strong>表示它们之间按<em>时间顺序</em>（自上而下）交换的消息。</p>
+<p>捕捉<strong>随时间发生的交互</strong>：谁调用谁，按什么顺序。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/sequence-diagram-example.png" alt="UML 顺序图示例：每个参与者一条垂直生命线（虚线），横向箭头表示按时间顺序（自上而下）发出的消息，捕捉"谁调用谁，按什么顺序"。"></p>
+<h3 id="123-用例图use-case-diagram">12.3 用例图（Use case diagram）</h3>
+<p>外部画<strong>简笔人形（stick figure）</strong>作为参与者（actor），系统边界内画<strong>带标签的椭圆</strong>（use case）。线条表示哪个 actor 参与哪个 use case。</p>
+<p>捕捉<strong>用户能用系统做什么</strong>：例如对一家航空公司，<em>Passenger</em> 参与 <em>Check-In, Automated Check-In, Express Check-In, Boarding</em>；<em>Check-In Representative</em> 参与 <em>Check-In</em>；等等。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/use-case-airline.png" alt="航空公司用例图：Passenger 简笔人形位于系统边界之外，参与 Check-In、Automated Check-In、Express Check-In、Boarding 这些椭圆 use case；Check-In Representative 参与 Check-In。"></p>
+<hr>
+<h2 id="13-其他非-uml图">13. 其他（非 UML）图</h2>
+<p>UML 只是众多设计记号中的一种。讲义专门走过几种<strong>非 UML</strong> 记号，强调一个观点：设计师会使用任何最适合问题的记号。</p>
+<table>
+<thead>
+<tr>
+<th>记号</th>
+<th>捕捉什么</th>
+<th>典型工具/媒介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UI Mockup</strong></td>
+<td>用户看到什么</td>
+<td>手绘草图、<strong>Balsamiq</strong>、Figma</td>
+</tr>
+<tr>
+<td><strong>伪代码（Pseudo code）</strong></td>
+<td>算法逻辑</td>
+<td>含 <code>Begin / Until / If / End</code> 等关键字的纯文本</td>
+</tr>
+<tr>
+<td><strong>实体-关系图（ER 图）</strong></td>
+<td>数据实体及其关系</td>
+<td>ER 记号（实体用矩形，关系用菱形，属性用椭圆）</td>
+</tr>
+<tr>
+<td><strong>架构图</strong></td>
+<td>高层组件与连接器</td>
+<td>方框-箭头（例如 Mail Server ↔ Mail Server，使用 SMTP、POP/IMAP）</td>
+</tr>
+<tr>
+<td><strong>故事板（Storyboards）</strong></td>
+<td>UI/使用过程的<em>序列</em>片段，连环画风</td>
+<td>手绘草图或漫画分镜</td>
+</tr>
+<tr>
+<td><strong>草图</strong></td>
+<td>任何东西，非常松散</td>
+<td>白板、餐巾纸</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这些 —— 包括 UML 与非 UML —— 全都是<em>某种带语法的语言中的语句</em>。每种记号都是这门语言；每张图都是这门语言中的一句话。</p>
+</blockquote>
+<hr>
+<h2 id="14-什么是软件工程再次定义">14. 什么是软件工程？（再次定义）</h2>
+<p>走过所有这些记号之后，Lecture 10 重新陈述了软件工程的定义：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Software</mtext><mtext> </mtext><mtext mathvariant="bold">engineering</mtext></mrow><mo>=</mo><mrow><mtext>the process of building a set of </mtext><mrow><mtext mathvariant="italic">related</mtext><mtext> </mtext><mtext mathvariant="italic">models</mtext></mrow><mtext> that represent the system-to-be.</mtext></mrow></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Software engineering} = \text{the process of building a set of \textit{related models} that represent the system-to-be.}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.5689em;vertical-align:-0.5344em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0344em;"><span style="top:-3.5689em;"><span class="pstrut" style="height:3.5689em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Software engineering</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord">the process of building a set of </span><span class="mord text"><span class="mord textit">related models</span></span><span class="mord"> that represent the system-to-be.</span></span></span></span></span></span><span style="top:-3.0344em;"><span class="pstrut" style="height:3.5689em;"></span><span class="stretchy fbox" style="height:1.5689em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5344em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>关键词是 <strong>related（相互关联）</strong>。一个真实项目会产出<strong>许多</strong>模型 —— UML 类图、顺序图、ER 图、架构图、UI Mockup、伪代码 —— 工程师的工作就是让它们彼此<strong>保持一致</strong>，并与最终代码一致。</p>
+<hr>
+<h2 id="15-设计原则--内聚耦合信息隐藏">15. 设计原则 — 内聚、耦合、信息隐藏</h2>
+<p>讨论<em>好的</em>设计时，主导的两条原则是：</p>
+<h3 id="151-高内聚--低耦合">15.1 高内聚 / 低耦合</h3>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>内聚（Cohesion）</strong></td>
+<td>一个模块<em>内部</em>的元素之间彼此关联得有多紧</td>
+</tr>
+<tr>
+<td><strong>耦合（Coupling）</strong></td>
+<td><em>不同</em>模块之间彼此依赖得有多强</td>
+</tr>
+</tbody></table>
+<p>原则：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mtext mathvariant="bold">Aim</mtext><mtext> </mtext><mtext mathvariant="bold">for</mtext><mtext> </mtext><mtext mathvariant="bold">HIGH</mtext><mtext> </mtext><mtext mathvariant="bold">cohesion</mtext><mtext> </mtext></mrow><mo stretchy="false">(</mo><mtext>group related things together</mtext><mo stretchy="false">)</mo><mrow><mtext> </mtext><mtext mathvariant="bold">and</mtext><mtext> </mtext><mtext mathvariant="bold">LOW</mtext><mtext> </mtext><mtext mathvariant="bold">coupling</mtext><mtext> </mtext></mrow><mo stretchy="false">(</mo><mtext>keep unrelated things apart</mtext><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{Aim for HIGH cohesion } (\text{group related things together})\textbf{ and LOW coupling } (\text{keep unrelated things apart}).}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf">Aim for HIGH cohesion </span></span><span class="mopen">(</span><span class="mord text"><span class="mord">group related things together</span></span><span class="mclose">)</span><span class="mord text"><span class="mord textbf"> and LOW coupling </span></span><span class="mopen">(</span><span class="mord text"><span class="mord">keep unrelated things apart</span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>把这一条做对的好处：</p>
+<ul>
+<li><strong>变更不会扩散</strong>。一个模块内部的修改就停留在那个模块里，不会沿系统级联蔓延。</li>
+<li><strong>复用更容易</strong>。一个高内聚的模块只把一件事做好，因而更容易被插入其他系统使用。</li>
+</ul>
+<p>讲义里的经典图示：编号 1–10 的十个节点，被划分到模块 A、B、C 中。</p>
+<table>
+<thead>
+<tr>
+<th>糟糕的设计 ☹</th>
+<th>好的设计 ☺</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>低内聚</strong> —— 相关节点散落在多个模块</td>
+<td><strong>高内聚</strong> —— 相关节点被聚到同一个模块</td>
+</tr>
+<tr>
+<td><strong>高耦合</strong> —— 跨越模块边界的连线很多</td>
+<td><strong>低耦合</strong> —— 跨越模块边界的连线很少</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-5/cohesion-coupling.png" alt="内聚与耦合的对照视觉：左图低内聚 / 高耦合 —— 编号 1–10 散落在模块 A、B、C，跨模块连线密集；右图高内聚 / 低耦合 —— 相关节点聚到同一模块，跨模块连线稀疏。"></p>
+<h3 id="152-信息隐藏information-hiding">15.2 信息隐藏（Information Hiding）</h3>
+<p><strong>信息隐藏</strong> = 把那些最有可能变化的设计决策藏起来，从而保护程序的其他部分免受这些变化影响。</p>
+<p>讲义中引用的定义值得记住：</p>
+<blockquote>
+<p><em>Showing only those details to the outside world which are necessary for the outside world, and hiding all other details from the outside world.</em><br>（只向外界展示外界必须知道的细节，把其他细节都藏起来。）</p>
+</blockquote>
+<p>它与耦合的关系是直接的：信息隐藏是降低耦合的一种<em>技术手段</em>。如果模块 A 只暴露一个小小的公共接口，模块 B 就只能依赖这个接口 —— 而不是 A 的内部 —— 因此 A 的内部可以自由变化而不破坏 B。</p>
+<h3 id="153-这些原则为什么重要">15.3 这些原则为什么重要</h3>
+<p>两条原则都服务于第一周提出的<strong>预期变化（anticipation of change）</strong>原则：</p>
+<table>
+<thead>
+<tr>
+<th>原则（第五周）</th>
+<th>服务于（第一周）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>高内聚 / 低耦合</td>
+<td>预期变化、复用、关注点分离</td>
+</tr>
+<tr>
+<td>信息隐藏</td>
+<td>预期变化、抽象</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="16-quiz-5-复习要点">16. Quiz 5 复习要点</h2>
+<p>需要掌握并理解：</p>
+<ul>
+<li><p><strong>软件设计的六种方法</strong></p>
+<ul>
+<li>软件架构（Software architecture）</li>
+<li>功能分解（Functional decomposition）</li>
+<li>关系数据库设计（Relational database design）</li>
+<li>面向对象设计（Object-oriented design，含 UML）</li>
+<li>用户界面设计（User interface design）</li>
+<li>草图（Sketching）</li>
+<li>对每一种：要知道它按什么对系统进行分解</li>
+</ul>
+</li>
+<li><p><strong>设计的目的</strong></p>
+<ul>
+<li><strong>Think（思考）</strong> —— 辅助设计师本人推理</li>
+<li><strong>Communicate（交流）</strong>（也叫 <em>talk</em>） —— 与利益相关者/队友共享</li>
+<li><strong>Prescribe（规约）</strong> —— 明确告诉实现者要构建什么</li>
+<li>还有：设计是<em>迭代</em>开发出来的</li>
+</ul>
+</li>
+<li><p><strong>抽象</strong></p>
+<ul>
+<li>移除无关信息，保留/突出相关信息</li>
+<li>每种设计记号都支持一种特定的抽象</li>
+<li>软件工程 = 构建并精化抽象/模型</li>
+</ul>
+</li>
+<li><p><strong>图示</strong></p>
+<ul>
+<li><strong>UML 类图</strong>：类方框（名字 / 属性 / 操作），<code>+</code> 公有，<code>−</code> 私有，向代码的对应映射</li>
+<li><strong>关联</strong>：连线、标签、方向（箭头）、多重性</li>
+<li><strong>多重性</strong>：<code>1</code>、<code>0..1</code>、<code>*</code>、<code>0..*</code>、<code>1..*</code>、<code>2..5</code></li>
+<li><strong>聚合</strong>（空心菱形）vs <strong>组合</strong>（实心菱形，多了<em>存在依赖</em>）</li>
+</ul>
+</li>
+<li><p><strong>设计原则</strong></p>
+<ul>
+<li><strong>高内聚 / 低耦合</strong> —— 各自含义，以及为什么两者都重要（变更不扩散、便于复用）</li>
+<li><strong>信息隐藏</strong> —— 藏起最有可能变的；只暴露外界必须知道的</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="17-总结与记忆框架">17. 总结与记忆框架</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">Week 5 knowledge structure
+|
++-- Where we are
+|   +-- Requirements (what)  -&gt; Architecture  -&gt; Design (how)  -&gt; Code
+|   +-- Design = ALL creative decisions; architecture is the
+|       &quot;principal&quot; subset
+|   +-- Design covers: structure, behavior, interaction,
+|       non-functional properties
+|
++-- Goals/activities of design
+|   +-- system-wide decisions (architecture, language, libraries,
+|   |                          platforms, protocols)
+|   +-- iterative lower-level loop:
+|       study problem -&gt; identify solutions -&gt; create abstractions
+|       -&gt; evaluate -&gt; repeat
+|
++-- Six approaches to software design
+|   +-- 1. Software architecture            (Week 4)
+|   +-- 2. Functional decomposition         -&gt; break down FUNCTIONALITY
+|   +-- 3. Relational database design       -&gt; break down DATA
+|   +-- 4. Object-oriented design + UML     -&gt; break down ENTITIES + their FUNCTIONALITY
+|   +-- 5. User interface design            -&gt; envision UI, iterate
+|   +-- 6. Sketching                        -&gt; free-form, fast, informal
+|
++-- Designs / Models
+|   +-- can be: sketches, physical models, blueprints,
+|   |           whiteboard scribbles, UML diagrams
+|   +-- purposes: think | talk (communicate) | prescribe
+|   +-- always developed ITERATIVELY
+|
++-- Abstraction
+|   +-- = remove irrelevant info, retain relevant info
+|   +-- every design notation supports a kind of abstraction
+|   +-- SE = constructing &amp; elaborating abstractions/models
+|
++-- Design notations / languages
+|   +-- Requirements -&gt; English
+|   +-- Design       -&gt; Diagrams / UML
+|   +-- Coding       -&gt; Java, Python, ...
+|   +-- Whitehead: good notation frees the brain
+|
++-- UML
+|   +-- industry standard
+|   +-- class diagrams, activity diagrams, sequence diagrams,
+|       use case diagrams, ...
+|
++-- UML class diagrams
+|   +-- 3-compartment box: name | attributes | operations
+|   +-- visibility: + public, - private
+|   +-- mechanical mapping to code (Airplane example)
+|
++-- Relationships between classes
+|   +-- Inheritance     (hollow triangle: child -&gt; parent)
+|   +-- Association     (line; can have label, direction, multiplicity)
+|   |   +-- multiplicity: 1, 0..1, *, 0..*, 1..*, 2..5
+|   +-- Aggregation     (hollow diamond on the whole)
+|   |   +-- transitive + asymmetric
+|   |   +-- parts can exist independently  (crate / bottle)
+|   +-- Composition     (filled diamond on the whole)
+|       +-- variant of aggregation
+|       +-- adds EXISTENCE DEPENDENCY  (house / room)
+|
++-- Other UML diagrams
+|   +-- Activity   (control flow)
+|   +-- Sequence   (interaction over time)
+|   +-- Use case   (actors x system functions)
+|
++-- Other (non-UML) diagrams
+|   +-- UI mockups (Balsamiq)
+|   +-- Pseudo code
+|   +-- ER diagrams
+|   +-- Architecture diagrams
+|   +-- Storyboards
+|   +-- Sketches
+|
++-- &quot;What is SE?&quot; (restated)
+|   +-- the process of building a set of RELATED MODELS
+|       that represent the system-to-be
+|
++-- Design principles
+|   +-- High cohesion (group related)
+|   |   /  Low coupling (separate unrelated)
+|   |   -&gt; changes don&#39;t propagate
+|   |   -&gt; reuse is facilitated
+|   +-- Information hiding
+|       -&gt; hide decisions most likely to change
+|       -&gt; expose only what the outside world needs
+|       -&gt; serves anticipation of change</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="88"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（88 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="一句话总结">一句话总结</h3>
+<blockquote>
+<p>设计是回答需求&quot;做什么（what）&quot;之后的&quot;怎么做（how）&quot;—— 它是迭代地产出一组相互关联的模型（UML 类图/活动图/顺序图/用例图、ER 图、UI Mockup、伪代码、草图、架构图），这些模型从不同角度抽象出未来的系统，每种记号都支持不同的抽象；UML 类图（带 <code>+</code> / <code>−</code> 可见性、带多重性的关联、继承、以及聚合 vs. 组合）是面向对象结构的主力工具，而整项工作的好坏由它在多大程度上做到 <strong>高内聚 / 低耦合</strong> 与 <strong>信息隐藏</strong>、从而让变化能被吸收而不级联，来评判。</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 4 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>软件架构</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-06/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 6 周 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>以用户为中心的设计与可用性</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-04/zh-CN/" title="上一篇: 软件架构 ([)" aria-label="上一篇: 第 4 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 4 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 5 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-05/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-06/zh-CN/" title="下一篇: 以用户为中心的设计与可用性 (])" aria-label="下一篇: 第 6 周" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 6 周</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

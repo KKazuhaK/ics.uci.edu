@@ -1,0 +1,573 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 递归的复杂度分析 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="ADT 与数据结构的区别、建立递推式、递归树方法，以及主定理（Master Theorem）。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-06/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-06/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-06/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413977" data-source-url="/~kazuhak/notes/ics-46/lec-06/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-06/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-05/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-07/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 6 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 6 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 6 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 22 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-6递归分析">Information and Computer Science 46 — Lecture 6：递归分析</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84">1. 抽象数据类型与数据结构</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E6%9E%90%E9%80%92%E5%BD%92">2. 为什么要分析递归</a></li>
+<li><a href="#3-%E4%B8%A4%E6%AD%A5%E6%B3%95">3. 两步法</a></li>
+<li><a href="#4-%E5%BB%BA%E7%AB%8B%E9%80%92%E6%8E%A8%E5%BC%8F%E9%98%B6%E4%B9%98">4. 建立递推式：阶乘</a></li>
+<li><a href="#5-%E6%96%B9%E6%B3%95-a%E9%98%B6%E4%B9%98%E7%9A%84%E9%80%92%E5%BD%92%E6%A0%91">5. 方法 A：阶乘的递归树</a></li>
+<li><a href="#6-%E5%88%86%E6%B2%BB%E9%80%92%E6%8E%A8%E5%BC%8F%E7%9A%84%E9%80%92%E5%BD%92%E6%A0%91">6. 分治递推式的递归树</a></li>
+<li><a href="#7-%E6%96%B9%E6%B3%95-b%E4%B8%BB%E5%AE%9A%E7%90%86">7. 方法 B：主定理</a></li>
+<li><a href="#8-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">8. 课堂活动（附解答）</a></li>
+<li><a href="#9-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">9. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/15/26<br>整理自 Lecture 6 幻灯片（p1–17；幻灯片的排序部分 p18–39 在 Lecture 7 中重复，并记录在那边的笔记里），补充材料为 Alex Thornton 的 ICS 46 笔记 &quot;Asymptotic Analysis of Recursion&quot;。按概念组织，而不是按资料来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：<br>学习活动 2 在周五 10/16 进行——请提前做好准备：笔记本电脑充好电、装好扩展、输入随机 ID。<br>Quiz 2 下周五 10/23：算法分析（Algorithm Analysis）、ArrayList、链表（Linked List）。<br>HW 2 截止周五 10/16；Lab 2 截止周一 10/19。</p>
+</blockquote>
+<hr>
+<h2 id="1-抽象数据类型与数据结构">1. 抽象数据类型与数据结构</h2>
+<p>本讲开头先把<strong>做什么</strong>（what）与<strong>怎么实现</strong>（how）分开。</p>
+<ul>
+<li><strong>抽象数据类型（abstract data type，ADT）</strong>是“做什么”：存放哪些数据、有哪些操作。它是一份行为契约，不涉及内存布局。</li>
+<li><strong>数据结构（data structure，DS）</strong>是“怎么做”：数据如何组织、存储和操作。它关乎内存布局、效率以及每个操作背后的算法。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>ADT（“做什么”）</th>
+<th>操作</th>
+<th>实现它的数据结构（“怎么做”）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>List</td>
+<td>有序集合上的 <code>add()</code>、<code>remove()</code>、<code>get()</code></td>
+<td>ArrayList（动态扩容的数组）、LinkedList（节点指针）</td>
+</tr>
+<tr>
+<td>Stack</td>
+<td>LIFO：<code>push()</code>、<code>pop()</code>、<code>peek()</code></td>
+<td>基于数组的栈、链式栈（单向链表节点）</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>FIFO：<code>enqueue()</code>、<code>dequeue()</code></td>
+<td>循环数组（环形缓冲区）、链式队列（head/tail 指针）</td>
+</tr>
+</tbody></table>
+<p>例如：考试中说“一个 Stack”指的是 ADT；“以 head 为栈顶的链式栈”则是它的一种数据结构。它的 <code>push</code> 是 O(1)，是因为<em>数据结构</em>，而不是因为 ADT。</p>
+<hr>
+<h2 id="2-为什么要分析递归">2. 为什么要分析递归</h2>
+<p>有些算法和数据结构用递归来写最合适，因此我们需要像分析循环那样求出它们的运行时间。幻灯片中的例子：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> factorial</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#B5CEA8"> 1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    else</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> * </span><span style="color:#DCDCAA">factorial</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>最坏情况时间复杂度是多少？</strong> O(n)。<code>factorial(n)</code> 总共做 n 次乘法和 n + 1 次调用（<code>factorial(n)</code>、<code>factorial(n-1)</code>，……，<code>factorial(0)</code>），每次调用做常数工作。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：“没有循环，所以是 O(1)”是错的。工作量藏在递归调用里：<code>factorial(10)</code> 显然比 <code>factorial(5)</code> 做得多。要始终问：调用了多少次，每次调用花多少代价。</p>
+</blockquote>
+<hr>
+<h2 id="3-两步法">3. 两步法</h2>
+<p>要求一个递归算法的时间复杂度：</p>
+<ol>
+<li><strong>建立递推式</strong>：一个表示运行时间 T(n) 的方程，<ul>
+<li>由一个或多个规模小于 n 的子问题，</li>
+<li>加上递归调用之外所做的额外工作组成。</li>
+</ul>
+</li>
+<li><strong>求解递推式</strong>（近似地），使用以下两种方法之一：<ul>
+<li><strong>方法 A——递归树法</strong>（第 5–6 节）</li>
+<li><strong>方法 B——主定理</strong>（第 7 节）</li>
+</ul>
+</li>
+</ol>
+<p>每个递推式还需要一个<strong>基底情况</strong>（base case，例如 T(0) 或 T(1)），它是一个常数。</p>
+<hr>
+<h2 id="4-建立递推式阶乘">4. 建立递推式：阶乘</h2>
+<p>对于上面的 <code>factorial</code> 函数：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">T(0) = a
+T(n) = b + T(n - 1)      for n &gt; 0</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><strong>T(0)</strong> 是 <code>n == 0</code> 时的时间。<strong>a</strong> 是检查 <code>n == 0</code> 并返回 1 的常数时间。</li>
+<li>对于 <strong>n &gt; 0</strong>，<strong>b</strong> 是除递归调用之外所有工作的常数时间（检查、<code>n - 1</code>、乘法、返回）。</li>
+<li><strong>T(n − 1)</strong> 是递归调用的时间，它由同一个递推式描述。</li>
+</ul>
+<p>从代码读出递推式：数出递归调用的次数（这里是一次），写出每次调用得到的规模（这里是 n − 1），再加上函数体其余部分的代价（这里是常数 b）。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，<em>Asymptotic Analysis of Recursion</em>）：另一种求解方法是<strong>重复代入</strong>（repeated substitution）。不断代入，直到出现规律：<br>T(n) = b + T(n−1) = 2b + T(n−2) = 3b + T(n−3) = … = jb + T(n−j)。<br>（这一规律可以用归纳法对所有 j 证明。）取 j = n 到达基底情况：T(n) = nb + T(0) = <strong>nb + a</strong>，它线性增长，因此 T(n) 是 Θ(n)。下一节的递归树通过画图得到同样的求和。</p>
+</blockquote>
+<hr>
+<h2 id="5-方法-a阶乘的递归树">5. 方法 A：阶乘的递归树</h2>
+<p>每次调用画一个节点，把该调用在递归调用<em>之外</em>所做的工作写在节点旁边，然后全部加起来。对于 <code>factorial(5)</code>（幻灯片 p9），这棵“树”是一条链：</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>层</th>
+<th>递推式项</th>
+<th>该节点的工作量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>factorial(5) = 5 * factorial(4)</code></td>
+<td>0</td>
+<td>T(n)</td>
+<td>b</td>
+</tr>
+<tr>
+<td><code>factorial(4) = 4 * factorial(3)</code></td>
+<td>1</td>
+<td>T(n−1)</td>
+<td>b</td>
+</tr>
+<tr>
+<td><code>factorial(3) = 3 * factorial(2)</code></td>
+<td>2</td>
+<td>T(n−2)</td>
+<td>b</td>
+</tr>
+<tr>
+<td><code>factorial(2) = 2 * factorial(1)</code></td>
+<td>3</td>
+<td>T(n−3)</td>
+<td>b</td>
+</tr>
+<tr>
+<td><code>factorial(1) = 1 * factorial(0)</code></td>
+<td>4</td>
+<td>T(n−4)</td>
+<td>b</td>
+</tr>
+<tr>
+<td><code>factorial(0) = 1</code></td>
+<td>基底</td>
+<td>T(0) = 常数</td>
+<td>a</td>
+</tr>
+</tbody></table>
+<ul>
+<li>共有 <strong>n 层</strong>（外加基底情况）。</li>
+<li>每层花费常数时间 b。</li>
+<li>T(n) = 层数 × 每层时间 = n·b（+ a）⇒ <strong>O(n)</strong>。</li>
+</ul>
+<p>下面逐步演示（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="recursion-tree"><code>{&quot;title&quot;: &quot;幻灯片 p9：factorial(5) 的递归树&quot;, &quot;recurrence&quot;: &quot;T(n) = b + T(n-1)&quot;, &quot;n&quot;: 5, &quot;base&quot;: &quot;a&quot;, &quot;code&quot;: &quot;factorial&quot;}</code></pre><p>真实代码的调用次数也与此相符：一个带计数的 <code>factorial</code>（在函数开头加 <code>++calls</code>）输出</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">factorial(5) = 120, calls = 6</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这正是 n + 1 = 6 次调用：五次代价为 b，一次基底情况代价为 a。</p>
+<hr>
+<h2 id="6-分治递推式的递归树">6. 分治递推式的递归树</h2>
+<p>幻灯片 p10–12 分析了一个“未知算法”：它把输入对半拆分两次，并在每次调用中做线性工作：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">T(n) = 2T(n/2) + n
+T(1) = c,  where c is a constant</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>本方法的规则（幻灯片 p12）</strong>：把每个操作计入执行它的那个函数调用（树节点）。在更深的递归调用中做的工作，分别计在<em>它们</em>的节点上。因此，输入长度为 m 的节点只计 m（即 “+ n” 项在其自身规模下的值），不多计。</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>调用数</th>
+<th>每次调用的输入规模</th>
+<th>每次调用的工作量</th>
+<th>该层合计</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>1</td>
+<td>n</td>
+<td>n</td>
+<td>n</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>n/2</td>
+<td>n/2</td>
+<td>n</td>
+</tr>
+<tr>
+<td>2</td>
+<td>4</td>
+<td>n/4</td>
+<td>n/4</td>
+<td>n</td>
+</tr>
+<tr>
+<td>3</td>
+<td>8</td>
+<td>n/8</td>
+<td>n/8</td>
+<td>n</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>n</td>
+</tr>
+<tr>
+<td>log₂ n（叶子）</td>
+<td>2^(log₂ n) = n</td>
+<td>1</td>
+<td>c</td>
+<td>c·n</td>
+</tr>
+</tbody></table>
+<ul>
+<li>规模每层减半，因此经过 <strong>log₂ n</strong> 次减半后达到 1。树高为 log₂ n，计入叶子层共有 log₂ n + 1 层。</li>
+<li>共有 <strong>n 个叶子</strong>，每个都是基底情况 T(1) = c。</li>
+<li>每个非叶层总共花费 <strong>n</strong>：2^i 次调用，每次 n/2^i。</li>
+<li>总计：n·log₂ n + c·n ⇒ <strong>O(n log n)</strong>。</li>
+</ul>
+<p>下面逐步演示。输入框允许你输入任意形如 aT(n/b) + f(n) 的递推式（例如活动 2 中的那些）：</p>
+<pre data-language="viz" data-viz="recursion-tree"><code>{&quot;title&quot;: &quot;幻灯片 p10–12：T(n) = 2T(n/2) + n，n = 8 时的图示&quot;, &quot;recurrence&quot;: &quot;T(n) = 2T(n/2) + n&quot;, &quot;n&quot;: 8, &quot;interactive&quot;: true}</code></pre><p>一个具有完全相同形状的真实函数，每个 “+ n” 步计一个单位，每个基底情况计一个单位（c = 1）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">long</span><span style="color:#9CDCFE"> work</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> unknown</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">)</span><span style="color:#6A9955">                      // T(n) = 2T(n/2) + n</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">) { ++</span><span style="color:#9CDCFE">work</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955">      // base case: c</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) ++</span><span style="color:#9CDCFE">work</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">  // the "+ n"</span></span>
+<span class="line"><span style="color:#DCDCAA">    unknown</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    unknown</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">unknown(8): work = 32
+unknown(16): work = 80
+unknown(1024): work = 11264</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>每个结果都与 n·log₂ n + n 相符：8·3 + 8 = 32，16·4 + 16 = 80，1024·10 + 1024 = 11264。</p>
+<blockquote>
+<p>💡 <strong>关键洞察</strong>：对于递归树，你需要三个数：有多少层、每层有多少节点、每个节点做多少工作。总量等于各层合计之和。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#81-%E6%B4%BB%E5%8A%A8-0%E6%A0%91%E7%9A%84%E5%B1%82%E6%95%B0%E4%B8%8E%E5%8F%B6%E5%AD%90%E6%95%B0%E5%B9%BB%E7%81%AF%E7%89%87-11">活动 0</a> 要求求出这棵树的层数和叶子数。<a href="#82-%E6%B4%BB%E5%8A%A8-1%E9%80%92%E5%BD%92%E6%A0%91%E6%96%B9%E6%B3%95%E5%B9%BB%E7%81%AF%E7%89%87-13">活动 1</a> 用该方法分析二分查找以及 2T(n/2) + c。</p>
+</blockquote>
+<hr>
+<h2 id="7-方法-b主定理">7. 方法 B：主定理</h2>
+<h3 id="71-公式">7.1 公式</h3>
+<p>主定理是一个用于求解<strong>所有子问题规模相同</strong>的递推式的公式。它把递归树方法打包成即插即用的结果，因此比画树更快。</p>
+<p>设 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T(n) = a \cdot T(n/b) + O(n^d)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/</span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，则</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>if </mtext><mi>a</mi><mo>=</mo><msup><mi>b</mi><mi>d</mi></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>if </mtext><mi>a</mi><mo>&lt;</mo><msup><mi>b</mi><mi>d</mi></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mrow><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mi>b</mi></msub><mi>a</mi></mrow></msup><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mtext>if </mtext><mi>a</mi><mo>&gt;</mo><msup><mi>b</mi><mi>d</mi></msup></mrow></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+T(n) = \begin{cases}
+O(n^d \log n) &amp; \text{if } a = b^d \\
+O(n^d) &amp; \text{if } a &lt; b^d \\
+O(n^{\log_b a}) &amp; \text{if } a &gt; b^d
+\end{cases}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:4.32em;vertical-align:-1.91em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-2.2em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎩</span></span></span><span style="top:-2.192em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.316em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.316em" style="width:0.8889em" viewBox="0 0 888.89 316" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V316 H384z M384 0 H504 V316 H384z"/></svg></span></span><span style="top:-3.15em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎨</span></span></span><span style="top:-4.292em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.316em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.316em" style="width:0.8889em" viewBox="0 0 888.89 316" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V316 H384z M384 0 H504 V316 H384z"/></svg></span></span><span style="top:-4.6em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎧</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.41em;"><span style="top:-4.41em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span><span style="top:-2.97em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-1.53em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mop mtight"><span class="mtight">l</span><span class="mtight">o</span><span class="mtight" style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2302em;"><span style="top:-2.2341em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2659em;"><span></span></span></span></span></span></span><span class="mspace mtight" style="margin-right:0.1952em;"></span><span class="mord mathnormal mtight">a</span></span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.91em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.41em;"><span style="top:-4.41em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span><span style="top:-2.97em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span><span style="top:-1.53em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.91em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div>
+<p>三个参数：</p>
+<ul>
+<li><strong>a</strong>：子问题数量（每次调用的递归调用数）</li>
+<li><strong>b</strong>：输入规模缩小的倍数（每个子问题的规模为 n/b）</li>
+<li><strong>d</strong>：非递归工作为 n^d，即创建所有子问题并合并其解的工作</li>
+</ul>
+<p>使用时，读出 a、b、d，计算 b^d，再与 a 比较。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：常数额外工作，即 O(1) 或 &quot;+ c&quot;，意味着 <strong>d = 0</strong>（n⁰ = 1），因此 b^d = 1。在 T(n) = 2T(n/2) + c 中，比较的是 2 与 1，而不是 2 与 2。</p>
+</blockquote>
+<h3 id="72-为什么是三种情形工作量在哪里">7.2 为什么是三种情形：工作量在哪里</h3>
+<p>幻灯片 p15 的树展示了这个公式的来源。第 0 层有 1 个节点，做 f(n)。第 1 层有 a 个节点，每个做 f(n/b)。第 i 层有 <strong>a^i</strong> 个节点，处理规模为 <strong>n/b^i</strong> 的输入。最底层有 a^(log_b n) = n^(log_b a) 个叶子，每个做 f(1)。</p>
+<p>若 f(n) = n^d，则第 i 层的代价为 a^i · (n/b^i)^d = n^d · (a/b^d)^i。因此每往下一层，该层的总量乘以 <strong>a / b^d</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>情形</th>
+<th>往下各层的总量</th>
+<th>直观理解（幻灯片）</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a = b^d</td>
+<td>保持不变（每层 n^d，共 log_b n + 1 层）</td>
+<td>工作在树中<strong>平衡</strong></td>
+<td>O(n^d log n)</td>
+</tr>
+<tr>
+<td>a &lt; b^d</td>
+<td>按几何级数递减</td>
+<td>根节点的工作<strong>占主导</strong></td>
+<td>O(n^d)</td>
+</tr>
+<tr>
+<td>a &gt; b^d</td>
+<td>按几何级数递增</td>
+<td>叶子的工作<strong>占主导</strong></td>
+<td>O(n^(log_b a))，即叶子的数量</td>
+</tr>
+</tbody></table>
+<p>下面演示幻灯片中“叶子占主导”的例子；在输入框中输入其他递推式，可以看到另外两种情形：</p>
+<pre data-language="viz" data-viz="recursion-tree"><code>{&quot;title&quot;: &quot;幻灯片 p16：T(n) = 4T(n/2) + n，n = 4 时的图示&quot;, &quot;recurrence&quot;: &quot;T(n) = 4T(n/2) + n&quot;, &quot;n&quot;: 4, &quot;interactive&quot;: true}</code></pre><h3 id="73-典型例题幻灯片-16">7.3 典型例题（幻灯片 16）</h3>
+<table>
+<thead>
+<tr>
+<th>递推式</th>
+<th>a</th>
+<th>b</th>
+<th>d</th>
+<th>a 与 b^d</th>
+<th>T(n)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T(n) = 4T(n/2) + O(n)</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>4 &gt; 2</td>
+<td>O(n^(log₂ 4)) = <strong>O(n²)</strong></td>
+</tr>
+<tr>
+<td>T(n) = 3T(n/2) + O(n)</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>3 &gt; 2</td>
+<td>O(n^(log₂ 3)) ≈ <strong>O(n^1.6)</strong>（log₂ 3 ≈ 1.585）</td>
+</tr>
+</tbody></table>
+<p>作为对比，第 6 节的递推式 T(n) = 2T(n/2) + n 中 a = 2、b = 2、d = 1，所以 2 = 2¹，属于平衡情形：O(n log n)，与递归树的结果相同。</p>
+<h3 id="74-不适用的情况">7.4 不适用的情况</h3>
+<p>幻灯片 p14 问：<strong>主定理能否求解 T(n) = T(n/3) + T(2n/3) + n？</strong> <strong>不能。</strong> 两个子问题的规模不同（n/3 和 2n/3），因此不存在单一的 b。改用递归树：每个完整层的代价至多为 n（同一层的规模之和至多为 n）。最长路径每步缩小为 2/3，因此约有 log_{3/2} n 层。总计 O(n log n)。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：主定理要求形如 a·T(n/b) + n^d、子问题规模相等的递推式。T(n−1) 型递推式（如阶乘）以及不均匀划分都不适用。这些情况请使用递归树（或代入法）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#83-%E6%B4%BB%E5%8A%A8-2%E4%B8%BB%E5%AE%9A%E7%90%86%E5%B9%BB%E7%81%AF%E7%89%87-17">活动 2</a> 有八个递推式需要用主定理求解。</p>
+</blockquote>
+<blockquote>
+<p>➡️ <strong>续见 <a href="/~kazuhak/notes/ics-46/lec-07/zh-CN/">Lecture 7</a></strong>：基于比较的排序、选择排序、插入排序（幻灯片 p18–39 在那里重复讲解）。</p>
+</blockquote>
+<hr>
+<h2 id="8-课堂活动附解答">8. 课堂活动（附解答）</h2>
+<h3 id="81-活动-0树的层数与叶子数幻灯片-11">8.1 活动 0：树的层数与叶子数（幻灯片 11）</h3>
+<p>对于下面这棵树</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">T(n) = 2T(n/2) + n
+T(1) = c, where c is a constant</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>它有多少层、多少个叶子？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：把 n 连续减半，要减多少次才能到 1？</p>
+</blockquote>
+<p><strong>解答</strong>：输入规模每层减半，减到 1 需要 log₂ n 次减半。因此树高为 log₂ n；若计入根层（第 0 层）与叶子层，共 <strong>log₂ n + 1 层</strong>（幻灯片 p12 将高度标为 log₂ n）。节点数每层翻倍，所以叶子层有 2^(log₂ n) = <strong>n 个叶子</strong>。每个非叶层花费 n，叶子层花费 c·n，因此 T(n) = n log₂ n + cn = O(n log n)。见<a href="#6-%E5%88%86%E6%B2%BB%E9%80%92%E6%8E%A8%E5%BC%8F%E7%9A%84%E9%80%92%E5%BD%92%E6%A0%91">第 6 节</a>。</p>
+<h3 id="82-活动-1递归树方法幻灯片-13">8.2 活动 1：递归树方法（幻灯片 13）</h3>
+<p><strong>(a)</strong> 用递归树方法求二分查找的大 O 时间复杂度：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">T(n) = T(n/2) + c
+T(1) = c</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>(b)</strong> 用递归树求下面递推式的大 O 时间复杂度：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">T(n) = 2T(n/2) + c</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片上两部分都标成了 &quot;a)&quot;。）</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答 (a)：O(log n)。</strong> 每次调用只做一次递归调用，处理一半的范围，并做常数工作 c（计算 <code>mid</code>，一次比较）。这棵“树”是一条链，每层一个节点。共 log₂ n + 1 层，每层代价 c，因此 T(n) = c(log₂ n + 1) = <strong>O(log n)</strong>。下面是一个具有这种形状的递归二分查找：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">bool</span><span style="color:#DCDCAA"> binarySearch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#569CD6"> int*</span><span style="color:#9CDCFE"> arr</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> target</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> > </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">           // empty range</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> mid</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4"> + (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> - </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) / </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">] == </span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#569CD6"> true</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4">])</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#DCDCAA"> binarySearch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#DCDCAA"> binarySearch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">arr</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">mid</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">target</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在一个 16 元素的数组中查找一个不存在的值（最坏情况），会产生 6 次调用：范围大小分别为 16、8、4、2、1，以及最后的空范围。也就是 log₂ 16 + 1 = 5 层，外加本版本用作基底情况的空范围调用。</p>
+<p><strong>解答 (b)：O(n)。</strong> 第 i 层有 2^i 个节点，每个代价 c，因此各层的合计为 c、2c、4c、……、n·c（即 n 个叶子）。这个等比求和为 c(2n − 1) = <strong>O(n)</strong>。工作量每层翻倍，所以叶子占主导。两个递推式只差 &quot;T&quot; 与 &quot;2T&quot; 这一处，却使答案从 log n 变成了 n。下面检查这个求和（n = 16：31c = c(2·16 − 1)）：</p>
+<pre data-language="viz" data-viz="recursion-tree"><code>{&quot;title&quot;: &quot;活动 1(b)：T(n) = 2T(n/2) + c，n = 16 时的图示&quot;, &quot;recurrence&quot;: &quot;T(n) = 2T(n/2) + c&quot;, &quot;n&quot;: 16}</code></pre><h3 id="83-活动-2主定理幻灯片-17">8.3 活动 2：主定理（幻灯片 17）</h3>
+<p>用主定理求解 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>T</mi><mo stretchy="false">(</mo><mi>n</mi><mi mathvariant="normal">/</mi><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mi>d</mi></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">T(n) = a \cdot T(n/b) + O(n^d)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord">/</span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>：</p>
+<p><strong>(a)</strong> 写出二分查找的递推式，并用主定理求解。</p>
+<p><strong>(b)</strong> T(n) = T(n/2) + O(n)</p>
+<p><strong>(c)</strong> T(n) = 2T(n/2) + O(1)</p>
+<p><strong>(d)</strong> T(n) = 2T(n/2) + O(n)</p>
+<p><strong>(e)</strong> T(n) = 4T(n/2) + n</p>
+<p><strong>(f)</strong> T(n) = 4T(n/2) + n²</p>
+<p><strong>(g)</strong> T(n) = 4T(n/2) + n³</p>
+<p><strong>(h)</strong> T(n) = 3T(2n/3) + n</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 对每一题写出 a、b、d，然后比较 a 与 b^d。</p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>递推式</th>
+<th>a</th>
+<th>b</th>
+<th>d</th>
+<th>b^d</th>
+<th>情形</th>
+<th>T(n)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(a)</td>
+<td>T(n) = T(n/2) + O(1)</td>
+<td>1</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+<td>a = b^d</td>
+<td>O(n⁰ log n) = <strong>O(log n)</strong></td>
+</tr>
+<tr>
+<td>(b)</td>
+<td>T(n) = T(n/2) + O(n)</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>a &lt; b^d</td>
+<td><strong>O(n)</strong></td>
+</tr>
+<tr>
+<td>(c)</td>
+<td>T(n) = 2T(n/2) + O(1)</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+<td>a &gt; b^d</td>
+<td>O(n^(log₂ 2)) = <strong>O(n)</strong></td>
+</tr>
+<tr>
+<td>(d)</td>
+<td>T(n) = 2T(n/2) + O(n)</td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>a = b^d</td>
+<td><strong>O(n log n)</strong></td>
+</tr>
+<tr>
+<td>(e)</td>
+<td>T(n) = 4T(n/2) + n</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>a &gt; b^d</td>
+<td>O(n^(log₂ 4)) = <strong>O(n²)</strong></td>
+</tr>
+<tr>
+<td>(f)</td>
+<td>T(n) = 4T(n/2) + n²</td>
+<td>4</td>
+<td>2</td>
+<td>2</td>
+<td>4</td>
+<td>a = b^d</td>
+<td><strong>O(n² log n)</strong></td>
+</tr>
+<tr>
+<td>(g)</td>
+<td>T(n) = 4T(n/2) + n³</td>
+<td>4</td>
+<td>2</td>
+<td>3</td>
+<td>8</td>
+<td>a &lt; b^d</td>
+<td><strong>O(n³)</strong></td>
+</tr>
+<tr>
+<td>(h)</td>
+<td>T(n) = 3T(2n/3) + n</td>
+<td>3</td>
+<td>3/2</td>
+<td>1</td>
+<td>1.5</td>
+<td>a &gt; b^d</td>
+<td>O(n^(log_{3/2} 3)) ≈ <strong>O(n^2.71)</strong></td>
+</tr>
+</tbody></table>
+<p>关键陷阱：</p>
+<ul>
+<li>(a) 和 (c) 的额外工作为 O(1)，因此 <strong>d = 0</strong>。(a) 与<a href="#82-%E6%B4%BB%E5%8A%A8-1%E9%80%92%E5%BD%92%E6%A0%91%E6%96%B9%E6%B3%95%E5%B9%BB%E7%81%AF%E7%89%87-13">活动 1(a)</a>相符。</li>
+<li>(c) 与<a href="#82-%E6%B4%BB%E5%8A%A8-1%E9%80%92%E5%BD%92%E6%A0%91%E6%96%B9%E6%B3%95%E5%B9%BB%E7%81%AF%E7%89%87-13">活动 1(b)</a>的递归树结论一致：O(n)。</li>
+<li>(e)–(g) 保持 a = 4、b = 2，只改变 d，依次走过三种情形：叶子主导、平衡、根主导。</li>
+<li>(h)：规模缩小<em>到</em> 2n/3，因此缩小因子为 b = n ÷ (2n/3) = <strong>3/2</strong>，而不是 2/3 或 3。于是 log_{3/2} 3 = ln 3 / ln 1.5 ≈ 1.0986 / 0.4055 ≈ 2.71。</li>
+</ul>
+<p>回到<a href="#7-%E6%96%B9%E6%B3%95-b%E4%B8%BB%E5%AE%9A%E7%90%86">第 7 节</a>。</p>
+<hr>
+<h2 id="9-速查与必记的-5-个要点">9. 速查与必记的 5 个要点</h2>
+<p><strong>配方：</strong> (1) 写出 T(n) = （对较小输入的递归调用）+ （它们之外的工作），再加上基底情况；(2) 用递归树或主定理求解。</p>
+<p><strong>主定理</strong>，适用于 T(n) = aT(n/b) + O(n^d)：</p>
+<table>
+<thead>
+<tr>
+<th>比较</th>
+<th>工作在哪里</th>
+<th>T(n)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a = b^d</td>
+<td>各层平衡</td>
+<td>O(n^d log n)</td>
+</tr>
+<tr>
+<td>a &lt; b^d</td>
+<td>根节点占主导</td>
+<td>O(n^d)</td>
+</tr>
+<tr>
+<td>a &gt; b^d</td>
+<td>叶子占主导</td>
+<td>O(n^(log_b a))</td>
+</tr>
+</tbody></table>
+<p><strong>本讲常见的递推式：</strong></p>
+<table>
+<thead>
+<tr>
+<th>递推式</th>
+<th>例子</th>
+<th>T(n)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T(n) = T(n−1) + c</td>
+<td>阶乘</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>T(n) = T(n/2) + c</td>
+<td>二分查找</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td>T(n) = 2T(n/2) + c</td>
+<td>活动 1(b)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>T(n) = T(n/2) + n</td>
+<td>活动 2(b)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>T(n) = 2T(n/2) + n</td>
+<td>幻灯片 p10–12</td>
+<td>O(n log n)</td>
+</tr>
+<tr>
+<td>T(n) = 4T(n/2) + n</td>
+<td>幻灯片 p16</td>
+<td>O(n²)</td>
+</tr>
+<tr>
+<td>T(n) = 3T(n/2) + n</td>
+<td>幻灯片 p16</td>
+<td>O(n^(log₂ 3)) ≈ O(n^1.6)</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>没有循环的递归函数<strong>并不</strong>自动是 O(1)：要数调用次数以及每次调用的工作量（<code>factorial</code> 是 O(n)）。</li>
+<li>在递推式中，T(更小的规模) 代表递归调用；额外项是它们之外所做的工作。O(1) 的额外工作意味着 d = 0。</li>
+<li>递归树：每个节点只计自己的工作，合计每一层，再把各层相加。2T(n/2) + n 有 log₂ n + 1 层，每层 n，因此为 O(n log n)。</li>
+<li>主定理：读出 a、b、d，比较 a 与 b^d。相等得 n^d log n，较小得 n^d，较大得 n^(log_b a)。</li>
+<li>主定理要求规模为 n/b 的等规模子问题。它无法处理 T(n−1) 或 T(n/3) + T(2n/3) + n 这类不均匀划分；这些情况请画递归树。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 5 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>队列、双端队列与栈的应用</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 7 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>排序</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-05/zh-CN/" title="上一篇: 队列、双端队列与栈的应用 ([)" aria-label="上一篇: 第 5 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 6 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-07/zh-CN/" title="下一篇: 排序 (])" aria-label="下一篇: 第 7 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 7 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

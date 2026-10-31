@@ -1,0 +1,640 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Quick Sort | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Quick sort: Hoare/Sedgewick 2-pointer partitioning, full traces, worst/best/average analysis, stability and in-place properties, comparison of all sorts so far, and pivot/cutoff improvements."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-09/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413978" data-source-url="/~kazuhak/notes/ics-46/lec-09/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-09/zh-CN/" data-prev-url="/~kazuhak/notes/ics-46/lec-08/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 9</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-09/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 9 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 9 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 29, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-9-quick-sort">Information and Computer Science 46 — Lecture 9: Quick Sort</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-quick-sort-the-idea">1. Quick Sort: the Idea</a></li>
+<li><a href="#2-partitioning-hoare-2-pointer-scheme">2. Partitioning (Hoare 2-Pointer Scheme)</a></li>
+<li><a href="#3-tracing-one-partition">3. Tracing One Partition</a></li>
+<li><a href="#4-full-sort-trace">4. Full Sort Trace</a></li>
+<li><a href="#5-analysis-worst-best-average">5. Analysis: Worst, Best, Average</a></li>
+<li><a href="#6-properties-and-sorting-story-so-far">6. Properties and &quot;Sorting: Story So Far&quot;</a></li>
+<li><a href="#7-quick-sort-improvements">7. Quick Sort Improvements</a></li>
+<li><a href="#8-complete-implementation">8. Complete Implementation</a></li>
+<li><a href="#9-in-class-activities-with-solutions">9. In-class Activities (with Solutions)</a></li>
+<li><a href="#10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/27/26<br>Built from the Lecture 9 slides (which repeat and finish the quick sort material started at the end of Lecture 8), with algs4 §2.3 Quicksort, algs4 §2.2 (lower bound) and Thornton&#39;s ComparisonBasedSorting notes as supplements. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Quiz 3 on Friday (Stacks, Queues, Deques) · HW 5 due Friday · Lab 4 due next Monday<br>Approved AI tools released: <strong>Learning Sentinel</strong> (metacognition from learning activities) and <strong>iGPT</strong> (pedagogical AI tutor). Submit the 2-part consent form for access — (1) store data for tool access, (2) de-identified research use — for ★ 1% extra credit (an alternate extra-credit method comes later in the quarter).</p>
+</blockquote>
+<blockquote>
+<p>➡️ Quick sort&#39;s history (Hoare, 1959) and merge sort are in the <a href="/~kazuhak/notes/ics-46/lec-08/en-US/">Lecture 8 notes</a>. The Trees section at the end of this deck is in the Lecture 10 notes.</p>
+</blockquote>
+<hr>
+<h2 id="1-quick-sort-the-idea">1. Quick Sort: the Idea</h2>
+<p>Quick sort is divide-and-conquer, like merge sort, but the work happens <strong>before</strong> the recursion instead of after it (slide 5):</p>
+<ol>
+<li><strong>Shuffle</strong> the array (randomly).</li>
+<li><strong>Partition</strong> so that, for some pivot index <code>j</code>:<ul>
+<li>entry <code>a[j]</code> is in its final place,</li>
+<li>no larger entry is to the left of <code>j</code>,</li>
+<li>no smaller entry is to the right of <code>j</code>.</li>
+</ul>
+</li>
+<li><strong>Sort</strong> each subarray recursively. There is no merge step — once both sides are sorted, the whole array is sorted.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>before</th>
+<th>after partition</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layout</td>
+<td><code>v</code> (pivot at <code>lo</code>), then unknowns up to <code>hi</code></td>
+<td><code>≤ v</code> … <code>v</code> (at <code>j</code>) … <code>≥ v</code></td>
+</tr>
+</tbody></table>
+<p>Slide 6&#39;s code (the recursive driver plus the public entry point):</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// quicksort</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">partition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                          // Random shuffle</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">shuffle</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">begin</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">-</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Example (slide 5, from algs4): input <code>Q U I C K S O R T E X A M P L E</code> → shuffle → <code>K R A T E L E P U I M Q C X O S</code> → partition on <code>K</code> → <code>E C A I E K L P U T M Q R X O S</code> → sort left → sort right → <code>A C E E I K L M O P Q R S T U X</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Slide bugs</strong> (code on slides 6 and 9):<br><code>std::shuffle(std::begin(a), std::end(a), engine)</code> does not compile — <code>a</code> is a <code>T*</code>, and <code>std::begin</code>/<code>std::end</code> need an array or container. Fix: <code>std::shuffle(a, a + length, engine);</code><br><code>std::shuffle</code> is declared in <code>&lt;algorithm&gt;</code>, which the slide doesn&#39;t include. Fix: add <code>#include &lt;algorithm&gt;</code>.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Merge sort = trivial split, hard combine. Quick sort = hard split (partition), trivial combine. Each partition puts <strong>one</strong> element (the pivot) in its final position, which is why the recursion always terminates — each subarray is strictly smaller.</p>
+</blockquote>
+<h2 id="2-partitioning-hoare-2-pointer-scheme">2. Partitioning (Hoare 2-Pointer Scheme)</h2>
+<p>Goal (slide 7): rearrange <code>a[lo..hi]</code> so that <code>a[lo..j-1] &lt;= a[j] &lt;= a[j+1..hi]</code>.</p>
+<ul>
+<li>The pivot <code>v</code> is <code>a[lo]</code> (&quot;simplest method&quot;). Pointer <code>i</code> starts at <code>lo</code>, <code>j</code> at <code>hi + 1</code>.</li>
+<li>Repeat until <code>i</code> and <code>j</code> cross:<ul>
+<li>scan <code>i</code> left→right <strong>while <code>a[i] &lt; v</code></strong> (stop at a key <strong>≥</strong> the pivot);</li>
+<li>scan <code>j</code> right→left <strong>while <code>v &lt; a[j]</code></strong> (stop at a key <strong>≤</strong> the pivot);</li>
+<li>if <code>i &gt;= j</code>, break;</li>
+<li>exchange <code>a[i]</code> with <code>a[j]</code>.</li>
+</ul>
+</li>
+<li>Finally exchange <code>a[lo]</code> with <code>a[j]</code> and return <code>j</code>.</li>
+</ul>
+<p>Why swap with <code>a[j]</code> and not <code>a[i]</code>? When the scans cross, <code>j</code> sits on the last element of the <code>≤ v</code> region, so swapping the pivot there keeps everything left of it <code>≤ v</code>.</p>
+<p>Slide 8&#39;s code:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> partition</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // Move i to the right for elements &#x3C; v</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#6A9955">        // Move j to the left for elements > v</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[--</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // If pointers cross, stop</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span><span style="color:#6A9955">     // Swap elements at i and j</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#6A9955">    // Place the partitioning item in its correct position</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The <code>i == hi</code> / <code>j == lo</code> guards keep the scans inside the subarray when the pivot is the largest or smallest key. (The <code>j == lo</code> guard is actually redundant — <code>a[lo]</code> is <code>v</code> itself and <code>v &lt; v</code> is false — but it&#39;s harmless.) The slide title spells the name &quot;Sedgwick&quot;; it&#39;s Robert <strong>Sedgewick</strong>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Pre-increment matters. <code>a[++i]</code> moves first, then compares, so the first element <code>i</code> looks at is <code>a[lo+1]</code> (the pivot is skipped). Likewise <code>a[--j]</code> starts at <code>a[hi]</code> because <code>j</code> begins at <code>hi + 1</code>.</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Both scans <strong>stop on keys equal to the pivot</strong> (<code>&lt;</code>, not <code>&lt;=</code>). That looks like it causes useless swaps, but it is what keeps quick sort fast on arrays full of duplicates: with all-equal keys, stopping makes <code>i</code> and <code>j</code> meet in the middle (an even split → n log n), while not stopping would run one pointer to the end and give a 0 / n−1 split → quadratic time (algs4 §2.3).</p>
+</blockquote>
+<h2 id="3-tracing-one-partition">3. Tracing One Partition</h2>
+<p>Slides 9–35 step through the first partition of the shuffled array <code>K R A T E L E P U I M Q C X O S</code> with <code>v = K</code>:</p>
+<table>
+<thead>
+<tr>
+<th>round</th>
+<th><code>i</code> stops at</th>
+<th><code>j</code> stops at</th>
+<th>action</th>
+<th>array after</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1 (<code>R</code> ≥ K)</td>
+<td>12 (<code>C</code> ≤ K)</td>
+<td>swap</td>
+<td><code>K C A T E L E P U I M Q R X O S</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>3 (<code>T</code>)</td>
+<td>9 (<code>I</code>)</td>
+<td>swap</td>
+<td><code>K C A I E L E P U T M Q R X O S</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>5 (<code>L</code>)</td>
+<td>6 (<code>E</code>)</td>
+<td>swap</td>
+<td><code>K C A I E E L P U T M Q R X O S</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>6 (<code>L</code>)</td>
+<td>5 (<code>E</code>)</td>
+<td><code>i &gt;= j</code> → break</td>
+<td>—</td>
+</tr>
+<tr>
+<td>end</td>
+<td></td>
+<td></td>
+<td><code>swap(a[0], a[5])</code>, return 5</td>
+<td><code>E C A I E K L P U T M Q R X O S</code></td>
+</tr>
+</tbody></table>
+<p>After it: <code>K</code> is at index 5 for good, everything left of it is <code>≤ K</code>, everything right is <code>≥ K</code>. Then <code>sort</code> recurses on <code>lo = 0, hi = 4</code> (slide 35; slide 37 shows the start of that call: <code>E C A I E</code>, <code>i = 0</code>, <code>j = 5</code>).</p>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;Slides 9–35: partition(a, 0, 15), v = K&quot;, &quot;items&quot;: &quot;K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S&quot;, &quot;mode&quot;: &quot;partition&quot;}</code></pre><h2 id="4-full-sort-trace">4. Full Sort Trace</h2>
+<p>Slide 36 (algs4&#39;s trace) lists every <code>partition</code> call. Each row is the array after partitioning <code>a[lo..hi]</code> around the pivot that ends up at <code>j</code>; rows with <code>lo == hi</code> (or <code>hi &lt; lo</code>) are size-1/0 subarrays — <strong>no partition</strong> happens, <code>sort</code> just returns.</p>
+<table>
+<thead>
+<tr>
+<th>lo</th>
+<th>j</th>
+<th>hi</th>
+<th>array after this call</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>5</td>
+<td>15</td>
+<td>E C A I E <strong>K</strong> L P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>4</td>
+<td>E C A <strong>E</strong> I K L P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>A C <strong>E</strong> E I K …</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td><strong>A</strong> C E E I K …</td>
+</tr>
+<tr>
+<td>6</td>
+<td>6</td>
+<td>15</td>
+<td>A C E E I K <strong>L</strong> P U T M Q R X O S</td>
+</tr>
+<tr>
+<td>7</td>
+<td>9</td>
+<td>15</td>
+<td>… L M O <strong>P</strong> T Q R X U S</td>
+</tr>
+<tr>
+<td>7</td>
+<td>7</td>
+<td>8</td>
+<td>… L <strong>M</strong> O P …</td>
+</tr>
+<tr>
+<td>10</td>
+<td>13</td>
+<td>15</td>
+<td>… P S Q R <strong>T</strong> U X</td>
+</tr>
+<tr>
+<td>10</td>
+<td>12</td>
+<td>12</td>
+<td>… P R Q <strong>S</strong> T U X</td>
+</tr>
+<tr>
+<td>10</td>
+<td>11</td>
+<td>11</td>
+<td>… P Q <strong>R</strong> S T U X</td>
+</tr>
+<tr>
+<td>14</td>
+<td>14</td>
+<td>15</td>
+<td>… T <strong>U</strong> X</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>A C E E I K L M O P Q R S T U X</td>
+</tr>
+</tbody></table>
+<p>On the slide, <strong>pink</strong> marks the left call <code>sort(a, lo, j-1)</code>, <strong>blue</strong> the right call <code>sort(a, j+1, hi)</code>, <strong>red</strong> the pivot. Notice the order: the left subarray is completely sorted before the right one is touched (depth-first recursion).</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;Slide 36: full quick sort of the shuffled array&quot;, &quot;items&quot;: &quot;K, R, A, T, E, L, E, P, U, I, M, Q, C, X, O, S&quot;, &quot;mode&quot;: &quot;sort&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#91-activity-1-sort-with-quick-sort-slide-38">Activity 1</a> — sort <code>3 7 8 5 2 1 9 5 4</code> by hand.</p>
+</blockquote>
+<h2 id="5-analysis-worst-best-average">5. Analysis: Worst, Best, Average</h2>
+<p>One call to <code>partition</code> on <code>n</code> elements is <strong>O(n)</strong>: <code>i</code> and <code>j</code> together sweep the subarray once (about n + 1 compares). So everything depends on <strong>where the pivot lands</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>case</th>
+<th>scenario</th>
+<th>recurrence</th>
+<th>solution</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>worst</td>
+<td>pivot is always the smallest or largest key → splits of 0 and n−1 (e.g. already sorted or reverse-sorted input with no shuffle)</td>
+<td>T(n) = T(n−1) + n</td>
+<td>n + (n−1) + … + 2 ≈ n²/2 → <strong>O(n²)</strong></td>
+</tr>
+<tr>
+<td>best</td>
+<td>pivot is always the median → two halves</td>
+<td>T(n) = 2T(n/2) + n</td>
+<td>lg n levels × n work per level → <strong>O(n log n)</strong></td>
+</tr>
+<tr>
+<td>average</td>
+<td>random shuffle → pivot rank is uniformly random</td>
+<td>—</td>
+<td><strong>O(n log n)</strong></td>
+</tr>
+</tbody></table>
+<p>Measured with the slide code (no shuffle, sorted input of size n): n = 100 → 5,148 compares, n = 200 → 20,298, n = 400 → 80,598 — about n²/2, quadrupling each time n doubles. The same sorted input of size 1,000 <strong>with</strong> the shuffle took 12,083 compares.</p>
+<p>What reduces the chance of the worst case? The <strong>random shuffle</strong> at the start: no fixed input (sorted, reversed, …) is bad any more; only unlucky random choices are, and those are vanishingly unlikely for large n. That&#39;s the &quot;probabilistic guarantee&quot; on slide 40.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: The average is about <strong>2n ln n ≈ 1.39 n lg n</strong> compares (algs4 §2.3), while merge sort uses at most about n lg n. That ratio is where slide 40&#39;s &quot;39% more compares than merge sort&quot; comes from.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#92-activity-2-quick-sort-analysis-slide-39">Activity 2</a> — worst/best case scenario and recurrence.</p>
+</blockquote>
+<h2 id="6-properties-and-sorting-story-so-far">6. Properties and &quot;Sorting: Story So Far&quot;</h2>
+<p>Slide 40, notes about quick sort:</p>
+<ul>
+<li><strong>39% more compares than merge sort, but faster in practice.</strong> Why:<ul>
+<li>fewer data moves (merge sort copies every element to <code>aux</code> and back at every level);</li>
+<li>good cache behavior — partition scans memory sequentially, which works well with prefetch;</li>
+<li>no extra memory allocation.</li>
+</ul>
+</li>
+<li><strong>Random shuffle</strong> gives a probabilistic guarantee against the worst case.</li>
+<li>O(n log n) average, O(n²) worst.</li>
+<li><strong>In-place</strong>: only swaps inside the array (plus the recursion stack).</li>
+<li><strong>Not stable</strong>: long-distance swaps can reorder equal keys. Example from Activity 1: partitioning <code>5 8 7 9 5 4</code> around the first <code>5</code> ends with <code>swap(a[lo], a[j])</code> exchanging the two <code>5</code>s.</li>
+</ul>
+<p>Slide 41&#39;s summary table:</p>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>In place</th>
+<th>Stable</th>
+<th>Best</th>
+<th>Average</th>
+<th>Worst</th>
+<th>Remarks</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Selection</td>
+<td>✓</td>
+<td></td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>n exchanges</td>
+</tr>
+<tr>
+<td>Insertion</td>
+<td>✓</td>
+<td>✓</td>
+<td>O(n)</td>
+<td>O(n²)</td>
+<td>O(n²)</td>
+<td>use for small arrays or partially ordered</td>
+</tr>
+<tr>
+<td>Merge</td>
+<td></td>
+<td>✓</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td>guaranteed performance; stable</td>
+</tr>
+<tr>
+<td>Quick</td>
+<td>✓</td>
+<td></td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+<td><strong>O(n²)</strong></td>
+<td>n log n probabilistic guarantee; fastest in practice</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>All comparison-based sorting algorithms have a lower bound of n log n in the worst case</strong> (slide: &quot;O(n log n)&quot;; strictly it&#39;s a lower bound, Ω).</li>
+<li>Quick sort&#39;s performance shows Big-O is an <strong>incomplete model</strong> of real-world performance: it has the worst Big-O of the n log n sorts and is still the fastest.</li>
+</ul>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Why n log n can&#39;t be beaten: a comparison sort must distinguish all n! orderings of the input, and each compare has only two outcomes, so some input needs at least lg(n!) ≈ n lg n compares (algs4 §2.2). Merge sort meets this bound, so it is asymptotically optimal.</p>
+</blockquote>
+<h2 id="7-quick-sort-improvements">7. Quick Sort Improvements</h2>
+<p>Slide 42:</p>
+<ol>
+<li><strong>For small subarrays, use insertion sort</strong> — recursion overhead dominates on tiny subarrays, and insertion sort is fast there (same trick as merge sort in Lecture 8).</li>
+<li><strong>Improve pivot selection</strong> (and drop the up-front random shuffle):<ul>
+<li>use a <strong>random element</strong> as the pivot (swap it into <code>a[lo]</code>, then partition as usual);</li>
+<li>use the <strong>median of a small sample</strong> as the pivot — a better split on average.</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: algs4 suggests a cutoff anywhere from about 5 to 15 elements for switching to insertion sort, and says a sample of <strong>3</strong> (median-of-three) captures most of the benefit of median-of-sample.</p>
+</blockquote>
+<p>Slide 43 links &quot;dance&quot; videos of <a href="https://www.youtube.com/watch?v=XaqR3G_NVoo">merge sort</a> and <a href="https://www.youtube.com/watch?v=3San3uKKHgg">quick sort</a> — the quick sort dance uses a <strong>different partition variant</strong> than the one in lecture, so don&#39;t use it to check traces.</p>
+<h2 id="8-complete-implementation">8. Complete Implementation</h2>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;algorithm></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> partition</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[--</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]) {</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> == </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> lo</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> hi</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">partition</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">lo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">hi</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sort</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> length</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">shuffle</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">  // fixed</span></span>
+<span class="line"><span style="color:#DCDCAA">    sort</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4"> - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="38"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 38 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-in-class-activities-with-solutions">9. In-class Activities (with Solutions)</h2>
+<h3 id="91-activity-1-sort-with-quick-sort-slide-38">9.1 Activity 1: Sort with quick sort (slide 38)</h3>
+<p>Sort the following with quick sort:
+note: assume use of lo for pivot</p>
+<table>
+<thead>
+<tr>
+<th>3</th>
+<th>7</th>
+<th>8</th>
+<th>5</th>
+<th>2</th>
+<th>1</th>
+<th>9</th>
+<th>5</th>
+<th>4</th>
+</tr>
+</thead>
+</table>
+<p>(Slide note: Visualgo&#39;s quicksort implementation is different from what&#39;s presented.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: no shuffle; run <code>partition</code> exactly as coded — <code>i</code> stops on ≥ pivot, <code>j</code> stops on ≤ pivot.</p>
+</blockquote>
+<p><strong>Solution.</strong> First partition, <code>lo = 0, hi = 8</code>, <code>v = 3</code>:</p>
+<table>
+<thead>
+<tr>
+<th>round</th>
+<th><code>i</code> stops</th>
+<th><code>j</code> stops</th>
+<th>action</th>
+<th>array</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1 (7)</td>
+<td>5 (1)</td>
+<td>swap</td>
+<td>3 1 8 5 2 7 9 5 4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2 (8)</td>
+<td>4 (2)</td>
+<td>swap</td>
+<td>3 1 2 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3 (5)</td>
+<td>2 (2)</td>
+<td>cross → break</td>
+<td></td>
+</tr>
+<tr>
+<td>end</td>
+<td></td>
+<td></td>
+<td>swap a[0], a[2]; j = 2</td>
+<td>2 1 <strong>3</strong> 5 8 7 9 5 4</td>
+</tr>
+</tbody></table>
+<p>All calls:</p>
+<table>
+<thead>
+<tr>
+<th>lo</th>
+<th>j</th>
+<th>hi</th>
+<th>array after</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>2</td>
+<td>8</td>
+<td>2 1 <strong>3</strong> 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1 <strong>2</strong> 3 5 8 7 9 5 4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>5</td>
+<td>8</td>
+<td>1 2 3 5 4 <strong>5</strong> 9 7 8</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>4</td>
+<td>1 2 3 4 <strong>5</strong> 5 9 7 8</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8</td>
+<td>8</td>
+<td>1 2 3 4 5 5 8 7 <strong>9</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>7</td>
+<td>7</td>
+<td>1 2 3 4 5 5 7 <strong>8</strong> 9</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>1 2 3 4 5 5 7 8 9</td>
+</tr>
+</tbody></table>
+<p>The trap is the call on <code>5 8 7 9 5 4</code> (<code>v = 5</code>): <code>j</code> stops on the second <code>5</code> because it&#39;s <strong>equal</strong> to the pivot (<code>5 &lt; 5</code> is false), so the two <code>5</code>s get swapped — quick sort is not stable. Check it step by step:</p>
+<pre data-language="viz" data-viz="quick-sort"><code>{&quot;title&quot;: &quot;Activity 1 check (slide 38)&quot;, &quot;items&quot;: &quot;3, 7, 8, 5, 2, 1, 9, 5, 4&quot;, &quot;mode&quot;: &quot;sort&quot;}</code></pre><p>Back to <a href="#4-full-sort-trace">§4 Full Sort Trace</a>.</p>
+<h3 id="92-activity-2-quick-sort-analysis-slide-39">9.2 Activity 2: Quick Sort Analysis (slide 39)</h3>
+<p><strong>Worst Case Analysis</strong>
+<strong>(a)</strong> Scenario — when does this occur?
+<strong>(b)</strong> Mathematical model — identify then solve the recurrence.</p>
+<p><strong>Best Case Analysis</strong>
+<strong>(c)</strong> Scenario — when does this occur?
+<strong>(d)</strong> Mathematical model — identify then solve the recurrence.</p>
+<p><strong>(e)</strong> What reduces the likelihood of the worst case happening?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<p><strong>(a)</strong> Every pivot is the smallest (or largest) key of its subarray, so each partition peels off just one element: one side is empty, the other has n − 1. With pivot = <code>a[lo]</code> and no shuffle, an already-sorted (or reverse-sorted) array does this.</p>
+<p><strong>(b)</strong> T(n) = T(n − 1) + n (partition is O(n)). Unrolling: n + (n − 1) + … + 2 ≈ n²/2 → <strong>O(n²)</strong>.</p>
+<p><strong>(c)</strong> Every pivot lands in the middle (it&#39;s the median), splitting into two halves.</p>
+<p><strong>(d)</strong> T(n) = 2T(n/2) + n — the merge sort recurrence: lg n levels, n work per level → <strong>O(n log n)</strong>.</p>
+<p><strong>(e)</strong> The <strong>random shuffle</strong> before sorting (or a random / median-of-sample pivot): the worst case then needs extremely unlucky random choices instead of a common input like a sorted array.</p>
+<p>Back to <a href="#5-analysis-worst-best-average">§5 Analysis</a>.</p>
+<h2 id="10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>partition(a, lo, hi)</code></td>
+<td>O(n) for n = hi − lo + 1</td>
+</tr>
+<tr>
+<td>quick sort, best / average</td>
+<td>O(n log n)</td>
+</tr>
+<tr>
+<td>quick sort, worst</td>
+<td>O(n²) (pivot always min/max)</td>
+</tr>
+<tr>
+<td>extra memory</td>
+<td>in-place (recursion stack only)</td>
+</tr>
+<tr>
+<td>stable?</td>
+<td>no</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Partition rule</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pivot</td>
+<td><code>v = a[lo]</code></td>
+</tr>
+<tr>
+<td>start</td>
+<td><code>i = lo</code>, <code>j = hi + 1</code></td>
+</tr>
+<tr>
+<td><code>i</code> scan</td>
+<td><code>while (a[++i] &lt; v)</code> — stops on ≥ v</td>
+</tr>
+<tr>
+<td><code>j</code> scan</td>
+<td><code>while (v &lt; a[--j])</code> — stops on ≤ v</td>
+</tr>
+<tr>
+<td>stop</td>
+<td><code>i &gt;= j</code></td>
+</tr>
+<tr>
+<td>finish</td>
+<td><code>swap(a[lo], a[j])</code>, return <code>j</code></td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Partition puts the pivot in its final spot with <code>≤ v</code> on its left and <code>≥ v</code> on its right; then recurse on <code>lo..j-1</code> and <code>j+1..hi</code> — no merge step.</li>
+<li>Both scans stop on keys <strong>equal</strong> to the pivot, and the final swap is with <code>a[j]</code>, not <code>a[i]</code> — hand traces live or die on these two details.</li>
+<li>Worst case T(n) = T(n−1) + n = O(n²) when the pivot is always the min or max (sorted input with pivot <code>a[lo]</code> and no shuffle); best case T(n) = 2T(n/2) + n = O(n log n).</li>
+<li>The random shuffle (or random / median-of-3 pivot) makes the worst case improbable; average is O(n log n) with ~39% more compares than merge sort, yet quick sort is faster in practice (fewer moves, cache-friendly, no extra array).</li>
+<li>Quick sort is in-place but not stable; merge sort is stable but not in-place; no comparison sort beats n log n in the worst case.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-08/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 8</span><span class="pager-title" data-astro-cid-gxyjxt6l>Merge Sort, Quick Sort</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Course hub<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>ICS 46 · Data Structure Implementation and Analysis</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-08/en-US/" title="Previous: Merge Sort, Quick Sort ([)" aria-label="Previous: Lecture 8" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 8</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 9</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-09/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

@@ -1,0 +1,717 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 Components in Angular | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Frameworks for large clients, installing Angular, Model-View-Controller and how Angular implements it, components and the root component, interpolation/property/event/two-way binding, @if and @for, and nesting components with inputs and outputs."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-10/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413984" data-source-url="/~kazuhak/notes/in4matx-133/lec-10/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-09/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 10</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 10 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 10 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 29, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-10-components-in-angular">IN4MATX 133: User Interface Software — Lecture 10: Components in Angular</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-small-vs-large-client-interfaces-and-frameworks">1. Small vs large client interfaces, and frameworks</a></li>
+<li><a href="#2-angular-and-installing-it">2. Angular and installing it</a></li>
+<li><a href="#3-model-view-controller">3. Model-View-Controller</a></li>
+<li><a href="#4-mvc-in-angular-binding">4. MVC in Angular: binding</a></li>
+<li><a href="#5-angular-components">5. Angular components</a></li>
+<li><a href="#6-the-root-template-and-root-component">6. The root template and root component</a></li>
+<li><a href="#7-one-way-binding-interpolation-property-event">7. One-way binding: interpolation, property, event</a></li>
+<li><a href="#8-two-way-binding-with-ngmodel">8. Two-way binding with ngModel</a></li>
+<li><a href="#9-control-flow-if-and-for">9. Control flow: @if and @for</a></li>
+<li><a href="#10-using-components-nesting-inputs-and-outputs">10. Using components: nesting, inputs and outputs</a></li>
+<li><a href="#11-in-class-questions--demos-with-solutions">11. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#12-quick-reference--top-5-things-to-remember">12. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Thursday 10/29 (Week 5)<br>Built from the Lecture 10 slides and the demo repo folder <code>W5_L2_Oct29_AngularComponents</code> (one Angular project, <code>w5l2-example</code>). Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Friday&#39;s discussion goes deeper into Angular — how to start an Angular project, plus another coding demo. (The slide says &quot;Friday (2/6)&quot;, a date left over from an earlier offering; it means Friday 10/30.)<br>Declare your A3 partner on Canvas by <strong>Monday 11/2</strong>.</p>
+</blockquote>
+<p>Goals for today: explain a Model-View-Controller architecture and how Angular implements it, describe the role of an Angular component, and implement an Angular component that follows MVC.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Angular can&#39;t run inside these notes&#39; demo boxes (they run plain HTML/CSS/JS, and Angular needs its compiler). So the demos below re-create each Angular example <strong>by hand in plain JavaScript</strong>, labelled as such. That turns out to be a good way to see what Angular does for you: every line of manual wiring in a demo is something a binding replaces. The Angular code itself is shown in code blocks, and the outputs quoted for it come from building the repo&#39;s components with Angular 22.</p>
+</blockquote>
+<hr>
+<h2 id="1-small-vs-large-client-interfaces-and-frameworks">1. Small vs large client interfaces, and frameworks</h2>
+<p>The slides contrast two kinds of front end:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>&quot;Small&quot; client (slide 4: your A2 Runkeeper report)</th>
+<th>&quot;Large&quot; client (slide 5: Instagram)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pages</td>
+<td>3</td>
+<td>Hundreds, with many ways to navigate between them</td>
+</tr>
+<tr>
+<td>Interactivity between pages</td>
+<td>None</td>
+<td>Lots</td>
+</tr>
+<tr>
+<td>Data / UI</td>
+<td>Data is dynamic, UI fairly static</td>
+<td>Repeated UI components (status updates); different content and links for each person</td>
+</tr>
+<tr>
+<td>Computation</td>
+<td>A lot behind each page, but each page is self-contained</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/small-client-a2.png" alt="Slide 4: the "small" client — the A2 Runkeeper report page ("One week of #RunKeeper Tweets", About the data)"></p>
+<p><em>How do we develop large client applications?</em> (slide 6) With a <strong>framework</strong>, which:</p>
+<ul>
+<li>adds structure and organization,</li>
+<li>makes UI components reusable,</li>
+<li>supports modularity,</li>
+<li>imports packages, UIs, etc. when needed.</li>
+</ul>
+<p>Angular, React, Vue.js (and &quot;insert your favorite other framework here&quot;) all support the same overall goal and have a lot in common in how they work. This course uses Angular.</p>
+<h2 id="2-angular-and-installing-it">2. Angular and installing it</h2>
+<p>Angular (slide 9):</p>
+<ul>
+<li>first released in 2009,</li>
+<li>uses <strong>TypeScript, HTML and CSS</strong> (<a href="/~kazuhak/notes/in4matx-133/lec-07/en-US/">Lecture 7</a> covered TypeScript),</li>
+<li>doesn&#39;t dictate what framework is used server-side,</li>
+<li>has a major release every year (the demo repo&#39;s project uses Angular CLI 22.2.3).</li>
+</ul>
+<p>Installing and running (slide 10):</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">npm</span><span style="color:#CE9178"> install</span><span style="color:#569CD6"> -g</span><span style="color:#CE9178"> @angular/cli</span><span style="color:#6A9955">   # the Angular command-line tool, installed globally</span></span>
+<span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> new</span><span style="color:#CE9178"> example</span><span style="color:#6A9955">                # create a new app named "example"</span></span>
+<span class="line"><span style="color:#DCDCAA">cd</span><span style="color:#CE9178"> example</span></span>
+<span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> serve</span><span style="color:#6A9955">                      # run it; add --open to open the browser too</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The app runs on <strong>localhost:4200</strong> by default, and reloads whenever you change a source file. The <code>-g</code> matters: as in <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/">Lecture 6</a>, a global install is what makes the <code>ng</code> command available on the command line.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/ng-new-default-app.png" alt="Slide 10: the app ng new creates, running at localhost:4200 — "Hello, test" with the Angular logo and links to the docs"></p>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/README.md">w5l2-example/README.md</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/package.json">package.json</a></p>
+</blockquote>
+<h2 id="3-model-view-controller">3. Model-View-Controller</h2>
+<p><strong>MVC</strong> is an approach for structuring the code behind interfaces. It splits an app into three roles:</p>
+<ul>
+<li><strong>Model</strong> — the data behind an app.<ul>
+<li>Notifies views when it changes.</li>
+<li>Lets views query it for data.</li>
+<li>Lets the controller manipulate its data.</li>
+</ul>
+</li>
+<li><strong>View</strong> — the visual interface of an app.<ul>
+<li>Renders the contents of the model, and specifies how the model&#39;s data should be presented.</li>
+<li>When the model changes, the view must update its presentation, either by <strong>push</strong> (the view waits for change notifications — a live-updating feed) or by <strong>pull</strong> (the view asks when it wants new data — pull to refresh).</li>
+<li>Forwards input to the controller.</li>
+</ul>
+</li>
+<li><strong>Controller</strong> — the interaction with an app.<ul>
+<li>Interprets user input and maps it to actions.</li>
+<li>Tells the model what actions to perform.</li>
+<li><em>Indirectly</em> tells the view (through the model) whether the page should be rendered differently.</li>
+</ul>
+</li>
+</ul>
+<p>The slides&#39; diagram is a loop:</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-diagram.png" alt="Slides 12–15: the MVC loop — the user uses the controller, the controller manipulates the model, the model updates the view, the user sees the view"></p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The controller never draws anything itself. It changes the model, and the model&#39;s change is what updates the view.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Wikipedia: Model–view–controller</a></p>
+</blockquote>
+<h2 id="4-mvc-in-angular-binding">4. MVC in Angular: binding</h2>
+<p>How Angular maps MVC onto files (slide 16):</p>
+<table>
+<thead>
+<tr>
+<th>MVC role</th>
+<th>In Angular</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>View</td>
+<td>HTML and CSS</td>
+</tr>
+<tr>
+<td>Model &amp; Controller</td>
+<td>TypeScript</td>
+</tr>
+<tr>
+<td>The glue between the three</td>
+<td>Angular itself</td>
+</tr>
+</tbody></table>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/mvc-in-angular.png" alt="Slides 16–17: MVC in Angular — the view (HTML, CSS) and the model are joined to Angular by two-way data binding; the controller (JavaScript, services) talks to servers; users interact with the view"></p>
+<p>The key term is <strong>binding</strong> (slide 17):</p>
+<ul>
+<li>Variables in a view can be <em>bound</em> to variables and functions in a model or controller.</li>
+<li>When a variable in the model changes, every reference to it in the view changes too — Angular uses the <strong>&quot;push&quot;</strong> model.</li>
+<li>When the view receives input from a user, it passes it to the controller function bound to that input.</li>
+</ul>
+<p>Sections 7–8 show the four kinds of binding; the demo in <a href="#74-one-way-binding-in-the-demo-app">7.4</a> wires them by hand.</p>
+<h2 id="5-angular-components">5. Angular components</h2>
+<p>A <strong>component</strong> is an interface element — usually larger than &quot;a button&quot; but smaller than &quot;a page&quot;, and usually one that repeats across the interface. Each component defines the model, view and controller for that element.</p>
+<p>Component terms (slide 20):</p>
+<ul>
+<li><strong>template</strong> — the HTML file representing the view,</li>
+<li><strong>style</strong> — the CSS file(s) saying how the component is styled,</li>
+<li><strong>selector</strong> — a CSS selector Angular uses to find every place this component goes (e.g. every <code>&lt;app-week&gt;</code> tag).</li>
+</ul>
+<p>Make a new component with:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> generate</span><span style="color:#CE9178"> component</span><span style="color:#CE9178"> hello</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>This makes a folder with four files:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hello.css</code></td>
+<td>view</td>
+</tr>
+<tr>
+<td><code>hello.html</code></td>
+<td>view</td>
+</tr>
+<tr>
+<td><code>hello.spec.ts</code></td>
+<td>automated testing (we&#39;ll mostly ignore it)</td>
+</tr>
+<tr>
+<td><code>hello.ts</code></td>
+<td>model and controller</td>
+</tr>
+</tbody></table>
+<p>Every app has at least one component, the <strong>root</strong> component — by default <code>app.html</code> / <code>app.css</code> / <code>app.ts</code> / <code>app.spec.ts</code>. It is essentially the &quot;main&quot; page of your app. The repo shows how it gets on the page: <code>index.html</code> contains just <code>&lt;app-root&gt;&lt;/app-root&gt;</code>, and <code>main.ts</code> starts the app with the root class:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// src/main.ts (from the repo)</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">bootstrapApplication</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/platform-browser'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">appConfig</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './app/app.config'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">App</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './app/app'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">bootstrapApplication</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">App</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">appConfig</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">catch</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#9CDCFE"> console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">error</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">err</span><span style="color:#D4D4D4">));</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Constructor vs <code>ngOnInit()</code> (extra slide 54, not covered in class).</strong> Most components have both a constructor and an init function; put setup code in <code>ngOnInit()</code>, which runs later:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-hello'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './hello.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./hello.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> HelloComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() { }</span></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The slide&#39;s title calls it <code>onInit()</code>, but the interface is <code>OnInit</code> and the method must be named <code>ngOnInit</code>. Why &quot;later&quot; matters: given <code>&lt;app-hello name=&quot;Kazuha&quot;&gt;</code> with <code>@Input() name = &quot;&quot;</code>, logging <code>name</code> in each prints <code>constructor: name = &#39;&#39;</code> then <code>ngOnInit: name = &#39;Kazuha&#39;</code> — inputs aren&#39;t set yet when the constructor runs. (The slide&#39;s <code>hello.component.*</code> file names are the older CLI naming; the current CLI generates <code>hello.html</code>, <code>hello.ts</code>.)</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://stackoverflow.com/questions/35763730/difference-between-constructor-and-ngoninit">Stack Overflow: Difference between constructor and ngOnInit</a></p>
+</blockquote>
+<h2 id="6-the-root-template-and-root-component">6. The root template and root component</h2>
+<p>Slide 23 (&quot;Hello Angular&quot;) shows the running demo app: the tomato cat image, <strong>&quot;Hello, INF 133&quot;</strong>, &quot;Congratulations! Your app is running. 🎉&quot;, and on the right three link pills (INF 133 Canvas, INF 133 Slack, Angular tutorials) plus GitHub / X / YouTube icons.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/hello-angular.png" alt="Slide 23: the running demo app — the tomato cat, "Hello, INF 133", "Congratulations! Your app is running.", and the Canvas / Slack / Angular tutorials pills"></p>
+<h3 id="61-root-template-apphtml">6.1 Root template: app.html</h3>
+<p>The root template looks like any other HTML page; the only difference is that it can use <strong>data binding</strong>:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“left-side”</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomatoCat.png"</span><span style="color:#9CDCFE"> alt</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomato cat"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"200px"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Hello, {{title}}!</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Congratulations! Your app is running. 🎉</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>{{title}}</code> binds that text to the variable <code>title</code>. (Slide typo: <code>class=“left-side”</code> uses curly quotes — write <code>class=&quot;left-side&quot;</code>.)</p>
+<h3 id="62-root-component-appts">6.2 Root component: app.ts</h3>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;    </span><span style="color:#6A9955">// import Angular's component library</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({                                  </span><span style="color:#6A9955">// designates the class as a component</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,                       </span><span style="color:#6A9955">// replace all occurrences of &#x3C;app-root> with this</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span><span style="color:#D4D4D4">,                  </span><span style="color:#6A9955">// designate the template</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.css'</span><span style="color:#D4D4D4">]                    </span><span style="color:#6A9955">// designate the style(s)</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {                            </span><span style="color:#6A9955">// all code for the component</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'example'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 27 draws the arrow: <code>{{title}}</code> in <code>app.html</code> ↔ <code>title = &#39;example&#39;</code> in <code>app.ts</code>, so the page says &quot;Hello, example!&quot;.</p>
+<p>The repo&#39;s <code>app.ts</code> (the version that produces &quot;Hello, INF 133&quot;) differs in two ways worth knowing:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">FormsModule</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">RouterOutlet</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Week</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Dice</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"INF 133"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">  // ...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>styleUrl</code> (one file, a string) vs the slide&#39;s <code>styleUrls</code> (an array) — both are accepted.</li>
+<li><code>imports: [...]</code> lists what the template uses that isn&#39;t plain HTML: <code>FormsModule</code> for <code>ngModel</code> (Section 8) and the child components <code>Week</code> and <code>Dice</code> (Section 10).</li>
+</ul>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/app.html">app.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/app.ts">app.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/main.ts">main.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/index.html">index.html</a></p>
+</blockquote>
+<h2 id="7-one-way-binding-interpolation-property-event">7. One-way binding: interpolation, property, event</h2>
+<p>There are four types of binding (slide 28):</p>
+<table>
+<thead>
+<tr>
+<th>Binding</th>
+<th>Syntax</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Interpolation</td>
+<td><code>{{ }}</code></td>
+</tr>
+<tr>
+<td>Property</td>
+<td><code>[ ]</code></td>
+</tr>
+<tr>
+<td>Event</td>
+<td><code>( )</code></td>
+</tr>
+<tr>
+<td>Two-way</td>
+<td><code>[( )]</code></td>
+</tr>
+</tbody></table>
+<h3 id="71-interpolation-binding">7.1 Interpolation binding {{ }}</h3>
+<p>&quot;Weave calculated strings into the text between HTML element tags and within attribute assignments.&quot; It also evaluates expressions:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  Hello, {{title}}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!-- "The sum of 1 + 1 is 2" --></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">The sum of 1 + 1 is {{1 + 1}}</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="72-property-binding">7.2 Property binding [ ]</h3>
+<p>&quot;Set an element property to a component property value.&quot; The square brackets around the attribute name mean &quot;the value in quotes is a TypeScript expression, not a string&quot;:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“tomatoCatUrl</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With <code>tomatoCatUrl = &quot;tomatoCat.png&quot;</code> in <code>app.ts</code>, this shows the tomato cat (slide 30). Without the brackets, <code>src=&quot;tomatoCatUrl&quot;</code> would ask for a file literally named <code>tomatoCatUrl</code>. (Slide typo: the opening <code>“</code> is a curly quote.)</p>
+<h3 id="73-event-binding">7.3 Event binding ( )</h3>
+<p>&quot;Listen for certain events such as keystrokes, mouse movements, clicks, and touches.&quot; Parentheses around an event name run the quoted statement when the event fires:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--When clicked, will run the onSave() function in</span></span>
+<span class="line"><span style="color:#6A9955">component.ts file--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“onSave()</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Save</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The event names are the DOM&#39;s (<code>click</code>, <code>input</code>, … — the same ones you passed to <code>addEventListener</code> in <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/">Lecture 6</a>), and the statement includes the call parentheses <code>onSave()</code>.</p>
+<h3 id="74-one-way-binding-in-the-demo-app">7.4 One-way binding in the demo app</h3>
+<p>Interpolation, property and event bindings are all <strong>one-way</strong> (read-only):</p>
+<table>
+<thead>
+<tr>
+<th>Data direction</th>
+<th>Syntax (slide 32&#39;s table)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>One-way, data source (<code>.ts</code>) → view target (<code>.html</code>)</td>
+<td><code>{{expression}}</code>, <code>[target]=&quot;expression&quot;</code>, <code>bind-target=&quot;expression&quot;</code></td>
+</tr>
+<tr>
+<td>One-way, view target (<code>.html</code>) → data source (<code>.ts</code>)</td>
+<td><code>(target)=&quot;statement&quot;</code>, <code>on-target=&quot;statement&quot;</code></td>
+</tr>
+<tr>
+<td>Two-way</td>
+<td><code>[(target)]=&quot;expression&quot;</code>, <code>bindon-target=&quot;expression&quot;</code></td>
+</tr>
+</tbody></table>
+<p>Slide 33 connects the three one-way bindings in the demo app:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!-- app.html --></span></span>
+<span class="line"><span style="color:#D4D4D4">{{title}}</span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"tomatoCatUrl"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"clickExample()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me and read the console!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// app.ts</span></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.html'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> App</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  title</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'INF 133'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  tomatoCatUrl</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"tomatoCat.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">  clickExample</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"clicked button!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>{{title}}</code> → <code>title</code>, <code>[src]</code> → <code>tomatoCatUrl</code>, <code>(click)</code> → <code>clickExample()</code>. Clicking the button logs <code>clicked button!</code>. (The slide&#39;s code uses curly quotes throughout; the code above is the repo&#39;s.)</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/one-way-binding-arrows.png" alt="Slide 33: arrows from {{title}}, [src]="tomatoCatUrl" and (click)="clickExample()" in app.html to title, tomatoCatUrl and clickExample() in app.ts"></p>
+<p>Try it below: the same page, with the model / view / controller wiring written out by hand. Step through, or edit and press Run:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 29–38 · the four bindings of app.html, wired by hand in plain JS (Angular does this wiring for you)&quot;, &quot;html&quot;: &quot;&lt;p&gt;&lt;b&gt;Property binding:&lt;/b&gt;&lt;/p&gt;\n&lt;img id=\&quot;cat\&quot; alt=\&quot;tomato cat\&quot; width=\&quot;120\&quot;&gt;\n&lt;h1 id=\&quot;hello\&quot;&gt;&lt;/h1&gt;\n&lt;p&gt;&lt;b&gt;Interpolation with math:&lt;/b&gt; &lt;span id=\&quot;sum\&quot;&gt;&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;b&gt;Event binding:&lt;/b&gt; &lt;button id=\&quot;btn\&quot;&gt;Click me and read the console...&lt;/button&gt;&lt;/p&gt;\n&lt;p&gt;&lt;b&gt;Two-way binding:&lt;/b&gt; &lt;input id=\&quot;box\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } h1 { margin: 4px 0; }&quot;, &quot;js&quot;: &quot;// MODEL: the data (the fields of class App in app.ts)\nconst model = { title: \&quot;INF 133\&quot;, tomatoCatUrl: \&quot;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W5_L2_Oct29_AngularComponents/w5l2-example/public/tomatoCat.png\&quot;, enteredText: \&quot;placeholder\&quot; };\n\n// VIEW: render the model (what {{ }} and [ ] do)\nfunction render() {\n  document.getElementById(\&quot;hello\&quot;).textContent = \&quot;Hello, \&quot; + model.title;   // {{title}}\n  document.getElementById(\&quot;sum\&quot;).textContent = \&quot;The sum of 1 + 1 is \&quot; + (1 + 1); // {{1 + 1}}\n  document.getElementById(\&quot;cat\&quot;).src = model.tomatoCatUrl;                    // [src]=\&quot;tomatoCatUrl\&quot;\n  document.getElementById(\&quot;box\&quot;).value = model.enteredText;                   // [(ngModel)] model -&gt; view\n}\n\n// CONTROLLER: map user input to actions (what ( ) does)\nfunction clickExample() { console.log(\&quot;clicked button!\&quot;); }\nfunction textChanged() { console.log(\&quot;you wrote: \&quot; + model.enteredText); }\ndocument.getElementById(\&quot;btn\&quot;).addEventListener(\&quot;click\&quot;, clickExample);     // (click)=\&quot;clickExample()\&quot;\ndocument.getElementById(\&quot;box\&quot;).addEventListener(\&quot;input\&quot;, (e) =&gt; {\n  model.enteredText = e.target.value;                                         // [(ngModel)] view -&gt; model\n  textChanged();                                                              // (input)=\&quot;textChanged()\&quot;\n});\n\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Event binding: a click runs the controller function (view → .ts).&quot;, &quot;js&quot;: &quot;document.getElementById(\&quot;btn\&quot;).click();&quot;}, {&quot;note&quot;: &quot;Two-way binding, view → model: typing updates enteredText, then (input) logs it.&quot;, &quot;js&quot;: &quot;const box = document.getElementById(\&quot;box\&quot;);\nbox.value = \&quot;abc\&quot;;\nbox.dispatchEvent(new Event(\&quot;input\&quot;));&quot;}, {&quot;note&quot;: &quot;Model → view (\&quot;push\&quot;): change the model, and every bound spot in the view updates.&quot;, &quot;js&quot;: &quot;model.title = \&quot;IN4MATX 133\&quot;;\nmodel.enteredText = \&quot;set from the model\&quot;;\nrender();\nconsole.log(\&quot;title is now \&quot; + model.title);&quot;}], &quot;height&quot;: 330, &quot;interactive&quot;: true}</code></pre><p>The console shows <code>clicked button!</code>, then <code>you wrote: abc</code>, then <code>title is now IN4MATX 133</code> while the heading changes to &quot;Hello, IN4MATX 133&quot;. In Angular, that last <code>render()</code> call doesn&#39;t exist: changing <code>this.title</code> is enough.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The brackets decide the direction. <code>[x]</code> reads <em>from</em> the <code>.ts</code> into the page; <code>(x)</code> sends an event <em>to</em> the <code>.ts</code>. <code>(href)=&quot;url&quot;</code> is therefore an event listener for an event named &quot;href&quot; — it never sets the link. That&#39;s the trap in <a href="#111-question-1-which-will-bind-the-links-href-to-url-slides-3436">Question 1</a>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#111-question-1-which-will-bind-the-links-href-to-url-slides-3436">Question 1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://angular.dev/guide/templates">Angular: Templates</a> · <a href="https://angular.dev/guide/templates/binding">Angular: Binding</a> · <a href="https://angular.dev/guide/templates/event-listeners">Angular: Event listeners</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event">MDN: click event</a></p>
+</blockquote>
+<h2 id="8-two-way-binding-with-ngmodel">8. Two-way binding with ngModel</h2>
+<p>&quot;You often want to both display a data property and update that property when the user makes changes.&quot; The most common use is binding to user input. The <strong><code>ngModel</code> directive</strong> enables two-way binding to input fields, written with &quot;banana in a box&quot; brackets <code>[( )]</code>:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--enteredText variable contains inputted text--></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--textChanged() is called after every keystroke--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> [(ngModel)]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"enteredText"</span><span style="color:#9CDCFE"> (input)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“textChanged()</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>With the repo&#39;s <code>app.ts</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">enteredText</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"placeholder"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">textChanged</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"you wrote: "</span><span style="color:#D4D4D4"> + </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">enteredText</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The box starts out showing <code>placeholder</code> (model → view); typing replaces <code>enteredText</code> (view → model), and the <code>(input)</code> event binding then logs it — typing <code>abc</code> into an emptied box logs <code>you wrote: abc</code>. To use <code>ngModel</code> the component must have <code>FormsModule</code> in its <code>imports</code> (the repo&#39;s <code>app.ts</code> does: <code>import {FormsModule} from &#39;@angular/forms&#39;;</code>).</p>
+<p>Slide 38 collects all the bindings:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--enteredText variable contains inputted text--></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--textChanged() is called after every keystroke--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">input</span><span style="color:#9CDCFE"> [(ngModel)]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"enteredText"</span><span style="color:#9CDCFE"> (input)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“textChanged()</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;!--When clicked, will run the onSave() function in app.ts file--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“clickExample()</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click me and read the console…</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">h3</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--will display the title--></span></span>
+<span class="line"><span style="color:#D4D4D4">  {{title}}</span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--will display the image at tomatoCatUrl—></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;img [src]="tomatoCatUrl"></span></span>
+<span class="line"><span style="color:#6A9955">&#x3C;/h3></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Slide 38&#39;s last comment ends with an em dash <code>—&gt;</code> instead of <code>--&gt;</code>, so the comment never closes. Angular refuses to compile that template (&quot;Unexpected character &quot;EOF&quot;&quot;); in a plain HTML page it would silently hide everything up to the next <code>--&gt;</code>. Also: the comment says <code>onSave()</code> but the button calls <code>clickExample()</code>, and two attributes use curly quotes.</p>
+</blockquote>
+<p>The two-way step in the <a href="#74-one-way-binding-in-the-demo-app">Section 7.4 demo</a> shows both directions.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://angular.dev/guide/templates/two-way-binding">Angular: Two-way binding</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event">MDN: change event</a></p>
+</blockquote>
+<h2 id="9-control-flow-if-and-for">9. Control flow: @if and @for</h2>
+<p>Templates can decide <em>whether</em> and <em>how many times</em> to render something with <code>@if</code> and <code>@for</code>, using parentheses for the condition and braces for what&#39;s covered. They replaced <code>*ngIf</code> and <code>*ngFor</code> in 2024 — older examples online still use the old syntax.</p>
+<h3 id="91-if">9.1 @if</h3>
+<p>Render a tag only if a condition is true:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(isHalloween()) {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    It’s Halloween!!!</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">} @else {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Just another regular ole day…</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The condition calls a controller function from the repo&#39;s <code>app.ts</code> (months count from 0, so 9 is October):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">isHalloween</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">  const</span><span style="color:#4FC1FF"> today</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Date</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">  if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getMonth</span><span style="color:#D4D4D4">() == </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getDate</span><span style="color:#D4D4D4">() == </span><span style="color:#B5CEA8">31</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> true</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#569CD6"> false</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>On lecture day (10/29) the page shows &quot;Just another regular ole day...&quot; (slide 40&#39;s screenshot).</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/if-example.png" alt="Slide 40: the @if / @else template next to its output, "Just another regular ole day...""></p>
+<h3 id="92-for">9.2 @for</h3>
+<p>Repeat an item for every element of an array:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// In app.ts</span></span>
+<span class="line"><span style="color:#9CDCFE">days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  @for(day of days; track day) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      {{day}}</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>track</code> is for performance: it should be a unique property of each item, so Angular can tell items apart when the array changes.</li>
+<li>You can optionally get the index with <code>let i = $index</code>:</li>
+</ul>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  @for(day of days; track day; let i = $index) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      {{i+1}}: {{day}}</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The first renders Sunday … Saturday; the second renders &quot;1: Sunday&quot; … &quot;7: Saturday&quot;. It&#39;s the template version of a Python <code>for i, day in enumerate(days)</code>. The repo&#39;s <code>app.html</code> also loops over an inline array of objects with <code>track item.title</code> to build the three link pills on the right of the page.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/for-example.png" alt="Slide 41: the two @for templates and their output — Sunday … Saturday, then 1: Sunday … 7: Saturday"></p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://angular.love/diving-into-the-new-angular-control-flow-internals">angular.love: Diving into the new Angular control flow</a> · <a href="https://angular.dev/api/core/@if">Angular: @if</a> · <a href="https://angular.dev/api/core/@for">Angular: @for</a></p>
+</blockquote>
+<h2 id="10-using-components-nesting-inputs-and-outputs">10. Using components: nesting, inputs and outputs</h2>
+<h3 id="101-nesting-a-component">10.1 Nesting a component</h3>
+<p>Components can include other components: put the child&#39;s <strong>selector</strong> (defined in its <code>.ts</code>) in the parent&#39;s template. In <code>app.html</code>:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“exampleTitle”</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    Component nesting example:</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">h1</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-week</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-week</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(Slide bugs: the <code>&lt;p&gt;</code> is closed with <code>&lt;/h1&gt;</code>, and the class uses curly quotes — the repo has <code>&lt;p class=&quot;exampleTitle&quot;&gt;Component nesting example:&lt;/p&gt;</code>.) The parent must also list the child class in its <code>imports</code> (<code>imports: [FormsModule, RouterOutlet, Week, Dice]</code> in the repo&#39;s <code>app.ts</code>).</p>
+<h3 id="102-inputs">10.2 Inputs</h3>
+<p>Components can declare <strong>inputs</strong>, values the parent hands in. <code>week.ts</code> and <code>week.html</code> (the repo&#39;s versions, which match slide 43):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Input</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-week'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> '../app.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './week.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Week</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#D4D4D4">    @</span><span style="color:#DCDCAA">Input</span><span style="color:#D4D4D4">() </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    @for(day of days; track day){</span></span>
+<span class="line"><span style="color:#808080">        &#x3C;</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">            {{day}}</span></span>
+<span class="line"><span style="color:#D4D4D4">            @if(day == today) {</span></span>
+<span class="line"><span style="color:#808080">                &#x3C;</span><span style="color:#569CD6">strong</span><span style="color:#808080">></span><span style="color:#D4D4D4">Today!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">strong</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">            }</span></span>
+<span class="line"><span style="color:#808080">        &#x3C;/</span><span style="color:#569CD6">li</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">ul</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input.png" alt="Slide 43: week.ts with @Input() today (labelled Input) and week.html where today is referenced in @if(day == today)"></p>
+<p><code>@Input()</code> marks <code>today</code> as an input; the template uses it like any other field. The parent passes it (slide 44):</p>
+<ul>
+<li><strong>as a property binding</strong> if it&#39;s dynamic: <code>&lt;app-week [today]=&quot;dayOfWeek()&quot;&gt;&lt;/app-week&gt;</code> — <code>dayOfWeek()</code> is a function in <code>App</code>;</li>
+<li><strong>like any other attribute</strong> if it&#39;s a static value: <code>&lt;app-week today=&quot;Friday&quot;&gt;&lt;/app-week&gt;</code>.</li>
+</ul>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// app.ts</span></span>
+<span class="line"><span style="color:#DCDCAA">dayOfWeek</span><span style="color:#D4D4D4">():</span><span style="color:#9CDCFE">string</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  const</span><span style="color:#4FC1FF"> day</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Date</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">getDay</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">  return</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">][</span><span style="color:#9CDCFE">day</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Both render the seven days with <strong>Today!</strong> after the matching one. (Slide 44&#39;s bugs: it closes <code>&lt;app-week&gt;</code> with <code>&lt;/app-day&gt;</code>, and its labels say &quot;Sets day property&quot; — the input is named <code>today</code>.)</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/week-input-passing.png" alt="Slide 44: passing the input — today="Friday" sets a static value; [today]="dayOfWeek()" binds it to App's function"></p>
+<p>Try it — the Week component as a plain JS function whose parameter plays the role of <code>@Input() today</code>:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 41–44 · week.html&#39;s @for + @if, and the today input, by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;&lt;b&gt;today=\&quot;Friday\&quot; (static):&lt;/b&gt;&lt;/p&gt;\n&lt;div id=\&quot;static\&quot;&gt;&lt;/div&gt;\n&lt;p&gt;&lt;b&gt;[today]=\&quot;dayOfWeek()\&quot; (bound):&lt;/b&gt;&lt;/p&gt;\n&lt;div id=\&quot;bound\&quot;&gt;&lt;/div&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } ul { margin: 2px 0 8px; }&quot;, &quot;js&quot;: &quot;const days = [\&quot;Sunday\&quot;, \&quot;Monday\&quot;, \&quot;Tuesday\&quot;, \&quot;Wednesday\&quot;, \&quot;Thursday\&quot;, \&quot;Friday\&quot;, \&quot;Saturday\&quot;];\n\n// The Week component: today is its @Input()\nfunction appWeek(today) {\n  const ul = document.createElement(\&quot;ul\&quot;);\n  for (const day of days) {                       // @for(day of days; track day)\n    const li = document.createElement(\&quot;li\&quot;);\n    li.textContent = day + \&quot; \&quot;;                  // {{day}}\n    if (day == today) {                           // @if(day == today)\n      li.insertAdjacentHTML(\&quot;beforeend\&quot;, \&quot;&lt;strong&gt;Today!&lt;/strong&gt;\&quot;);\n    }\n    ul.append(li);\n  }\n  return ul;\n}\n\nfunction dayOfWeek() {                            // from App in app.ts\n  return days[new Date().getDay()];\n}\n\ndocument.getElementById(\&quot;static\&quot;).append(appWeek(\&quot;Friday\&quot;));\ndocument.getElementById(\&quot;bound\&quot;).append(appWeek(dayOfWeek()));\nconsole.log(\&quot;dayOfWeek() = \&quot; + dayOfWeek());\n&quot;, &quot;height&quot;: 400, &quot;interactive&quot;: true}</code></pre><p>The static list always marks Friday; the bound one marks whatever day you open the page (the console prints it).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>today=&quot;Friday&quot;</code> passes the <em>string</em> <code>&quot;Friday&quot;</code>; <code>[today]=&quot;Friday&quot;</code> would look for a field named <code>Friday</code> in the parent. Use brackets only when the value is an expression.</p>
+</blockquote>
+<h3 id="103-outputs-extra-slide-53-not-covered-in-class">10.3 Outputs (extra slide 53, not covered in class)</h3>
+<p>A component can also declare <strong>output properties</strong> — events it sends up to its parent:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Output</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'myClick'</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">clicks</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> EventEmitter</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">>();</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The parent listens with an event binding, and the handler runs in the <strong>parent</strong> component:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">app-button</span><span style="color:#9CDCFE"> (myClick)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"clickMessage"</span><span style="color:#808080">></span><span style="color:#D4D4D4">click with myClick</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">app-button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">clickMessage</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">  console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"clicked!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide bug: the statement must call the function, <code>(myClick)=&quot;clickMessage()&quot;</code>. With the slide&#39;s <code>&quot;clickMessage&quot;</code> (no parentheses) nothing is logged when the child emits; with <code>clickMessage()</code> it logs <code>clicked!</code>. Inputs go parent → child, outputs go child → parent.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#112-question-2-improving-your-portfolio-with-components-slides-4547">Question 2</a> · <a href="#113-demo-rolling-dice-slide-48--dicets--dicefinishedtxt">Demo: Rolling Dice</a></p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/week/week.ts">week.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/week/week.html">week.html</a></p>
+</blockquote>
+<hr>
+<h2 id="11-in-class-questions--demos-with-solutions">11. In-class Questions &amp; Demos (with Solutions)</h2>
+<h3 id="111-question-1-which-will-bind-the-links-href-to-url-slides-3436">11.1 Question 1: Which will bind the link&#39;s href to url? (slides 34–36)</h3>
+<p><em>Which will bind the link&#39;s <code>href</code> to the variable <code>url</code>?</em></p>
+<ul>
+<li>A. <code>&lt;a href=“{{url}}”&gt;link&lt;/a&gt;</code></li>
+<li>B. <code>&lt;a (href)=“url”&gt;link&lt;/a&gt;</code></li>
+<li>C. <code>&lt;a [href]=“url”&gt;link&lt;/a&gt;</code></li>
+<li>D. A and B</li>
+<li>E. A and C</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: E (A and C).</strong> The slides don&#39;t show the poll result; this was checked by compiling the three links (with straight quotes) in Angular 22 with <code>url = &quot;https://example.com/page&quot;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Resulting <code>href</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A <code>href=&quot;{{url}}&quot;</code></td>
+<td><code>https://example.com/page</code> ✅ — interpolation works inside attribute values too (&quot;within attribute assignments&quot;, slide 29)</td>
+</tr>
+<tr>
+<td>B <code>(href)=&quot;url&quot;</code></td>
+<td>none ❌ — this is an <em>event</em> binding listening for an event called &quot;href&quot;; it never sets anything</td>
+</tr>
+<tr>
+<td>C <code>[href]=&quot;url&quot;</code></td>
+<td><code>https://example.com/page</code> ✅ — property binding</td>
+</tr>
+</tbody></table>
+<p>So D is wrong because of B. The repo&#39;s <code>app.html</code> uses form C for its link pills: <code>[href]=&quot;item.link&quot;</code>. (Curly quotes on the slide would make the browser treat <code>“</code> as part of the value — always type straight quotes.) Back to <a href="#7-one-way-binding-interpolation-property-event">Section 7</a>.</p>
+<h3 id="112-question-2-improving-your-portfolio-with-components-slides-4547">11.2 Question 2: Improving your portfolio with components (slides 45–47)</h3>
+<p><em>With a partner, discuss an idea for how you could improve your portfolio website with Angular components.</em></p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>The slide&#39;s example answer</strong>: an old course website (linked below) where the entire site is inside an Angular component, and the header, body and footer are their own components — which makes re-using the header and footer content easy. For an A1-style portfolio, the same idea applies to anything repeated: a header/nav and footer used on every page, or a project card component with inputs (title, image, link) rendered once per project with <code>@for</code>. Back to <a href="#10-using-components-nesting-inputs-and-outputs">Section 10</a>.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://inf133-wi26.depstein.net/">Example: an earlier IN4MATX 133 course website built with Angular</a></p>
+</blockquote>
+<h3 id="113-demo-rolling-dice-slide-48--dicets--dicefinishedtxt">11.3 Demo: Rolling Dice (slide 48 · dice.ts → diceFinished.txt)</h3>
+<p><strong>Task</strong>: inside the demo app, make a <code>Dice</code> component that shows two dice and a button; clicking it rolls both dice and shows the total. Slide 48 shows the result: &quot;Hello!&quot;, a &quot;Click to roll the dice!&quot; button, two dice images and &quot;Total: 8&quot;.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-10/rolling-dice.png" alt="Slide 48: the finished Dice component — "Hello!", the roll button, two dice (5 and 6) and "Total: 8""></p>
+<p>Starter (<code>src/app/dice/</code>, generated by <code>ng generate component dice</code>): <code>dice.html</code> is <code>&lt;p&gt;TODO: this!&lt;/p&gt;</code> and the class is empty:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [],</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-dice'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrl:</span><span style="color:#CE9178"> './dice.css'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './dice.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dice</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The app already places it: <code>app.html</code> has <code>&lt;app-dice&gt;&lt;/app-dice&gt;</code>, and <code>app.ts</code> imports <code>Dice</code>. The images <code>dice_1.png</code> … <code>dice_6.png</code> are in the project&#39;s <code>public/</code> folder.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution</strong> (from <code>diceFinished.txt</code>). Model + controller, <code>dice.ts</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dice</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    diceUrl1</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"dice_1.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    diceUrl2</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">"dice_1.png"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    total</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">    rollDice</span><span style="color:#D4D4D4"> () {</span></span>
+<span class="line"><span style="color:#569CD6">        var</span><span style="color:#9CDCFE"> random</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">() * </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl1</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">`dice_</span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">random</span><span style="color:#569CD6">}</span><span style="color:#CE9178">.png`</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">        var</span><span style="color:#9CDCFE"> random2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">() * </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl2</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">`dice_</span><span style="color:#569CD6">${</span><span style="color:#9CDCFE">random2</span><span style="color:#569CD6">}</span><span style="color:#CE9178">.png`</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">random</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">random2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">diceUrl2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>View, <code>dice.html</code>:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Hello!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"rollDice()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Click to roll the dice!</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"diceUrl1"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100px"</span><span style="color:#808080">>&#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> [src]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"diceUrl2"</span><span style="color:#9CDCFE"> width</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"100px"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Total: {{total}}</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Every binding type from today shows up: <code>(click)</code> sends the click to the controller, <code>rollDice()</code> updates the model (<code>this.diceUrl1</code>, <code>this.total</code> — note <code>this.</code>, unlike a template), and <code>[src]</code> / <code>{{total}}</code> push the new values to the view. One click logs three lines like <code>dice_5.png</code>, <code>dice_3.png</code>, <code>8</code>. <code>Math.floor(Math.random() * 6 + 1)</code> gives an integer 1–6 (like Python&#39;s <code>random.randint(1, 6)</code>).</p>
+<p><code>diceFinished.txt</code> is labelled <code>diceComponent.cs</code> and points at <code>templateUrl: &#39;./dice.component.html&#39;</code> and <code>styleUrl: &#39;../app.css&#39;</code>; the generated files in this project are <code>dice.html</code> and <code>dice.css</code>, so keep the starter&#39;s <code>@Component({...})</code> and paste in only the class body.</p>
+<p>The same component by hand in plain JS — press Next to roll:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 48 · the finished Dice component (diceFinished.txt), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;Hello!&lt;/p&gt;\n&lt;button id=\&quot;roll\&quot;&gt;Click to roll the dice!&lt;/button&gt;\n&lt;p&gt;&lt;img id=\&quot;d1\&quot; width=\&quot;100\&quot;&gt;&lt;img id=\&quot;d2\&quot; width=\&quot;100\&quot;&gt;&lt;/p&gt;\n&lt;p id=\&quot;total\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; }&quot;, &quot;js&quot;: &quot;const IMG = \&quot;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W5_L2_Oct29_AngularComponents/w5l2-example/public/\&quot;;  // the repo&#39;s public/ folder\n// model (fields of class Dice)\nlet diceUrl1 = \&quot;dice_1.png\&quot;;\nlet diceUrl2 = \&quot;dice_1.png\&quot;;\nlet total = 2;\n\n// view: [src]=\&quot;diceUrl1\&quot;, [src]=\&quot;diceUrl2\&quot;, Total: {{total}}\nfunction render() {\n  document.getElementById(\&quot;d1\&quot;).src = IMG + diceUrl1;\n  document.getElementById(\&quot;d2\&quot;).src = IMG + diceUrl2;\n  document.getElementById(\&quot;total\&quot;).textContent = \&quot;Total: \&quot; + total;\n}\n\n// controller: (click)=\&quot;rollDice()\&quot;\nfunction rollDice() {\n  var random = Math.floor(Math.random() * 6 + 1);\n  diceUrl1 = `dice_${random}.png`;\n  var random2 = Math.floor(Math.random() * 6 + 1);\n  diceUrl2 = `dice_${random2}.png`;\n  total = random + random2;\n  console.log(diceUrl1);\n  console.log(diceUrl2);\n  console.log(total);\n  render();  // Angular re-renders for you; by hand we must call it\n}\ndocument.getElementById(\&quot;roll\&quot;).addEventListener(\&quot;click\&quot;, rollDice);\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;Click the button: rollDice() picks two random faces, updates the model, the view follows.&quot;, &quot;js&quot;: &quot;document.getElementById(\&quot;roll\&quot;).click();&quot;}], &quot;height&quot;: 230, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/dice.ts">dice.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/dice.html">dice.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W5_L2_Oct29_AngularComponents/w5l2-example/src/app/dice/diceFinished.txt">diceFinished.txt</a></p>
+</blockquote>
+<p>Back to <a href="#10-using-components-nesting-inputs-and-outputs">Section 10</a>.</p>
+<hr>
+<h2 id="12-quick-reference--top-5-things-to-remember">12. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>MVC in Angular</strong></p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>What it does</th>
+<th>Angular file</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Model</td>
+<td>The data; notifies the view when it changes</td>
+<td><code>.ts</code> (class fields)</td>
+</tr>
+<tr>
+<td>View</td>
+<td>Renders the model; forwards input</td>
+<td><code>.html</code> + <code>.css</code></td>
+</tr>
+<tr>
+<td>Controller</td>
+<td>Maps user input to actions on the model</td>
+<td><code>.ts</code> (class methods)</td>
+</tr>
+</tbody></table>
+<p><strong>Bindings and control flow</strong></p>
+<table>
+<thead>
+<tr>
+<th>Syntax</th>
+<th>Name</th>
+<th>Direction</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{{expr}}</code></td>
+<td>Interpolation</td>
+<td><code>.ts</code> → <code>.html</code></td>
+<td><code>Hello, {{title}}</code></td>
+</tr>
+<tr>
+<td><code>[prop]=&quot;expr&quot;</code></td>
+<td>Property</td>
+<td><code>.ts</code> → <code>.html</code></td>
+<td><code>[src]=&quot;tomatoCatUrl&quot;</code></td>
+</tr>
+<tr>
+<td><code>(event)=&quot;stmt()&quot;</code></td>
+<td>Event</td>
+<td><code>.html</code> → <code>.ts</code></td>
+<td><code>(click)=&quot;clickExample()&quot;</code></td>
+</tr>
+<tr>
+<td><code>[(ngModel)]=&quot;field&quot;</code></td>
+<td>Two-way</td>
+<td>both</td>
+<td><code>[(ngModel)]=&quot;enteredText&quot;</code> (needs <code>FormsModule</code>)</td>
+</tr>
+<tr>
+<td><code>@if(cond) { } @else { }</code></td>
+<td>Conditional</td>
+<td>—</td>
+<td><code>@if(isHalloween())</code></td>
+</tr>
+<tr>
+<td><code>@for(x of xs; track x; let i = $index) { }</code></td>
+<td>Loop</td>
+<td>—</td>
+<td><code>@for(day of days; track day)</code></td>
+</tr>
+</tbody></table>
+<p><strong>Components and CLI</strong></p>
+<table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>Syntax</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Install CLI / new app / run</td>
+<td><code>npm install -g @angular/cli</code> · <code>ng new example</code> · <code>ng serve</code> (localhost:4200)</td>
+</tr>
+<tr>
+<td>New component</td>
+<td><code>ng generate component hello</code> → <code>hello.html</code>, <code>hello.css</code>, <code>hello.ts</code>, <code>hello.spec.ts</code></td>
+</tr>
+<tr>
+<td>Component metadata</td>
+<td><code>@Component({ selector, templateUrl, styleUrl(s), imports })</code></td>
+</tr>
+<tr>
+<td>Use a child</td>
+<td><code>&lt;app-week&gt;</code> in the template + <code>Week</code> in <code>imports</code></td>
+</tr>
+<tr>
+<td>Input (parent → child)</td>
+<td><code>@Input() today = &quot;&quot;;</code> · <code>&lt;app-week today=&quot;Friday&quot;&gt;</code> / <code>[today]=&quot;dayOfWeek()&quot;</code></td>
+</tr>
+<tr>
+<td>Output (child → parent)</td>
+<td><code>@Output(&#39;myClick&#39;) clicks = new EventEmitter&lt;string&gt;();</code> · <code>(myClick)=&quot;clickMessage()&quot;</code></td>
+</tr>
+<tr>
+<td>Setup code</td>
+<td><code>ngOnInit()</code> (runs after inputs are set), not the constructor</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>MVC: the controller changes the model, the model updates the view; in Angular the view is <code>.html</code>/<code>.css</code> and the model + controller are the <code>.ts</code> class.</li>
+<li>Square brackets read from the <code>.ts</code> (<code>[src]</code>), parentheses send events to it (<code>(click)</code>), both together are two-way (<code>[(ngModel)]</code>) — so <code>(href)=&quot;url&quot;</code> binds nothing.</li>
+<li><code>{{ }}</code> works in text and inside attribute values, and it evaluates expressions (<code>{{1 + 1}}</code> → 2).</li>
+<li>A component = selector + template + style + class; to use one, write its selector tag in the parent and add its class to the parent&#39;s <code>imports</code>.</li>
+<li>Inputs: static values go in as plain attributes (<code>today=&quot;Friday&quot;</code>), dynamic ones in brackets (<code>[today]=&quot;dayOfWeek()&quot;</code>); <code>@for</code> needs <code>track</code>, and <code>@if</code>/<code>@for</code> replaced <code>*ngIf</code>/<code>*ngFor</code>.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 9</span><span class="pager-title" data-astro-cid-gxyjxt6l>Server-Side Development, Authentication &amp; Authorization</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Course hub<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>IN4MATX 133 · User Interface Software</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" title="Previous: Server-Side Development, Authentication &amp; Authorization ([)" aria-label="Previous: Lecture 9" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 9</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 10</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

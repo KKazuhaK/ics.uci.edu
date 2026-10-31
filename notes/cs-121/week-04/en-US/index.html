@@ -1,0 +1,1094 @@
+<!DOCTYPE html><html lang="en-US"><head><title>CS 121 Encodings, Storing Documents, Duplicates, Zipf&#39;s Law | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Document conversion and character encodings (Unicode, UTF-8), storing documents (TREC Web, compression, BigTable), exact and near-duplicate detection (checksums, n-gram fingerprints, Simhash), removing page noise, and text statistics with Zipf's law."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413980" data-source-url="/~kazuhak/notes/cs-121/week-04/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-04/zh-CN/" data-prev-url="/~kazuhak/notes/cs-121/week-03/en-US/" data-next-url="/~kazuhak/notes/cs-121/week-05/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 4</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 4 · Information Retrieval Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents CS 121 Week 4 notes in a structured reading format so you can review text processing, the web graph, SEO, web crawling, and how search engines index and rank pages week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 28, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-4-web-crawling-text-processing">CS 121: Information Retrieval — Week 4: Web Crawling, Text Processing</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-conversion-from-many-formats-to-text">1. Conversion: From Many Formats to Text</a></li>
+<li><a href="#2-character-encoding">2. Character Encoding</a></li>
+<li><a href="#3-unicode-and-utf-8">3. Unicode and UTF-8</a></li>
+<li><a href="#4-storing-the-documents">4. Storing the Documents</a></li>
+<li><a href="#5-the-trec-web-format">5. The TREC Web Format</a></li>
+<li><a href="#6-compression-and-bigtable">6. Compression and BigTable</a></li>
+<li><a href="#7-exact-duplicates-checksums-and-crcs">7. Exact Duplicates: Checksums and CRCs</a></li>
+<li><a href="#8-near-duplicates-and-n-gram-fingerprints">8. Near Duplicates and N-gram Fingerprints</a></li>
+<li><a href="#9-simhash">9. Simhash</a></li>
+<li><a href="#10-removing-noise-finding-content-blocks">10. Removing Noise: Finding Content Blocks</a></li>
+<li><a href="#11-text-statistics-and-zipfs-law">11. Text Statistics and Zipf&#39;s Law</a></li>
+<li><a href="#12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Oct 21<br>Built from the Lecture 10, 11 and 12 slides (the YuJa videos are not included). <strong>Provisional</strong>: the in-class Lecture 9.5 deck wasn&#39;t posted yet, so its in-class emphasis and tips are missing. Organized by concept, not by lecture.<br>Slides credit Profs. C. Lopes, A. Krone-Martins, C. Manning, P. Nayak, H. Schütze and others, and Addison Wesley for the textbook figures.<br>📖 Readings this week: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., <em>Search Engines: IR in Practice</em>, Ch 3 Crawls and Feeds, and Ch 4 Processing Text up to and including §4.4</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Online <strong>Quiz 1</strong> was in class on Wednesday, Oct 21, on your laptop (opened 7:00 pm, 30 minutes).<br><strong>Assignment 2</strong> (web crawler) is due <strong>Friday, Oct 30, 9:00 pm</strong>.</p>
+</blockquote>
+<hr>
+<h2 id="1-conversion-from-many-formats-to-text">1. Conversion: From Many Formats to Text</h2>
+<p>This week follows a page from the crawler to the index. On the architecture map (L11 p3 · L12 p2, p31; explained in <a href="/~kazuhak/notes/cs-121/week-01/en-US/#10-search-engine-architecture">Week 1 §10</a>) that is <strong>Text Acquisition → Local Document Store → Text Transformation/Processing</strong>: convert the page to text (§1–3), store it (§4–6), throw away duplicates and noise (§7–10), then start looking at the words themselves (§11).</p>
+<p>&quot;Text pre-processing&quot; starts with <strong>conversion</strong> (L10 p2–5, one bullet per frame):</p>
+<ul>
+<li>Text is stored in <strong>hundreds of incompatible file formats</strong>: raw text, RTF, HTML, XML, Microsoft Word, ODF, PDF.</li>
+<li><strong>Other types of files</strong>, not dedicated to text, are also important: PowerPoint, Excel, Keynote, Pages.</li>
+<li>You typically use a <strong>conversion tool or library</strong>. It <strong>converts the document content into a tagged text format such as HTML or XML</strong> and <strong>retains some of the important formatting</strong> information.</li>
+<li>Some converters <strong>don&#39;t retain formatting</strong> — e.g. the Unix tools <code>pdftotxt</code>, <code>pdf2ps</code> + <code>pdf2ascii</code>.</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5 The Conversion Problem (book p. 49)</a></p>
+</blockquote>
+<hr>
+<h2 id="2-character-encoding">2. Character Encoding</h2>
+<p><strong>Glyphs</strong> (Greek γλυφή, &quot;carving&quot;) are the symbols you see, which encode letters or meanings (L10 p6–7). A <strong>character encoding</strong> is a <strong>mapping between bits and glyphs</strong> — how you get from the bits in a file to the characters on a screen — and it <strong>can be a major source of incompatibility</strong>.</p>
+<ul>
+<li><strong>ASCII</strong> (since 1963) is the basic encoding for English: <strong>128</strong> letters, numbers, special characters and control characters in <strong>7 bits</strong>, extended with an extra bit for storage in bytes.</li>
+<li><strong>Other languages have many more glyphs</strong> (L10 p8–9): Chinese has more than <strong>40,000</strong> characters, over <strong>3,000</strong> in common use.</li>
+<li>Many languages have <strong>multiple encoding schemes</strong> — the CJK (Chinese-Japanese-Korean) family, Hindi, Arabic. With those older schemes you <strong>must specify the encoding</strong>, because <strong>the file is not self-describing</strong>, and you <strong>can&#39;t have multiple languages in one file</strong>.</li>
+<li><strong>Unicode</strong> was developed in the late &#39;80s to address these problems.</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5.1 Character Encodings (book p. 50)</a></p>
+</blockquote>
+<hr>
+<h2 id="3-unicode-and-utf-8">3. Unicode and UTF-8</h2>
+<p><strong>Unicode</strong> is a <strong>single mapping from numbers to glyphs</strong> that tries to include every glyph in common use in all known languages (L10 p10–11). Using its reserved (private-use) area, you can even write invented scripts: the slide shows a line in one, next to an image credited to Wikipedia.</p>
+<p>Unicode <strong>solves the number → glyph problem</strong> but <strong>does not uniquely specify the bits → glyph mapping</strong>. That&#39;s what the encodings <strong>UTF-8, UTF-16, UTF-32</strong> do: they turn the number (the <strong>code point</strong>) into bytes.</p>
+<p>Why several encodings? <strong>Compatibility and space</strong> (L10 p12):</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Bytes per character</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UTF-8</td>
+<td>1 for English (= ASCII), up to <strong>4</strong> (e.g. some traditional Chinese characters)</td>
+<td>Variable length: less space, but string operations are harder (character <em>i</em> isn&#39;t at byte <em>i</em>)</td>
+</tr>
+<tr>
+<td>UTF-32</td>
+<td>Always <strong>4</strong></td>
+<td>More memory, no backward compatibility with ASCII, but fixed width</td>
+</tr>
+</tbody></table>
+<p>You can <strong>mix both</strong>: many applications use <strong>UTF-32 internally</strong> (fast random lookup) and <strong>UTF-8 on disk</strong> (less space).</p>
+<p><strong>How UTF-8 works</strong> (L10 p13). The code point&#39;s range picks a row of the table; each <code>x</code> is filled with the code point&#39;s bits, high bits first:</p>
+<table>
+<thead>
+<tr>
+<th>Decimal</th>
+<th>Hexadecimal</th>
+<th>Encoding</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–127</td>
+<td>0–7F</td>
+<td><code>0xxxxxxx</code></td>
+</tr>
+<tr>
+<td>128–2047</td>
+<td>80–7FF</td>
+<td><code>110xxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>2048–55295</td>
+<td>800–D7FF</td>
+<td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>55296–57343</td>
+<td>D800–DFFF</td>
+<td>Undefined</td>
+</tr>
+<tr>
+<td>57344–65535</td>
+<td>E000–FFFF</td>
+<td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+<tr>
+<td>65536–1114111</td>
+<td>10000–10FFFF</td>
+<td><code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code></td>
+</tr>
+</tbody></table>
+<p>The slide&#39;s example: Greek <strong>π is code point 960</strong> = <code>00000011 11000000</code> in binary (3C0 hex). 960 is in the second row, so the encoding is <code>110xxxxx 10xxxxxx</code>: the <strong>high 5 bits</strong> go into the first byte, the <strong>next 6 bits</strong> into the second. The result is <strong><code>11001111 10000000</code> = <code>CF 80</code></strong>. Step through it, or type other characters:</p>
+<pre data-language="viz" data-viz="utf8-encode"><code>{&quot;title&quot;: &quot;UTF-8 encoding of π (L10 p13)&quot;, &quot;text&quot;: &quot;π&quot;, &quot;interactive&quot;: true}</code></pre><p>The leading bits give the length (<code>110</code> = 2 bytes, <code>1110</code> = 3, <code>11110</code> = 4); continuation bytes start with <code>10</code>, so an ASCII byte (<code>0xxxxxxx</code>) is never part of a multi-byte character. Python agrees:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"π"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-8"</span><span style="color:#D4D4D4">).hex(</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">))       </span><span style="color:#6A9955"># cf 80</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"π"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-32-be"</span><span style="color:#D4D4D4">).hex(</span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">))   </span><span style="color:#6A9955"># 00 00 03 c0</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"中"</span><span style="color:#D4D4D4">.encode(</span><span style="color:#CE9178">"utf-8"</span><span style="color:#D4D4D4">)))           </span><span style="color:#6A9955"># 3</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-utf-8-encoding-of-%CF%80-l10-p13">Worked Example 12.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.5.1 Character Encodings (book p. 50)</a></p>
+</blockquote>
+<hr>
+<h2 id="4-storing-the-documents">4. Storing the Documents</h2>
+<p>After documents are converted you need to <strong>store</strong> them (L11 p4–5). Reasons to keep the converted text:</p>
+<ul>
+<li>it <strong>saves crawling time</strong> when the page hasn&#39;t been updated;</li>
+<li>it gives <strong>efficient access to the text</strong> for <strong>snippet generation</strong>, additional information extraction, and so on.</li>
+</ul>
+<p>Database systems can provide document storage for some applications, but <strong>web search engines use customized document storage systems</strong>.</p>
+<p>Requirements for a search engine&#39;s document store (L11 p6):</p>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Random access</strong></td>
+<td>Request a document&#39;s content by its <strong>URL</strong>; normally a <strong>hash function on the URL</strong> finds it</td>
+</tr>
+<tr>
+<td><strong>Compression and large files</strong></td>
+<td>Reduce storage requirements and keep access efficient</td>
+</tr>
+<tr>
+<td><strong>Update</strong></td>
+<td>Handle large volumes of new and modified documents; add new <strong>anchor text</strong> (text of links <em>pointing to</em> the page, found later on other pages)</td>
+</tr>
+</tbody></table>
+<p><strong>Large files</strong> (L11 p7): web pages are small, so store <strong>many pages in a smaller number of large files</strong> instead of one file per document. This <strong>avoids file I/O overhead</strong> (open/close per page) and <strong>reduces seek time relative to read time</strong> — one seek, then a long sequential read. <strong>Compound document formats</strong> store multiple documents in a file, e.g. <strong>TREC Web</strong>.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6 Storing the Documents (book p. 52)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.1 Using a Database System (book p. 53)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.2 Random Access (book p. 53)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.4 Update (book p. 56)</a></p>
+</blockquote>
+<hr>
+<h2 id="5-the-trec-web-format">5. The TREC Web Format</h2>
+<p>One file, two crawled pages (L11 p8):</p>
+<div class="code-collapse is-collapsed"><pre data-language="xml" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span><span style="color:#D4D4D4">WTX001-B01-10</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">http://www.example.com/test.html 204.244.59.33 19970101013145 text/html 440</span></span>
+<span class="line"><span style="color:#D4D4D4">HTTP/1.0 200 OK</span></span>
+<span class="line"><span style="color:#D4D4D4">Date: Wed, 01 Jan 1997 01:21:13 GMT</span></span>
+<span class="line"><span style="color:#D4D4D4">Server: Apache/1.0.3</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-type: text/html</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-length: 270</span></span>
+<span class="line"><span style="color:#D4D4D4">Last-modified: Mon, 25 Nov 1996 05:31:24 GMT</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span><span style="color:#D4D4D4">Tropical Fish Store</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">Coming soon!</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span><span style="color:#D4D4D4">WTX001-B01-109</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCNO</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">http://www.example.com/fish.html 204.244.59.33 19970101013149 text/html 440</span></span>
+<span class="line"><span style="color:#D4D4D4">HTTP/1.0 200 OK</span></span>
+<span class="line"><span style="color:#D4D4D4">Date: Wed, 01 Jan 1997 01:21:19 GMT</span></span>
+<span class="line"><span style="color:#D4D4D4">Server: Apache/1.0.3</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-type: text/html</span></span>
+<span class="line"><span style="color:#D4D4D4">Content-length: 270</span></span>
+<span class="line"><span style="color:#D4D4D4">Last-modified: Mon, 25 Nov 1996 05:31:24 GMT</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOCHDR</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span><span style="color:#D4D4D4">Fish Information</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">TITLE</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">This page will soon contain interesting</span></span>
+<span class="line"><span style="color:#D4D4D4">information about tropical fish.</span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">HTML</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">DOC</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 33 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The next five slides box one part at a time (L11 p9–13):</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Where</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Document blocks</strong></td>
+<td><code>&lt;DOC&gt;</code> … <code>&lt;/DOC&gt;</code></td>
+<td>One crawled page each; many per file</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><code>&lt;DOCHDR&gt;</code> … <code>&lt;/DOCHDR&gt;</code></td>
+<td>Crawl record: URL, server IP, crawl timestamp (<code>19970101013145</code>), type, then the HTTP response headers</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><code>&lt;HTML&gt;</code> … <code>&lt;/HTML&gt;</code></td>
+<td>The page itself</td>
+</tr>
+<tr>
+<td><strong>Document identifier</strong></td>
+<td><code>&lt;DOCNO&gt;</code></td>
+<td>Unique ID (<code>WTX001-B01-10</code>, <code>WTX001-B01-109</code>)</td>
+</tr>
+<tr>
+<td><strong>Modification tag</strong></td>
+<td><code>Last-modified:</code></td>
+<td>When the server says the page last changed — what a re-crawl compares against (<a href="/~kazuhak/notes/cs-121/week-03/en-US/#8-when-to-crawl-again-freshness-and-age">Week 3 §8</a>)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: This is the &quot;large file&quot; idea in practice: a crawler appends <code>&lt;DOC&gt;</code> blocks to a big file, and a small index from <code>DOCNO</code> (or a URL hash) to a byte offset gives random access.</p>
+</blockquote>
+<hr>
+<h2 id="6-compression-and-bigtable">6. Compression and BigTable</h2>
+<h3 id="61-compression">6.1 Compression</h3>
+<p><strong>Text is highly redundant (or predictable)</strong> (L11 p14–15; the slide shows the search result for Shannon&#39;s 1951 paper &quot;Prediction and Entropy of Printed English&quot;). <strong>Lossless</strong> compression exploits that redundancy to make files smaller <strong>without losing any content</strong>; indexes can be compressed too.</p>
+<ul>
+<li>Popular algorithms compress HTML and XML text by <strong>80%</strong>: e.g. <strong>DEFLATE</strong> (zip, gzip) and <strong>LZW</strong> (Unix <code>compress</code>, PDF).</li>
+<li>Large files may be compressed <strong>in blocks</strong> so that one document can be read without decompressing the whole file.</li>
+</ul>
+<h3 id="62-bigtable">6.2 BigTable</h3>
+<p><strong>BigTable</strong> is Google&#39;s document storage system (L11 p16), customized for <strong>storing, finding and updating</strong> web pages and handling large collections on <strong>inexpensive computers</strong>. The figure shows one <strong>logical table</strong> split into many <strong>tablets</strong>, each held by a server.</p>
+<p>Organization (L11 p18–19):</p>
+<ul>
+<li>Logically organized into <strong>rows</strong>; <strong>a row stores the data for a single web page</strong>.</li>
+<li><strong>Columns can have multiple timestamps</strong> (versions). <strong>A row key, a column key and a timestamp point to a single cell.</strong></li>
+<li>A row can have a <strong>huge number of columns</strong>: all rows have the <strong>same column groups</strong>, but <strong>not all rows have the same columns</strong> — important for reducing disk reads.</li>
+<li>Rows are <strong>partitioned into tablets by row key</strong> (e.g. URLs starting with a certain letter in one tablet), which makes it simple to find the right server.</li>
+</ul>
+<p>The slide&#39;s row for <code>www.example.com</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Row key</th>
+<th><code>text</code></th>
+<th><code>anchor:other.com</code></th>
+<th><code>anchor:null.com</code></th>
+<th><code>title</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>www.example.com</code></td>
+<td>document text</td>
+<td>example</td>
+<td>click here</td>
+<td>example site</td>
+</tr>
+</tbody></table>
+<p><code>anchor:</code> is a column group; each linking site gets its own column holding its anchor text — the &quot;add new anchor text&quot; update from §4.</p>
+<p>Advantages and drawbacks (L11 p17):</p>
+<ul>
+<li><strong>No query language</strong>: no complex queries to optimize.</li>
+<li><strong>Only row-level transactions.</strong></li>
+<li>Tablets live in a <strong>replicated file system</strong> accessible by all BigTable servers.</li>
+<li>Any change to a tablet is recorded in a <strong>transaction log</strong>, also in a shared file system.</li>
+<li>If a tablet server crashes, <strong>another server reads the tablet data and log from the file system and takes over</strong>.</li>
+<li>Tablets may be compressed.</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.3 Compression and Large Files (book p. 54)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.6.5 BigTable (book p. 57)</a></p>
+</blockquote>
+<hr>
+<h2 id="7-exact-duplicates-checksums-and-crcs">7. Exact Duplicates: Checksums and CRCs</h2>
+<p>Week 3 named the problem (30% of pages are duplicates; hashes for exact copies, fingerprints for near ones — <a href="/~kazuhak/notes/cs-121/week-03/en-US/#7-duplicates-data-noise-client-side-scripting-and-the-deep-web">Week 3 §7</a>). L11–L12 give the algorithms.</p>
+<p>Duplicates and near duplicates come from <strong>copies, versions, plagiarism, spam and mirror sites</strong>; <strong>30%</strong> of the pages in a large crawl are exact or near duplicates of the rest (<strong>Fetterly et al., 2003</strong>) (L11 p21). They <strong>consume significant resources</strong> during crawling, indexing and search, and add little value to most users (but may add value in some use cases; the slide&#39;s &quot;buy&quot; is a typo for &quot;but&quot;).</p>
+<p><strong>Exact duplicate detection is relatively easy</strong> (L11 p22–24). A <strong>checksum</strong> is a value computed from the document&#39;s content — e.g. the <strong>sum of the bytes</strong> in the file:</p>
+<table>
+<thead>
+<tr>
+<th>T</th>
+<th>r</th>
+<th>o</th>
+<th>p</th>
+<th>i</th>
+<th>c</th>
+<th>a</th>
+<th>l</th>
+<th>(space)</th>
+<th>f</th>
+<th>i</th>
+<th>s</th>
+<th>h</th>
+<th>Sum</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>54</td>
+<td>72</td>
+<td>6F</td>
+<td>70</td>
+<td>69</td>
+<td>63</td>
+<td>61</td>
+<td>6C</td>
+<td>20</td>
+<td>66</td>
+<td>69</td>
+<td>73</td>
+<td>68</td>
+<td>508</td>
+</tr>
+</tbody></table>
+<p>All values are hexadecimal: 508 hex = <strong>1,288</strong> decimal.</p>
+<ul>
+<li>Files with different text <strong>can have the same checksum</strong> — a byte sum ignores order, so any rearrangement of the same bytes collides.</li>
+<li>A <strong>cyclic redundancy check (CRC)</strong> also considers the <strong>positions</strong> of the bytes. It&#39;s <strong>still prone to collisions, but very rarely</strong>. Other functions: <strong>BLAKE2/3, MD5, SHA1, SHA2</strong>, etc.</li>
+<li>Whatever you use <strong>needs to be fast</strong> — it runs on every page.</li>
+</ul>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> zlib</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> s </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#569CD6">b</span><span style="color:#CE9178">"Tropical fish"</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">b</span><span style="color:#CE9178">"Tropical fihs"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(s, </span><span style="color:#DCDCAA">sum</span><span style="color:#D4D4D4">(s), </span><span style="color:#DCDCAA">hex</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">sum</span><span style="color:#D4D4D4">(s)), </span><span style="color:#DCDCAA">hex</span><span style="color:#D4D4D4">(zlib.crc32(s)))</span></span>
+<span class="line"><span style="color:#6A9955"># b'Tropical fish' 1288 0x508 0x18f14f94</span></span>
+<span class="line"><span style="color:#6A9955"># b'Tropical fihs' 1288 0x508 0x3ba24de2</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Swapping two letters keeps the byte sum but changes the CRC.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#122-a-byte-sum-checksum-l11-p24">Worked Example 12.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates (book p. 60)</a></p>
+</blockquote>
+<hr>
+<h2 id="8-near-duplicates-and-n-gram-fingerprints">8. Near Duplicates and N-gram Fingerprints</h2>
+<p><strong>Near-duplicate detection is harder</strong> (L11 p25–27). Are two pages with the same text but different ads or format near duplicates? A near duplicate is <strong>defined by a threshold on some similarity measure</strong> between two documents — e.g. D1 is a near duplicate of D2 if <strong>more than 90% of the words</strong> are the same. &quot;Do you see how you can use Assignment 1 here?&quot; — A1&#39;s tokenizing and word counting is exactly what a word-overlap measure needs.</p>
+<p>Two scenarios (L11 p28–29):</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Task</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Search</strong></td>
+<td>Find near duplicates of one document D</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">)</span></span></span></span> comparisons</td>
+</tr>
+<tr>
+<td><strong>Discovery</strong></td>
+<td>Find <strong>all pairs</strong> of near duplicates in the collection</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> comparisons</td>
+</tr>
+</tbody></table>
+<p>Normal IR techniques work for search; for discovery, you need compact representations called <strong>fingerprints</strong>.</p>
+<p><strong>The fingerprint algorithm</strong> (L11 p30; the boxed parts):</p>
+<ol>
+<li><strong>Parse the document into words</strong>; punctuation, HTML tags and extra whitespace are removed.</li>
+<li><strong>Group the words into contiguous n-grams</strong> for some n — usually overlapping.</li>
+<li><strong>Select some of the n-grams</strong> to represent the document.</li>
+<li><strong>Hash the selected n-grams</strong> — faster retrieval, smaller representation.</li>
+<li><strong>Store the hash values</strong>, typically in an inverted index.</li>
+<li><strong>Compare documents by the overlap of their fingerprints.</strong></li>
+</ol>
+<p>The slide&#39;s example (L11 p31–34), built one stage per frame:</p>
+<ul>
+<li>(a) Text: &quot;Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species.&quot;</li>
+<li>(b) 3-grams: tropical fish include, fish include fish, include fish found, …, salt water species — 18 words give <strong>16</strong> 3-grams.</li>
+<li>(c) Hash values: <code>938 664 463 822 492 798 78 969 143 236 913 908 694 553 870 779</code>.</li>
+<li>(d) Selected using <strong>0 mod 4</strong>: <code>664 492 236 908</code>.</li>
+</ul>
+<p>(The example hashes every n-gram, then selects; step 3 before 4 in the list is the same idea.) Step through the 16 n-grams; edit the text to use a demo hash:</p>
+<pre data-language="viz" data-viz="shingle-fingerprint"><code>{&quot;title&quot;: &quot;N-gram fingerprint of the tropical fish text (L11 p30–34)&quot;, &quot;interactive&quot;: true}</code></pre><p><strong>Comparing two fingerprints</strong> (L11 p35–38). With fingerprints <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>A</mi></msub></mrow><annotation encoding="application/x-tex">F_A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">F_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, the similarity is the size of the intersection over the size of the union:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>=</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi></mrow><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><mspace width="2em"/><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>≥</mo><mi>τ</mi><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><mtext>A and B are near duplicates</mtext></mrow><annotation encoding="application/x-tex">S_{A,B} = \frac{|F_A \cap F_B|}{|F_A \cup F_B|} \qquad S_{A,B} \ge \tau \implies \text{A and B are near duplicates}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">A and B are near duplicates</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><mi>F</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">|F|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord">∣</span></span></span></span> is the number of hash values in a set (the slide writes card), and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span> is a threshold <strong>you</strong> choose: they are near duplicates &quot;under your definition of threshold&quot;.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: &quot;0 mod p&quot; selection keeps only about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">1/p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/</span><span class="mord mathnormal">p</span></span></span></span> of the n-grams, and which ones depends only on their hash values, so two copies of the same text select the same ones. Selecting by position (&quot;every 4th n-gram&quot;) would not: insert one word at the top and every selected n-gram changes.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-the-tropical-fish-fingerprint-l11-p3134">Worked Example 12.3</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates (book p. 60)</a></p>
+</blockquote>
+<hr>
+<h2 id="9-simhash">9. Simhash</h2>
+<p>Similarity comparisons on <strong>word-based representations</strong> find near duplicates <strong>more effectively</strong> than n-gram fingerprints; their problem is <strong>efficiency</strong> (L12 p4–6). <strong>Simhash</strong> (Charikar, 2002) combines the advantages of word-based similarity with the efficiency of hash fingerprints: the <strong>cosine correlation</strong> between two pages is proportional to the <strong>number of bits that are the same</strong> in their simhash fingerprints.</p>
+<p>The algorithm (L12 p7–10, boxed again on p16):</p>
+<ol>
+<li>Process the document into a <strong>set of features with weights</strong> — here, <strong>words weighted by their frequency</strong>.</li>
+<li>Generate a <strong>b-bit hash</strong> for each word (b = the fingerprint size); unique per word.</li>
+<li>In a b-dimensional vector <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span>, for every word <strong>add its weight</strong> to component <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> if bit <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> of its hash is <strong>1</strong>, <strong>subtract</strong> it if the bit is <strong>0</strong>.</li>
+<li>After all words, the fingerprint&#39;s bit <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> is <strong>1 if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">V_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is positive</strong>, 0 otherwise.</li>
+</ol>
+<p>The slide&#39;s example (L12 p11–15), same text as §8:</p>
+<ul>
+<li>(b) Words with weights: tropical 2, fish 2, include 1, found 1, environments 1, around 1, world 1, including 1, both 1, freshwater 1, salt 1, water 1, species 1 (in, the, and are left out).</li>
+<li>(c) 8-bit hash values:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Hash</th>
+<th>Word</th>
+<th>Hash</th>
+<th>Word</th>
+<th>Hash</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tropical</td>
+<td><code>01100001</code></td>
+<td>fish</td>
+<td><code>10101011</code></td>
+<td>include</td>
+<td><code>11100110</code></td>
+</tr>
+<tr>
+<td>found</td>
+<td><code>00011110</code></td>
+<td>environments</td>
+<td><code>00101101</code></td>
+<td>around</td>
+<td><code>10001011</code></td>
+</tr>
+<tr>
+<td>world</td>
+<td><code>00101010</code></td>
+<td>including</td>
+<td><code>11000000</code></td>
+<td>both</td>
+<td><code>10101110</code></td>
+</tr>
+<tr>
+<td>freshwater</td>
+<td><code>00111111</code></td>
+<td>salt</td>
+<td><code>10110101</code></td>
+<td>water</td>
+<td><code>00100101</code></td>
+</tr>
+<tr>
+<td>species</td>
+<td><code>11101110</code></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<ul>
+<li>(d) <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> = <strong>1 −5 9 −9 3 1 3 3</strong>.</li>
+<li>(e) Fingerprint = <strong>1 0 1 0 1 1 1 1</strong>.</li>
+</ul>
+<p>L12 p14 checks the last component: tropical <code>01100001</code> → <code>- + + - - - - +</code>, fish → <code>+ - + - + - + +</code>, include → <code>+ + + - - + + -</code>, and down the last column: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>=</mo><mn>2</mn><mo>+</mo><mn>2</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">3 = 2 + 2 - 1 - 1 + 1 + 1 - 1 - 1 - 1 + 1 + 1 + 1 - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>. The demo adds one word per step:</p>
+<pre data-language="viz" data-viz="simhash"><code>{&quot;title&quot;: &quot;Simhash of the tropical fish text (L12 p7–16)&quot;, &quot;interactive&quot;: true}</code></pre><p><strong>Comparing two simhashes</strong> (L12 p17–18): the similarity is the <strong>fraction of the n bits that are the same</strong>:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>n</mi></munder><mo stretchy="false">(</mo><msub><mi>H</mi><mi>A</mi></msub><msub><mo>≡</mo><mtext>bitwise</mtext></msub><msub><mi>H</mi><mi>B</mi></msub><mo stretchy="false">)</mo></mrow><mi>n</mi></mfrac><mspace width="2em"/><msub><mi>S</mi><mrow><mi>A</mi><mo separator="true">,</mo><mi>B</mi></mrow></msub><mo>≥</mo><mi>τ</mi><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><mtext>near duplicates</mtext></mrow><annotation encoding="application/x-tex">S_{A,B} = \frac{\sum_n (H_A \equiv_{\text{bitwise}} H_B)}{n} \qquad S_{A,B} \ge \tau \implies \text{near duplicates}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1257em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4397em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.6897em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel"><span class="mrel">≡</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">bitwise</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">A</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.549em;vertical-align:-0.024em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">near duplicates</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>A</mi></msub><mo separator="true">,</mo><msub><mi>H</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">H_A, H_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are the two fingerprints, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>≡</mo><mtext>bitwise</mtext></msub></mrow><annotation encoding="application/x-tex">\equiv_{\text{bitwise}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6138em;vertical-align:-0.15em;"></span><span class="mrel"><span class="mrel">≡</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">bitwise</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> counts 1 for each position where the bits agree, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> is the number of bits — equivalently <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mtext>Hamming distance</mtext><mi mathvariant="normal">/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1 - \text{Hamming distance}/n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Hamming distance</span></span><span class="mord">/</span><span class="mord mathnormal">n</span></span></span></span>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Simhash is the opposite of a normal hash. A good hash changes completely when one byte changes (§7); simhash is built so that similar documents get fingerprints that differ in <strong>few</strong> bits — a one-word edit only moves <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> by that word&#39;s weight.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#124-simhash-of-the-tropical-fish-text-l12-p1115">Worked Example 12.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.7 Detecting Duplicates (book p. 60)</a></p>
+</blockquote>
+<hr>
+<h2 id="10-removing-noise-finding-content-blocks">10. Removing Noise: Finding Content Blocks</h2>
+<p>Many web pages contain text, links and pictures <strong>not related to the main content</strong> (L12 p20). This material is mostly <strong>noise</strong> that could hurt the page&#39;s ranking. Techniques detect the <strong>content blocks</strong>; non-content material is <strong>ignored or reduced in importance</strong> at indexing time.</p>
+<p>The noise example (L12 p21–22): a news page with its banner and side columns boxed as <strong>noise blocks</strong>, and a CNN.com &quot;Science &amp; Space&quot; article (&quot;Aquarium plays whale shark matchmaker&quot;) whose story text is boxed as the <strong>content block</strong>, surrounded by navigation, a search box and ads. &quot;So how can you detect content?&quot;</p>
+<p><strong>Technique 1: cumulative distribution of tags</strong> — the <em>document slope curve</em> (Finn, Kushmerick &amp; Smyth, 2001), introduced in <a href="/~kazuhak/notes/cs-121/week-03/en-US/#7-duplicates-data-noise-client-side-scripting-and-the-deep-web">Week 3 §7</a> (L12 p23–24). Walk through the page&#39;s tokens and count the tags seen so far: <strong>token count</strong> (0–3,500) on x, <strong>tag count</strong> (0–1,000) on y. The curve climbs steadily through tag-heavy navigation, and the <strong>main text is the &quot;plateau&quot; in the middle</strong> (marked &quot;Text area&quot;, around 1,000–1,500 tokens), where many tokens pass with almost no tags.</p>
+<p>As an optimization problem (L12 p25–27): represent the page as a <strong>sequence of bits</strong>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mi>n</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_n = 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> if the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>th token is a <strong>tag</strong>. Find <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> that maximize the number of <strong>tags below <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> and above <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span></strong> plus the number of <strong>non-tag tokens between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span></strong>:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mrow><mi>max</mi><mo>⁡</mo></mrow><mrow><mi>i</mi><mo separator="true">,</mo><mtext> </mtext><mi>j</mi></mrow></munder><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>b</mi><mi>n</mi></msub><mtext>  </mtext><mo>+</mo><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mi>i</mi></mrow><mi>j</mi></munderover><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msub><mi>b</mi><mi>n</mi></msub><mo stretchy="false">)</mo><mtext>  </mtext><mo>+</mo><mtext>  </mtext><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mi>j</mi><mo>+</mo><mn>1</mn></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>b</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">\max_{i,\,j} \; \sum_{n=0}^{i-1} b_n \;+\; \sum_{n=i}^{j} (1 - b_n) \;+\; \sum_{n=j+1}^{N-1} b_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:3.0788em;vertical-align:-1.2671em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.4306em;"><span style="top:-2.3723em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mspace mtight" style="margin-right:0.1952em;"></span><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">max</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8638em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8117em;"><span style="top:-1.8829em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2671em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.1364em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8588em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mathnormal mtight">i</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3471em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.2421em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mrel mtight">=</span><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> is the number of tokens; tokens <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> … <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> are the content block. The first and last sums reward tags <em>outside</em> the block, the middle one rewards text <em>inside</em> it.</p>
+<p><strong>Alternative</strong> (L12 p28): cut the curve into vertical <strong>slices</strong>, determine the <strong>slope</strong> inside each, and iterate, reducing the slice size until you find <strong>zero-slope windows</strong>.</p>
+<p><strong>Other approaches</strong> (L12 p29) use the <strong>Document Object Model (DOM)</strong> structure and <strong>visual (layout) features</strong>: an HTML parser turns HTML into a DOM tree. The slide&#39;s CNN tree: <code>#document</code> → <code>HTML</code> → <code>HEAD</code>, <code>BODY</code> (<code>contentArea</code>), with <code>DIV</code>s and <code>TABLE</code>s named <code>cnnCeil</code>, <code>cnnBreakingNewsBanner</code>, <code>iframecnnBreakingNewsBanner</code>, <code>cnnCeilSearch</code>, <code>cnnArticleWireFrame</code>, <code>cnnFootBox</code>, <code>csiIframe</code> — and, highlighted, <code>TABLE</code> → <code>TBODY</code> → <code>TR</code> → <strong><code>TD</code> <code>cnnArticleContent</code></strong>, the article.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §3.8 Removing Noise (book p. 63)</a></p>
+</blockquote>
+<hr>
+<h2 id="11-text-statistics-and-zipfs-law">11. Text Statistics and Zipf&#39;s Law</h2>
+<p><strong>Processing text</strong> is the essential step that converts documents to <strong>index terms</strong> (L12 p32). Why not index the raw strings?</p>
+<ul>
+<li>Matching <strong>the exact string of characters</strong> the user typed is <strong>too restrictive</strong> for web search — it doesn&#39;t work well for effectiveness (e.g. case-sensitive search may or may not be what you want).</li>
+<li><strong>Not all words are of equal value</strong> in a search.</li>
+<li>Sometimes it isn&#39;t clear <strong>where words begin and end</strong> — not even what a word is, in languages like Chinese and Korean.</li>
+</ul>
+<p>(Tokenizing, stopping and stemming are Week 5.)</p>
+<p><strong>Text statistics</strong> (L12 p33–34): text uses a huge variety of words, but <strong>many statistical characteristics of word occurrences are predictable</strong>, e.g. the distribution of word counts. <strong>Retrieval models and ranking algorithms depend heavily on them</strong>: the important words for retrieval <strong>occur often in a document but are not frequent in the corpus</strong>.</p>
+<p><strong>Zipf&#39;s law</strong> (L12 p35–36). The distribution of word frequencies is <strong>very skewed</strong>: a few words occur very often, many hardly ever. The two most common words (&quot;the&quot;, &quot;of&quot;) make up <strong>about 10%</strong> of all word occurrences. Zipf&#39;s &quot;law&quot;: <strong>the frequency of the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>-th most common word is inversely proportional to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span></strong> — rank times frequency is about constant:</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>r</mi><mo>⋅</mo><mi>f</mi><mo>≈</mo><mi>k</mi><mspace width="2em"/><mtext>or</mtext><mspace width="2em"/><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub><mo>≈</mo><mi>c</mi><mo separator="true">,</mo><mspace width="1em"/><mi>c</mi><mo>≈</mo><mn>0.1</mn><mtext> for English</mtext></mrow><annotation encoding="application/x-tex">r \cdot f \approx k \qquad\text{or}\qquad r \cdot P_r \approx c, \quad c \approx 0.1 \text{ for English}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:2em;"></span><span class="mord text"><span class="mord">or</span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6776em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord">0.1</span><span class="mord text"><span class="mord"> for English</span></span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> is the rank (words sorted by decreasing frequency), <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span> the word&#39;s frequency, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> its probability of occurrence (frequency / total word occurrences), and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span></span></span></span> constants. L12 p37 plots <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (0–0.1) against rank (0–100) for English: a curve that starts near 0.1, drops steeply over the first ~10 ranks, then flattens close to 0 — the shape of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.1</mn><mi mathvariant="normal">/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">0.1/r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.1/</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>.</p>
+<p><strong>AP89</strong> (Associated Press 1989 news) statistics (L12 p38):</p>
+<table>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Total documents</td>
+<td>84,678</td>
+</tr>
+<tr>
+<td>Total word occurrences</td>
+<td>39,749,179</td>
+</tr>
+<tr>
+<td>Vocabulary size (unique words)</td>
+<td>198,763</td>
+</tr>
+<tr>
+<td>Words occurring &gt; 1000 times</td>
+<td>4,169</td>
+</tr>
+<tr>
+<td>Words occurring once</td>
+<td>70,064</td>
+</tr>
+</tbody></table>
+<p>AP89&#39;s most frequent words (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in %):</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Freq.</th>
+<th>r</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (%)</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></th>
+<th>Word</th>
+<th>Freq.</th>
+<th>r</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (%)</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>the</td>
+<td>2,420,778</td>
+<td>1</td>
+<td>6.49</td>
+<td>0.065</td>
+<td>has</td>
+<td>136,007</td>
+<td>26</td>
+<td>0.37</td>
+<td>0.095</td>
+</tr>
+<tr>
+<td>of</td>
+<td>1,045,733</td>
+<td>2</td>
+<td>2.80</td>
+<td>0.056</td>
+<td>are</td>
+<td>130,322</td>
+<td>27</td>
+<td>0.35</td>
+<td>0.094</td>
+</tr>
+<tr>
+<td>to</td>
+<td>968,882</td>
+<td>3</td>
+<td>2.60</td>
+<td>0.078</td>
+<td>not</td>
+<td>127,493</td>
+<td>28</td>
+<td>0.34</td>
+<td>0.096</td>
+</tr>
+<tr>
+<td>a</td>
+<td>892,429</td>
+<td>4</td>
+<td>2.39</td>
+<td>0.096</td>
+<td>who</td>
+<td>116,364</td>
+<td>29</td>
+<td>0.31</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>and</td>
+<td>865,644</td>
+<td>5</td>
+<td>2.32</td>
+<td>0.120</td>
+<td>they</td>
+<td>111,024</td>
+<td>30</td>
+<td>0.30</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>in</td>
+<td>847,825</td>
+<td>6</td>
+<td>2.27</td>
+<td>0.140</td>
+<td>its</td>
+<td>111,021</td>
+<td>31</td>
+<td>0.30</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>said</td>
+<td>504,593</td>
+<td>7</td>
+<td>1.35</td>
+<td>0.095</td>
+<td>had</td>
+<td>103,943</td>
+<td>32</td>
+<td>0.28</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>for</td>
+<td>363,865</td>
+<td>8</td>
+<td>0.98</td>
+<td>0.078</td>
+<td>will</td>
+<td>102,949</td>
+<td>33</td>
+<td>0.28</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>that</td>
+<td>347,072</td>
+<td>9</td>
+<td>0.93</td>
+<td>0.084</td>
+<td>would</td>
+<td>99,503</td>
+<td>34</td>
+<td>0.27</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>was</td>
+<td>293,027</td>
+<td>10</td>
+<td>0.79</td>
+<td>0.079</td>
+<td>about</td>
+<td>92,983</td>
+<td>35</td>
+<td>0.25</td>
+<td>0.087</td>
+</tr>
+<tr>
+<td>on</td>
+<td>291,947</td>
+<td>11</td>
+<td>0.78</td>
+<td>0.086</td>
+<td>i</td>
+<td>92,005</td>
+<td>36</td>
+<td>0.25</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>he</td>
+<td>250,919</td>
+<td>12</td>
+<td>0.67</td>
+<td>0.081</td>
+<td>been</td>
+<td>88,786</td>
+<td>37</td>
+<td>0.24</td>
+<td>0.088</td>
+</tr>
+<tr>
+<td>is</td>
+<td>245,843</td>
+<td>13</td>
+<td>0.65</td>
+<td>0.086</td>
+<td>this</td>
+<td>87,286</td>
+<td>38</td>
+<td>0.23</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>with</td>
+<td>223,846</td>
+<td>14</td>
+<td>0.60</td>
+<td>0.084</td>
+<td>their</td>
+<td>84,638</td>
+<td>39</td>
+<td>0.23</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>at</td>
+<td>210,064</td>
+<td>15</td>
+<td>0.56</td>
+<td>0.085</td>
+<td>new</td>
+<td>83,449</td>
+<td>40</td>
+<td>0.22</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>by</td>
+<td>209,586</td>
+<td>16</td>
+<td>0.56</td>
+<td>0.090</td>
+<td>or</td>
+<td>81,796</td>
+<td>41</td>
+<td>0.22</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>it</td>
+<td>195,621</td>
+<td>17</td>
+<td>0.52</td>
+<td>0.089</td>
+<td>which</td>
+<td>80,385</td>
+<td>42</td>
+<td>0.22</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>from</td>
+<td>189,451</td>
+<td>18</td>
+<td>0.51</td>
+<td>0.091</td>
+<td>we</td>
+<td>80,245</td>
+<td>43</td>
+<td>0.22</td>
+<td>0.093</td>
+</tr>
+<tr>
+<td>as</td>
+<td>181,714</td>
+<td>19</td>
+<td>0.49</td>
+<td>0.093</td>
+<td>more</td>
+<td>76,388</td>
+<td>44</td>
+<td>0.21</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>be</td>
+<td>157,300</td>
+<td>20</td>
+<td>0.42</td>
+<td>0.084</td>
+<td>after</td>
+<td>75,165</td>
+<td>45</td>
+<td>0.20</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>were</td>
+<td>153,913</td>
+<td>21</td>
+<td>0.41</td>
+<td>0.087</td>
+<td>us</td>
+<td>72,045</td>
+<td>46</td>
+<td>0.19</td>
+<td>0.089</td>
+</tr>
+<tr>
+<td>an</td>
+<td>152,576</td>
+<td>22</td>
+<td>0.41</td>
+<td>0.090</td>
+<td>percent</td>
+<td>71,956</td>
+<td>47</td>
+<td>0.19</td>
+<td>0.091</td>
+</tr>
+<tr>
+<td>have</td>
+<td>149,749</td>
+<td>23</td>
+<td>0.40</td>
+<td>0.092</td>
+<td>up</td>
+<td>71,082</td>
+<td>48</td>
+<td>0.19</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>his</td>
+<td>142,285</td>
+<td>24</td>
+<td>0.38</td>
+<td>0.092</td>
+<td>one</td>
+<td>70,266</td>
+<td>49</td>
+<td>0.19</td>
+<td>0.092</td>
+</tr>
+<tr>
+<td>but</td>
+<td>140,880</td>
+<td>25</td>
+<td>0.38</td>
+<td>0.094</td>
+<td>people</td>
+<td>68,988</td>
+<td>50</td>
+<td>0.19</td>
+<td>0.093</td>
+</tr>
+</tbody></table>
+<p>&quot;Biggest variations: highest frequency words — but if you keep digging…&quot;: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> swings from 0.056 to 0.140 in the top 10, then settles between 0.081 and 0.096 from rank 11 to 50, close to Zipf&#39;s <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>≈</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">c \approx 0.1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.1</span></span></span></span>.</p>
+<p><strong>Zipf&#39;s law for AP89</strong> (L12 p39) is a <strong>log-log</strong> plot: probability (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">8</span></span></span></span></span></span></span></span></span></span></span></span> to 1) against rank (1 to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">10^6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span>), with the Zipf line <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub><mo>=</mo><mn>0.1</mn><mi mathvariant="normal">/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">P_r = 0.1/r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.1/</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> (a straight line, slope −1) and the AP89 points. The points follow the line through the middle ranks, sit <strong>below</strong> it at the very top ranks (the first few words), and <strong>fall away</strong> below it for ranks past ~10,000, ending in flat steps of rare words. <strong>Note the problems at high and low frequencies.</strong> Words that occur only once are <strong>hapax legomena</strong> (ἅπαξ λεγόμενον, &quot;said once&quot;) — 70,064 of AP89&#39;s 198,763 words, about 35%.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The slide&#39;s <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> column doesn&#39;t use the 39,749,179 total from the left-hand table: dividing by it gives &quot;the&quot; = 6.09%, not 6.49%. The column is consistent with a total of about 37.3 million occurrences, so every <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> in it is ≈ 6% higher than the left table implies. The Zipf conclusion doesn&#39;t change. → <a href="#125-checking-zipfs-law-on-ap89-l12-p3539">Worked Example 12.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.1 From Words to Terms (book p. 73)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2 Text Statistics (book p. 75)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2.1 Vocabulary Growth (book p. 80)</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §4.2.2 Estimating Collection and Result Set Sizes (book p. 83)</a></p>
+</blockquote>
+<hr>
+<h2 id="12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</h2>
+<h3 id="121-utf-8-encoding-of-π-l10-p13">12.1 UTF-8 encoding of π (L10 p13)</h3>
+<p>π is Unicode code point 960. What bytes does UTF-8 store? How many bytes in UTF-32?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> 960 = <code>0x3C0</code> = <code>00000011 11000000</code>. It&#39;s in 128–2047, so the template is <code>110xxxxx 10xxxxxx</code>, with 5 + 6 = 11 payload bits: 960 in 11 bits is <code>01111000000</code>. High 5 bits <code>01111</code> → <code>110</code>+<code>01111</code> = <code>11001111</code>; next 6 bits <code>000000</code> → <code>10</code>+<code>000000</code> = <code>10000000</code>. Result <strong><code>CF 80</code></strong>, 2 bytes. UTF-32 always uses 4: <code>00 00 03 C0</code>. Back to <a href="#3-unicode-and-utf-8">§3</a>.</p>
+<h3 id="122-a-byte-sum-checksum-l11-p24">12.2 A byte-sum checksum (L11 p24)</h3>
+<p>Sum the bytes of &quot;Tropical fish&quot;. Is a byte sum a safe way to detect exact duplicates?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> In hex, 54 + 72 + 6F + 70 + 69 + 63 + 61 + 6C + 20 + 66 + 69 + 73 + 68 = <strong>508 hex = 1,288</strong>. It&#39;s not safe: the sum ignores order, so &quot;Tropical fihs&quot; also sums to 1,288. A CRC weighs bytes by position: CRC-32 gives <code>0x18f14f94</code> vs <code>0x3ba24de2</code>. Back to <a href="#7-exact-duplicates-checksums-and-crcs">§7</a>.</p>
+<h3 id="123-the-tropical-fish-fingerprint-l11-p3134">12.3 The tropical fish fingerprint (L11 p31–34)</h3>
+<p>With the slide&#39;s 3-grams and hash values, which values does &quot;0 mod 4&quot; select?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> 18 words → 18 − 3 + 1 = 16 3-grams. Remainders mod 4:</p>
+<table>
+<thead>
+<tr>
+<th>Hash</th>
+<th>938</th>
+<th>664</th>
+<th>463</th>
+<th>822</th>
+<th>492</th>
+<th>798</th>
+<th>78</th>
+<th>969</th>
+<th>143</th>
+<th>236</th>
+<th>913</th>
+<th>908</th>
+<th>694</th>
+<th>553</th>
+<th>870</th>
+<th>779</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mod 4</td>
+<td>2</td>
+<td><strong>0</strong></td>
+<td>3</td>
+<td>2</td>
+<td><strong>0</strong></td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td>3</td>
+<td><strong>0</strong></td>
+<td>1</td>
+<td><strong>0</strong></td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+</tbody></table>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi></mrow><annotation encoding="application/x-tex">F</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span></span></span></span> = {664, 492, 236, 908}: 4 of 16 values, from &quot;fish include fish&quot;, &quot;found in tropical&quot;, &quot;the world including&quot; and &quot;including both freshwater&quot;. Comparing it with another document&#39;s fingerprint uses <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">∣</mi><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">|F_A \cap F_B| / |F_A \cup F_B| \ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣/∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span>. Back to <a href="#8-near-duplicates-and-n-gram-fingerprints">§8</a>.</p>
+<h3 id="124-simhash-of-the-tropical-fish-text-l12-p1115">12.4 Simhash of the tropical fish text (L12 p11–15)</h3>
+<p>Using the slide&#39;s weights and 8-bit hashes, compute <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span> and the fingerprint.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Each word adds +weight for a 1 bit and −weight for a 0 bit. Column by column:</p>
+<table>
+<thead>
+<tr>
+<th>Bit</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span></td>
+<td>1</td>
+<td>−5</td>
+<td>9</td>
+<td>−9</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Fingerprint</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>Bit 8, as on L12 p14: tropical +2, fish +2, include −1, found −1, environments +1, around +1, world −1, including −1, both −1, freshwater +1, salt +1, water +1, species −1 → 3 &gt; 0 → 1. Fingerprint <strong>10101111</strong>, matching the slide. Two documents with simhashes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>A</mi></msub><mo separator="true">,</mo><msub><mi>H</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">H_A, H_B</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> are compared by the fraction of the 8 bits that agree, against <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span>. Back to <a href="#9-simhash">§9</a>.</p>
+<h3 id="125-checking-zipfs-law-on-ap89-l12-p3539">12.5 Checking Zipf&#39;s law on AP89 (L12 p35–39)</h3>
+<p>From the AP89 tables: how much of the text are &quot;the&quot; and &quot;of&quot;? Does <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> stay near 0.1? What fraction of the vocabulary are hapax legomena?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<ul>
+<li>&quot;the&quot; + &quot;of&quot;: slide <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 6.49% + 2.80% = <strong>9.29%</strong> — the &quot;about 10%&quot;. From the frequencies and the 39,749,179 total, it&#39;s 3,466,511 / 39,749,179 = <strong>8.7%</strong>.</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: rank 1 gives 0.065, rank 2 0.056, rank 6 0.140 (biggest swings); ranks 11–50 stay in <strong>0.081–0.096</strong>. Recomputing <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>×</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \times P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from the slide&#39;s own rounded <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> gives 0.116 for &quot;and&quot; (slide 0.120) and 0.136 for &quot;in&quot; (slide 0.140) — rounding.</li>
+<li>With the left table&#39;s total, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub></mrow><annotation encoding="application/x-tex">r \cdot P_r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is lower, e.g. &quot;the&quot; 2,420,778 / 39,749,179 = 0.061, &quot;people&quot; 50 × 68,988 / 39,749,179 = 0.087; the slide&#39;s column implies a total of ≈ 37.3M (see the pitfall in §11).</li>
+<li>Hapax legomena: 70,064 / 198,763 = <strong>35%</strong> of the vocabulary occurs exactly once; only 4,169 words (2.1%) occur more than 1,000 times.</li>
+</ul>
+<p>Zipf holds roughly in the middle and breaks at both ends — the problems at high and low frequencies of L12 p39. Back to <a href="#11-text-statistics-and-zipfs-law">§11</a>.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Bytes per character</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ASCII</td>
+<td>1 (7 bits used)</td>
+<td>128 characters, English only</td>
+</tr>
+<tr>
+<td>UTF-8</td>
+<td>1–4</td>
+<td>ASCII-compatible; templates <code>0xxxxxxx</code>, <code>110xxxxx 10xxxxxx</code>, <code>1110xxxx</code> + 2, <code>11110xxx</code> + 3</td>
+</tr>
+<tr>
+<td>UTF-32</td>
+<td>4</td>
+<td>Fixed width: fast random access, more memory</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Duplicate-detection method</th>
+<th>Detects</th>
+<th>How</th>
+<th>Similarity</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Checksum (byte sum)</td>
+<td>Exact</td>
+<td>Sum of bytes</td>
+<td>Equal or not; order-blind collisions</td>
+</tr>
+<tr>
+<td>CRC, MD5, SHA, BLAKE</td>
+<td>Exact</td>
+<td>Position-aware hash</td>
+<td>Equal or not; rare collisions</td>
+</tr>
+<tr>
+<td>N-gram fingerprint</td>
+<td>Near</td>
+<td>n-grams → hashes → keep 0 mod p</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">∣</mo><msub><mi>F</mi><mi>A</mi></msub><mo>∩</mo><msub><mi>F</mi><mi>B</mi></msub><mo stretchy="false">∣</mo><mi mathvariant="normal">/</mi><mo stretchy="false">∣</mo><msub><mi>F</mi><mi>A</mi></msub><mo>∪</mo><msub><mi>F</mi><mi>B</mi></msub><mo stretchy="false">∣</mo><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">\lvert F_A \cap F_B\rvert / \lvert F_A \cup F_B\rvert \ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">∣</span><span class="mord">/</span><span class="mopen">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05017em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span></td>
+</tr>
+<tr>
+<td>Simhash</td>
+<td>Near</td>
+<td>weights × ±hash bits → sign of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span></span></span></span></td>
+<td>equal bits / n <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mi>τ</mi></mrow><annotation encoding="application/x-tex">\ge \tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719em;vertical-align:-0.136em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Storage / noise</th>
+<th>Key idea</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Large files, TREC Web</td>
+<td>Many <code>&lt;DOC&gt;</code> blocks per file: less file I/O, seek once</td>
+</tr>
+<tr>
+<td>Compression</td>
+<td>Lossless, ~80% on HTML/XML (DEFLATE, LZW), in blocks</td>
+</tr>
+<tr>
+<td>BigTable</td>
+<td>Row = page; (row key, column key, timestamp) → cell; tablets by row key</td>
+</tr>
+<tr>
+<td>Content blocks</td>
+<td>Plateau of the cumulative tag curve; maximize tags outside + text inside <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">[</mo><mi>i</mi><mo separator="true">,</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[i, j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Zipf</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Law</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><mi>f</mi><mo>≈</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">r \cdot f \approx k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>⋅</mo><msub><mi>P</mi><mi>r</mi></msub><mo>≈</mo><mi>c</mi><mo>≈</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">r \cdot P_r \approx c \approx 0.1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.1</span></span></span></span> (English)</td>
+</tr>
+<tr>
+<td>AP89</td>
+<td>39.7M words, 198,763 unique, 70,064 hapax legomena</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Unicode maps glyphs to numbers; UTF-8/16/32 map numbers to bytes. π = U+03C0 = 960 → <code>110</code>01111 <code>10</code>000000 = <code>CF 80</code>.</li>
+<li>Search engines store documents in big compound files (TREC Web) or BigTable — random access by URL hash, compression, updates — not one file per page.</li>
+<li>Exact duplicates: checksums/CRCs; near duplicates: n-gram fingerprints (&quot;0 mod p&quot; selection, intersection over union ≥ τ) or simhash (fraction of equal bits ≥ τ).</li>
+<li>Simhash: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">V_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> += weight if bit <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> is 1, −= weight if 0; bit = 1 if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">V_i &gt; 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> — similar documents get similar fingerprints.</li>
+<li>Zipf: rank × probability ≈ 0.1; a few words dominate, and ~35% of AP89&#39;s vocabulary occurs once; the law bends at both ends.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-03/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 3</span><span class="pager-title" data-astro-cid-gxyjxt6l>Web Crawling</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/week-05/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Week 5 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Text Processing, Term-Document Matrices</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-03/en-US/" title="Previous: Web Crawling ([)" aria-label="Previous: Week 3" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 3</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 4</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-04/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/cs-121/week-05/en-US/" title="Next: Text Processing, Term-Document Matrices (])" aria-label="Next: Week 5" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Week 5</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

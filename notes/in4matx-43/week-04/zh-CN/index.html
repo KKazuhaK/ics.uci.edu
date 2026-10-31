@@ -1,0 +1,600 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 43 软件架构 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="为什么需要架构、架构的组成要素、规范性与描述性架构、架构侵蚀,以及六种架构风格。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-43/week-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413993" data-source-url="/~kazuhak/notes/in4matx-43/week-04/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-43/week-04/en-US/" data-prev-url="/~kazuhak/notes/in4matx-43/week-03/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-43/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 43</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 4 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-43/week-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 4 周 · 软件工程课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 43 第 4 周 的课程笔记，方便快速回顾软件工程里的定义、原则、框架和课堂重点。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 5 月 31 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="informatics-43--第四周课程笔记">Informatics 43 — 第四周课程笔记</h1>
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#1-%E4%BB%8E%E9%9C%80%E6%B1%82%E5%88%B0%E7%BB%93%E6%9E%84--%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%9E%B6%E6%9E%84">从需求到结构 — 为什么需要架构</a></li>
+<li><a href="#2-%E6%9E%B6%E6%9E%84%E5%B8%88architect-%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%AF%94%E4%BB%A5%E5%8F%8A%E5%AE%83%E7%9A%84%E5%B1%80%E9%99%90">架构师（Architect）— 一个类比（以及它的局限）</a></li>
+<li><a href="#3-%E5%AE%9A%E4%B9%89%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84">定义软件架构</a></li>
+<li><a href="#4-%E6%9E%B6%E6%9E%84%E5%9C%A8%E5%AE%9E%E8%B7%B5%E4%B8%AD--%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90">架构在实践中 — 案例分析</a></li>
+<li><a href="#5-%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E7%BB%84%E6%88%90%E8%A6%81%E7%B4%A0">软件架构的组成要素</a></li>
+<li><a href="#6-%E8%A7%84%E8%8C%83%E6%80%A7%E6%9E%B6%E6%9E%84-vs-%E6%8F%8F%E8%BF%B0%E6%80%A7%E6%9E%B6%E6%9E%84">规范性架构 vs. 描述性架构</a></li>
+<li><a href="#7-%E6%9E%B6%E6%9E%84%E4%BE%B5%E8%9A%80architectural-erosion">架构侵蚀（Architectural Erosion）</a></li>
+<li><a href="#8-%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC--%E5%AE%9A%E4%B9%89">架构风格 — 定义</a></li>
+<li><a href="#9-%E5%85%AD%E7%A7%8D%E6%9E%B6%E6%9E%84%E9%A3%8E%E6%A0%BC">六种架构风格</a></li>
+<li><a href="#10-%E6%B7%B7%E5%90%88%E9%A3%8E%E6%A0%BC">混合风格</a></li>
+<li><a href="#11-%E6%BC%94%E5%8C%96%E4%B8%8E%E6%9E%B6%E6%9E%84">演化与架构</a></li>
+<li><a href="#12-%E4%B8%8E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99%E7%9A%84%E8%81%94%E7%B3%BB">与基本原则的联系</a></li>
+<li><a href="#13-quiz-4-%E5%A4%8D%E4%B9%A0%E8%A6%81%E7%82%B9">Quiz 4 复习要点</a></li>
+<li><a href="#14-%E6%80%BB%E7%BB%93%E4%B8%8E%E8%AE%B0%E5%BF%86%E6%A1%86%E6%9E%B6">总结与记忆框架</a></li>
+</ol>
+<hr>
+<h2 id="1-从需求到结构--为什么需要架构">1. 从需求到结构 — 为什么需要架构</h2>
+<h3 id="11-需求与代码之间的鸿沟">1.1 需求与代码之间的鸿沟</h3>
+<p>在第二、三周之后，我们手上已经有了需求规约和一套用例（use cases）。自然而然要问的下一个问题是：<em>接下来呢？</em> 面对同一套需求，系统可以有<strong>许多种可能的结构方式</strong> —— 不同的模块划分、不同的职责分配、不同的通信方式。架构就是<strong>有意识地</strong>做这些结构决策的学科。</p>
+<p>整个过程是这样的：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">需求(Requirements)</mtext><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mrow><mtext mathvariant="bold">架构与设计(Architecture</mtext><mtext> </mtext><mtext mathvariant="bold">&amp;</mtext><mtext> </mtext><mtext mathvariant="bold">Design)</mtext></mrow><mtext>  </mtext><mo>⟶</mo><mtext>  </mtext><mtext mathvariant="bold">代码(Code)</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{需求(Requirements)} \;\longrightarrow\; \textbf{架构与设计(Architecture \&amp; Design)} \;\longrightarrow\; \textbf{代码(Code)}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf cjk_fallback">需求</span><span class="mord textbf">(Requirements)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf cjk_fallback">架构与设计</span><span class="mord textbf">(Architecture &amp; Design)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord textbf cjk_fallback">代码</span><span class="mord textbf">(Code)</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>架构处在中间 —— 它<strong>不是</strong>需求（需求说明系统<strong>要做什么</strong>），也<strong>不是</strong>代码（代码精确指定每一个细节<strong>怎么做</strong>）。它是联接两者的高层结构。</p>
+<h3 id="12-为什么架构在软件工程中如此重要">1.2 为什么架构在软件工程中如此重要</h3>
+<p>架构有五条具体的价值：</p>
+<table>
+<thead>
+<tr>
+<th>收益</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Intellectual control</strong>（思维掌控）</td>
+<td>让庞大复杂的系统仍然能被人脑理解</td>
+</tr>
+<tr>
+<td><strong>Conceptual integrity</strong>（概念完整性）</td>
+<td>让系统有一个连贯的&quot;故事&quot;，而不是各种风格拼凑出来的补丁</td>
+</tr>
+<tr>
+<td><strong>Effective project communication</strong>（有效的项目沟通）</td>
+<td>为团队提供共同的词汇和图示，用来推理系统</td>
+</tr>
+<tr>
+<td><strong>Reusability</strong>（可复用性）</td>
+<td>结构良好的组件可以在多个系统或变体之间复用</td>
+</tr>
+<tr>
+<td><strong>Maintainability</strong>（可维护性）</td>
+<td>方便管理一组变体系统，并支持长期演化</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-架构师architect-一个类比以及它的局限">2. 架构师（Architect）— 一个类比（以及它的局限）</h2>
+<h3 id="21-建筑架构师做什么">2.1 （建筑）架构师做什么</h3>
+<p>&quot;软件架构&quot;这个名字借自建筑学，这个类比确实有参考价值。一位建筑架构师：</p>
+<ul>
+<li>在项目中扮演一个<strong>独特角色</strong>，与施工工人分工明确</li>
+<li>有<strong>广泛的训练</strong>、<strong>丰富的经验</strong>、<strong>深入的领域理解</strong></li>
+<li><strong>领导团队</strong>、<strong>善于沟通</strong>、是<strong>决策者</strong></li>
+<li>工作在比实际施工者<strong>更高的抽象层级</strong>上</li>
+<li>通常担当<strong>与关键业务利益相关者/客户</strong>对接的接口</li>
+</ul>
+<p>软件架构师在软件项目中扮演的是类似的角色。</p>
+<h3 id="22-类比失效的地方">2.2 类比失效的地方</h3>
+<p>这个类比可以作为入门直觉，但不宜推得太远 —— 软件和建筑有本质区别：</p>
+<ul>
+<li>软件服务的用途<strong>比建筑广泛得多</strong></li>
+<li>我们对<strong>建筑的了解远远多于软件</strong>（几个世纪 vs. 几十年）</li>
+<li>软件比物理材料<strong>更加可塑</strong> —— 建筑建成后修改代价极高，软件修改相对便宜</li>
+<li><strong>软件是一台机器</strong>，而不是静态结构 —— 它有运行时行为</li>
+<li><strong>软件是不可见的</strong> —— 你无法像看建筑那样看到、走进、或检查它</li>
+</ul>
+<blockquote>
+<p>把这个类比当作直觉保留，但要记住：软件架构需要面对<strong>行为、变化与不可见性</strong>，而建筑架构并不需要。</p>
+</blockquote>
+<hr>
+<h2 id="3-定义软件架构">3. 定义软件架构</h2>
+<h3 id="31-主要定义">3.1 主要定义</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">软件架构</mtext><mo>=</mo><mtext>关于系统的一组</mtext><mtext mathvariant="italic">主要(principal)设计决策</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{软件架构} = \text{关于系统的一组}\textit{主要(principal)设计决策}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf cjk_fallback">软件架构</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord cjk_fallback">关于系统的一组</span></span><span class="mord text"><span class="mord textit cjk_fallback">主要</span><span class="mord textit">(principal)</span><span class="mord textit cjk_fallback">设计决策</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>&quot;<strong>principal</strong>&quot;（主要的）这个词承担了很多分量。不是每一个设计决策都是架构级的 —— 只有那些<strong>足以塑造整个系统</strong>的决策才算。这些主要决策涵盖：</p>
+<table>
+<thead>
+<tr>
+<th>方面</th>
+<th>处理的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Structure</strong>（结构）</td>
+<td>系统如何划分成各个部分</td>
+</tr>
+<tr>
+<td><strong>Behavior</strong>（行为）</td>
+<td>这些部分随时间如何表现</td>
+</tr>
+<tr>
+<td><strong>Interaction</strong>（交互）</td>
+<td>各部分之间如何通信</td>
+</tr>
+<tr>
+<td><strong>Non-functional properties</strong>（非功能属性）</td>
+<td>性能、可扩展性、安全性、可靠性等</td>
+</tr>
+</tbody></table>
+<h3 id="32-架构即蓝图blueprint">3.2 架构即蓝图（Blueprint）</h3>
+<p>还有一个互补的定义：</p>
+<blockquote>
+<p><strong>软件架构是软件系统构建（construction）与演化（evolution）的蓝图。</strong></p>
+</blockquote>
+<p>&quot;演化&quot;和&quot;构建&quot;同样重要 —— 架构不仅关乎把系统造出来，更关乎让系统能够<strong>优雅地随时间变化</strong>。</p>
+<h3 id="33-其他有用的定义">3.3 其他有用的定义</h3>
+<p>几位著名作者给出了各自的表述，每一个都强调了不同的侧面：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>定义</th>
+<th>强调点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Clements, Bass, Kazman</strong></td>
+<td>&quot;用于推理系统所需的一组结构，包括软件元素、元素之间的关系，以及二者的属性。&quot;</td>
+<td>推理 / 分析</td>
+</tr>
+<tr>
+<td><strong>Spinellis</strong></td>
+<td>&quot;你的整个系统……将如何分解为进程或服务；数据如何存储、传输和处理；以及所有部分如何协同工作，以满足所需的功能、可靠性、容量、可扩展性、可维护性和可移植性。&quot;</td>
+<td>分解与非功能属性</td>
+</tr>
+<tr>
+<td><strong>Fowler</strong></td>
+<td>&quot;系统的最高层级划分；那些难以改变的决策。&quot;</td>
+<td><strong>难以改变的</strong>部分</td>
+</tr>
+<tr>
+<td><strong>Natarén</strong></td>
+<td>&quot;清晰定义的多个高层组件，它们协同工作，构成你的系统并解决你的问题。&quot;</td>
+<td>高层组件的协作</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这四个定义从不同角度指向同一件事：架构 = <strong>重要的、高层的、难以改变</strong>的、塑造系统的决策。</p>
+</blockquote>
+<hr>
+<h2 id="4-架构在实践中--案例分析">4. 架构在实践中 — 案例分析</h2>
+<h3 id="41-案例电子邮件email">4.1 案例：电子邮件（Email）</h3>
+<p>电子邮件的功能规约很短：</p>
+<ul>
+<li>发送与接收消息</li>
+<li>获取自己的邮件，而不是别人的</li>
+<li>编址方案</li>
+<li>存储消息</li>
+<li>电子形式</li>
+<li>屏蔽垃圾邮件（spam）</li>
+</ul>
+<p>在架构层面，电子邮件通常被建模为 <strong>client ↔ client</strong> 的通信（背后由服务器中介）。架构捕捉的是高层交互模式，而不是某个邮件客户端的实现细节。</p>
+<h3 id="42-案例万维网www--rest">4.2 案例：万维网（WWW / REST）</h3>
+<p>Web 可以用多种方式来描述 —— 同一个架构可以有几种不同但都正确的图示和叙述。Web 架构（也称 <strong>REST 参考架构</strong>）的关键性质有：</p>
+<ul>
+<li>Web 是一组<strong>资源（resources）</strong>的集合，每个资源都有唯一的名字（<strong>URL</strong>）</li>
+<li>URL 可用于确定互联网上某台机器（<strong>origin server</strong>）的身份，资源可从那台机器获得</li>
+<li><strong>客户端（clients）</strong>（用户代理 / Web 浏览器）向服务器请求资源</li>
+<li>客户端操作的是资源的<strong>表示（representations）</strong>，而不是资源本身</li>
+<li>用户代理和源服务器之间的所有通信都必须通过一个<strong>简单、通用的协议（HTTP）</strong></li>
+<li>所有通信必须是<strong>完全自包含的（stateless）</strong></li>
+</ul>
+<p><strong>关于 Web 架构的三个重要观察：</strong></p>
+<ol>
+<li><strong>没有哪一段代码单独&quot;实现&quot;了这个架构</strong> —— 它是整个系统的性质，不是某个文件或程序的性质</li>
+<li><strong>这些风格约束在代码中看不出来</strong> —— 你读任何一个 HTTP 服务器的源代码，都看不到&quot;REST&quot;这几个字</li>
+<li><strong>Web 是世界上最成功的应用之一</strong>，而它<strong>只能从架构的视角才能被充分理解</strong></li>
+</ol>
+<blockquote>
+<p>这个例子很关键：它说明架构是一种<strong>凌驾于任何具体代码库之上</strong>的思考方式。图示、约束和协议规则<strong>本身就是</strong>架构。</p>
+</blockquote>
+<h3 id="43-案例facebook">4.3 案例：Facebook</h3>
+<p>Facebook 展示了大量功能与非功能需求如何共同驱动架构决策。</p>
+<p><strong>功能需求包括：</strong> 好友列表、状态更新、信息流（news feed）、评论/点赞/反应、消息、照片、位置服务、第三方应用，等等。</p>
+<p><strong>非功能需求包括：</strong></p>
+<ul>
+<li>效率 / 性能</li>
+<li>可扩展性（Scalability）</li>
+<li>可用性（Availability）</li>
+<li>安全性（Security）</li>
+<li>隐私（Privacy）</li>
+<li>可靠性（Reliability）</li>
+<li>可移植性（Portability）</li>
+</ul>
+<blockquote>
+<p>架构必须同时满足这两类需求。一个能提供功能行为、但在可扩展性或可用性上失败的结构，对 Facebook 来说就<strong>不是一个可接受的架构</strong>。</p>
+</blockquote>
+<h3 id="44-案例client-server客户端-服务器">4.4 案例：Client-Server（客户端-服务器）</h3>
+<p>最常见的分布式系统架构。它的定义性特征：</p>
+<ul>
+<li><strong>客户端向服务器发起请求</strong></li>
+<li>对数据、安全、访问进行<strong>集中式（centralized）</strong>控制</li>
+</ul>
+<p>Client-server 之所以无处不在，正是因为集中化简化了许多关注点（特别是安全性和数据一致性）。第 9 节会把它作为六种风格之一详细讨论。</p>
+<hr>
+<h2 id="5-软件架构的组成要素">5. 软件架构的组成要素</h2>
+<p>软件架构由<strong>三类构件</strong>搭建而成：</p>
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Components</strong>（组件）</td>
+<td>做实际工作的部分（模块、服务、进程等）</td>
+</tr>
+<tr>
+<td><strong>Connectors</strong>（连接器）</td>
+<td>组件之间通信的机制（调用、管道、消息队列、网络、事件……）</td>
+</tr>
+<tr>
+<td><strong>Configurations</strong>（配置）</td>
+<td>组件与连接器<strong>具体如何排布</strong> —— 拓扑结构</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><em>components + connectors + configurations</em> 这三元组，是下面每一种架构风格使用的共同词汇。当你读到 &quot;pipe-and-filter&quot; 或 &quot;publish-subscribe&quot; 时，每种风格本质上都是一份<strong>命名的配方</strong>，规定要用<strong>哪些组件、哪些连接器、什么样的配置</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="6-规范性架构-vs-描述性架构">6. 规范性架构 vs. 描述性架构</h2>
+<h3 id="61-同一个系统的两种视角">6.1 同一个系统的两种视角</h3>
+<p>每一个真实系统实际上都有<strong>两份架构</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>视角</th>
+<th>含义</th>
+<th>别称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Prescriptive architecture</strong>（规范性架构）</td>
+<td><strong>设计者所期望</strong>的架构</td>
+<td>as-designed / as-intended</td>
+</tr>
+<tr>
+<td><strong>Descriptive architecture</strong>（描述性架构）</td>
+<td>实际<strong>在运行代码中呈现出来</strong>的架构</td>
+<td>as-implemented / as-realized</td>
+</tr>
+</tbody></table>
+<h3 id="62-为什么会出现差异">6.2 为什么会出现差异</h3>
+<p>对于简单或年轻的系统，两者可能一致。对于大型、长期演化的系统（课上讨论的例子：<strong>Linux</strong>、<strong>iRODS</strong>、<strong>HADOOP</strong>），规范性和描述性架构可能<strong>差异巨大</strong>。规范性架构图干净、模块化；描述性架构图则暴露出各种捷径、补丁和本不该有的依赖。</p>
+<hr>
+<h2 id="7-架构侵蚀architectural-erosion">7. 架构侵蚀（Architectural Erosion）</h2>
+<h3 id="71-什么是架构侵蚀">7.1 什么是架构侵蚀</h3>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><menclose notation="box"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="false"><mstyle scriptlevel="0" displaystyle="true"><mrow><mtext mathvariant="bold">架构侵蚀</mtext><mo>=</mo><mtext>系统实际(描述性)架构与期望(规范性)架构逐渐偏离的现象</mtext></mrow></mstyle></mstyle></mstyle></menclose></mrow><annotation encoding="application/x-tex">\boxed{\textbf{架构侵蚀} = \text{系统实际(描述性)架构与期望(规范性)架构逐渐偏离的现象}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.68em;vertical-align:-0.59em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.09em;"><span style="top:-3.68em;"><span class="pstrut" style="height:3.68em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord text"><span class="mord textbf cjk_fallback">架构侵蚀</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord text"><span class="mord cjk_fallback">系统实际</span><span class="mord">(</span><span class="mord cjk_fallback">描述性</span><span class="mord">)</span><span class="mord cjk_fallback">架构与期望</span><span class="mord">(</span><span class="mord cjk_fallback">规范性</span><span class="mord">)</span><span class="mord cjk_fallback">架构逐渐偏离的现象</span></span></span></span></span></span><span style="top:-3.09em;"><span class="pstrut" style="height:3.68em;"></span><span class="stretchy fbox" style="height:1.68em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span></span></span></span></span></div>
+<p>理想流程是：<strong>当系统要演化时，先修改规范性架构</strong>，再更新实现使之一致。实际情况往往是：<strong>系统（从而是描述性架构）被直接改动</strong>，而规范性架构没有被同步更新。久而久之，两者的差距越拉越大。</p>
+<h3 id="72-为什么会发生">7.2 为什么会发生</h3>
+<p>侵蚀很少是单一原因造成的。常见的推动因素：</p>
+<ul>
+<li><strong>Developer sloppiness</strong> —— 走捷径但没有记录下来</li>
+<li><strong>Short deadlines</strong> —— 规范性更新被&quot;就这一次&quot;跳过（然后就再也没补上）</li>
+<li><strong>Lack of (documented) prescriptive architecture</strong> —— 如果原本的设计意图从未被写下来，开发者就无从&quot;违反&quot;它</li>
+<li><strong>Code optimizations</strong> —— 横跨模块边界的性能优化</li>
+<li><strong>Inadequate techniques or tool support</strong> —— 没有自动化手段检查代码是否符合设计</li>
+</ul>
+<blockquote>
+<p>架构侵蚀既是设计问题，也是<strong>维护问题</strong>。避免它需要有意为之：把规范性架构写下来，让它保持最新，并持续检查一致性。</p>
+</blockquote>
+<hr>
+<h2 id="8-架构风格--定义">8. 架构风格 — 定义</h2>
+<h3 id="81-什么是架构风格">8.1 什么是架构风格</h3>
+<p>一个<strong>架构风格（architectural style）</strong>是：</p>
+<ul>
+<li>一组<strong>命名的架构设计决策集合</strong>，这组决策：<ul>
+<li>适用于某个特定的开发上下文，</li>
+<li><strong>约束</strong>架构设计决策，</li>
+<li>并在每一个使用它的系统中产生<strong>有益的性质</strong>。</li>
+</ul>
+</li>
+<li>等价地：一组<strong>命名的、常见的 components / connectors / configurations 组合</strong>，其中<strong>每一个组件/连接器都有自己的职责</strong>。</li>
+</ul>
+<h3 id="82-为什么风格有用">8.2 为什么风格有用</h3>
+<p>风格本质上是一份<strong>久经验证的配方</strong>。采用一种风格，就继承了它带来的好处（模块化、可扩展性等），但也要接受它的约束（必须按它的规则玩）。本节剩下的内容涵盖六种被广泛使用的风格，每种都给出一个启发式的例子和一组收益。</p>
+<hr>
+<h2 id="9-六种架构风格">9. 六种架构风格</h2>
+<p>课程介绍六种架构风格。这<strong>不是</strong>完整清单 —— 还有很多其他风格 —— 但这六种是你需要掌握的。</p>
+<h3 id="91-model-view-controllermvc">9.1 Model-View-Controller(MVC)</h3>
+<p><strong>例子：自动取款机（ATM）</strong></p>
+<p>一台 ATM 的目标包括取款、存款、转账、查询余额，<strong>同时还要</strong>做到清晰的关注点分离：</p>
+<ul>
+<li>团队想<strong>尝试不同的 UI</strong></li>
+<li>团队想<strong>隔离业务规则</strong>，因为这些规则经常变</li>
+</ul>
+<p>MVC 把系统分成三部分：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>职责</th>
+<th>ATM 中的映射</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Model</strong></td>
+<td>保存数据和业务规则</td>
+<td>银行账户、业务规则</td>
+</tr>
+<tr>
+<td><strong>View</strong></td>
+<td>向用户展示信息</td>
+<td>ATM 的显示屏</td>
+</tr>
+<tr>
+<td><strong>Controller</strong></td>
+<td>处理用户输入，并协调 model 与 view</td>
+<td>输入处理器</td>
+</tr>
+</tbody></table>
+<p><strong>关键收益：</strong> <strong>Modularity</strong>（模块化）、<strong>Anticipation of Change</strong>（对变化的预期）—— 你可以在不碰 model 的情况下换 view，也可以在不碰 UI 的情况下改业务规则。</p>
+<blockquote>
+<p><strong>MVC 特别针对 UI 层的关注点。</strong> 实际中，人们说的 MVC &quot;controller&quot; 几乎总是指<em>由 UI 驱动</em>的控制逻辑（处理按钮点击、表单提交等）。这种模式之所以存在，是因为把数据、渲染、UI 逻辑混在一起写出的代码<strong>极难修改</strong> —— 改一个颜色、一个指标、一条业务规则都会变成横跨多处的大改动。MVC 正是把这三件事分开，让它们各自独立变化。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/mvc-atm.png" alt="MVC 映射到 ATM:ATM 显示屏（view）、规则组件（controller）、银行账户（model）通过箭头表示彼此之间的调用关系。"></p>
+<hr>
+<h3 id="92-client-server客户端-服务器">9.2 Client-Server（客户端-服务器）</h3>
+<p><strong>例子：在线多人视频游戏</strong></p>
+<p>目标：</p>
+<ul>
+<li>多人、在线</li>
+<li>控制对数据和玩家的访问</li>
+</ul>
+<p>结构：<strong>一台游戏服务器</strong>配<strong>多个游戏客户端</strong>（game client 1、game client 2、game client 3……）。客户端发起请求；服务器保存集中化的状态。</p>
+<p><strong>关键收益：</strong></p>
+<ul>
+<li>在大量客户端之间<strong>共享数据和服务</strong></li>
+<li>对访问、功能和数据的<strong>集中化控制</strong></li>
+</ul>
+<p><strong>主要缺点：</strong> 中央服务器是<strong>单点负载与单点故障</strong> —— 随着客户端数量增长，一台服务器很容易被<strong>压垮</strong>；一旦宕机，所有客户端都会失去服务。客户端-服务器系统的扩展手段（服务器复制、负载均衡、缓存等）很大程度上就是在回应这一弱点。</p>
+<p><strong>云计算改变了 client-server。</strong> 现代大多数 client-server 应用都运行在云上的服务器上：</p>
+<table>
+<thead>
+<tr>
+<th>云之前</th>
+<th>有云之后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>软件开发者必须管理物理服务器</td>
+<td>服务器由第三方管理（由 <strong>AWS</strong> 开创）</td>
+</tr>
+<tr>
+<td>单一数据中心，扩展困难</td>
+<td>云厂商还提供应用级服务</td>
+</tr>
+</tbody></table>
+<p>云的优点：<strong>可扩展性</strong>、<strong>更大的算力</strong>、可能<strong>更划算</strong>。
+云的缺点：<strong>安全/隐私</strong>问题，并且在某些规模下<strong>可能并不划算</strong>。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/client-server-game.png" alt="在线多人游戏的 client-server 结构：三个 game client 同时向一台中心化的 game server 发起请求。"></p>
+<hr>
+<h3 id="93-layered分层">9.3 Layered（分层）</h3>
+<p><strong>例子：餐厅</strong></p>
+<p>目标：</p>
+<ul>
+<li>为顾客准备并提供食物</li>
+<li>强制一种特定的交互协议</li>
+<li>把无关细节抽象掉</li>
+<li>把变更的影响最小化</li>
+<li><strong>Separate concerns</strong>（分离关注点）：让每一部分只专注于某一件具体的任务</li>
+</ul>
+<p>结构：系统被划分为<strong>多层（layers）</strong>，每一层只与紧挨着它的上下两层通信。一个真实世界的例子是 <strong>Android</strong>，它被组织成一个分层的栈（kernel、libraries、application framework、applications）。</p>
+<p><strong>关键收益：</strong> <strong>Modularity</strong>、<strong>Abstraction</strong>、<strong>Anticipation of Change</strong>、<strong>Reuse</strong>。</p>
+<blockquote>
+<p><strong>最底层通常是最可复用的。</strong> Android 这个例子很具体：<strong>Linux kernel</strong> 位于最底层，而它不仅被 Android 复用，还被互联网上大多数服务器复用。越往上层，越贴近具体应用；越往下层，越通用、越可复用。这也是为什么给一个 app 换皮（替换最上层的 UI）很容易，但替换内核几乎是不可想象的。</p>
+</blockquote>
+<blockquote>
+<p>餐厅之所以能运转，是因为服务员不做菜、厨师不直接面对顾客点单、顾客不进厨房。每一层都通过定义好的接口与它接触的层对接。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/layered-android.jpg" alt="Android 的分层架构：最上层是 Applications，其下为 Application Framework、Libraries 与 Android Runtime，最底层是 Linux Kernel。"></p>
+<hr>
+<h3 id="94-peer-to-peerp2p对等">9.4 Peer-to-Peer（P2P，对等）</h3>
+<p><strong>例子：Skype</strong></p>
+<p>目标：</p>
+<ul>
+<li>在线（多人）视频聊天和语音通话</li>
+<li>在多人之间共享同样的功能，<strong>并且不让视频/音频流变卡</strong></li>
+</ul>
+<p>结构：peer 之间（skype 1、skype 2、skype 3）<strong>直接通信</strong> —— 没有中央服务器去中介每一次通话。每个 peer 扮演的角色基本相同。</p>
+<p><strong>关键收益：</strong> <strong>Efficient</strong>（高效：没有中心瓶颈）、<strong>Robust</strong>（健壮：没有单点故障 —— 某个 peer 掉线，其余系统照常运转）。</p>
+<p><strong>其他真实例子：</strong> <strong>BitTorrent</strong>、<strong>Bitcoin</strong>，广义上还包括<strong>互联网本身</strong> —— 这些系统都具备 P2P 性质：没有任何一个节点是不可或缺的。</p>
+<blockquote>
+<p><strong>实际上，&quot;纯粹&quot;的 P2P 很少见。</strong> 大多数部署在真实世界的 P2P 系统仍然带有一小块 client-server 组件，用于 peer 自己做不好的事情 —— 例如 Skype 需要一个中央目录来查找&quot;某个用户名对应哪个 IP 地址&quot;；BitTorrent 传统上也需要 tracker 来做类似的事。<strong>批量流量</strong>（视频、音频、文件）走 peer-to-peer，但薄薄一层&quot;协调&quot;往往仍是集中式的。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/p2p-skype.png" alt="Skype 的 P2P 拓扑：skype 1、skype 2、skype 3 三个 peer 之间直接通信，没有中央服务器中介每一次通话。"></p>
+<hr>
+<h3 id="95-pipe-and-filter管道与过滤器">9.5 Pipe-and-Filter（管道与过滤器）</h3>
+<p><strong>例子：编译器</strong></p>
+<p>目标：</p>
+<ul>
+<li>把高级语言翻译成计算机可以执行的低级语言</li>
+<li>把翻译的不同步骤分离开，这样你可以方便地<strong>添加 / 修改 / 删除 / 替换</strong>某一步</li>
+</ul>
+<p>结构：一个 <strong>filter</strong>（过滤器）是一个读取输入流、产生输出流的组件。一个 <strong>pipe</strong>（管道）是把流从一个 filter 输送到下一个 filter 的连接器。</p>
+<p>对于一个编译器：</p>
+<div class="code-wrap"><pre><code>scanner --&gt; stream (tokens) --&gt; parser --&gt; stream (parse trees) --&gt; translator
+   ^filter        ^pipe         ^filter         ^pipe              ^filter</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>经典的 Unix shell 例子：</p>
+<div class="code-wrap"><pre><code>ls -l | grep &quot;Aug&quot; | sort</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>每个命令都是一个 filter；每个 <code>|</code> 都是一条 pipe。前一个 filter 的输出就是下一个 filter 的输入。</p>
+<p><strong>关键收益：</strong> <strong>Modularity</strong>、<strong>Reuse</strong>、<strong>Anticipation of Change</strong>（你可以在不动其他 filter 的情况下插入、删除或重排某个 filter）。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pipe-filter-unix.png" alt="Unix `ls -l | grep "Aug" | sort` 的 pipe-and-filter 图示：三个 filter 组件（print records、filter "Aug" records、sort）之间以 stream（pipe 连接器）相连。"></p>
+<hr>
+<h3 id="96-publish-subscribepub-sub发布-订阅">9.6 Publish-Subscribe（&quot;Pub-Sub&quot;，发布-订阅）</h3>
+<p><strong>例子：股票行情机（stock market ticker）</strong></p>
+<p>目标：</p>
+<ul>
+<li>从海量信息（股票价格）中筛选，<strong>只把订阅者感兴趣的信息广播出去</strong></li>
+</ul>
+<p>结构：一个 <strong>subscription manager</strong>（订阅管理器）位于数据源（股票市场）和<strong>订阅者</strong>（trader 1、trader 2、trader 3）之间。订阅者登记自己的兴趣；管理器只把相关事件路由给每个人。</p>
+<p><strong>关键收益：</strong> <strong>Efficiency</strong>（订阅者不会被不想要的数据淹没）、<strong>Scalability</strong>（增加订阅者不需要修改发布者）。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/pub-sub-stock.png" alt="股票行情机的 pub-sub 结构：stock market 把事件推给 subscription manager（连接器），后者只把相关事件路由给 trader 1、trader 2、trader 3。"></p>
+<hr>
+<h2 id="10-混合风格">10. 混合风格</h2>
+<p>现实系统很少能干净地归入单一风格 —— 混合往往是必要的。例如，一个股票行情系统可以同时结合 pub-sub（把价格推给交易员）<strong>和</strong> client-server 子结构（股票市场服务器、订阅管理器、一个被多个组件共享的股票数据库），再额外接一块&quot;购买规则&quot;组件。</p>
+<blockquote>
+<p>看到真实的架构图时，预期会是多种风格的<strong>组合</strong>。&quot;这个系统用了 pub-sub <strong>并且</strong> client-server <strong>并且</strong> layered&quot;是一个正常、健康的描述，不是设计混乱的标志。</p>
+</blockquote>
+<hr>
+<h2 id="11-演化与架构">11. 演化与架构</h2>
+<h3 id="111-演化不可避免">11.1 演化不可避免</h3>
+<blockquote>
+<p><strong>所有成功的软件都会演化。</strong> 演化是软件开发不可或缺的一部分，必须尽可能地被容纳/规划进去。</p>
+</blockquote>
+<p><strong>架构是容纳演化的关键工具。</strong> 第 6 节的规范性/描述性划分、第 9 节的风格选择、以及下面的基本原则，存在的很大一部分原因就是：让未来的演化更便宜。</p>
+<h3 id="112-web--演化的典范例子">11.2 Web —— 演化的典范例子</h3>
+<p>万维网大概是最清楚的一个例子 —— 一个架构让它自己最初的设计者都没有预见到的用途成为可能。最早的版本（1991 年）几乎只是<strong>带超链接的纯文本</strong>（例如 CERN 最早的那一页）。到 1990 年代末，它已经能支持电子商务（早期的 Amazon）。今天，它支撑着视频流、社交网络、实时应用，以及更多。</p>
+<blockquote>
+<p>这些后来的用途在最初的设计里一个都没有被预想到。但因为 REST 参考架构里选择的<strong>骨架</strong> —— URL、HTTP、无状态请求、资源表示 —— 足够扎实、足够通用，Web 才能在同一副骨架上<strong>不断叠加新能力</strong>，三十多年不需要重新设计。这就是架构驱动演化的最佳范例。</p>
+</blockquote>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/web-cern-1991.png" alt="1991 年 CERN 第一个万维网页面（info.cern.ch）截图 —— 纯文本加蓝色超链接。三十多年过去，同一套架构骨架现在支撑着视频流、电子商务与实时应用。"></p>
+<h3 id="113-趋势从单体monolithic到微服务microservices">11.3 趋势：从单体（monolithic）到微服务（microservices）</h3>
+<p>业界当前一个具体的演化趋势：单体应用（整个系统作为一个大的可部署单元）越来越多地被拆成<strong>微服务（microservices）</strong>（许多小的、可独立部署的服务）。完成这个迁移的真实系统包括 <strong>Netflix</strong>。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-43/week-4/monolithic-vs-microservices.png" alt="单体架构 vs. 微服务架构对比：左侧是一个把所有功能打包在一起的可部署单元，右侧是多个可独立部署的小服务，通过彼此通信协作。"></p>
+<hr>
+<h2 id="12-与基本原则的联系">12. 与基本原则的联系</h2>
+<p>第一周学过的基本原则同样适用于软件架构：</p>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>在架构中的体现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Rigor and formality</strong>（严格与形式化）</td>
+<td>精确的图示、精确的风格定义、精确的组件/连接器词汇</td>
+</tr>
+<tr>
+<td><strong>Separation of concerns</strong>（关注点分离：模块化、分而治之、抽象）</td>
+<td>上面每一种风格都是关注点分离的一个实例 —— MVC 分离 data/UI/control,layered 分离抽象层级，pub-sub 把发布者和订阅者解耦</td>
+</tr>
+<tr>
+<td><strong>Anticipation of change</strong>（对变化的预期）</td>
+<td>选择让变化廉价的风格（MVC、layered、pipe-and-filter）；把规范性架构保持最新</td>
+</tr>
+<tr>
+<td><strong>Generality</strong>（通用性）</td>
+<td>风格本身就是可跨许多系统使用的通用解决方案</td>
+</tr>
+<tr>
+<td><strong>Incrementality</strong>（增量性）</td>
+<td>架构让增量地添加特性、filter、服务或订阅者成为可能</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>架构不是与这些原则并列的另一个主题 —— 它恰恰是这些原则<strong>最显眼的落地场所</strong>之一。</p>
+</blockquote>
+<hr>
+<h2 id="13-quiz-4-复习要点">13. Quiz 4 复习要点</h2>
+<p>你需要知道并理解：</p>
+<ul>
+<li><strong>什么是软件架构</strong><ul>
+<li>关于系统的一组主要（principal）设计决策</li>
+<li>系统构建与演化的蓝图</li>
+<li>为什么架构重要（思维掌控、概念完整性、沟通、可复用性、可维护性）</li>
+</ul>
+</li>
+<li><strong>软件架构的组成要素</strong><ul>
+<li>Components、connectors、configurations</li>
+</ul>
+</li>
+<li><strong>架构侵蚀</strong><ul>
+<li>规范性架构 vs. 描述性架构</li>
+<li>为什么会发生侵蚀</li>
+</ul>
+</li>
+<li><strong>六种架构风格</strong><ul>
+<li>Model-View-Controller</li>
+<li>Client-Server</li>
+<li>Layered</li>
+<li>Peer-to-Peer</li>
+<li>Pipe-and-Filter</li>
+<li>Publish-Subscribe</li>
+<li>每一种都要知道：启发例子、结构模式、关键收益</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="14-总结与记忆框架">14. 总结与记忆框架</h2>
+<div class="code-collapse is-collapsed"><pre data-language="text"><code class="language-text">第 4 周知识结构
+|
++-- 为什么要架构
+|   +-- 桥接 requirements -&gt; code
+|   +-- 带来:思维掌控、概念完整性、
+|   |       沟通、可复用性、可维护性
+|   +-- 与建筑架构师的类比(但软件是可塑的、
+|       不可见的、是一台机器,而且我们对它了解更少)
+|
++-- 软件架构的定义
+|   +-- 关于系统的一组 PRINCIPAL 设计决策
+|   +-- 涵盖:结构、行为、交互、非功能属性
+|   +-- CONSTRUCTION 与 EVOLUTION 的蓝图
+|   +-- 其他定义:Clements/Bass/Kazman、Spinellis、Fowler、Natarén
+|
++-- 架构在实践中
+|   +-- Email            -&gt; client 到 client
+|   +-- WWW / REST       -&gt; resources + URLs + HTTP + stateless
+|   |                       (没有哪一个文件&quot;就是&quot;架构)
+|   +-- Facebook         -&gt; 大量功能 + 大量非功能需求
+|   +-- Client-Server    -&gt; 最常见的分布式架构
+|
++-- 架构的组成要素
+|   +-- components   (做工作的部分)
+|   +-- connectors   (各部分如何通信)
+|   +-- configurations(如何排布)
+|
++-- 规范性 vs. 描述性
+|   +-- prescriptive = as-designed / as-intended
+|   +-- descriptive  = as-implemented / as-realized
+|   +-- 两者发生偏离的例子:Linux、iRODS、Hadoop
+|
++-- 架构侵蚀
+|   +-- 描述性架构随时间偏离规范性架构
+|   +-- 原因:草率、deadline、无文档、
+|              代码优化、工具支持不足
+|
++-- 架构风格(定义)
+|   +-- 命名的设计决策集合
+|   +-- 适用于某一上下文
+|   +-- 约束后续决策
+|   +-- 产生有益的性质
+|
++-- 六种风格
+|   +-- MVC             (ATM)            -&gt; 模块化、对变化的预期
+|   |                                       (特别针对 UI 层的关注点)
+|   +-- Client-Server   (视频游戏)       -&gt; 共享数据/服务、集中化控制
+|   |                                       缺点:单台服务器容易被压垮
+|   |                                       (云改变了 client-server)
+|   +-- Layered         (餐厅,           -&gt; 模块化、抽象、
+|   |                    Android)            对变化的预期、复用
+|   |                                       (最底层最可复用,例如 Linux 内核)
+|   +-- Peer-to-Peer    (Skype,          -&gt; 高效、健壮
+|   |                    BitTorrent,        (纯 P2P 少见,通常还需要一层
+|   |                    Bitcoin)            小的 client-server 用于发现 peer)
+|   +-- Pipe-and-Filter (编译器,         -&gt; 模块化、复用、
+|   |                    ls | grep | sort)   对变化的预期
+|   +-- Publish-Subscribe(股票行情机)   -&gt; 效率、可扩展性
+|
++-- 混合风格
+|   +-- 真实系统通常是多种风格的组合
+|
++-- 演化
+|   +-- 所有成功的软件都会演化
+|   +-- 架构是管理演化的关键工具
+|   +-- 典范例子:Web
+|   |   (1991 CERN 纯文本 -&gt; 1997 Amazon -&gt; 现代社交/视频)
+|   |   -&gt; REST 骨架不变,特性在其上叠加超过 30 年
+|   +-- 趋势:单体 -&gt; 微服务(Netflix)
+|
++-- 基本原则(仍然是同样 5 条)
+    +-- 严格与形式化
+    +-- 关注点分离(模块化、分而治之、抽象)
+    +-- 对变化的预期
+    +-- 通用性
+    +-- 增量性</code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="76"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（76 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="一句话总结">一句话总结</h3>
+<blockquote>
+<p>软件架构是关于系统的<strong>一组主要设计决策</strong> —— 由 components、connectors、configurations 组成 —— 位于需求与代码之间；它同时以<strong>规范性</strong>（intended）和<strong>描述性</strong>（realized）两种形式存在，并且这两者会随时间<strong>彼此偏离</strong>（架构侵蚀）；它通过一组命名的、可复用的<strong>架构风格</strong>（MVC、client-server、layered、peer-to-peer、pipe-and-filter、publish-subscribe）来表达，而这些风格的全部意义，就是把软件工程的基本原则 —— 特别是<strong>关注点分离</strong>和<strong>对变化的预期</strong> —— 落到实处，让系统能够<strong>优雅地演化</strong>。</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-43/week-03/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 3 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>用例与软件工程伦理</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 5 周 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>软件设计与 UML</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-43/week-03/zh-CN/" title="上一篇: 用例与软件工程伦理 ([)" aria-label="上一篇: 第 3 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 43</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 4 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-43/week-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-43/week-05/zh-CN/" title="下一篇: 软件设计与 UML (])" aria-label="下一篇: 第 5 周" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 周</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

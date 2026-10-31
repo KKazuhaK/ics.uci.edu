@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 随机数、引用与指针 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="C++ 随机数生成、引用、裸指针，以及智能指针与所有权（ownership）入门。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-01/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413975" data-source-url="/~kazuhak/notes/ics-46/lec-01/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-01/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-00/zh-CN/" data-next-url="/~kazuhak/notes/ics-46/lec-02/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 1 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-01/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 1 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 1 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 16 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-1随机性引用与指针">Information and Computer Science 46 — Lecture 1：随机性、引用与指针</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E9%9A%8F%E6%9C%BA%E6%80%A7%E4%B8%8E%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%94%9F%E6%88%90">1. 随机性与随机数生成</a></li>
+<li><a href="#2-c-%E5%BC%95%E7%94%A8">2. C++ 引用</a></li>
+<li><a href="#3-c-%E6%8C%87%E9%92%88">3. C++ 指针</a></li>
+<li><a href="#4-%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E4%B8%8E%E6%89%80%E6%9C%89%E6%9D%83">4. 智能指针与所有权</a></li>
+<li><a href="#5-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">5. 课堂活动（附解答）</a></li>
+<li><a href="#6-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">6. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh，Fall 2026，周二 09/29/26<br>本笔记基于 Lecture 1 幻灯片（第 1–31、35 页），并以 Thornton 的 ICS 46 笔记（随机性、智能指针）、Thornton 的 ICS 45C 笔记（指针与堆）以及 W. Brown 的 <em>Random Number Generation in C++11</em>（N3551，见总结页链接）作为补充。按概念而非按资料来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong><br><strong>Lab 1</strong> 已发布，截止时间 <strong>Mon 10/5</strong>：配置环境，编译一个小测试程序，提交到 <strong>Gradescope</strong>（所有作业、实验和项目都用它提交）。<br><strong>编程环境</strong>：<strong>UCI ICS OpenLab JupyterHub</strong> 上的 VS Code + C++——评分就在这个环境中进行，配置说明见 Lab 1。请关闭 Copilot 和其他任何 AI 辅助工具。<br>习题集的 <strong>Pensive</strong> 链接已发布。<strong>答疑时间</strong>日历已更新：Prof. Yeh 周二/周四 5–6 pm（ICS1 195）；讲课周二/周四 3:30–4:50；Discussion 在周五。<br>为什么学这门课：面试题历来侧重数据结构与算法。<br>今天的目标：随机性、引用、指针、智能指针。</p>
+</blockquote>
+<hr>
+<h2 id="1-随机性与随机数生成">1. 随机性与随机数生成</h2>
+<h3 id="11-随机是什么意思">1.1 “随机”是什么意思</h3>
+<p>一个序列是<strong>随机的</strong>，是指即使看过之前所有的值，也没有人能比碰运气做得更好地预测下一个值；我们的目标是让程序能够<em>生成</em>这样的序列（幻灯片 6）。用途：<strong>机器学习</strong>（权重初始化、训练/测试集划分、SGD）、<strong>安全</strong>（密钥、令牌——可预测的密钥就是可被猜到的密钥）、<strong>模拟</strong>（Monte Carlo，改变种子）、<strong>游戏</strong>（世界生成、NPC 决策）。</p>
+<h3 id="12-真随机与伪随机">1.2 真随机与伪随机</h3>
+<p>幻灯片 7 把随机数生成器（random number generator，RNG）分成两类：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>真随机（TRNG / 硬件 RNG）</th>
+<th>伪随机（PRNG）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方式</td>
+<td>测量不断变化的<strong>物理现象</strong></td>
+<td>根据上一个内部状态<strong>计算</strong>出每个值</td>
+</tr>
+<tr>
+<td>例子</td>
+<td>骰子、硬币、扑克牌；网络流量、温度、熔岩灯；大气噪声（random.org）</td>
+<td>Mersenne Twister、线性同余生成器</td>
+</tr>
+<tr>
+<td>可复现？</td>
+<td>否</td>
+<td><strong>是</strong>——种子相同，序列相同</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>受限（收集熵需要时间）</td>
+<td>非常快</td>
+</tr>
+</tbody></table>
+<p>标题页的照片是 Cloudflare 的熔岩灯“熵之墙”（Wall of Entropy），是一个真实的 TRNG 来源。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，随机性）：熵（entropy）很稀缺——操作系统每秒只能观测到有限数量的不可预测事件。所以实际程序会把两者结合：从熵源取<strong>一个</strong>值作为<strong>种子</strong>，再让快速的 PRNG 把它扩展成很长的序列。</p>
+</blockquote>
+<h3 id="13-给引擎设置种子">1.3 给引擎设置种子</h3>
+<p>在 <code>&lt;random&gt;</code> 中，PRNG 叫作<strong>引擎</strong>（engine），创建时要给它一个<strong>种子</strong>（seed）（幻灯片 8）。</p>
+<p><strong>方式 01——固定种子</strong>：每次运行得到相同的序列；最适合测试、模拟和调试。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#569CD6">const</span><span style="color:#569CD6"> unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> SEED</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">123</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">SEED</span><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>方式 02——熵源</strong>：<code>std::random_device</code> 读取操作系统/硬件的熵；要<strong>调用</strong>它才能得到一个种子。每次运行序列都不同；用于正式运行。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span><span style="color:#6A9955">   // note the ()</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：固定种子只在<strong>同一个标准库</strong>上才能复现序列——<code>default_random_engine</code> 由各厂商自行选择实现，所以 g++ 和 MSVC 对种子 123 可能打印出不同的数。如果需要在任何地方都得到相同结果，请用 <code>std::mt19937</code>。</p>
+</blockquote>
+<h3 id="14-分布均匀分布与正态分布">1.4 分布：均匀分布与正态分布</h3>
+<p>引擎产生的是原始的均匀比特；<strong>分布</strong>（distribution）把它们整形成你想要的值（幻灯片 9）。</p>
+<ul>
+<li><strong>均匀整数分布</strong>：取 [min, max] 内的整数，<strong>两端都包含</strong>，每个值等可能（平坦）。</li>
+<li><strong>正态/高斯分布</strong>：以<strong>均值</strong>为中心的钟形曲线；<strong>标准差</strong>决定分散程度（例如考试成绩）。</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// Equal chance for 1, 2, 3, 4, 5, or 6</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">uniform_int_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> mean</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> stddev</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">normal_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">d</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">mean</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">stddev</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 9 的两张直方图（每个值对应的星号数）：</p>
+<table>
+<thead>
+<tr>
+<th>value</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>uniform, min 0, max 10</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>normal, mean 5.0, sd 2.0</td>
+<td>0</td>
+<td>1</td>
+<td>3</td>
+<td>6</td>
+<td>9</td>
+<td>9</td>
+<td>8</td>
+<td>5</td>
+<td>3</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>（正态直方图还列出了 −2、−1、11、12——全是空的。）</p>
+<p>均匀分布是平的；正态分布在均值附近达到峰值，距离均值超过 2 个标准差的地方（小于 1 或大于 9）几乎没有数据。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（N3551 §3）：不要写 <code>1 + engine() % 6</code>。引擎的取值范围通常不是 6 的倍数，所以较小的值会略微更常出现——这是一个有偏的骰子。一定要通过分布来取值（并避免使用老式的 C 函数 <code>rand()</code>）。</p>
+</blockquote>
+<h3 id="15-综合起来掷骰子">1.5 综合起来：掷骰子</h3>
+<p>幻灯片 10：这三个部分只创建<strong>一次</strong>——（1）熵源 + 引擎，（2）映射到 [1, 6] 的分布，（3）每取一个样本就调用一次 <code>distribution(engine)</code>。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;random></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 1. Source of Entropy &#x26; Engine</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">random_device</span><span style="color:#9CDCFE"> device</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#DCDCAA">device</span><span style="color:#D4D4D4">()};</span><span style="color:#6A9955">   // slide: engine{device}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 2. Inclusive Uniform Distribution [1, 6]</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">uniform_int_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 3. Generate Samples</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">1000</span><span style="color:#D4D4D4">; ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">distribution</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">engine</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>幻灯片错误（p10、p11）</strong>：<code>engine{device}</code> 应为 <code>engine{device()}</code>。直接传入 device 对象本身无法编译（g++：<code>no matching function for call to &#39;std::linear_congruential_engine&lt;...&gt;(&lt;brace-enclosed initializer list&gt;)&#39;</code>）；必须调用它。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>（Thornton）：不要在循环内部创建 device/engine/distribution——否则每次都会访问缓慢的熵源，还会丢掉 PRNG 的状态。创建一次，调用多次。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#51-%E6%B4%BB%E5%8A%A8-0%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%94%9F%E6%88%90%E5%B9%BB%E7%81%AF%E7%89%87-11">活动 0</a>——用 46 作种子，并改用 <code>normal(4.0, 0.6)</code>。</p>
+</blockquote>
+<hr>
+<h2 id="2-c-引用">2. C++ 引用</h2>
+<h3 id="21-引用是别名">2.1 引用是别名</h3>
+<p><strong>引用</strong>（reference）是已有对象的另一个名字（幻灯片 13）。它<strong>必须初始化</strong>，并且<strong>永远不能重新绑定</strong>到另一个对象。它也叫<strong>左值引用</strong>（lvalue reference），在类型上用 <code>&amp;</code> 声明：<code>int&amp; ref = existingVariable;</code>。与 Python 的名字不同，<code>r = j;</code> 不会让 <code>r</code> 重新绑定——它是把 <code>j</code> 的值复制到 <code>r</code> 所引用的对象里。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                       // r now refers to i</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 3</span></span>
+<span class="line"><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                            // a change to r is also a change to i</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 4</span></span>
+<span class="line"><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                            // a change to i is also a change to r</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // writes 5</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这里只有一个 <code>int</code>，有两个名字。</p>
+<h3 id="22-按值传递与按引用传递">2.2 按值传递与按引用传递</h3>
+<p>按值传递给函数一个<strong>副本</strong>；按引用传递则让形参成为调用者实参的<strong>别名</strong>（幻灯片 14）。为什么用引用：它<strong>允许修改</strong>原对象，并且<strong>避免复制</strong>大数据（性能、内存）。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">    x</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // prints 4</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    foo</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // prints 4</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> swap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>如果是 <code>void foo(int x)</code>，输出会是先 <code>4</code> 后 <code>3</code>；没有 <code>&amp;</code> 的 <code>swap</code> 只会交换两个副本，什么也改变不了。</p>
+<blockquote>
+<p>💡 <strong>关键洞察</strong>：只读大对象 → <code>const T&amp;</code>；要修改调用者的对象 → <code>T&amp;</code>；<code>int</code> 这类小类型 → 按值。</p>
+</blockquote>
+<h3 id="23-按值返回与按引用返回">2.3 按值返回与按引用返回</h3>
+<p>幻灯片 15：<strong>默认按值返回</strong>——它是安全的（没有悬空引用），得益于 RVO / 移动语义 / 复制省略（copy elision，C++17 起有保证）而开销很小，而且更简单。<strong>按引用返回</strong>用于：类的 getter（返回指向大型内部数据的 <code>const T&amp;</code>）、运算符重载（<code>operator[]</code>、<code>operator=</code>、<code>operator&lt;&lt;</code>，这样调用可以链式连接），以及生存期超出函数的长寿命对象。</p>
+<p><strong>关键规则：永远不要返回局部栈变量的引用</strong>——函数返回时它就被销毁了。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// BAD: Dangling reference to local object</span></span>
+<span class="line"><span style="color:#569CD6">int&#x26;</span><span style="color:#DCDCAA"> getBad</span><span style="color:#D4D4D4">() { </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> local</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> local</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // DANGER! Destroyed on exit</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// GOOD: Return by value (optimized by RVO/Copy Elision)</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> getGood</span><span style="color:#D4D4D4">() { </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> val</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // Safe zero-copy return</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>getBad()</code> 实际会发生什么（g++ 13，<code>-Wall -fsanitize=address,undefined</code>）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">bad.cpp:2:40: warning: reference to local variable &#39;local&#39; returned [-Wreturn-local-addr]
+bad.cpp:2:40: runtime error: reference binding to null pointer of type &#39;int&#39;
+AddressSanitizer: SEGV on unknown address 0x000000000000</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，移动语义）：<em>移动</em>一个 <code>std::vector</code> 只是偷走它内部的数组指针、大小和容量（O(1)），而不是复制每个元素（O(n)）。这就是幻灯片 15 能说按值返回开销很小的原因。<code>std::move(x)</code> 只是把 <code>x</code> 标记为“可以安全地被偷走资源”——在 §4.4 中你会看到它与 <code>unique_ptr</code> 一起使用。</p>
+</blockquote>
+<hr>
+<h2 id="3-c-指针">3. C++ 指针</h2>
+<h3 id="31-指针是什么">3.1 指针是什么</h3>
+<p><strong>指针</strong>（pointer）保存一个<strong>内存地址</strong>（运行时的值），以及它所指向的<strong>类型</strong>（编译期已知）（幻灯片 17）。用 <code>*</code> 声明：<code>int* x;</code>。声明要从右往左读：<code>int** q</code> 是“指向 int 指针的指针”，<code>int*&amp; s</code> 是“指向 int 指针的引用”。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>引用 <code>int&amp;</code></th>
+<th>指针 <code>int*</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可以为空？</td>
+<td>不可以</td>
+<td>可以（<code>nullptr</code>）</td>
+</tr>
+<tr>
+<td>必须初始化？</td>
+<td>是</td>
+<td>否（但未初始化 = 垃圾值）</td>
+</tr>
+<tr>
+<td>可以更换目标？</td>
+<td>不可以</td>
+<td>可以</td>
+</tr>
+<tr>
+<td>访问对象</td>
+<td>直接用名字</td>
+<td><code>*p</code></td>
+</tr>
+</tbody></table>
+<h3 id="32--与指针赋值">3.2 <code>&amp;</code>、<code>*</code> 与指针赋值</h3>
+<p><strong>取地址</strong>运算符 <code>&amp;</code>（出现在<em>表达式</em>中）给出变量的地址——不同于出现在<em>类型</em>中、用来声明引用的 <code>&amp;</code>。<strong>解引用</strong>运算符 <code>*</code> 与它相反：它访问该地址上的对象（这个名字与引用无关，是 C 语言里更早的术语）。你可以复制指针（<code>int* q = p;</code> → 两者指向同一个对象），也可以有指向指针的指针（<code>int** q = &amp;p;</code>）（幻灯片 17–18）。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 3</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                        // change i through p</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 4</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">** </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                  // *q is p, **q is i (prints 4)</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 19：指针支持直接操作内存、动态分配，以及构建数据结构（链表、树、图）。与引用不同，指针可以被<strong>重新指向</strong>：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">10</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // p holds the memory address of x</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">20</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // changes x to 20 through the pointer</span></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> y</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">30</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">y</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // now p points to y instead of x</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>已验证：之后 <code>x</code> 是 20，<code>*p</code> 是 30。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：地址不是 <code>int</code>——<code>int* p = i;</code> 是编译错误；应写 <code>int* p = &amp;i;</code>。</p>
+</blockquote>
+<h3 id="33-nullptr">3.3 <code>nullptr</code></h3>
+<p><code>nullptr</code> 表示“不指向任何东西”（例如链表中最后一个节点的 <code>next</code>）。幻灯片 19 问：解引用它会怎样？<strong>未定义行为</strong>（undefined behavior）——实际中就是崩溃。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">              // CRASH</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Segmentation fault            # plain g++, exit code 139</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>对可能为空的指针，解引用之前先检查 <code>if (p != nullptr)</code>。</p>
+<h3 id="34-栈与堆指针和引用一起用">3.4 栈与堆；指针和引用一起用</h3>
+<p>内存有两个区域（幻灯片 20）：<strong>栈</strong>（stack）存放函数调用和局部变量（静态分配，自动释放）；<strong>堆</strong>（heap）存放运行时由 <code>new</code> 创建的对象（动态分配，直到 <code>delete</code> 才释放）。<strong>引用是对象的隐式同义词；指针存储的是对象的位置。</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">     // new int: allocate an int on the heap</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // q is another name for the heap int</span></span>
+<span class="line"><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 4</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = &#x26;</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // address of the int q names (same as p)</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">r</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">*&#x26; </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // s is a reference to an int pointer</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 6</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 20 的程序在内存中的样子——一个堆上的 <code>int</code>，四种访问它的方式（虚线箭头表示引用）。在下面的演示中逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;幻灯片 20：p, q, r, s&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;int* p = new int; *p = 3; int&amp; q = *p; q = 4;&quot;, &quot;note&quot;: &quot;p 指向堆上的一个 int；q 是它的另一个名字（虚线 = 引用），所以 q = 4 写入的就是这个 int&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;p&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;}, {&quot;name&quot;: &quot;q&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;, &quot;ref&quot;: true}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;h1&quot;, &quot;type&quot;: &quot;int&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;value&quot;, &quot;value&quot;: &quot;4&quot;, &quot;old&quot;: &quot;3&quot;}]}]}, {&quot;code&quot;: &quot;int* r = &amp;q; *r = 5; int*&amp; s = p; *s = 6;&quot;, &quot;note&quot;: &quot;r 保存的地址与 p 相同；s 是指针 p 本身的引用&quot;, &quot;add_vars&quot;: {&quot;main&quot;: [{&quot;name&quot;: &quot;r&quot;, &quot;value&quot;: &quot;-&gt;h1&quot;}, {&quot;name&quot;: &quot;s&quot;, &quot;value&quot;: &quot;-&gt;main.p&quot;, &quot;ref&quot;: true}]}, &quot;set&quot;: {&quot;h1.value&quot;: {&quot;value&quot;: &quot;6&quot;, &quot;old&quot;: &quot;4&quot;}}}]}</code></pre><p>一个堆上的 <code>int</code>，四种访问方式：已验证 <code>r == p</code> 和 <code>&amp;s == &amp;p</code> 都输出 <code>true</code>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#52-%E6%B4%BB%E5%8A%A8-1a%E5%8F%AF%E8%A7%86%E5%8C%96%E6%8C%87%E9%92%88%E4%B8%8E%E5%BC%95%E7%94%A8%E5%B9%BB%E7%81%AF%E7%89%87-21">活动 1a</a> 和 <a href="#53-%E6%B4%BB%E5%8A%A8-1b%E6%8C%87%E9%92%88%E4%B8%8E%E5%BC%95%E7%94%A8%E5%B9%BB%E7%81%AF%E7%89%87-22">活动 1b</a>——同一幅图，然后改一行。</p>
+</blockquote>
+<h3 id="35-newdelete内存泄漏与悬空指针">3.5 <code>new</code>、<code>delete</code>、内存泄漏与悬空指针</h3>
+<p><code>delete p</code> 删除的是 <strong>p 所指向的对象</strong>，而不是 <code>p</code> 本身。规则：<strong>每个 <code>new</code> 都恰好对应一个 <code>delete</code></strong>。违反这条规则会出现：</p>
+<table>
+<thead>
+<tr>
+<th>Bug</th>
+<th>发生什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>内存泄漏</strong>（memory leak）</td>
+<td>从未被删除；最后一个指向它的指针消失后，它变得不可达，却仍处于已分配状态</td>
+</tr>
+<tr>
+<td><strong>悬空指针</strong>（dangling pointer）</td>
+<td><code>delete p</code> 之后，<code>p</code> 仍保存着旧地址；使用它是未定义行为</td>
+</tr>
+<tr>
+<td><strong>重复释放</strong>（double free）</td>
+<td>对同一个地址删除两次——未定义行为（活动 1b）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton 45C）：每次写下 <code>new</code>，都要问一句“谁来 delete 它，什么时候 delete？”Python 用垃圾回收器释放堆对象；C++ 没有，所以这是你的责任——或者交给智能指针。</p>
+</blockquote>
+<hr>
+<h2 id="4-智能指针与所有权">4. 智能指针与所有权</h2>
+<h3 id="41-裸指针的问题">4.1 裸指针的问题</h3>
+<p>幻灯片 24 列出的危险：解引用 <code>nullptr</code> 是 UB；错误的类型转换可能指向任何地方；<strong>同样的语法</strong>既可以指向单个对象也可以指向数组（<code>new int</code> 与 <code>new int[10]</code>）；而且指针<strong>仍然指向已释放的对象</strong>（悬空）。所以：<strong>优先使用栈分配</strong>（离开作用域时自动清理，即使发生异常也一样），<strong>只在必要时才动态分配</strong>——大小要到运行时才知道，或者数据必须比函数活得更久。</p>
+<p>智能指针（smart pointer，位于 <code>&lt;memory&gt;</code>）是现代的解决方案：</p>
+<table>
+<thead>
+<tr>
+<th>智能指针</th>
+<th>所有权</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::unique_ptr</code></td>
+<td>独占</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr</code></td>
+<td>共享（引用计数）</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr</code></td>
+<td>不拥有的观察者</td>
+</tr>
+</tbody></table>
+<p><strong>幻灯片错误（p24）</strong>：<code>std::share_ptr</code> 应为 <code>std::shared_ptr</code>。</p>
+<h3 id="42-所有权">4.2 所有权</h3>
+<p><strong>拥有</strong>一个对象的指针必须确保：指针被销毁时，该对象被释放（幻灯片 25）。用所有权的思路来思考，可以避免泄漏（没人 delete）和重复 delete（两个指针都 delete）。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> A</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    A</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~A</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    B</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">    // other member variables would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">A</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">A</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">    : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">}, ...</span><span style="color:#6A9955"> // other member variable initializers would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // other code to be run after the initializers would be here</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">A</span><span style="color:#D4D4D4">::~</span><span style="color:#DCDCAA">A</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // necessary cleanup other than deleting the object pointed to by b</span></span>
+<span class="line"><span style="color:#6A9955">    // would be here</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">    delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>幻灯片 25 的问题——如果构造函数在 <code>new B</code> 之后抛出异常会怎样？</strong> <code>A</code> 没有构造完成，所以 <code>~A()</code> 永远不会运行。成员 <code>b</code> 会被销毁，但销毁一个<em>裸</em>指针并不会删除那个 <code>B</code> → <strong>泄漏</strong>。（§4.3 中并排验证了这一点。）</p>
+<h3 id="43-stdunique_ptr独占所有权">4.3 <code>std::unique_ptr</code>：独占所有权</h3>
+<p><code>unique_ptr</code> 在<strong>它自己被销毁时，会销毁它所指向的对象</strong>——保证自动删除（幻灯片 26）。被指向的类型写在 <code>&lt; &gt;</code> 里。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;memory></span><span style="color:#6A9955">    // We need this if we want to use smart pointers</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // Creates a unique_ptr called p and points it to a newly-allocated int.</span></span>
+<span class="line"><span style="color:#6A9955">    // p holds unique ownership of that int.</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // We can dereference the pointer with the * operator, just as you'd</span></span>
+<span class="line"><span style="color:#6A9955">    // expect with a raw pointer.</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // When p falls out of scope -- either because the function ends normally</span></span>
+<span class="line"><span style="color:#6A9955">    // or because the function threw an exception -- it will destroy the</span></span>
+<span class="line"><span style="color:#6A9955">    // int it points to automatically, so no need for delete!  Similarly, if</span></span>
+<span class="line"><span style="color:#6A9955">    // we re-point p to a new integer later, or we point it to null, a</span></span>
+<span class="line"><span style="color:#6A9955">    // deletion will also be triggered.</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 27 把类 A 改写为使用 <code>std::unique_ptr&lt;B&gt; b;</code>——<code>~A()</code> 不再需要 <code>delete b</code>（如果没有别的事要做，甚至可以完全省略）。<strong>幻灯片错误（p27）</strong>：类的后面多了一个重复的 <code>};</code> → 只保留一个 <code>};</code>。</p>
+<p>示例——两个版本，构造函数都会抛出异常（已验证）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> B</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">    B</span><span style="color:#D4D4D4">()  { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"B constructed"</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~B</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"B destroyed"</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> RawA</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">                     // slide 25 version</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    RawA</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">} { </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">runtime_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"constructor failed"</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~RawA</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    B</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> A</span><span style="color:#D4D4D4"> {</span><span style="color:#6A9955">                        // slide 27 version</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    A</span><span style="color:#D4D4D4">() : </span><span style="color:#DCDCAA">b</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#9CDCFE"> B</span><span style="color:#D4D4D4">} { </span><span style="color:#C586C0">throw</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">runtime_error</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"constructor failed"</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">B</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">B constructed
+RawA: constructor failed          &lt;- no &quot;B destroyed&quot;: leaked
+B constructed
+B destroyed
+A: constructor failed
+==ERROR: LeakSanitizer: detected memory leaks   (1 byte: RawA&#39;s B)</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📘 <strong>课外补充</strong>（Thornton，智能指针）：这就是 <strong>RAII</strong>——在构造函数中获取资源，在析构函数中释放；局部对象的析构函数总会运行，无论是正常返回还是异常期间。现代代码通常写 <code>auto p = std::make_unique&lt;int&gt;(3);</code>（以及 <code>std::make_shared</code>），而不是直接用 <code>new</code>。</p>
+</blockquote>
+<h3 id="44-unique_ptr-不能被复制">4.4 <code>unique_ptr</code> 不能被复制</h3>
+<p><strong>复制 <code>unique_ptr</code> 是不安全的，所以不允许</strong>（幻灯片 28）。幻灯片 28 问：按值传递会怎样？</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> bar</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    foo</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>答案：无法编译</strong>——<code>error: use of deleted function &#39;std::unique_ptr&lt;...&gt;::unique_ptr(const std::unique_ptr&lt;...&gt;&amp;)&#39;</code>。如果允许这样做，<code>p</code> 和 <code>q</code> 就会都“拥有”这个 int（即幻灯片上的那幅图）；<code>foo</code> 返回时，<code>q</code> 会删除它，而 <code>p</code> 变成悬空指针，还会再删除一次。</p>
+<p>正确的写法（已验证）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> borrow</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955">                        // just use the int</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> borrowOwner</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> q</span><span style="color:#D4D4D4">) { *</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">; }</span><span style="color:#6A9955"> // use the caller's owner</span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> take</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">unique_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955"> /* ... */</span><span style="color:#D4D4D4"> }</span><span style="color:#6A9955">       // take ownership</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">borrow</span><span style="color:#D4D4D4">(*</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">          // p still owns the int</span></span>
+<span class="line"><span style="color:#DCDCAA">borrowOwner</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">      // p still owns the int</span></span>
+<span class="line"><span style="color:#DCDCAA">take</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">));</span><span style="color:#6A9955">  // ownership moves into q; afterwards p == nullptr</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="45-stdshared_ptr引用计数">4.5 <code>std::shared_ptr</code>：引用计数</h3>
+<p>在共享所有权下（幻灯片 29），只要<strong>至少还有一个</strong> <code>shared_ptr</code> 指向对象，它就一直存活，<strong>最后一个</strong>消失时才被销毁。它靠<strong>计数</strong>指针来实现（“类似于 Python 的垃圾回收”），并且 <code>shared_ptr</code> <strong>可以安全地复制</strong>——每复制一次计数加 1。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">{</span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">     // p1 points to a new integer</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">         // p2 points to the same integer</span></span>
+<span class="line"><span style="color:#D4D4D4">    *</span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                              // 4 is stored in that integer</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">        // prints 4</span></span>
+<span class="line"><span style="color:#9CDCFE">    p1</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                         // p1 no longer points to the integer, but p2 still does</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span><span style="color:#6A9955">                                         // when the function ends, the integer is destroyed</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<table>
+<thead>
+<tr>
+<th>执行完这一行后</th>
+<th><code>use_count</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>p1{new int}</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>p2 = p1</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>p1 = nullptr</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>}</code>（p2 被销毁）</td>
+<td>0 → int 被删除</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：“类似于 Python”只说对了一半——Python 还有循环垃圾收集器，而 <code>shared_ptr</code> <strong>没有</strong>。见 §4.6。</p>
+</blockquote>
+<h3 id="46-循环引用问题与-stdweak_ptr">4.6 循环引用问题与 <code>std::weak_ptr</code></h3>
+<p>幻灯片 30（活动 2）：即使是共享所有权也可能泄漏。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;memory></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">  // Forward declaration</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Parent</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Child</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">child</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Parent</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Parent destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Child</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Child destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">p</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Parent</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">shared_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Child</span><span style="color:#D4D4D4">>  </span><span style="color:#DCDCAA">c</span><span style="color:#D4D4D4">(</span><span style="color:#C586C0">new</span><span style="color:#DCDCAA"> Child</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">child</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // Parent owns Child</span></span>
+<span class="line"><span style="color:#9CDCFE">    c</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // Child owns Parent</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // Neither Parent nor Child is destroyed here because</span></span>
+<span class="line"><span style="color:#6A9955">    // they keep each other alive (circular reference).</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>循环在内存中的样子。在下面的演示中逐步查看（演示获得焦点时可用 ← / → 键）：</p>
+<pre data-language="viz" data-viz="memory-trace"><code>{&quot;title&quot;: &quot;活动 2：shared_ptr 循环&quot;, &quot;steps&quot;: [{&quot;code&quot;: &quot;shared_ptr&lt;Parent&gt; p(new Parent()); shared_ptr&lt;Child&gt; c(new Child());&quot;, &quot;stack&quot;: [{&quot;frame&quot;: &quot;main&quot;, &quot;vars&quot;: [{&quot;name&quot;: &quot;p&quot;, &quot;value&quot;: &quot;-&gt;P&quot;}, {&quot;name&quot;: &quot;c&quot;, &quot;value&quot;: &quot;-&gt;C&quot;}]}], &quot;heap&quot;: [{&quot;id&quot;: &quot;P&quot;, &quot;type&quot;: &quot;Parent&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;child&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;use_count&quot;, &quot;value&quot;: &quot;1&quot;}]}, {&quot;id&quot;: &quot;C&quot;, &quot;type&quot;: &quot;Child&quot;, &quot;fields&quot;: [{&quot;name&quot;: &quot;parent&quot;, &quot;value&quot;: &quot;nullptr&quot;}, {&quot;name&quot;: &quot;use_count&quot;, &quot;value&quot;: &quot;1&quot;}]}]}, {&quot;code&quot;: &quot;p-&gt;child = c;  c-&gt;parent = p;&quot;, &quot;note&quot;: &quot;现在每个对象都有两个所有者：一个局部变量和另一个对象&quot;, &quot;set&quot;: {&quot;P.child&quot;: {&quot;value&quot;: &quot;-&gt;C&quot;, &quot;old&quot;: &quot;nullptr&quot;}, &quot;C.parent&quot;: {&quot;value&quot;: &quot;-&gt;P&quot;, &quot;old&quot;: &quot;nullptr&quot;}, &quot;P.use_count&quot;: {&quot;value&quot;: &quot;2&quot;, &quot;old&quot;: &quot;1&quot;}, &quot;C.use_count&quot;: {&quot;value&quot;: &quot;2&quot;, &quot;old&quot;: &quot;1&quot;}}}, {&quot;code&quot;: &quot;} // end of scope: p and c destroyed&quot;, &quot;note&quot;: &quot;计数降到 1，而不是 0——两个对象互相让对方保持存活，外部又无法访问到它们：泄漏，不会运行任何析构函数&quot;, &quot;pop_frame&quot;: true, &quot;set&quot;: {&quot;P.use_count&quot;: {&quot;value&quot;: &quot;1&quot;, &quot;old&quot;: &quot;2&quot;}, &quot;C.use_count&quot;: {&quot;value&quot;: &quot;1&quot;, &quot;old&quot;: &quot;2&quot;}}}]}</code></pre><p>两个析构函数的消息都不会打印。（已验证的计数：赋值之后 Parent 为 2，Child 为 2。放在一个辅助函数里运行时，LeakSanitizer 报告 <code>80 byte(s) leaked in 4 allocation(s)</code>——两个对象加两个控制块。）</p>
+<p><strong>修复</strong>：让反向指针不拥有对象。<code>weak_ptr</code> 指向由 <code>shared_ptr</code> 管理的对象，但<strong>不会</strong>增加它的计数。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> Child</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">weak_ptr</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Parent</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">parent</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">          // FIX: observer, not owner</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~Child</span><span style="color:#D4D4D4">() { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Child destroyed</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#6A9955">// to use it:  if (std::shared_ptr&#x3C;Parent> pp = c->parent.lock()) { ... }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Parent count 1, Child count 2
+child can still reach its parent
+Parent destroyed
+Child destroyed</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>p</code> 消亡 → Parent 的计数降到 0 → Parent 被销毁，从而销毁它的 <code>child</code> 成员 → Child 的计数降到 0。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#54-%E6%B4%BB%E5%8A%A8-2%E5%85%B1%E4%BA%AB%E6%89%80%E6%9C%89%E6%9D%83%E5%B9%BB%E7%81%AF%E7%89%87-30">活动 2</a>。</p>
+</blockquote>
+<h3 id="47-准则借用与拥有">4.7 准则：借用与拥有</h3>
+<p><strong>并非所有指针都意味着拥有</strong>——对象可以被<strong>借用</strong>，而无需承担对它的责任（幻灯片 31）。</p>
+<table>
+<thead>
+<tr>
+<th>用法</th>
+<th>含义</th>
+<th>何时使用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>A&amp;</code> / <code>const A&amp;</code></td>
+<td>引用：<strong>保证存在</strong>（不会为空）；<code>const</code> 禁止修改</td>
+<td>借用者总是需要一个对象</td>
+</tr>
+<tr>
+<td><code>A*</code></td>
+<td>裸指针：按约定<strong>显式表示不拥有</strong>；<strong>对象可有可无</strong>（可以是 <code>nullptr</code>）</td>
+<td>对象可能不存在</td>
+</tr>
+<tr>
+<td><code>std::weak_ptr&lt;A&gt;</code></td>
+<td>智能的非拥有指针；与 <code>shared_ptr</code> 配对使用</td>
+<td>共享结构中的反向引用</td>
+</tr>
+</tbody></table>
+<p>实际例子：树节点用 <code>shared_ptr</code> 指向它的<strong>孩子</strong>，用 <code>weak_ptr</code> 指向它的<strong>父节点</strong>——也就是 §4.6 的修复方法。</p>
+<blockquote>
+<p>➡️ <strong>续见 <a href="/~kazuhak/notes/ics-46/lec-02/zh-CN/">Lecture 2</a></strong>：活动 3（把一棵树的裸指针先转换为 <code>unique_ptr</code>，再转换为 <code>shared_ptr</code> + <code>weak_ptr</code>，然后转换为 <code>unique_ptr</code> + 裸指针）、裸指针与智能指针混用（<code>.get()</code>、所有者与观察者），以及智能指针总结。</p>
+</blockquote>
+<hr>
+<h2 id="5-课堂活动附解答">5. 课堂活动（附解答）</h2>
+<h3 id="51-活动-0随机数生成幻灯片-11">5.1 活动 0：随机数生成（幻灯片 11）</h3>
+<p>修改 <code>random_test.cpp</code>（课程 Google 文件夹中）：（1）用<strong>以 46 为种子的 PRNG</strong> 打印随机数，（2）使用均值为 <strong>4.0</strong>、标准差为 <strong>0.6</strong> 的<strong>正态分布</strong>。给出的代码使用 <code>engine{device}</code> 和 <code>uniform_int_distribution&lt;int&gt; distribution{1, 6}</code>。</p>
+<p><strong>解答</strong>——修改这两行（固定种子不需要 <code>random_device</code>）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">const</span><span style="color:#569CD6"> unsigned</span><span style="color:#569CD6"> int</span><span style="color:#9CDCFE"> SEED</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">46</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">default_random_engine</span><span style="color:#9CDCFE"> engine</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">SEED</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">                     // 1) fixed seed</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">normal_distribution</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">distribution</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">4.0</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">0.6</span><span style="color:#D4D4D4">};</span><span style="color:#6A9955">    // 2) normal(4.0, 0.6)</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>前 10 个值（g++ 13 / libstdc++），每次运行都相同：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">2.94246 4.7139 3.62995 3.87306 4.78358 4.23905 3.89193 3.93273 4.34897 4.33676</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>1000 个样本的均值为 4.007，约 68% 落在 3.4–4.6 之间（在一个标准差以内）。如果保留 device，请把 <code>engine{device}</code> 改成 <code>engine{device()}</code>。</p>
+<h3 id="52-活动-1a可视化指针与引用幻灯片-21">5.2 活动 1a：可视化指针与引用（幻灯片 21）</h3>
+<p>为下面的代码画出栈/堆图（虚线 = 引用，实线 = 指针）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">* </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> = </span><span style="color:#C586C0">new</span><span style="color:#569CD6"> int</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">&#x26; </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4"> = *</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#D4D4D4">*&#x26; </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">9</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; *</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">; </span><span style="color:#C586C0">delete</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">;</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>解答</strong>——先打印 <strong><code>3</code></strong>，再打印 <strong><code>9</code></strong>；ASan 下没有报错。</p>
+<ul>
+<li><code>*a = *b</code> 复制的是<strong>值</strong> 3；<code>a</code> 和 <code>b</code> 仍然指向两个不同的 int。</li>
+<li><code>c</code> 是 <code>b</code> 所指 int 的名字，所以 <code>c = 6</code> 不会改变 <code>a</code> 的 int（仍是 3）→ 打印 3。</li>
+<li><code>d</code> 是指针 <code>a</code> 的另一个名字，所以 <code>*d = 9</code> 写入的是 <code>a</code> 的 int → 打印 9。</li>
+<li>最终的图：<code>a</code> → int 9，<code>b</code> → int 6，<code>c</code> 用虚线指向 6，<code>d</code> 用虚线指向 <code>a</code>。两个对象，各被删除一次。</li>
+</ul>
+<h3 id="53-活动-1b指针与引用幻灯片-22">5.3 活动 1b：指针与引用（幻灯片 22）</h3>
+<p>代码相同，只是 <code>*a = *b;</code> 改成了 <code>a = b; // change from 1a</code>。</p>
+<p><strong>解答</strong>——先打印 <strong><code>6</code></strong>，再打印 <strong><code>9</code></strong>，然后崩溃：</p>
+<ul>
+<li><code>a = b</code> 复制的是<strong>地址</strong>：两者都指向保存 3 的那个 int。保存 2 的那个 int 没有任何指针指向它了 → <strong>泄漏</strong>。</li>
+<li><code>c = 6</code> 和 <code>*d = 9</code> 都是写入这同一个共享的 int → 先 6，再 9。</li>
+<li><code>delete a; delete b;</code> 对同一个地址删除了两次 → <strong>重复释放</strong>：</li>
+</ul>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">6
+9
+==ERROR: AddressSanitizer: attempting double-free on 0x502000000030 in thread T0</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>*a = *b</code> 复制的是所指向的内容；<code>a = b</code> 复制的是指针——智能指针就是为了防止这种别名问题而存在的。</p>
+<h3 id="54-活动-2共享所有权幻灯片-30">5.4 活动 2：共享所有权（幻灯片 30）</h3>
+<p>对于 <a href="#46-%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8%E9%97%AE%E9%A2%98%E4%B8%8E-stdweak_ptr">§4.6</a> 中的 <code>Parent</code>/<code>Child</code> 程序：（a）<code>main</code> 结束时 parent 和 child 会怎样？（b）为什么？（c）如何修复？</p>
+<p><strong>解答。</strong>
+（a）两者都不会被销毁——没有任何析构函数输出；两个对象都泄漏了。
+（b）每个对象都有两个所有者（一个局部变量 + 另一个对象）。<code>p</code> 和 <code>c</code> 消亡时，每个计数降到 1，而不是 0：这是<strong>循环引用</strong>，<code>shared_ptr</code> 无法检测到。
+（c）把 <code>Child</code> 的成员改成 <code>std::weak_ptr&lt;Parent&gt; parent;</code>。Parent 的计数保持为 1，所以两者都会被销毁（<code>Parent destroyed</code>、<code>Child destroyed</code>）。用 <code>lock()</code> 来访问 parent。</p>
+<hr>
+<h2 id="6-速查与必记的-5-个要点">6. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th>想要</th>
+<th>写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可复现的引擎</td>
+<td><code>std::default_random_engine engine{46u};</code></td>
+</tr>
+<tr>
+<td>正式运行用的引擎</td>
+<td><code>std::random_device device; std::default_random_engine engine{device()};</code></td>
+</tr>
+<tr>
+<td>掷骰子 / 钟形曲线</td>
+<td><code>std::uniform_int_distribution&lt;int&gt; d{1, 6};</code> / <code>std::normal_distribution&lt;double&gt; d{4.0, 0.6};</code> 然后 <code>d(engine)</code></td>
+</tr>
+<tr>
+<td>别名，永不为空，永不重新绑定</td>
+<td><code>T&amp; r = x;</code></td>
+</tr>
+<tr>
+<td>取地址 / 跟随地址</td>
+<td><code>&amp;x</code> / <code>*p</code></td>
+</tr>
+<tr>
+<td>一个所有者，自动删除</td>
+<td><code>std::unique_ptr&lt;T&gt;</code> — 用 <code>std::move</code> 移交</td>
+</tr>
+<tr>
+<td>多个所有者</td>
+<td><code>std::shared_ptr&lt;T&gt;</code> — 复制会使计数加 1</td>
+</tr>
+<tr>
+<td>不拥有的反向指针</td>
+<td><code>std::weak_ptr&lt;T&gt;</code> — 用 <code>lock()</code> 来使用</td>
+</tr>
+<tr>
+<td>借用：必须存在 / 可以不存在</td>
+<td><code>const T&amp;</code> 或 <code>T&amp;</code> / <code>T*</code></td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>只设置一次种子（<code>engine{device()}</code>，括号不能少；测试时用固定种子），并且一定要通过分布取值。</li>
+<li>引用是永久的别名：通过它赋值永远不会让它重新绑定；永远不要返回局部变量的引用。</li>
+<li><code>*a = *b</code> 复制的是值；<code>a = b</code> 复制的是地址——这可能泄漏旧对象，并埋下重复释放的隐患。</li>
+<li><code>unique_ptr</code> 不能复制（两个所有者会导致重复 delete）；用 <code>T&amp;</code>/<code>T*</code> 借用，或用 <code>std::move</code> 转移所有权。</li>
+<li><code>shared_ptr</code> 的循环引用会导致泄漏，因为计数永远到不了 0；把孩子 → 父节点的指针改成 <code>weak_ptr</code>。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-00/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 0 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>课程介绍、单元测试与模板</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-02/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 2 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>智能指针、多维数组与经验分析</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-00/zh-CN/" title="上一篇: 课程介绍、单元测试与模板 ([)" aria-label="上一篇: 第 0 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 0 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 1 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-01/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-02/zh-CN/" title="下一篇: 智能指针、多维数组与经验分析 (])" aria-label="下一篇: 第 2 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 2 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

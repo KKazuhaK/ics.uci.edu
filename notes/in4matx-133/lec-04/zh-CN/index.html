@@ -1,0 +1,674 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 响应式设计与 JavaScript（一） | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="自适应与响应式设计、断点与媒体查询、流式网格、移动优先、Bootstrap 网格与组件，以及 JavaScript 的角色与历史入门。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-04/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-04/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-04/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413982" data-source-url="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-04/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-03/zh-CN/" data-next-url="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 4 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 4 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 4 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 17 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-4响应式设计与-javascript-1">IN4MATX 133: User Interface Software — Lecture 4：响应式设计与 JavaScript 1</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%99%AE%E9%80%82%E8%AE%A1%E7%AE%97%E6%97%B6%E4%BB%A3%E7%9A%84%E5%B1%8F%E5%B9%95">1. 普适计算时代的屏幕</a></li>
+<li><a href="#2-%E8%87%AA%E9%80%82%E5%BA%94%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AE%BE%E8%AE%A1">2. 自适应设计与响应式设计</a></li>
+<li><a href="#3-%E6%B5%8B%E8%AF%95%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AE%BE%E8%AE%A1">3. 测试响应式设计</a></li>
+<li><a href="#4-%E6%96%AD%E7%82%B9%E4%B8%8E%E5%AA%92%E4%BD%93%E6%9F%A5%E8%AF%A2">4. 断点与媒体查询</a></li>
+<li><a href="#5-%E6%B5%81%E5%BC%8F%E7%BD%91%E6%A0%BC%E4%B8%8E%E5%BC%B9%E6%80%A7%E5%9B%BE%E7%89%87">5. 流式网格与弹性图片</a></li>
+<li><a href="#6-%E7%A7%BB%E5%8A%A8%E4%BC%98%E5%85%88%E8%AE%BE%E8%AE%A1">6. 移动优先设计</a></li>
+<li><a href="#7-%E5%9F%BA%E4%BA%8E%E7%BD%91%E6%A0%BC%E7%9A%84%E5%B8%83%E5%B1%80">7. 基于网格的布局</a></li>
+<li><a href="#8-%E7%BD%91%E6%A0%BC%E6%A1%86%E6%9E%B6%E5%8F%8A%E5%85%B6%E6%89%B9%E8%AF%84%E8%80%85">8. 网格框架及其批评者</a></li>
+<li><a href="#9-%E9%85%8D%E7%BD%AE-bootstrap">9. 配置 Bootstrap</a></li>
+<li><a href="#10-bootstrap-%E7%BD%91%E6%A0%BC%E7%B3%BB%E7%BB%9F">10. Bootstrap 网格系统</a></li>
+<li><a href="#11-bootstrap-%E7%9A%84%E9%BB%98%E8%AE%A4%E6%A0%B7%E5%BC%8F%E4%B8%8E%E7%BB%84%E4%BB%B6">11. Bootstrap 的默认样式与组件</a></li>
+<li><a href="#12-javascript-%E7%9A%84%E8%A7%92%E8%89%B2">12. JavaScript 的角色</a></li>
+<li><a href="#13-%E5%85%B6%E4%BB%96-web-%E8%AF%AD%E8%A8%80%E4%B8%8E-javascript-%E7%9A%84%E6%B5%81%E8%A1%8C%E5%BA%A6">13. 其他 Web 语言与 JavaScript 的流行度</a></li>
+<li><a href="#14-javascript-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%B8%8E%E7%89%88%E6%9C%AC">14. JavaScript 的历史与版本</a></li>
+<li><a href="#15-javascript-%E4%B8%8E-java">15. JavaScript 与 Java</a></li>
+<li><a href="#16-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">16. 课堂问题与演示（附解答）</a></li>
+<li><a href="#17-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">17. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，10/6（周二）<br>内容整理自 Lecture 4 的幻灯片（共 85 页，包含关于自适应设计的“Extra slides”）以及演示代码仓库中的 <code>W2_L1_Oct6_Bootstrap</code> 文件夹。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：A1（响应式作品集）在午夜截止——幻灯片写的是“Monday (10/6)”，具体日期请以 Canvas 为准。<br>周五的 discussion 是线下进行的，之后所有的 discussion 也都是线下；如有变动，请查看 Canvas 上的“Discussion &amp; Office Hours updates”页面。<br>Slack 上有 A1 专用频道，可以在那里提问求助。<br>A1 小贴士（幻灯片 60）：认真回答 README 里的问题——用 Question 2 为自己争取分数，尤其是 3C（描述你用到的进阶功能）。修复 HTML/CSS 校验和无障碍（accessibility）警告，或者在 README 里说明为什么忽略某些警告；错误和“已知问题”（known issues）是不可接受的，会扣分。善用浏览器的 Web Developer tools（查看 Console 报错、检查盒模型（box model）、使用分辨率模拟器）。如果你已经开始写了，可以把现有代码改造成使用 Bootstrap。</p>
+</blockquote>
+<hr>
+<h2 id="1-普适计算时代的屏幕">1. 普适计算时代的屏幕</h2>
+<p>回顾 <a href="/~kazuhak/notes/in4matx-133/lec-01/zh-CN/#2-weiser-%E4%B8%8E%E8%AE%A1%E7%AE%97%E7%9A%84%E4%B8%89%E6%AC%A1%E6%B5%AA%E6%BD%AE">Lecture 1</a> 中 Weiser 的三次计算浪潮：<strong>大型机</strong>（“多对一”：许多人共用一台计算机）、<strong>个人计算</strong>（“一对一”）和<strong>普适计算</strong>（“一对多”：一个人拥有多台设备）。每一次浪潮都改变了网页需要适配的对象。</p>
+<ul>
+<li><strong>个人计算时代</strong>：页面通常是 <strong>960 px 宽</strong>。当时大多数屏幕宽 1024 px（幻灯片写的是“1024x978”，常见尺寸其实是 1024x768），所以 960 能给垂直滚动条留出空间，而且 960 可以被许多列数整除（960 Grid System 就是基于它设计的）。</li>
+<li><strong>今天</strong>：幻灯片 7 的显示分辨率图表涵盖了 Weiser 所说的 <strong>tabs</strong>（英寸级）、<strong>pads</strong>（码级）和 <strong>boards</strong>（英尺级，幻灯片上的标注如此）——有几十种分辨率。即使“只看 Apple 设备”（幻灯片 8，一张 iPhone/iPad 型号表），也涉及许多不同的逻辑宽度、高度和缩放比例。</li>
+</ul>
+<p>那么该如何应对？有两种答案：<strong>响应式设计</strong>（responsive design）或<strong>自适应设计</strong>（adaptive design）。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://960.gs/">960 Grid System</a> · <a href="https://en.wikipedia.org/wiki/Display_resolution">Wikipedia: Display resolution</a> · <a href="https://www.ios-resolution.com/">iOS Resolution (Apple device sizes)</a></p>
+</blockquote>
+<h2 id="2-自适应设计与响应式设计">2. 自适应设计与响应式设计</h2>
+<ul>
+<li><strong>自适应设计</strong>：开发并维护<strong>多套代码</strong>，根据<strong>设备类型</strong>和屏幕尺寸改变布局。示意图中每种设备（桌面、平板、手机）各有一套独立的设计。</li>
+<li><strong>响应式设计</strong>：开发<strong>一套 HTML 和 CSS</strong>，根据<strong>屏幕尺寸</strong>改变布局。一套设计适配所有设备。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>响应式设计</th>
+<th>自适应设计</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>+</strong></td>
+<td>只需维护一套代码，面向未来</td>
+<td>可以针对设备的能力和性能定制体验</td>
+</tr>
+<tr>
+<td><strong>−</strong></td>
+<td>性能较差：需要下载整个样式表</td>
+<td>维护多套代码库困难得多</td>
+</tr>
+<tr>
+<td><strong>−</strong></td>
+<td>重点放在让页面“看起来正确”，而不是打造体验</td>
+<td>开发只能局限于少数关键功能，因为每种设备都要单独实现</td>
+</tr>
+</tbody></table>
+<p>所以总的来说：<strong>自适应性能更好</strong>（加载时间更短），<strong>响应式更容易开发</strong>。</p>
+<p><strong>Web 之外（幻灯片 19）。</strong> 这两个术语来自 Web 开发，但原则同样适用于其他软件。许多游戏会发行到多个平台：界面通常会<strong>按平台重新设计（自适应）</strong>，而<strong>响应式</strong>设计用来处理同一平台上的不同分辨率——但也不绝对：导出为网页版和桌面版的游戏往往是响应式而不是自适应的。整个行业正在<strong>从自适应设计转向响应式设计</strong>（幻灯片 20），本讲接下来的内容也围绕后者展开。</p>
+<p><strong>自适应设计的实践</strong>（Extra slides，课上没讲）：</p>
+<ul>
+<li><em>为什么要费这个劲？</em> 视频的加载量很大。为什么要发送比屏幕能渲染的更高的分辨率，白白浪费自己的带宽，还让视频卡顿（用户不满）？像 Google 这样的公司（幻灯片展示的是 Chrome 设备模式下的移动端 YouTube）承担得起这种开发负担。</li>
+<li><em>检测设备</em>：<strong>用户代理字符串</strong>（user agent string）可以在 JavaScript 中通过 <code>navigator.userAgent</code> 获取。但通常有更好的办法——你真的在乎浏览器或操作系统吗？分辨率是不是就够了？而且这个字符串可能被伪造或不准确。</li>
+<li><em>更好的做法</em>：在 <strong><code>&lt;link&gt;</code> 上使用媒体查询</strong>，让浏览器加载对应的外部样式表：</li>
+</ul>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">&#x3C;!--HTML--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">link</span><span style="color:#9CDCFE"> rel</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"stylesheet"</span><span style="color:#9CDCFE"> media</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"screen and (device-width: 375px)</span></span>
+<span class="line"><span style="color:#CE9178">    and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"iPhone8.css"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>下面的演示会打印当前浏览器的用户代理字符串（在你自己的浏览器里运行同样的代码，打印的就是你的）：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Extra slide 84 · navigator.userAgent&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;console.log(navigator.userAgent);\n&quot;, &quot;height&quot;: 60}</code></pre><blockquote>
+<p>📝 <strong>练习</strong>：<a href="#161-%E9%97%AE%E9%A2%98-1%E5%93%8D%E5%BA%94%E5%BC%8F%E4%B8%8E%E8%87%AA%E9%80%82%E5%BA%94%E7%9A%84%E6%80%A7%E8%83%BD%E5%92%8C%E5%BC%80%E5%8F%91%E6%88%90%E6%9C%AC%E5%B9%BB%E7%81%AF%E7%89%87-1216">问题 1</a> · <a href="#162-%E9%97%AE%E9%A2%98-2%E7%82%89%E7%9F%B3%E4%BC%A0%E8%AF%B4%E7%94%A8%E5%93%8D%E5%BA%94%E5%BC%8F%E8%BF%98%E6%98%AF%E8%87%AA%E9%80%82%E5%BA%94%E5%B9%BB%E7%81%AF%E7%89%87-18">问题 2</a><br>🔗 <strong>延伸阅读</strong>：<a href="https://webflow.com/blog/adaptive-vs-responsive-design">Webflow: Adaptive vs. responsive design</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent">MDN: Browser detection using the user agent</a></p>
+</blockquote>
+<h2 id="3-测试响应式设计">3. 测试响应式设计</h2>
+<p>Chrome 和 Firefox 都提供了无需拥有所有设备就能测试不同分辨率的工具：</p>
+<ul>
+<li><strong>Firefox</strong>：响应式设计模式（Responsive Design Mode），快捷键 <code>ctrl + opt + M</code>（与幻灯片一致；Mac 快捷键）。</li>
+<li><strong>Chrome</strong>：打开 DevTools 并使用设备模式（device mode）（幻灯片展示的是 Prof. Reid 的作品集页面被压缩到手机宽度的样子）。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://developer.chrome.com/docs/devtools/device-mode/">Chrome DevTools: Device mode</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Browser_detection_using_the_user_agent">MDN: Browser detection using the user agent</a></p>
+</blockquote>
+<h2 id="4-断点与媒体查询">4. 断点与媒体查询</h2>
+<p><strong>断点</strong>（breakpoint）是设计“崩坏”的那个点——到了这里，页面不再美观或不再可用，所以布局必须在此处改变。设计各有不同，但大多有 <strong>3–5 个断点</strong>：超小（老式手机）、小（手机）、中（平板）、大（笔记本或台式机）、超大（宽屏台式机或墙面显示器）。这同样有点类似 Weiser 的三类计算机（tabs、pads、boards）。</p>
+<p>断点在 CSS 中用<strong>媒体查询</strong>（media query）来书写。查询可以写得非常具体：</p>
+<div class="code-wrap"><pre data-language="css" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* CSS */</span></span>
+<span class="line"><span style="color:#C586C0">@media</span><span style="color:#CE9178"> screen</span><span style="color:#D4D4D4"> and (</span><span style="color:#9CDCFE">device-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">375px</span><span style="color:#D4D4D4">) and (</span><span style="color:#9CDCFE">device-height</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">667px</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  and (</span><span style="color:#9CDCFE">-webkit-device-pixel-ratio</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  /* iPhone 8-specific CSS */</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>它的组成部分：<code>@media</code>；媒体类型（media type）——<code>screen</code>、<code>print</code>、<code>speech</code>、<code>all</code>；媒体特性（media feature）——<code>min-width</code>、<code>max-width</code>、<code>orientation</code>、<code>-webkit-min-device-pixel-ratio</code>，以及许许多多其他特性。通常你只需要把宽度划分成几个区间（幻灯片 24 和 49）：</p>
+<div class="code-wrap"><pre data-language="css" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">@media</span><span style="color:#CE9178"> screen</span><span style="color:#D4D4D4"> and (</span><span style="color:#9CDCFE">max-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">640px</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  /* small screens */</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#C586C0">@media</span><span style="color:#CE9178"> screen</span><span style="color:#D4D4D4"> and (</span><span style="color:#9CDCFE">min-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">640px</span><span style="color:#D4D4D4"> and </span><span style="color:#9CDCFE">max-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">1024px</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  /* medium screens */</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#C586C0">@media</span><span style="color:#CE9178"> screen</span><span style="color:#D4D4D4"> and (</span><span style="color:#9CDCFE">min-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">1024px</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  /* large screens */</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片中间那条查询是无效的——<code>(min-width: 640px and max-width: 1024px)</code> 把两个特性放在了同一对括号里，所以浏览器会认为它永远不匹配，中等屏幕就拿不到任何样式。每个特性都需要自己的括号：<code>@media screen and (min-width: 640px) and (max-width: 1024px)</code>。</p>
+</blockquote>
+<p>下面的演示使用幻灯片上的三个区间，并修正了中间那条查询；请逐步切换视口宽度：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 24/49 · three breakpoints (fixed middle query)&quot;, &quot;html&quot;: &quot;&lt;div class=\&quot;box\&quot;&gt;Resize me&lt;/div&gt;\n&quot;, &quot;css&quot;: &quot;.box { padding: 20px; color: white; background: gray; }\n\n@media screen and (max-width: 640px) {\n  /* small screens */\n  .box { background: seagreen; }\n  .box::after { content: \&quot; (small)\&quot;; }\n}\n@media screen and (min-width: 640px) and (max-width: 1024px) {\n  /* medium screens */\n  .box { background: royalblue; }\n  .box::after { content: \&quot; (medium)\&quot;; }\n}\n@media screen and (min-width: 1024px) {\n  /* large screens */\n  .box { background: saddlebrown; }\n  .box::after { content: \&quot; (large)\&quot;; }\n}\n&quot;, &quot;width&quot;: 375, &quot;height&quot;: 90, &quot;interactive&quot;: true, &quot;steps&quot;: [{&quot;note&quot;: &quot;800px wide: only the medium query matches.&quot;, &quot;width&quot;: 800}, {&quot;note&quot;: &quot;1200px wide: only the large query matches.&quot;, &quot;width&quot;: 1200}]}</code></pre><table>
+<thead>
+<tr>
+<th>视口</th>
+<th>匹配的查询</th>
+<th>方框颜色</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>375px</td>
+<td><code>max-width: 640px</code></td>
+<td>绿色“(small)”</td>
+</tr>
+<tr>
+<td>800px</td>
+<td><code>min-width: 640px</code> and <code>max-width: 1024px</code></td>
+<td>蓝色“(medium)”</td>
+</tr>
+<tr>
+<td>1200px</td>
+<td><code>min-width: 1024px</code></td>
+<td>棕色“(large)”</td>
+</tr>
+</tbody></table>
+<h2 id="5-流式网格与弹性图片">5. 流式网格与弹性图片</h2>
+<p>响应式设计依赖两项技术：</p>
+<ul>
+<li><strong>流式网格</strong>（fluid grids）：把内容排布在宽度可以变化的列中。Bootstrap 可以帮上忙（<a href="#10-bootstrap-%E7%BD%91%E6%A0%BC%E7%B3%BB%E7%BB%9F">第 10 节</a>）。</li>
+<li><strong>弹性图片</strong>（flexible images）：让图片大小随屏幕布局变化。把图片放进能够适当缩放的容器里，并设置 <code>width: 100%</code>、<code>max-width: 100%</code>、<code>height: auto</code>，这样图片会随容器缩小，同时保持宽高比。</li>
+</ul>
+<div class="code-wrap"><pre data-language="css" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D7BA7D">img</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  max-width</span><span style="color:#D4D4D4">: </span><span style="color:#B5CEA8">100%</span><span style="color:#D4D4D4">;  </span><span style="color:#6A9955">/* never wider than its container */</span></span>
+<span class="line"><span style="color:#9CDCFE">  height</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">auto</span><span style="color:#D4D4D4">;     </span><span style="color:#6A9955">/* keep the aspect ratio */</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://www.w3schools.com/css/css3_mediaqueries_ex.asp">W3Schools: Media query examples</a></p>
+</blockquote>
+<h2 id="6-移动优先设计">6. 移动优先设计</h2>
+<p>跨屏幕尺寸构建页面有两个方向：</p>
+<ul>
+<li><strong>“优雅降级”</strong>（graceful degradation，移动端<em>最后</em>考虑）：先为桌面设计，再硬塞到更小的屏幕上——幻灯片的示意图把它标为“degraded, shoe-horned, short-sighted, crappy”（降级的、硬塞的、短视的、糟糕的）。</li>
+<li><strong>“渐进增强”</strong>（progressive enhancement，移动端<em>优先</em>）：<strong>先为移动端规划设计，再利用更多的屏幕空间让应用变得更好</strong>——增加更多功能，并让现有功能更容易操作（“progressively enhanced, future-friendly, awesome”，渐进增强的、面向未来的、很棒的）。</li>
+</ul>
+<p><strong>移动优先，而不是只做移动端。</strong> 直接把移动端界面照搬到桌面会造成低效：导航时多余的点击，以及未被充分利用的屏幕空间（幻灯片中的例子：桌面显示器上的手机风格 Google Sheets 界面，以及 Windows 8 的磁贴开始屏幕）。所以要为移动端做规划，但也要考虑体验在桌面和其他设备上应当如何变化；不要只是把一切放大——要<em>增强</em>你的设计。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://blog.prototypr.io/mobile-first-desktop-worst-f900909ae9e2">Prototypr: Mobile first, desktop worst</a></p>
+</blockquote>
+<h2 id="7-基于网格的布局">7. 基于网格的布局</h2>
+<p>网格是排布内容的成熟工具（幻灯片把网格线叠加在一页中世纪手抄本上）。网格化的内容让人感觉熟悉、易于阅读；一般来说，最好追求<strong>更少的线条</strong>——但打破这条规则对于创意和吸引注意力很重要。</p>
+<p>网格的组成部分（幻灯片 31 标注了一个新闻网站）：</p>
+<ul>
+<li><strong>行</strong>（Rows）——水平的内容带。</li>
+<li><strong>列</strong>（Columns）——把宽度划分成的竖向单元（示例用了 12 列：2 列的 logo、8 列的菜单、1 列的边距、2 | 8 | 2 的头图区域、1 | 10 | 1 的文章行）。</li>
+<li><strong>间距槽</strong>（Gutters）——列与列之间的空隙。</li>
+<li><strong>内边距/间隔</strong>（Padding/spacing）——由具体元素定义。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="http://printingcode.runemadsen.com/lecture-grid/">Rune Madsen: Grid systems (Printing Code lecture)</a></p>
+</blockquote>
+<h2 id="8-网格框架及其批评者">8. 网格框架及其批评者</h2>
+<p>基于网格的框架为你提供现成的流式网格：</p>
+<table>
+<thead>
+<tr>
+<th>框架</th>
+<th>幻灯片上的说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Bootstrap</strong></td>
+<td>最流行，扩展最多（本课程使用）</td>
+</tr>
+<tr>
+<td><strong>Foundation</strong></td>
+<td>包含图标、拖放编辑器</td>
+</tr>
+<tr>
+<td><strong>Pure.css</strong></td>
+<td>文件体积小，仅 3.5KB</td>
+</tr>
+</tbody></table>
+<p>网格框架让开发更容易。<strong>那么它们有什么缺点？</strong></p>
+<ol>
+<li>它们<strong>可能导致网页千篇一律</strong>（Bootstrap 自带的示例模板——Album、Pricing、Checkout、Product、Cover、Carousel、Blog、Dashboard——看起来都是同一种风格）。</li>
+<li>它们<strong>可能需要加载很多文件，拖累性能</strong>（一条网络瀑布流，里面有几十个 jQuery/插件脚本）。</li>
+<li>它们<strong>可能扼杀创造力</strong>（基于相同组件构建的付费主题）。</li>
+</ol>
+<p>960 Grid System 的发明者对网格批评者的反驳是：“Michael Phelps 沿着泳池底部画的线游泳，并不会让他成为一个才华较差的游泳运动员”——网格是一种指引，而不是对技能的限制。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://getbootstrap.com/">Bootstrap</a> · <a href="https://www.w3schools.com/bootstrap5/bootstrap_get_started.php">W3Schools: Bootstrap 5 get started</a> · <a href="https://get.foundation/">Foundation</a> · <a href="https://pure-css.github.io/">Pure.css</a></p>
+</blockquote>
+<h2 id="9-配置-bootstrap">9. 配置 Bootstrap</h2>
+<p><strong>直接下载</strong>会得到 CSS 和 JavaScript 文件。<strong>压缩版</strong>（minified，<code>.min.css</code>、<code>.min.js</code>）经过压缩，加载更快；<strong><code>.map</code></strong> 文件用于辅助编辑预处理过的文件（本课不会用到）。我们目前使用 <code>bootstrap.min.css</code>，并且要在你自己的样式表<strong>之前</strong>加载，这样你的规则才能覆盖 Bootstrap 的：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">link</span><span style="color:#9CDCFE"> rel</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"stylesheet"</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"css/bootstrap.min.css"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">link</span><span style="color:#9CDCFE"> rel</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"stylesheet"</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“css/override.css</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>也可以改用<strong>内容分发网络（CDN）</strong>：浏览器端缓存减轻了加载文件的负担（访问者可能已经在访问其他网站时缓存了 Bootstrap）。它还附带两个属性：</p>
+<ul>
+<li><code>integrity</code>：一个哈希值，让浏览器检查下载的文件是否与预期完全一致——即使 CDN 服务器被攻破，也能保护你。</li>
+<li><code>crossorigin</code>：有些导入需要凭据；<code>anonymous</code> 表示不需要。</li>
+</ul>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">link</span><span style="color:#9CDCFE"> rel</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"stylesheet"</span><span style="color:#9CDCFE"> href</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css”integrity</span><span style="color:#F44747">=</span><span style="color:#CE9178">"sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"</span><span style="color:#9CDCFE"> crossorigin</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"anonymous"</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：这两页幻灯片都含有幻灯片软件产生的弯引号（<code>“…”</code>）。有了它们，<code>href</code> 的值就变成了 <code>“css/override.css</code>（引号字符也在里面），文件会 404；在 CDN 那一行里，弯引号把 <code>integrity</code> 属性吞进了 URL，于是 Bootstrap 根本加载不了。要把每个引号都重新输入成直引号 <code>&quot;</code>，并在 <code>integrity</code> 前加一个空格。修正后：<br><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css&quot; integrity=&quot;sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH&quot; crossorigin=&quot;anonymous&quot;&gt;</code> ——用这一行，哈希能匹配，Bootstrap 的样式也会生效。</p>
+</blockquote>
+<p><strong>指定视口（viewport）</strong>，写在页面的 <code>&lt;head&gt;</code> 中。它设置设备宽度和缩放级别（用于缩放操作）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">meta</span><span style="color:#9CDCFE"> name</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"viewport"</span><span style="color:#9CDCFE"> content</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"width=device-width,initial-scale=1"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">head</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>指定容器（container）。</strong> 所有 Bootstrap 内容都放在容器里。它只是一个类，所以任何元素都可以当容器：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--Bootstrap content--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">main</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!--Bootstrap content--></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">main</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://getbootstrap.com/docs/5.3/getting-started/download/">Bootstrap 5.3: Download</a></p>
+</blockquote>
+<h2 id="10-bootstrap-网格系统">10. Bootstrap 网格系统</h2>
+<p>网格有 <strong>12 列</strong>——12 的因数很多（1、2、3、4、6）。你写一个 <code>row</code>，并给每个子元素加上 <code>col-[size]-[number]</code> 类：<code>number</code> = 它占 12 列中的几列，<code>size</code> = 从哪个断点起生效。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>超小</th>
+<th>小</th>
+<th>中</th>
+<th>大</th>
+<th>超大</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>视口</td>
+<td>&lt;576px</td>
+<td>≥576px</td>
+<td>≥768px</td>
+<td>≥992px</td>
+<td>≥1200px</td>
+</tr>
+<tr>
+<td>容器最大宽度</td>
+<td>无（auto）</td>
+<td>540px</td>
+<td>720px</td>
+<td>960px</td>
+<td>1140px</td>
+</tr>
+<tr>
+<td>类前缀</td>
+<td><code>.col-</code></td>
+<td><code>.col-sm-</code></td>
+<td><code>.col-md-</code></td>
+<td><code>.col-lg-</code></td>
+<td><code>.col-xl-</code></td>
+</tr>
+</tbody></table>
+<p>列数：12。间距槽宽度：30px（每列两侧各 15px）。可嵌套：是。可调整列顺序：是。（这张表和“15px 间距槽”来自 Bootstrap 4 的文档；在幻灯片加载的 Bootstrap 5.3 中，上面的断点和容器宽度依然成立，但每列每侧的内边距是 12px。）</p>
+<p><strong>幻灯片中的规则：</strong></p>
+<ul>
+<li><strong>行是块级元素，列是行内元素</strong>——列在行内并排排列。</li>
+<li><strong>超过 12 列的内容会在同一行内换行</strong>：<code>3 + 6 + 4 = 13</code>，所以那个 4 会换到下一行。</li>
+<li><strong>尺寸数字是可选的</strong>：单独的 <code>.col</code> 会按比例平分剩余空间。</li>
+<li><strong>没有指定尺寸的 <code>.col</code> 默认是最小尺寸（xs）</strong>，即在所有宽度下都生效。</li>
+<li><strong>列出的最大尺寸会覆盖所有未列出的更大尺寸</strong>：<code>col-12 col-md-8</code> = 小屏幕上占 100%，中等及以上占 67%（8/12）。</li>
+</ul>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">main</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-3"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">B</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“col-4</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“col</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">main</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>结果（幻灯片 40，修正弯引号之后）：A（3）和 B（6）在第一行；C（4）放不下（3+6+4=13），换行；在第二行，C 占 4 列，D 和 E 平分剩下的 8 列（各 4 列）。如果保留幻灯片里的弯引号，C 和 D 的类就成了 <code>“col-4&quot;</code> / <code>“col&quot;</code>（带着引号字符），Bootstrap 会忽略它们，于是各自独占一整行。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 40 &amp; 42 · Bootstrap grid (curly quotes fixed)&quot;, &quot;libs&quot;: [&quot;bootstrap&quot;], &quot;html&quot;: &quot;&lt;main class=\&quot;container\&quot;&gt;\n  &lt;div class=\&quot;row\&quot;&gt;\n    &lt;div class=\&quot;col-3\&quot;&gt;A&lt;/div&gt;\n    &lt;div class=\&quot;col-6\&quot;&gt;B&lt;/div&gt;\n    &lt;div class=\&quot;col-4\&quot;&gt;C&lt;/div&gt;\n    &lt;div class=\&quot;col\&quot;&gt;D&lt;/div&gt;\n    &lt;div class=\&quot;col\&quot;&gt;E&lt;/div&gt;\n  &lt;/div&gt;\n  &lt;hr&gt;\n  &lt;div class=\&quot;row\&quot;&gt;\n    &lt;div class=\&quot;col-12 col-md-8\&quot;&gt;.col-12 .col-md-8&lt;/div&gt;\n    &lt;div class=\&quot;col-6 col-md-4\&quot;&gt;.col-6 .col-md-4&lt;/div&gt;\n  &lt;/div&gt;\n  &lt;div class=\&quot;row\&quot;&gt;\n    &lt;div class=\&quot;col-6\&quot;&gt;.col-6&lt;/div&gt;\n    &lt;div class=\&quot;col-6\&quot;&gt;.col-6&lt;/div&gt;\n  &lt;/div&gt;\n&lt;/main&gt;\n&quot;, &quot;css&quot;: &quot;.row &gt; div { background: #0099ff; color: white; border: 1px solid white; text-align: center; }\n&quot;, &quot;width&quot;: 1000, &quot;height&quot;: 200, &quot;interactive&quot;: true, &quot;steps&quot;: [{&quot;note&quot;: &quot;375px (xs): .col-12 takes the whole row and .col-6 drops below it at half width; .col-6 stays 50% everywhere.&quot;, &quot;width&quot;: 375}]}</code></pre><table>
+<thead>
+<tr>
+<th>类</th>
+<th>xs（375px）</th>
+<th>md 及以上（1000px）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>col-12 col-md-8</code></td>
+<td>100%</td>
+<td>67%</td>
+</tr>
+<tr>
+<td><code>col-6 col-md-4</code></td>
+<td>50%</td>
+<td>33%</td>
+</tr>
+<tr>
+<td><code>col-6</code></td>
+<td>50%</td>
+<td>50%</td>
+</tr>
+</tbody></table>
+<p><strong>显示类（display classes）</strong> 用来应用某种显示类型（如 <code>none</code> 或 <code>block</code>），并且可以与尺寸组合：</p>
+<ul>
+<li><code>.d-none</code> 在所有尺寸下隐藏元素。</li>
+<li><code>.d-md-none</code> 在 md 及更大尺寸下隐藏。</li>
+<li><code>.d-md-block.d-none</code>（两个类一起）只在 sm 和 xs 下隐藏——<code>d-none</code> 先在所有尺寸下隐藏，再由 <code>d-md-block</code> 从 md 起把它重新显示出来。</li>
+</ul>
+<p><strong>Bootstrap 的媒体查询</strong>是以 Sass mixin 的形式书写的（Sass 会在本学期后面讲到）：</p>
+<div class="code-wrap"><pre data-language="css" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">/* Extra small devices (old phones, less than 768px) */</span></span>
+<span class="line"><span style="color:#C586C0">@include</span><span style="color:#D4D4D4"> media-breakpoint-up(xs) { ... }</span></span>
+<span class="line"><span style="color:#6A9955">/* Small devices (phones, 768px and up) */</span></span>
+<span class="line"><span style="color:#C586C0">@include</span><span style="color:#D4D4D4"> media-breakpoint-up(sm) { ... }</span></span>
+<span class="line"><span style="color:#6A9955">/* Medium devices (tablets, 992px and up) */</span></span>
+<span class="line"><span style="color:#C586C0">@include</span><span style="color:#D4D4D4"> media-breakpoint-up(md) { ... }</span></span>
+<span class="line"><span style="color:#6A9955">/* Large devices (desktops, 1200px and up) */</span></span>
+<span class="line"><span style="color:#C586C0">@include</span><span style="color:#D4D4D4"> media-breakpoint-up(lg) { ... }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">// Example usage:</span></span>
+<span class="line"><span style="color:#C586C0">@include</span><span style="color:#D4D4D4"> media-breakpoint-up(sm) {</span></span>
+<span class="line"><span style="color:#D7BA7D">  .some-class</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">    display</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">block</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：这些幻灯片注释里的像素值比上面的网格表整体错了一档（sm 是 ≥576px，md ≥768px，lg ≥992px，xl ≥1200px）。考试题以网格表为准。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#163-%E6%BC%94%E7%A4%BA-1%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AF%BE%E7%A8%8B%E8%A1%A8%E5%B9%BB%E7%81%AF%E7%89%87-44--setup1--solution1">演示 1</a> · <a href="#164-%E9%97%AE%E9%A2%98-3%E5%93%AA%E6%AE%B5%E4%BB%A3%E7%A0%81%E8%83%BD%E5%AE%9E%E7%8E%B0%E8%BF%99%E4%B8%AA%E5%B8%83%E5%B1%80%E5%B9%BB%E7%81%AF%E7%89%87-4548">问题 3</a><br>🔗 <strong>延伸阅读</strong>：<a href="https://getbootstrap.com/docs/5.3/layout/grid/">Bootstrap 5.3: Grid system</a></p>
+</blockquote>
+<h2 id="11-bootstrap-的默认样式与组件">11. Bootstrap 的默认样式与组件</h2>
+<ul>
+<li><strong>默认样式</strong>：Bootstrap 会替你改动很多样式（标题、表单字段、按钮），并通过类的后缀添加自定义样式（例如幻灯片上的 Primary、Success、Info、Warning、Danger 等按钮变体）。</li>
+<li><strong>组件</strong>：把元素预先组合成常见模式——导航栏、下拉菜单、提醒框（alert）等会简单得多。有些组件需要 JavaScript（还要加载 Bootstrap 的 JS 文件）。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="http://getbootstrap.com/css">Bootstrap CSS (default styling)</a> · <a href="https://getbootstrap.com/docs/3.4/components/">Bootstrap 3.4: Components</a></p>
+</blockquote>
+<h2 id="12-javascript-的角色">12. JavaScript 的角色</h2>
+<p>“换挡”来讲第三种 Web 语言（课上说“如果还有时间”才介绍）。每种语言各司其职：</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>类型</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTML</td>
+<td>标记语言</td>
+<td>指定内容如何渲染</td>
+</tr>
+<tr>
+<td>CSS</td>
+<td>样式语言</td>
+<td>为内容设置视觉样式</td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td>编程语言</td>
+<td>动态操作内容</td>
+</tr>
+</tbody></table>
+<p><strong>为什么要用 JavaScript？</strong> 它让页面变得<strong>动态</strong>，让页面变得<strong>个性化</strong>，让页面能够<strong>与其他来源交互</strong>，比如数据库和 API。</p>
+<h2 id="13-其他-web-语言与-javascript-的流行度">13. 其他 Web 语言与 JavaScript 的流行度</h2>
+<ul>
+<li>如今几乎可以用任何语言创建动态网站：<strong>Ruby</strong> 通过 Ruby on Rails，<strong>Python</strong> 通过 Django 或 web2py。</li>
+<li>有些语言会<strong>转译（transpile）为 JavaScript</strong>：<strong>TypeScript</strong>（微软出品）引入了类型——课程后面会再讲 TypeScript；<strong>Kotlin</strong>（幻灯片写“by Google”；实际上它由 JetBrains 创建，并得到 Google 支持）既能运行在 Java 虚拟机上，<em>也</em>能编译成 JavaScript，把 Google 的所有平台连接了起来。</li>
+<li><strong>流行度</strong>（GitHub Octoverse，2023–2025 年 GitHub 上前 10 名语言）：JavaScript 在 2024 年初之前一直排第 1，之后落到 Python 之后，再后来又落到 TypeScript 之后；到 2025 年 8 月，排名依次是 TypeScript、Python、JavaScript、Java、C#、PHP、Shell、C++、HCL、Go。JavaScript 加 TypeScript 仍然占据主导。</li>
+</ul>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://octoverse.github.com/">GitHub Octoverse</a></p>
+</blockquote>
+<h2 id="14-javascript-的历史与版本">14. JavaScript 的历史与版本</h2>
+<p><strong>JavaScript 是怎么成为 Web 开发中最流行的语言的？</strong></p>
+<ul>
+<li><strong>1995 年</strong>：“最初以 Mocha 为名开发，该语言在 1995 年 9 月随 Netscape Navigator 2.0 的 beta 版首次发布时，正式名称是 LiveScript，后来才改名为 JavaScript。”当时 Java 的人气正在上升，所以这个名字是一种<strong>营销噱头</strong>；它本意是成为与 Java 的“桌面”相对的“Web”语言。</li>
+<li><strong>1997 年</strong>：Netscape 把 JavaScript 提交给 <strong>ECMA International</strong>（欧洲计算机制造商协会，European Computer Manufacturers Association）作为行业标准；各版本被标准化为 <strong>“ECMAScript”</strong>，1997 年首次通过。</li>
+<li><strong>1990 年代末–2000 年代初</strong>：出现了各种替代品——微软的 <strong>JScript</strong> 引擎，以及用于动态 Web 的 <strong>Macromedia Flash</strong>。两者都有点像 JavaScript，但标准不同。</li>
+<li><strong>趋于统一</strong>：Firefox 在 2005 年问世，Adobe 收购了 Flash，JScript 也开始遵循标准。但各浏览器对该语言的实现仍有差异。</li>
+<li><strong>JavaScript 引擎</strong>：SpiderMonkey（Firefox）、V8（Chrome、Node.js）、JavaScriptCore（Safari）、Chakra（IE 和 Edge，现已弃用）。</li>
+</ul>
+<p><strong>版本。</strong> ECMAScript 只是 JavaScript 的标准。每年都会发布新版本，但自 2015 年（ES6）以来标准变化不大。引擎和浏览器一直在追赶（幻灯片上的 ES6 兼容性表大部分是绿色，只有少数红色空缺），所以许多工具支持的是稍旧一些的标准版本。</p>
+<p><strong>Polyfill</strong> 用来确保用户的浏览器拥有最新的库：它们会下载新增函数的“填充”（fill）版本，这些版本是用已有函数重写的。也叫 <strong>“shim”</strong> 或 <strong>“fallback”</strong>（幻灯片展示的是 Polyfill.io，它通过一个 <code>&lt;script&gt;</code> 标签只提供每个浏览器所需的 polyfill）。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://medium.com/@benastontweet/lesson-1a-the-history-of-javascript-8c1ce3bffb17">The history of JavaScript (Medium, Ben Aston)</a> · <a href="https://compat-table.github.io/compat-table/es6/">ES6 compatibility table</a></p>
+</blockquote>
+<h2 id="15-javascript-与-java">15. JavaScript 与 Java</h2>
+<p>尽管名字相似，这两者是毫无关系的语言：</p>
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解释型语言</td>
+<td>编译型语言（编译为字节码）</td>
+</tr>
+<tr>
+<td>由 JavaScript 引擎执行</td>
+<td>在 Java 虚拟机（JVM）中运行</td>
+</tr>
+<tr>
+<td>引擎运行的就是程序员写的代码</td>
+<td>字节码人无法阅读</td>
+</tr>
+<tr>
+<td>通过 ECMAScript 标准化，但存在差异</td>
+<td>“一次编写，到处部署”（Write once, deploy anywhere）</td>
+</tr>
+<tr>
+<td>调试依赖于执行环境</td>
+<td>在编译时就能发现 bug</td>
+</tr>
+<tr>
+<td>基于原型（prototype based）</td>
+<td>基于类（class-based）</td>
+</tr>
+<tr>
+<td>所有浏览器无需插件即可使用</td>
+<td>在大多数浏览器中需要插件才能运行</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键洞察</strong>：用 Python 的话来说，JavaScript 的行为像解释执行的脚本（错误在那一行运行时才出现，而且取决于运行它的浏览器），而 Java 则类似 C++ 的先编译模型（许多 bug 在运行之前就能被发现）。</p>
+</blockquote>
+<hr>
+<h2 id="16-课堂问题与演示附解答">16. 课堂问题与演示（附解答）</h2>
+<h3 id="161-问题-1响应式与自适应的性能和开发成本幻灯片-1216">16.1 问题 1：响应式与自适应的性能和开发成本（幻灯片 12–16）</h3>
+<p>下列说法哪一个是正确的？<em>（2 分钟自己思考；5 分钟与同学讨论。）</em> 幻灯片 16 换了种问法：总体而言，哪一种<strong>性能</strong>更好（加载时间更短）？总体而言，哪一种<strong>更容易开发</strong>？</p>
+<ul>
+<li>A. 响应式性能更好，也更容易开发</li>
+<li>B. 响应式性能更好，但自适应更容易开发</li>
+<li>C. 自适应性能更好，但响应式更容易开发</li>
+<li>D. 自适应性能更好，也更容易开发</li>
+<li>E. 没有区别（这个答案是错的）</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案：C</strong>（幻灯片 16 上有标注）。自适应只给每台设备发送为它专门做的代码，所以加载量更小；响应式则要在所有设备上下载整个样式表。但响应式只有一套代码库，而自适应意味着要维护多套。A 和 B 把性能说反了；D 忽略了维护多套代码库的成本。回到<a href="#2-%E8%87%AA%E9%80%82%E5%BA%94%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AE%BE%E8%AE%A1">第 2 节</a>。</p>
+<h3 id="162-问题-2炉石传说用响应式还是自适应幻灯片-18">16.2 问题 2：炉石传说用响应式还是自适应？（幻灯片 18）</h3>
+<p>假设你在开发《炉石传说》（Hearthstone）这款电子游戏，它既可以在手机上玩（左图），也可以在桌面上玩（右图）。你用来制作这款游戏的工具可以轻松地把同一个游戏项目导出为能在手机或 PC 上运行的可执行文件。你会采用响应式还是自适应设计？为什么？<em>（2 分钟自己思考；5 分钟与同学讨论。）</em></p>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（讨论题；幻灯片 19 给出了要点）：对于不同的<strong>平台</strong>（手机与 PC），游戏通常会<strong>重新设计界面——即自适应</strong>——因为小屏幕上的触摸操作和大屏幕上的鼠标操作需要不同的布局（两张截图展示了不同的牌桌和操作控件）。而在同一个平台内，<strong>响应式</strong>设计负责处理众多分辨率。但也不绝对：导出为网页版和桌面版的游戏往往只做响应式。回到<a href="#2-%E8%87%AA%E9%80%82%E5%BA%94%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AE%BE%E8%AE%A1">第 2 节</a>。</p>
+<h3 id="163-演示-1响应式课程表幻灯片-44--setup1--solution1">16.3 演示 1：响应式课程表（幻灯片 44 · setup1 → solution1）</h3>
+<p>幻灯片展示的“My 133 Schedule”在桌面上是一张表格，在手机上则是一摞单元格。任务（<code>setup1.html</code> 中的 TODO 注释）：</p>
+<ul>
+<li>把表格变成 Bootstrap 的 container，把每一行变成 Bootstrap 的 row</li>
+<li>在中等及以上屏幕上，让每个单元格成为宽度为 2 的列</li>
+<li>在小屏幕和超小屏幕上隐藏表头行</li>
+</ul>
+<p>起始代码是一个普通的 <code>&lt;table&gt;</code>（周一到周五的表头行，然后是两行单元格，里面是 Discussion / Lecture / Assignment due 的 <code>&lt;div&gt;</code>），并在 <code>setup1.css</code> 之前从 CDN 链接了 Bootstrap 5.1.3。</p>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution1.html</code>；CSS 不变）。只添加了类：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">table</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"container"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">	&#x3C;</span><span style="color:#569CD6">tr</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">		&#x3C;</span><span style="color:#569CD6">th</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"d-none d-md-block col-md-2"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Monday</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">th</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">		&#x3C;!-- … same for Tuesday–Friday --></span></span>
+<span class="line"><span style="color:#808080">	&#x3C;/</span><span style="color:#569CD6">tr</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">	&#x3C;</span><span style="color:#569CD6">tr</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">		&#x3C;</span><span style="color:#569CD6">td</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-2"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">			&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"discussion"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Discussion</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">		&#x3C;/</span><span style="color:#569CD6">td</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">		&#x3C;</span><span style="color:#569CD6">td</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-2"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">			&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"lecture"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Lecture</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">		&#x3C;/</span><span style="color:#569CD6">td</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">		&#x3C;!-- … every td gets col-md-2 --></span></span>
+<span class="line"><span style="color:#808080">	&#x3C;/</span><span style="color:#569CD6">tr</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">table</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>container</code> / <code>row</code> 把表格及其各行变成 Bootstrap 的网格（它只是一个类，所以连 <code>&lt;table&gt;</code> 都可以用）。</li>
+<li><code>col-md-2</code> 让每个单元格从 md（≥768px）起占 12 列中的 2 列；低于 md 时没有尺寸类，所以每个单元格占满整行，单元格会堆叠起来。</li>
+<li><code>d-none d-md-block</code> 在 md 以下隐藏星期名称，从 md 起显示。</li>
+</ul>
+<p>在 375px 时，单元格每行一个堆叠起来，没有表头；在 1000px 时，表头行回来了，五天并排显示，每个占 2/12 宽（这一行没有占满：5 × 2 = 10 列）。请逐步切换：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 44 · Demo 1 solution1.html (Bootstrap 5.3 here; the repo loads 5.1.3)&quot;, &quot;libs&quot;: [&quot;bootstrap&quot;], &quot;html&quot;: &quot;&lt;div&gt;\n   &lt;h1&gt;My 133 Schedule&lt;/h1&gt;\n   &lt;table class=\&quot;container\&quot;&gt;\n      &lt;tr class=\&quot;row\&quot;&gt;\n         &lt;th class=\&quot;d-none d-md-block col-md-2\&quot;&gt;Monday&lt;/th&gt;\n         &lt;th class=\&quot;d-none d-md-block col-md-2\&quot;&gt;Tuesday&lt;/th&gt;\n         &lt;th class=\&quot;d-none d-md-block col-md-2\&quot;&gt;Wednesday&lt;/th&gt;\n         &lt;th class=\&quot;d-none d-md-block col-md-2\&quot;&gt;Thursday&lt;/th&gt;\n         &lt;th class=\&quot;d-none d-md-block col-md-2\&quot;&gt;Friday&lt;/th&gt;\n      &lt;/tr&gt;\n      &lt;tr class=\&quot;row\&quot;&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;discussion\&quot;&gt;Discussion&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;lecture\&quot;&gt;Lecture&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;lecture\&quot;&gt;Lecture&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n         &lt;/td&gt;\n      &lt;/tr&gt;\n      &lt;tr class=\&quot;row\&quot;&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;discussion\&quot;&gt;Discussion&lt;/div&gt;\n            &lt;div id=\&quot;a1\&quot;&gt;Assignment due&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;lecture\&quot;&gt;Lecture&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n            &lt;div class=\&quot;lecture\&quot;&gt;Lecture&lt;/div&gt;\n         &lt;/td&gt;\n         &lt;td class=\&quot;col-md-2\&quot;&gt;\n         &lt;/td&gt;\n      &lt;/tr&gt;\n   &lt;/table&gt;\n&lt;/div&gt;\n&quot;, &quot;css&quot;: &quot;td, th {\n\tborder-width: 1px;\n\tborder-style: solid;\n}\n\nth {\n\tfont-size: 150%;\n\tpadding: 5px;\n}\n\n.discussion {\n\tbackground-color: limegreen;\n\tmargin: 5px;\n}\n\n.lecture {\n\tbackground-color: royalblue;\n\tcolor: white;\n\tmargin: 5px;\n}\n\n#a1 {\n\tbackground-color: saddlebrown;\n\tcolor: white;\n\tmargin: 5px;\n}\n&quot;, &quot;width&quot;: 375, &quot;height&quot;: 330, &quot;steps&quot;: [{&quot;note&quot;: &quot;md and up (1000px): header row visible, every cell is col-md-2.&quot;, &quot;width&quot;: 1000}]}</code></pre><blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/setup1.html">setup1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/setup1.css">setup1.css</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/solution1.html">solution1.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/solution1.css">solution1.css</a></p>
+</blockquote>
+<p>回到<a href="#10-bootstrap-%E7%BD%91%E6%A0%BC%E7%B3%BB%E7%BB%9F">第 10 节</a>。</p>
+<h3 id="164-问题-3哪段代码能实现这个布局幻灯片-4548">16.4 问题 3：哪段代码能实现这个布局？（幻灯片 45–48）</h3>
+<p>目标：在 <strong>lg 屏幕（笔记本）</strong>上：A | B（A 更宽），C | D（等宽），E 占满整行。在 <strong>sm 屏幕（手机）</strong>上：A 占满整行，B 占满整行，C | D（等宽），E 占满整行。<em>（2 分钟独立思考；5 分钟讨论并投票作答。）</em></p>
+<p>A.</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-8 col-sm-12"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-4 col-sm-12”>B</span><span style="color:#F44747">&#x3C;</span><span style="color:#CE9178">/div></span></span>
+<span class="line"><span style="color:#F44747">  &#x3C;</span><span style="color:#CE9178">div class="</span><span style="color:#9CDCFE">col-md-6</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-12"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>B.</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-8 col-sm-12"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-4 col-sm-12”>B</span><span style="color:#F44747">&#x3C;</span><span style="color:#CE9178">/div></span></span>
+<span class="line"><span style="color:#F44747">&#x3C;</span><span style="color:#CE9178">/div></span></span>
+<span class="line"><span style="color:#F44747">&#x3C;</span><span style="color:#CE9178">div class="</span><span style="color:#9CDCFE">row</span><span style="color:#F44747">"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-12"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>C.</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-8"</span><span style="color:#808080">></span><span style="color:#D4D4D4">A</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-4"</span><span style="color:#808080">></span><span style="color:#D4D4D4">B</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-sm-6"</span><span style="color:#808080">></span><span style="color:#D4D4D4">C</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">“col-sm-6</span><span style="color:#F44747">"</span><span style="color:#808080">></span><span style="color:#D4D4D4">D</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"row"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">div</span><span style="color:#9CDCFE"> class</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"col-md-6 col-xl-4"</span><span style="color:#808080">></span><span style="color:#D4D4D4">E</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">div</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li>D. A 和 B</li>
+<li>E. B 和 C</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试试。</strong></p>
+</blockquote>
+<p><strong>答案：B</strong>（幻灯片 48 上有标注；已通过渲染仓库中的 <code>q2.html</code> 验证，该文件包含这三个选项，且使用的是直引号）。</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>sm（600px）</th>
+<th>lg（1000px）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>A、B、<strong>C、D</strong>、E 全都占满整行——错误：C 和 D 只有 <code>col-md-6</code>，所以在 md 以下占满整行</td>
+<td>A|B、C|D、E ✓</td>
+</tr>
+<tr>
+<td>B</td>
+<td>A、B 占满整行；C|D；E 占满整行 ✓</td>
+<td>A|B、C|D、E ✓</td>
+</tr>
+<tr>
+<td>C</td>
+<td><strong>A|B 并排</strong>——错误：<code>col-8</code>/<code>col-4</code> 在所有尺寸下都生效</td>
+<td>A|B、C|D，但 <strong>E 只有半宽</strong>（<code>col-md-6</code> 覆盖了 lg；<code>col-xl-4</code> 要从 1200px 才开始生效）</td>
+</tr>
+</tbody></table>
+<p>所以 D（A 和 B）和 E（B 和 C）也是错的。关键规则：不带尺寸的类（<code>col-6</code>）在所有尺寸下生效；带尺寸的类（<code>col-md-6</code>）从该尺寸起生效，低于该尺寸时元素占满整行。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 45–48 · q2.html: options A, B, C&quot;, &quot;libs&quot;: [&quot;bootstrap&quot;], &quot;html&quot;: &quot;&lt;h1&gt;A&lt;/h1&gt;\n    &lt;div class=\&quot;container\&quot;&gt;\n        &lt;div class=\&quot;row\&quot;&gt;\n            &lt;div class=\&quot;col-md-8 col-sm-12 cell\&quot;&gt;A&lt;/div&gt;\n            &lt;div class=\&quot;col-md-4 col-sm-12 cell\&quot;&gt;B&lt;/div&gt;\n            &lt;div class=\&quot;col-md-6 cell\&quot;&gt;C&lt;/div&gt;\n            &lt;div class=\&quot;col-md-6 cell\&quot;&gt;D&lt;/div&gt;\n            &lt;div class=\&quot;col-12 cell\&quot;&gt;E&lt;/div&gt;\n        &lt;/div&gt;\n    &lt;/div&gt;\n\n\n    &lt;h1&gt;B&lt;/h1&gt;\n    &lt;div class=\&quot;container\&quot;&gt;\n        &lt;div class=\&quot;row\&quot;&gt;\n            &lt;div class=\&quot;col-md-8 col-sm-12 cell\&quot;&gt;A&lt;/div&gt;\n            &lt;div class=\&quot;col-md-4 col-sm-12 cell\&quot;&gt;B&lt;/div&gt;\n        &lt;/div&gt;\n        &lt;div class=\&quot;row\&quot;&gt;\n            &lt;div class=\&quot;col-6 cell\&quot;&gt;C&lt;/div&gt;\n            &lt;div class=\&quot;col-6 cell\&quot;&gt;D&lt;/div&gt;\n            &lt;div class=\&quot;col-12 cell\&quot;&gt;E&lt;/div&gt;\n        &lt;/div&gt;\n    &lt;/div&gt;\n\n\n    &lt;h1&gt;C&lt;/h1&gt;\n    &lt;div class=\&quot;container\&quot;&gt;\n        &lt;div class=\&quot;row\&quot;&gt;\n            &lt;div class=\&quot;col-8 cell\&quot;&gt;A&lt;/div&gt;\n            &lt;div class=\&quot;col-4 cell\&quot;&gt;B&lt;/div&gt;\n            &lt;div class=\&quot;col-sm-6 cell\&quot;&gt;C&lt;/div&gt;\n            &lt;div class=\&quot;col-sm-6 cell\&quot;&gt;D&lt;/div&gt;\n        &lt;/div&gt;\n        &lt;div class=\&quot;row\&quot;&gt;\n            &lt;div class=\&quot;col-md-6 col-xl-4 cell\&quot;&gt;E&lt;/div&gt;\n        &lt;/div&gt;\n    &lt;/div&gt;\n&quot;, &quot;css&quot;: &quot;.cell {\n    background-color: #0099ff;\n    color: white;\n    text-align: center;\n    border-style: solid;\n    border-color: white;\n    border-width: 1px;\n    padding: 5px;\n}\n&quot;, &quot;width&quot;: 600, &quot;height&quot;: 560, &quot;steps&quot;: [{&quot;note&quot;: &quot;lg (1000px): A, B and C all show A|B, C|D, but C&#39;s E is only half width; at sm (600px) only B matched the phone picture.&quot;, &quot;width&quot;: 1000}]}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：幻灯片版本里含有弯引号（<code>col-sm-12”</code>、<code>“col-sm-6</code>）——照抄的话会破坏标记（元素丢失类，或者类的值一直延伸到下一个标签里）。仓库中的 <code>q2.html</code> 已经修正了它们。</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/q2.html">q2.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W2_L1_Oct6_Bootstrap/q2.css">q2.css</a></p>
+</blockquote>
+<p>回到<a href="#10-bootstrap-%E7%BD%91%E6%A0%BC%E7%B3%BB%E7%BB%9F">第 10 节</a>。</p>
+<hr>
+<h2 id="17-速查与必记的-5-个要点">17. 速查与必记的 5 个要点</h2>
+<p><strong>响应式与自适应</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>响应式</th>
+<th>自适应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代码</td>
+<td>一套 HTML/CSS</td>
+<td>多套，按设备类型区分</td>
+</tr>
+<tr>
+<td>改变布局的依据</td>
+<td>屏幕尺寸</td>
+<td>设备类型和屏幕尺寸</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>较差（整个样式表）</td>
+<td>较好（量身定制）</td>
+</tr>
+<tr>
+<td>开发</td>
+<td>更容易，面向未来</td>
+<td>更难（多套代码库）</td>
+</tr>
+</tbody></table>
+<p><strong>媒体查询</strong></p>
+<table>
+<thead>
+<tr>
+<th>组成</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>媒体类型</td>
+<td><code>screen</code>、<code>print</code>、<code>speech</code>、<code>all</code></td>
+</tr>
+<tr>
+<td>媒体特性</td>
+<td><code>min-width</code>、<code>max-width</code>、<code>orientation</code>、<code>-webkit-min-device-pixel-ratio</code></td>
+</tr>
+<tr>
+<td>区间</td>
+<td><code>@media screen and (min-width: 640px) and (max-width: 1024px) { … }</code></td>
+</tr>
+<tr>
+<td>用在 link 上</td>
+<td><code>&lt;link rel=&quot;stylesheet&quot; media=&quot;…&quot; href=&quot;iPhone8.css&quot;&gt;</code></td>
+</tr>
+</tbody></table>
+<p><strong>Bootstrap</strong></p>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>视口</td>
+<td><code>&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>容器 / 行</td>
+<td><code>class=&quot;container&quot;</code>、<code>class=&quot;row&quot;</code></td>
+</tr>
+<tr>
+<td>所有尺寸下的列</td>
+<td><code>col-6</code>，或用 <code>col</code> 均分</td>
+</tr>
+<tr>
+<td>从某个尺寸起生效的列</td>
+<td><code>col-sm-*</code> ≥576、<code>col-md-*</code> ≥768、<code>col-lg-*</code> ≥992、<code>col-xl-*</code> ≥1200</td>
+</tr>
+<tr>
+<td>处处隐藏 / 从 md 起隐藏 / md 以下隐藏</td>
+<td><code>d-none</code> / <code>d-md-none</code> / <code>d-none d-md-block</code></td>
+</tr>
+</tbody></table>
+<p><strong>JavaScript 速记</strong>：Mocha → LiveScript → JavaScript（Netscape，1995）；标准 = ECMAScript（ECMA，1997；自 2015 年起变化不大）；引擎：SpiderMonkey、V8、JavaScriptCore、Chakra；polyfill = shim = fallback。</p>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>自适应性能更好；响应式更容易开发和维护。</li>
+<li>每个媒体特性都需要自己的括号：<code>(min-width: 640px) and (max-width: 1024px)</code>。</li>
+<li>Bootstrap 的网格是 12 列；一行里超过 12 列就会换行，单独的 <code>col</code> 会平分剩下的空间。</li>
+<li>带尺寸的类从该断点<strong>往上</strong>生效；低于它时该列占满整行，而不带尺寸的 <code>col-*</code> 在所有尺寸下都生效。</li>
+<li>JavaScript 是解释型、基于原型的，并且在所有浏览器中运行；它与编译型、基于类的 Java 毫无关系。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-03/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 3 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>CSS</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 5 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>JavaScript（二）</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-03/zh-CN/" title="上一篇: CSS ([)" aria-label="上一篇: 第 3 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 3 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 4 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-04/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-05/zh-CN/" title="下一篇: JavaScript（二） (])" aria-label="下一篇: 第 5 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

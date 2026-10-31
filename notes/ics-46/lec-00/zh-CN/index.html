@@ -1,0 +1,1019 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 课程介绍、单元测试与模板 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="ICS 46 课程概览、用 Google Test 写 C++ 单元测试、为什么需要模板、函数模板与编译期实例化、.hpp/.tpp 文件组织、类型参数的隐式约束，以及类模板（Box 示例）。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-00/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413975" data-source-url="/~kazuhak/notes/ics-46/lec-00/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-00/en-US/" data-next-url="/~kazuhak/notes/ics-46/lec-01/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 0 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-00/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 0 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 0 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 10 月 16 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-0课程介绍单元测试模板">Information and Computer Science 46 — Lecture 0：课程介绍、单元测试、模板</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-ics-46-%E8%AF%BE%E7%A8%8B%E7%AE%80%E4%BB%8B">1. ICS 46 课程简介</a></li>
+<li><a href="#2-%E7%94%A8-google-test-%E7%BC%96%E5%86%99-c-%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95">2. 用 Google Test 编写 C++ 单元测试</a></li>
+<li><a href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%A8%A1%E6%9D%BFtemplates">3. 为什么需要模板（Templates）</a></li>
+<li><a href="#4-%E7%BC%96%E5%86%99%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BFfunction-templates">4. 编写函数模板（Function Templates）</a></li>
+<li><a href="#5-%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BF%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96%E7%BC%96%E8%AF%91%E6%9C%9F%E8%BF%9B%E8%A1%8C">5. 函数模板的实例化（编译期进行）</a></li>
+<li><a href="#6-%E6%A8%A1%E6%9D%BF%E4%BB%A3%E7%A0%81%E6%94%BE%E5%9C%A8%E5%93%AA%E9%87%8Chpp-%E4%B8%8E-tpp">6. 模板代码放在哪里（.hpp 与 .tpp）</a></li>
+<li><a href="#7-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%9A%84%E9%9A%90%E5%90%AB%E7%BA%A6%E6%9D%9F">7. 类型参数的隐含约束</a></li>
+<li><a href="#8-%E7%B1%BB%E6%A8%A1%E6%9D%BFclass-templates">8. 类模板（Class Templates）</a></li>
+<li><a href="#9-%E7%B1%BB%E6%A8%A1%E6%9D%BF%E7%A4%BA%E4%BE%8Bbox">9. 类模板示例：Box</a></li>
+<li><a href="#10-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">10. 完整实现</a></li>
+<li><a href="#11-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">11. 课堂活动（附解答）</a></li>
+<li><a href="#12-%E9%80%9F%E6%9F%A5--%E5%BF%85%E8%AE%B0-5-%E7%82%B9">12. 速查 &amp; 必记 5 点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46：数据结构的实现与分析 — Prof. Tom Yeh，2026 年秋季，09/24/26（Week 0，周四）<br>基于 Week 0 讲义（标题页写的是 “Lecture 1: Templates, Randomness”，随机性部分在下一份讲义中），并参考 Thornton 的 ICS 46 笔记（Templates、Course Introduction、Contracts and Exceptions）、Thornton 的 ICS 45C Unit Testing 笔记，以及 Google Test 1.10.0 Primer 作为补充。按概念而非来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：第 0 周没有答疑时间和讨论课。Lab 0（环境配置）与 Lab 1（测试编译的小程序）本周发布。<br>ICS 46 Gen AI 预调查：<strong>额外学分 0.5%</strong>，周日截止。<br>每周节奏：讲课在周二/周四；课堂小组活动在讲课后一天截止（周二的周三截止，周四的周五截止）；HW 周五截止；Lab 周一截止；测验在周五讨论课进行（比课堂上更有时间）。<br>Prof. Yeh 的答疑（OH）：下课后 5–6 pm，ICS1 195（从第 1 周开始）。TA/LA 答疑时间待定——见 OH 日程表。<br>成绩：考试 50%（期中 20% + 期末 30%），测验 15%（5 次，去掉最低分），实验 15%（去掉最低分），作业 10%（去掉最低分），课堂活动 10%（去掉最低分）；额外学分 = 调查问卷，其他待定。<br>重要日期（日程表，可能变动）：期中 11/12，11/26 无课（感恩节），期末 12/8 4:00–6:00 pm。<br>资料位置：Canvas（课程网页）；Google Drive 课程文件夹（教学大纲、日程、讲义、实验、OH 日程——需要 UCI 账号）；Ed Discussion 用于所有课程问题（若含代码/解答则发私密帖）；邮件仅用于特殊情况；ICS 导师（Zotpass 应用）；iGP AI 助手（由 Yeh 教授的研究组开发，由 ICS 导师项目资助）。<br>参考资料：Sedgewick &amp; Wayne，<em>Algorithms</em> 第 4 版（选读，强烈推荐）；zyBooks <em>Data Structures in C++</em>（Yeh 可提供代码）；Thornton 的 2022 年 ICS 45C 与 ICS 46 笔记；VisuAlgo。<br>编程环境（VS Code、OpenLab JupyterHub）在 <a href="/~kazuhak/notes/ics-46/lec-01/zh-CN/">Lecture 1 笔记</a> 中介绍。</p>
+</blockquote>
+<hr>
+<h2 id="1-ics-46-课程简介">1. ICS 46 课程简介</h2>
+<h3 id="11-从-ics-45c-到-ics-46">1.1 从 ICS 45C 到 ICS 46</h3>
+<p>幻灯片 8 将两门课并排放在一起：ICS 45C 关于 <strong>C++ 语言本身</strong>；ICS 46 则把 C++ 当作工具，研究 <strong>数据结构</strong>——数组、树、图。大家默认已经会 C++（幻灯片 22 把今天的 C++ 部分称为 “复习”），本讲唯一“新”的 C++ 内容是模板，因为本学期你们要写的每一种数据结构都是模板。</p>
+<p>课程有三大支柱（幻灯片 9）：</p>
+<table>
+<thead>
+<tr>
+<th>支柱</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据结构</strong></td>
+<td>如何根据<strong>问题需要</strong>在计算机中<strong>组织数据</strong>；探索<strong>常见抽象</strong>（列表、栈、队列、树、映射、图）</td>
+</tr>
+<tr>
+<td><strong>分析</strong></td>
+<td>面向效率的算法分析；根据应用的<strong>时间与内存</strong>需求选择合适的数据结构</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td>用 C++ 编写高效的数据结构与算法；善用递归</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：“哪种数据结构？”从来不是凭感觉决定的。它取决于测量问题所需的操作（时间），以及你能负担多少存储（内存）。这正是分析支柱要训练的能力。</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：Thornton 的课程介绍更尖锐地表达了同一点——你要在速度、内存、功耗或并行化程度之间权衡，而且应当能够<strong>量化</strong>这种权衡，而不是凭感觉决定。他还列出了 45C 的毕业生应当已经掌握的内容：内置类型、控制流、头文件/源文件与分别编译、指针/引用、栈与堆、<code>const</code>、数组与 <code>std::vector</code>、迭代器、标准算法、类/继承/虚函数，以及让类表现良好（构造函数、析构函数、拷贝构造函数）。模板、契约/不变式、异常/RAII 被假定只是<em>轻度</em>涉及——这也是为什么模板要在这里重新讲。</p>
+</blockquote>
+<h3 id="12-数据结构的简史简略且不完整">1.2 数据结构的简史（简略且不完整）</h3>
+<p>幻灯片 10 是一条时间线。它的要点是：本课程的大多数结构与算法都很古老（二战后出现，1960–70 年代达到高峰），我们学习的是经典。</p>
+<table>
+<thead>
+<tr>
+<th>年份（约）</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1945</td>
+<td>计算机实现数组；归并排序由 John von Neumann 发明</td>
+</tr>
+<tr>
+<td>1946</td>
+<td>栈操作（Alan M. Turing）</td>
+</tr>
+<tr>
+<td>约 1950–54</td>
+<td>更多数组排序研究</td>
+</tr>
+<tr>
+<td>约 1953–55</td>
+<td>哈希表（IBM）；链表（Rand Corporation）</td>
+</tr>
+<tr>
+<td>约 1957</td>
+<td>数组排序算法发表</td>
+</tr>
+<tr>
+<td>1960</td>
+<td>二叉搜索树</td>
+</tr>
+<tr>
+<td>约 1962</td>
+<td>“冒泡排序”成为主流</td>
+</tr>
+<tr>
+<td>1964</td>
+<td>堆排序</td>
+</tr>
+<tr>
+<td>1976</td>
+<td>图问题的计算机辅助证明（四色定理）</td>
+</tr>
+</tbody></table>
+<p>（幻灯片的坐标轴上只标注了 1946、1955、1960、1964 和 1976；其余位置是根据刻度线的位置读出的。）</p>
+<h3 id="13-在-ai-时代数据结构为什么仍然重要">1.3 在 AI 时代，数据结构为什么仍然重要</h3>
+<p>幻灯片 11：数学使 AI 模型成为可能，但<strong>数据结构决定了什么是可能的、运行多快、成本多高</strong>。幻灯片列出了五种结构，并标出它们在机器学习流程中的位置：</p>
+<table>
+<thead>
+<tr>
+<th>数据结构</th>
+<th>机器学习流程阶段（幻灯片 11）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数组</td>
+<td>数据存储</td>
+</tr>
+<tr>
+<td>堆</td>
+<td>特征提取</td>
+</tr>
+<tr>
+<td>哈希表</td>
+<td>训练</td>
+</tr>
+<tr>
+<td>二叉搜索树</td>
+<td>训练</td>
+</tr>
+<tr>
+<td>图</td>
+<td>基于网络的建模</td>
+</tr>
+</tbody></table>
+<p>幻灯片 11 的图中给出了每种结构的一个小例子：数组 <code>3 1 4 1 4 5</code>（下标位于单元格下方）位于部分填充数组 <code>11 10 21 12 _ _</code> 之上；一个最小堆，根为 1，3 和 4 为子节点，7 在 3 之下；一个哈希表，将 key1→10、key2→21、key3→12、key4→33；一棵二叉搜索树，根为 5，子节点 3 和 7，叶子 1、4 和 8；以及一个小型无向图。重绘如下：</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart TB
+  subgraph H[&quot;Heap&quot;]
+    h1((1)) --&gt; h3((3)) &amp; h4((4))
+    h3 --&gt; h7((7))
+  end
+  subgraph B[&quot;Binary search tree&quot;]
+    b5((5)) --&gt; b3((3)) &amp; b7((7))
+    b3 --&gt; b1((1)) &amp; b4((4))
+    b7 --&gt; b8((8))
+  end
+  subgraph T[&quot;Hash table&quot;]
+    k1[&quot;key1&quot;] --&gt; v1[&quot;10&quot;]
+    k2[&quot;key2&quot;] --&gt; v2[&quot;21&quot;]
+    k3[&quot;key3&quot;] --&gt; v3[&quot;12&quot;]
+    k4[&quot;key4&quot;] --&gt; v4[&quot;33&quot;]
+  end</code></pre><p>你们本学期会实现以上每一种结构。</p>
+<h3 id="14-业界看重什么批判性思维">1.4 业界看重什么：批判性思维</h3>
+<p>幻灯片 12 列出了业界想要的技能，这些恰恰是无法交给 AI 工具代劳的：</p>
+<ul>
+<li><strong>问题表述</strong>——从一段开放式描述中界定问题。</li>
+<li><strong>分解</strong>——把复杂问题拆分为逻辑上的各个部分。</li>
+<li><strong>测试与验证</strong>——了解边界情况（这正是 <a href="#2-%E7%94%A8-google-test-%E7%BC%96%E5%86%99-c-%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95">单元测试</a> 出场的地方）。</li>
+</ul>
+<p>共同的主题是<strong>批判性思维</strong>：不要停留在被动执行上——避免“肉身代理”陷阱（即充当人类中继，把提示粘贴进去、再把答案粘贴出来）——而是在表述、分解和验证上主动投入认知。</p>
+<h3 id="15-主题概览">1.5 主题概览</h3>
+<p>幻灯片 14（第 15 张幻灯片给出了按周排列的课程安排）：</p>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>数据结构 / 算法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基础</td>
+<td>C++、OOP、算法分析</td>
+</tr>
+<tr>
+<td>基本数据结构</td>
+<td>数组、ArrayList、链表、栈、队列</td>
+</tr>
+<tr>
+<td>排序</td>
+<td>选择排序、插入排序、快速排序、归并排序、堆排序、堆、优先队列</td>
+</tr>
+<tr>
+<td>查找</td>
+<td>二叉搜索树、平衡树、哈希表</td>
+</tr>
+<tr>
+<td>图</td>
+<td>BFS、DFS、Prim、Kruskal、Dijkstra</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-用-google-test-编写-c-单元测试">2. 用 Google Test 编写 C++ 单元测试</h2>
+<p>幻灯片 23 很简短：本课程使用 <strong>Google Test</strong>，并指向 <strong>Google Test 1.10.0 Primer</strong> 以及 ICS 45C 中 Thornton 的 <strong>Unit Testing</strong> 笔记。本课程的实验都用这种方式测试，而幻灯片 12 中的“测试与验证”技能正是学习它的原因。以下是这两份阅读材料的压缩要点。</p>
+<h3 id="21-什么是单元测试">2.1 什么是单元测试</h3>
+<p><strong>单元测试</strong>在<strong>隔离</strong>于程序其余部分的情况下，检查程序中的一小块——一个类、一个函数。数据结构是典型例子：<code>ArrayList</code> 有一些行为（在前端插入、满时扩容、删除最后一个元素），你的应用可能从未以明显、可重复的方式触发它们，但你仍然需要确保它们正确。</p>
+<p>每个测试都有相同的形式：<strong>设置场景 → 运行 → 将结果与预期比较 → 报告</strong>。<strong>单元测试框架</strong>负责那些枯燥的部分：它自动找到所有测试（无需在 <code>main</code> 中添加调用），独立运行每个测试，并报告哪些失败、给出预期值与实际值以及行号。C++ 标准库没有自带的框架（Python 有 <code>unittest</code>，C++ 没有），所以我们使用 Google 的开源 <strong>Google Test</strong>（又名 googletest/gtest）。</p>
+<h3 id="22-编写测试">2.2 编写测试</h3>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">TestSuiteName</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">testName</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#6A9955">    // set up, run, check</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>TEST</code> 是一个宏（它展开为一个函数加上注册代码）。它没有返回类型；括号中的两个名字分别是<strong>测试套件</strong>（一组相关测试）和<strong>测试自身的名字</strong>。Google Test 会自动注册每个 <code>TEST</code>，并通过 <code>RUN_ALL_TESTS()</code> 运行它们全部；链接 <code>gtest_main</code> 即可获得一个现成的 <code>main</code> 来完成这一步。</p>
+<p>在测试中，你用断言检查结果。断言成对出现：</p>
+<table>
+<thead>
+<tr>
+<th>致命断言（<code>ASSERT_*</code>）</th>
+<th>非致命断言（<code>EXPECT_*</code>）</th>
+<th>通过条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ASSERT_TRUE(c)</code></td>
+<td><code>EXPECT_TRUE(c)</code></td>
+<td><code>c</code> 为真</td>
+</tr>
+<tr>
+<td><code>ASSERT_FALSE(c)</code></td>
+<td><code>EXPECT_FALSE(c)</code></td>
+<td><code>c</code> 为假</td>
+</tr>
+<tr>
+<td><code>ASSERT_EQ(a, b)</code></td>
+<td><code>EXPECT_EQ(a, b)</code></td>
+<td><code>a == b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_NE(a, b)</code></td>
+<td><code>EXPECT_NE(a, b)</code></td>
+<td><code>a != b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_LT/LE/GT/GE(a, b)</code></td>
+<td><code>EXPECT_LT/LE/GT/GE(a, b)</code></td>
+<td><code>a &lt; b</code>、<code>a &lt;= b</code>、<code>a &gt; b</code>、<code>a &gt;= b</code></td>
+</tr>
+<tr>
+<td><code>ASSERT_STREQ(s1, s2)</code></td>
+<td><code>EXPECT_STREQ(s1, s2)</code></td>
+<td>两个 <strong>C 字符串</strong> 内容相同</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>ASSERT_*</code></strong> 会使测试失败并<strong>立即停止</strong>。当继续执行没有意义时使用它（例如下一行会解引用你刚断言为非空的指针）。</li>
+<li><strong><code>EXPECT_*</code></strong> 会使测试失败但<strong>继续执行</strong>，因此一次运行可以报告多个错误的期望。Primer 默认更偏向 <code>EXPECT_*</code>。</li>
+<li>你可以附加一条消息：<code>EXPECT_EQ(x[i], y[i]) &lt;&lt; &quot;differ at index &quot; &lt;&lt; i;</code></li>
+</ul>
+<p>这里是针对本讲模板的一个小测试套件（<code>myMin</code> 来自 <a href="#111-%E6%B4%BB%E5%8A%A8-1%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BF%E5%B9%BB%E7%81%AF%E7%89%87-31-32">活动 1</a>，<code>Pair</code> 来自 <a href="#112-%E6%B4%BB%E5%8A%A8-2%E7%B1%BB%E6%A8%A1%E6%9D%BF%E5%B9%BB%E7%81%AF%E7%89%87-38-39">活动 2</a>；代码见 <a href="#10-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">§10</a>）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;gtest/gtest.h></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "templates.hpp"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">MyMinTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">returnsSmallerInt</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(-</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">, -</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">MyMinTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">comparesStringsAlphabetically</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">, </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)));</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">PairTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">containTheValuesGivenWhenConstructed</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">TEST</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">PairTests</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">setSecondReplacesOnlyTheSecondValue</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#DCDCAA">    EXPECT_EQ</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>使用 <code>g++ -std=c++17 -Wall pair_tests.cpp -lgtest -lgtest_main -pthread</code> 编译并运行：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from MyMinTests
+[ RUN      ] MyMinTests.returnsSmallerInt
+[       OK ] MyMinTests.returnsSmallerInt (0 ms)
+[ RUN      ] MyMinTests.comparesStringsAlphabetically
+[       OK ] MyMinTests.comparesStringsAlphabetically (0 ms)
+[----------] 2 tests from MyMinTests (0 ms total)
+
+[----------] 2 tests from PairTests
+[ RUN      ] PairTests.containTheValuesGivenWhenConstructed
+[       OK ] PairTests.containTheValuesGivenWhenConstructed (0 ms)
+[ RUN      ] PairTests.setSecondReplacesOnlyTheSecondValue
+[       OK ] PairTests.setSecondReplacesOnlyTheSecondValue (0 ms)
+[----------] 2 tests from PairTests (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 4 tests.</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="23-好测试的特征">2.3 好测试的特征</h3>
+<ul>
+<li><strong>每个测试只测一种行为，而不是每个函数一个测试。</strong> 你不能单独测试 <code>first()</code>——你要测试的是“用 (4, 6) 构造之后，<code>first()</code> 返回 4”。行为是<em>一串调用加上一个已知结果</em>。如果你想检查三种行为，就写三个测试，这样失败时你就能确切知道是哪种场景出错。</li>
+<li><strong>以行为命名测试</strong>（<code>setSecondReplacesOnlyTheSecondValue</code>）。报告会打印失败测试的名字，因此好的名字往往在你打开代码之前就能告诉你 bug 在哪里。</li>
+<li><strong>测试之间相互独立。</strong> 没有保证的执行顺序；永远不要依赖另一个测试先运行过。</li>
+<li><strong>让测试数据有所变化。</strong> Thornton 特意在每个测试中使用不同的常量，这样测试就不会因为某个恰好可行的值而意外通过。</li>
+<li><strong>边界情况</strong>（空结构、只有一个元素、数组已满、前端与后端）是数据结构 bug 的藏身之处。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：对两个 <code>const char*</code> 使用 <code>EXPECT_EQ</code> 比较的是<strong>指针</strong>，而不是文本。比较 C 字符串请使用 <code>EXPECT_STREQ</code>，或者用 <code>EXPECT_EQ</code> 比较 <code>std::string</code>（如上，<code>&quot;apple&quot;</code> 与 <code>std::string</code> 比较，因此使用的是 <code>std::string</code> 的 <code>==</code>）。对于浮点数，请使用浮点版本（例如 <code>EXPECT_DOUBLE_EQ</code>），以避免舍入导致的失败。</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：Thornton 的 45C 笔记写的是 <code>ASSERT_EQ(expected, actual)</code>，即期望值在前，这样失败报告读起来才正确。1.10 版 Primer 指出，自 2016 年起 <code>*_EQ</code> 对两个参数的处理方式相同；两种顺序都可以，但要保持一致。（此处的示例使用期望值在前的写法。）</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：术语方面——Google Test 称为<strong>测试套件</strong>的东西（<code>TEST</code> 的第一个参数），在旧版本中叫做 &quot;test case&quot;；Thornton 的 45C 笔记使用的是旧名称。测试名称中不应包含下划线。当许多测试需要相同的设置时，可以使用<strong>测试夹具</strong>（继承自 <code>::testing::Test</code> 的类，配合 <code>TEST_F</code> 而不是 <code>TEST</code> 使用），它通过 <code>SetUp()</code>/<code>TearDown()</code> 为每个测试构建全新的对象。如果你自己编写 <code>main</code>，请调用 <code>::testing::InitGoogleTest(&amp;argc, argv)</code>，然后 <code>return RUN_ALL_TESTS();</code>。</p>
+</blockquote>
+<hr>
+<h2 id="3-为什么需要模板templates">3. 为什么需要模板（Templates）</h2>
+<p>C++ 拥有<strong>静态类型系统</strong>：每个变量的类型在编译期就已固定。因此，一个交换两个 <code>int</code> 的函数无法交换两个 <code>double</code>，要处理不同的参数类型，你最终会写出几乎相同的多个版本（幻灯片 25）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">noexcept</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">double&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">double&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">noexcept</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    double</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    a</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    b</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>由于 C++ 允许<strong>重载</strong>（同名、参数类型不同），两者可以共存，而且每种类型都可以再写一百个。但除了类型名之外，函数体完全相同。这样复制粘贴意味着每次修 bug 都得改 N 遍。</p>
+<p><strong>模板</strong>解决了这个问题。它是<strong>无限多种可能性的蓝图</strong>：你只需编写一次代码，并说明<em>各个实例彼此之间有何不同</em>（这里只是类型）。编译器会在需要时生成每个具体版本。幻灯片 25 的图是一张蓝图，箭头指向 <code>myswap1</code>、<code>myswap2</code>、<code>myswap3</code>：</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  BP[&quot;template blueprint&lt;br/&gt;myswap(T&amp;, T&amp;)&quot;] --&gt; S1[&quot;myswap1 (T = int)&quot;]
+  BP --&gt; S2[&quot;myswap2 (T = double)&quot;]
+  BP --&gt; S3[&quot;myswap3 (T = std::string)&quot;]</code></pre><p>主要有两种：</p>
+<ol>
+<li><strong>函数模板</strong>——函数的蓝图（§4–§7）。</li>
+<li><strong>类模板</strong>——类的蓝图（§8–§9）。数据结构是它们最主要的用途。</li>
+</ol>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：模板既不是函数也不是类。它是编译器用来<em>生成</em>函数/类的配方，每组模板实参生成一个。</p>
+</blockquote>
+<hr>
+<h2 id="4-编写函数模板function-templates">4. 编写函数模板（Function Templates）</h2>
+<h3 id="41-语法">4.1 语法</h3>
+<p>幻灯片 27 给出四个步骤：</p>
+<ol>
+<li>以 <strong><code>template</code></strong> 关键字开始。</li>
+<li>将模板参数放在 <strong><code>&lt; &gt;</code></strong> 中。</li>
+<li>写 <strong><code>typename</code></strong>，后面跟类型参数的名字（按惯例为 <code>T</code>）。</li>
+<li>像往常一样编写函数定义，在类型会变化的地方使用 <code>T</code>。</li>
+</ol>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li>这是任意数量 <code>myswap</code> 函数的<strong>蓝图</strong>。</li>
+<li>关键字 <strong><code>typename</code></strong> 表明这个参数是一个<strong>类型占位符</strong>（而不是例如 <code>int</code> 常量）。</li>
+<li><strong><code>T</code></strong> 为该类型命名；实例化时，每个 <code>T</code> 都会被替换为<strong>实际类型</strong>。</li>
+</ul>
+<h3 id="42-模板参数的种类">4.2 模板参数的种类</h3>
+<p>幻灯片 27 的“Parameter Types”框：</p>
+<table>
+<thead>
+<tr>
+<th>种类</th>
+<th>示例</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>类型参数</strong></td>
+<td><code>typename T</code>、<code>class T</code></td>
+<td>代表一个类型；实参是诸如 <code>int</code> 或 <code>std::string</code> 的类型</td>
+</tr>
+<tr>
+<td><strong>非类型参数</strong></td>
+<td>常量、指针、引用</td>
+<td>代表一个编译期<em>值</em>，例如 <code>template &lt;typename T, int N&gt;</code></td>
+</tr>
+<tr>
+<td><strong>模板模板参数</strong></td>
+<td>—</td>
+<td>本身就是模板的参数（例如“某个容器模板”）</td>
+</tr>
+</tbody></table>
+<p><code>&lt; &gt;</code> 内的 <code>typename T</code> 与 <code>class T</code> 含义完全相同（这里的 <code>class</code> 并不要求 T 必须是类；<code>int</code> 也可以）。幻灯片还把 <code>std::string</code> 列在类型参数下——应将其理解为一个你会<em>作为实参传入</em>的类型示例（<code>T = std::string</code>），而不是你在参数列表中要写的东西。</p>
+<p>非类型参数的例子（我自己写的，已编译）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int</span><span style="color:#4EC9B0"> N</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> sumFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">T</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> v</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> total</span><span style="color:#D4D4D4">{};</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">N</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#569CD6">static_cast</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">()); ++</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">total</span><span style="color:#D4D4D4"> += </span><span style="color:#9CDCFE">v</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> total</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// sumFirst&#x3C;int, 3>(std::vector&#x3C;int>{1, 2, 3, 4, 5}) == 6</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>N</code> 必须在编译期已知；<code>sumFirst&lt;int, 3&gt;</code> 与 <code>sumFirst&lt;int, 4&gt;</code> 是两个不同的生成函数。</p>
+<h3 id="43-为什么模板去掉了-noexcept">4.3 为什么模板去掉了 <code>noexcept</code></h3>
+<p>注意幻灯片 25 中 <code>int</code> 与 <code>double</code> 的版本都是 <code>noexcept</code>，而模板版本不是。这是有意为之（Thornton 的说法）：交换 <code>int</code> 绝不会抛出异常，但交换 <code>std::string</code> 会复制字符串，而复制字符串可能分配内存，进而抛出异常。单个模板无法对每个 <code>T</code> 都承诺“永不抛出”。</p>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：<code>noexcept</code> 是一种承诺，而非检查——如果一个 <code>noexcept</code> 函数真的抛出异常，程序会调用 <code>std::terminate()</code>。模板可以让这个承诺<strong>依赖于</strong> <code>T</code>：<code>noexcept(expr)</code> 中的 <code>expr</code> 是编译期 <code>bool</code>。内层的 <code>noexcept(...)</code> <em>运算符</em> 用于询问“这个表达式是否被声明为不抛出异常”，而无需真正执行它：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#569CD6">    noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">}) &#x26;&#x26; </span><span style="color:#569CD6">noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">))</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>或者，更易读的写法（需要 <code>#include &lt;type_traits&gt;</code>）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#569CD6">    noexcept</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">is_nothrow_copy_constructible_v</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">> &#x26;&#x26;</span></span>
+<span class="line"><span style="color:#4EC9B0">             std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">is_nothrow_copy_assignable_v</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#9CDCFE">T</span><span style="color:#D4D4D4">>)</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>编译检查：<code>noexcept(myswap(i, j))</code> 对 <code>int</code> 为 <code>true</code>，对 <code>std::string</code> 为 <code>false</code>。（Thornton 的页面写的是 <code>std::is_nothrow_assignable_v&lt;T&gt;</code>，只带一个参数；但该 trait 实际上接受两个类型，所以应使用 <code>is_nothrow_copy_assignable_v&lt;T&gt;</code>。）像标准容器这样的库代码会关心这一点，因为当编译器知道移动/拷贝不会抛出异常时，某些操作会更快。</p>
+</blockquote>
+<hr>
+<h2 id="5-函数模板的实例化编译期进行">5. 函数模板的实例化（编译期进行）</h2>
+<p>函数模板在被<strong>使用</strong>之前不会生成任何东西。幻灯片 28 分三步讲解编译器遇到调用时做了什么：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>名称</th>
+<th>编译器所做的事</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>遇到调用</strong></td>
+<td>在模板调用处，检查它是否识别该函数模板。</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>类型推导</strong></td>
+<td>尝试根据实参类型自动推导出模板参数类型。</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>实例化</strong></td>
+<td>为推导出的类型生成一个实际的具体函数定义。</td>
+</tr>
+</tbody></table>
+<p>幻灯片 28 的三个面板，以代码形式呈现：</p>
+<p><strong>1. 调用位置（<code>foo</code>）</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> foo</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>2. 模板（<code>myswap</code>）</strong></p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>3. 实例化后（<code>int</code>）</strong> — 编译器为 T = <code>int</code> 生成的代码：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> t1</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">int&#x26;</span><span style="color:#9CDCFE"> t2</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">t2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    t2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>两个实参都是 <code>int</code>，所以 <code>T&amp;</code> 必须是 <code>int&amp;</code>，因此 T = <code>int</code>。生成的函数是程序中一个真实的函数，名为 <code>myswap&lt;int&gt;</code>。之后用两个 <code>double</code> 调用 <code>myswap</code> 会生成第二个函数 <code>myswap&lt;double&gt;</code>；再次用 <code>int</code> 调用则复用 <code>myswap&lt;int&gt;</code>。</p>
+<p>下面是该调用在内存中的过程（Python Tutor 风格）。<code>t1</code> 与 <code>t2</code> 是引用——虚线箭头——因此通过它们的写入会落在 <code>foo</code> 的变量上：</p>
+<p><strong>内存追踪：<code>myswap&lt;int&gt;(i, j)</code></strong>（4 步）</p>
+<p><strong>第 1/4 步：</strong> <code>myswap(i, j);  // enter myswap&lt;int&gt;</code> — t1 和 t2 是引用：foo 中 i 和 j 的别名，而不是副本</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 3&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>第 2/4 步：</strong> <code>T temp = t1;</code> — 拷贝构造：temp 是一个用 i 初始化的新 int</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 3&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>第 3/4 步：</strong> <code>t1 = t2;</code> — 通过别名进行拷贝赋值，写入了 foo 的 i</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = &lt;s&gt;3&lt;/s&gt; 4&quot;]
+      F1_j[&quot;j = 4&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p><strong>第 4/4 步：</strong> <code>t2 = temp;</code> — 拷贝赋值写入 foo 的 j；myswap 返回时 temp 被销毁</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  classDef hdr font-weight:bold
+  classDef freed stroke-dasharray:4 3,color:#888
+  subgraph STACK[&quot;Stack&quot;]
+    subgraph F0[&quot;myswap#lt;int#gt;&quot;]
+      F0_t1[&quot;t1 = ●&quot;]
+      F0_t2[&quot;t2 = ●&quot;]
+      F0_temp[&quot;temp = 3&quot;]
+    end
+    subgraph F1[&quot;foo&quot;]
+      F1_i[&quot;i = 4&quot;]
+      F1_j[&quot;j = &lt;s&gt;4&lt;/s&gt; 3&quot;]
+    end
+  end
+  subgraph HEAP[&quot;Heap&quot;]
+    HEAP_empty[&quot;(empty)&quot;]
+  end
+  F0_t1 -.-&gt; F1_i
+  F0_t2 -.-&gt; F1_j</code></pre><p>该追踪对 <code>T</code> 执行的三种操作——拷贝构造 <code>temp</code>、拷贝赋值两次、销毁 <code>temp</code>——正是 <a href="#7-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%9A%84%E9%9A%90%E5%90%AB%E7%BA%A6%E6%9D%9F">§7</a> 中的要求。</p>
+<h3 id="51-推导失败的情况">5.1 推导失败的情况</h3>
+<p>第 2 步<strong>在编译器无法确定地推断出精确类型时失败</strong>——例如实参之间存在<strong>冲突</strong>，或者<strong>完全没有提示</strong>。混用类型（使用 g++ 13 编译）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">; </span><span style="color:#569CD6">double</span><span style="color:#9CDCFE"> d</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">4.0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">error: no matching function for call to &#39;myswap(int&amp;, double&amp;)&#39;
+note:   deduced conflicting types for parameter &#39;T&#39; (&#39;int&#39; and &#39;double&#39;)</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>从第一个实参看 T 会是 <code>int</code>，从第二个看会是 <code>double</code>；编译器不会选择其中之一。（对于 <code>myswap</code> 没有修复办法——你不能把 <code>int&amp;</code> 绑定到 <code>double</code> 上。对于像 <code>myMin</code> 那样按值或 <code>const T&amp;</code> 传参的函数，你可以自己指定类型，见下文。）</p>
+<p>你总是可以<strong>显式</strong>给出模板实参：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>(</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">   // 合法，但在这里没有必要——推导已经得到 int</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>当没有可供推导的信息时（例如 T 只出现在返回类型中），必须显式给出实参；当存在可以转换的情况时，显式实参也能消除冲突：<code>myMin&lt;double&gt;(3, 4.5)</code> 可以编译，并返回 3（int 3 被转换为 double）。</p>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：推导<strong>不会</strong>进行通常的转换。<code>myMin(3, 4.5)</code> 是编译错误，即使 <code>int</code> → <code>double</code> 是一种普通转换；<code>myMin&lt;double&gt;(3, 4.5)</code> 则没有问题。</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：如果两个 <code>.cpp</code> 文件都调用了 <code>myswap&lt;int&gt;</code>，每个文件都会生成自己的一份 <code>myswap&lt;int&gt;</code>。通常同一函数的两个定义会导致链接错误，但链接器被要求接受重复的模板实例化，并只保留一份。这正是 §6 中“把它放进头文件”这一规则能够生效的原因。</p>
+</blockquote>
+<hr>
+<h2 id="6-模板代码放在哪里hpp-与-tpp">6. 模板代码放在哪里（.hpp 与 .tpp）</h2>
+<p>幻灯片 29 的<strong>实例化要求</strong>：<strong>完整的模板定义</strong>（包括函数体，而不仅仅是声明）必须<strong>在每个使用处可见</strong>，这样编译器才能在该处生成特化的函数。因此模板代码要放在头文件中。有两种做法：</p>
+<h3 id="61-方案-1单一头文件hpp">6.1 方案 1——单一头文件（.hpp）</h3>
+<p>在 <code>.hpp</code> 中同时包含声明与定义。最适合较小的工具和简单的模板。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.hpp</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// 1. 声明与定义合并在一起</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">  T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  a</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  b</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="62-方案-2拆分的头文件与实现hpp--tpp">6.2 方案 2——拆分的头文件与实现（.hpp + .tpp）</h3>
+<ul>
+<li><strong>清晰分离</strong>：接口放在 <code>.hpp</code> 中，实现放在 <code>.tpp</code> 中。</li>
+<li><strong>“隐藏包含”（Secret include）</strong>：<code>.hpp</code> 在<strong>底部</strong> <code>#include</code> <code>.tpp</code>，因此任何包含该头文件的人都能获得完整的定义。</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.hpp（头文件与接口）</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#6A9955">// 1. 先只让声明可见</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">// 2. 在底部包含实现</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "myswap.tpp"</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// myswap.tpp（模板实现）</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> myswap</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">  T</span><span style="color:#9CDCFE"> temp</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  a</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">  b</span><span style="color:#D4D4D4"> = </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">move</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">temp</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>.tpp</code> <strong>不</strong>单独编译，也不能列为源文件；它本质上是一个伪装的头文件。（<code>.tpp</code> 只是命名惯例；编译器并不在意扩展名。）经测试：<code>#include &quot;myswap.hpp&quot;</code> 后，用 <code>int</code> 调用 <code>myswap(i, j)</code>、使用 <code>myswap&lt;double&gt;</code> 以及 <code>std::string</code>，输出分别为 <code>4 3</code>、<code>2.5 1.5</code>、<code>banana apple</code>。</p>
+<p>这个版本使用 <strong><code>std::move</code></strong>（来自 <code>&lt;utility&gt;</code>）而不是拷贝：它让 <code>T</code> 可以<em>移动</em>其内容（例如偷走字符串的缓冲区），而不是复制，对大对象来说开销更小。对 <code>int</code> 而言没有区别。移动语义会在 <a href="/~kazuhak/notes/ics-46/lec-02/zh-CN/">Lecture 2</a> 中随智能指针再次出现。</p>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：45C 中“声明放 <code>.hpp</code>、定义放 <code>.cpp</code>”的习惯<strong>对模板不适用</strong>。只看到声明的 <code>.cpp</code> 可以正常编译，并假定 <code>myswap&lt;int&gt;</code> 在别处有定义，于是你会遇到<em>未定义引用</em>的<strong>链接错误</strong>，因为包含函数体的那个 <code>.cpp</code> 从未见过用 <code>int</code> 的调用，因此从未生成它。</p>
+</blockquote>
+<hr>
+<h2 id="7-类型参数的隐含约束">7. 类型参数的隐含约束</h2>
+<p><code>T</code> 能是任何东西吗？幻灯片 30 的回答：</p>
+<ul>
+<li><strong>T 必须是具体类型</strong>——基本类型（<code>int</code>）或<strong>完整指定的模板类型</strong>，例如 <code>std::vector&lt;int&gt;</code>（而不是裸的 <code>std::vector</code>；后者是模板，不是类型）。</li>
+<li><strong>T 受到隐含限制</strong>，这些限制取决于在模板内部执行的<strong>操作</strong>。<code>template &lt;typename T&gt;</code> 中没有任何地方写明“T 必须可拷贝”；这一要求写在函数体里。</li>
+</ul>
+<p><strong><code>myswap</code> 所需的操作</strong>（幻灯片 30）：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>操作</th>
+<th>在 <code>myswap</code> 中的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>拷贝构造函数</strong></td>
+<td><code>T temp = t1;</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>拷贝赋值运算符</strong></td>
+<td><code>t1 = t2;</code> 与 <code>t2 = temp;</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>析构函数</strong></td>
+<td><code>temp</code> 是局部（栈上，“静态分配”）变量，因此函数结束时其析构函数会自动运行</td>
+</tr>
+</tbody></table>
+<p><strong>约束失败</strong>：缺少这三者中任何一项的类型都不能用于 <code>myswap</code>。Thornton 的例子：一个拷贝构造函数与赋值运算符都被删除的类。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> X</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    X</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#DCDCAA">    X</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> X</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    X</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> X</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">X</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">myswap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">   // 编译错误</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>g++ 13（使用 <code>myswap</code> 的 <code>.tpp</code> 版本）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">myswap.tpp:5:5: error: use of deleted function &#39;X::X(const X&amp;)&#39;
+myswap.tpp:6:5: error: use of deleted function &#39;X&amp; X::operator=(const X&amp;)&#39;</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>注意错误是在<strong>哪里</strong>报告的：在模板的函数体内部、需要那个缺失操作的那一行，而不是在你的调用处。这很典型——模板错误会指向模板内部，你需要从那里反推到你传入的类型。</p>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：幻灯片 30（以及 Thornton 的笔记）中的“Statically allocated”指的是<strong>自动存储期——栈上的局部变量</strong>，而不是 <code>static</code> 变量。它与使用 <code>new</code> 的堆分配恰好相反。</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：要找出模板对 <code>T</code> 的要求，请阅读它的函数体，并列出它对 <code>T</code> 做的每一项操作：构造（怎样构造？）、拷贝、赋值、比较（<code>&lt;</code>、<code>==</code>）、调用成员、销毁。每一项都是一条要求。两个课堂活动都是这样解答的。</p>
+</blockquote>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：这些要求是模板<strong>契约</strong>的一部分——类似函数的前置条件，只不过由编译器在实例化时检查。Thornton 的 Contracts 笔记更一般地涵盖了前置条件、后置条件、副作用以及类不变式。（C++20 加入了 <em>concepts</em> 来显式地书写这类要求；本课程使用的是 C++17 风格的隐含约束。）</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#111-%E6%B4%BB%E5%8A%A8-1%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BF%E5%B9%BB%E7%81%AF%E7%89%87-31-32">活动 1</a>——编写 <code>myMin</code> 并找出它的约束。</p>
+</blockquote>
+<hr>
+<h2 id="8-类模板class-templates">8. 类模板（Class Templates）</h2>
+<p><strong>数据结构的实现是类模板的主要用途</strong>（幻灯片 34）。一个链表无论存放的是 <code>int</code> 还是 <code>std::string</code>，工作方式都相同；只有元素类型会改变。规则与前面相同：</p>
+<ul>
+<li>以 <strong><code>template</code></strong> 关键字开始。</li>
+<li>模板参数放在<strong>尖括号 <code>&lt; &gt;</code> 中，以逗号分隔</strong>。</li>
+<li>下面的 <strong><code>ElementType</code></strong> 是占位符，表示某个特定 <code>Vector</code> 中存储的元素类型。</li>
+</ul>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> ElementType</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Vector</span></span>
+<span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#D4D4D4">    ...</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>在类的内部，凡是你想表示“这个 Vector 中元素的类型”的地方，都写 <code>ElementType</code>。幻灯片 34 的图：一张蓝图 → <code>Vector1</code>、<code>Vector2</code>、<code>Vector3</code>。</p>
+<h3 id="81-类模板的实例化">8.1 类模板的实例化</h3>
+<p>幻灯片 35 的标准库例子就是 <code>std::vector</code> 本身：</p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::vector&lt;T&gt;</code></td>
+<td>模板类（蓝图）</td>
+</tr>
+<tr>
+<td><code>std::vector&lt;std::string&gt;</code></td>
+<td>创建一个字符串向量</td>
+</tr>
+<tr>
+<td><code>std::vector&lt;int&gt;</code></td>
+<td>创建一个整数向量</td>
+</tr>
+</tbody></table>
+<p>实例化过程与函数模板类似：</p>
+<ol>
+<li><strong>编译器验证</strong>——在创建或使用时，编译器检查它是否识别该模板。</li>
+<li><strong>类型推导</strong>——通常需要<strong>显式</strong>的类型参数（例如 <code>&lt;int&gt;</code>）。与 <code>myswap(i, j)</code> 不同，<code>std::vector v;</code> 没有给编译器任何可供推导的信息。</li>
+<li><strong>模板实例化与定义</strong>——必须能获得完整的模板定义，才能生成代码。</li>
+<li><strong>头文件实现</strong>——因此类模板要放在 <code>.hpp</code> 或 <code>.hpp</code> + <code>.tpp</code> 文件中，与 <a href="#6-%E6%A8%A1%E6%9D%BF%E4%BB%A3%E7%A0%81%E6%94%BE%E5%9C%A8%E5%93%AA%E9%87%8Chpp-%E4%B8%8E-tpp">§6</a> 中完全相同。</li>
+</ol>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：自 C++17 起，编译器<em>可以</em>从构造函数调用中推导类模板实参：<code>Box b{42};</code> 会得到一个 <code>Box&lt;int&gt;</code>（类模板实参推导，即 “CTAD”——已编译并检查过）。Yeh 教授所说的“通常需要显式类型参数”仍是更安全的习惯；如果没有构造函数实参，或为了清晰起见，就把类型写出来。</p>
+</blockquote>
+<h3 id="82-每个实例都是独立且无关的类型">8.2 每个实例都是独立且无关的类型</h3>
+<p><code>std::vector&lt;int&gt;</code> 与 <code>std::vector&lt;std::string&gt;</code> 包含的是同一份代码，只是插入了不同的类型，但对编译器来说它们是<strong>完全不同的类</strong>：彼此没有继承关系，不能相互转换，也不能相互赋值。你不能把 <code>vector&lt;std::string&gt;</code> 传给一个期望 <code>vector&lt;int&gt;</code> 的函数。下面是用 §9 的 <code>Box</code> 做的编译检查：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">2.5</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 错误：没有匹配的 'operator='（操作数类型为 'Box&#x3C;double>' 与 'Box&#x3C;int>'）</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>……即使 <code>int</code> 可以转换为 <code>double</code>。</p>
+<blockquote>
+<p>⚠️ <strong>陷阱</strong>：在类模板内部你可以只写 <code>Vector</code>（它表示“这个实例化”），但在外部你必须始终写出实参：<code>Vector&lt;int&gt;</code>，永远不要把裸的 <code>Vector</code> 当作类型使用。</p>
+</blockquote>
+<hr>
+<h2 id="9-类模板示例box">9. 类模板示例：Box</h2>
+<p>幻灯片 36 与 37（内容相同，只是版式重排）使用一个单元素容器：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Box</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#6A9955">    // 构造函数</span></span>
+<span class="line"><span style="color:#DCDCAA">    Box</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">} {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // 获取函数</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> getValue</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // 设置函数</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setValue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>T 可以是什么？</strong>（幻灯片 36/37，“typename 参数类型”）</p>
+<ul>
+<li><strong>基本类型</strong>：整数类型、浮点类型——<code>Box&lt;int&gt;</code>、<code>Box&lt;double&gt;</code>。</li>
+<li><strong>非基本类型</strong>：<ul>
+<li>用户自定义：类或结构体——<code>Box&lt;Person&gt;</code>；</li>
+<li>库定义的类型：例如 <code>std::vector</code>——<code>Box&lt;std::vector&lt;int&gt;&gt;</code>（一个完整指定的 vector 类型，见 §7）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>编译器对 T 的类型要求</strong>：T 必须是编译器能够正确<strong>拷贝、存储和销毁</strong>的类型：</p>
+<table>
+<thead>
+<tr>
+<th>要求</th>
+<th>Box 在何处需要它</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>可拷贝构造</strong></td>
+<td><code>Box(const T&amp; value)</code> 中用 <code>item{value}</code> 初始化（以及 <code>getValue()</code> 按值返回 <code>T</code>）</td>
+</tr>
+<tr>
+<td><strong>可拷贝赋值</strong></td>
+<td><code>setValue</code> 中的 <code>item = value;</code></td>
+</tr>
+<tr>
+<td><strong>可销毁</strong></td>
+<td><code>item</code> 是一个成员；当 <code>Box</code> 被销毁时它也被销毁</td>
+</tr>
+</tbody></table>
+<p><strong>注意</strong>（幻灯片 37）：<code>T</code> 被用来构造其他类型——<code>const T&amp;</code> 是“对 const T 的引用”。传递 <code>const T&amp;</code> 而不是 <code>T</code>，可以避免对可能很大的对象进行一次额外拷贝，同时承诺不修改它。</p>
+<p>经测试的用法：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 7 ICS 46</span></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>> </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">{{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                    // 3</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="91-只有你用到的成员函数才会被生成">9.1 只有你用到的成员函数才会被生成</h3>
+<p>类模板的成员函数本身只有在<strong>被调用时</strong>才会被实例化（Thornton）。因此，附加在某个成员函数上的要求，只有当你调用那个函数时才会起作用。已检查：一个赋值运算符被删除的类型 <code>NoAssign</code>：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">struct</span><span style="color:#4EC9B0"> NoAssign</span><span style="color:#D4D4D4"> { </span><span style="color:#DCDCAA">NoAssign</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">) {} </span><span style="color:#4EC9B0">NoAssign</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> NoAssign</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">; };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">NoAssign</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">NoAssign</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">            // 可以编译：构造函数与 getValue 只需要拷贝构造</span></span>
+<span class="line"><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">NoAssign</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">});</span><span style="color:#6A9955"> // 加入这一行 → 错误：使用了已删除的函数</span></span>
+<span class="line"><span style="color:#6A9955">                         // 'NoAssign&#x26; NoAssign::operator=(const NoAssign&#x26;)'</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>因此，“可拷贝赋值”实际上是“<strong>如果你调用 <code>setValue</code>，则需可拷贝赋值</strong>”。幻灯片的列表是使用整个类所需的全部要求。</p>
+<blockquote>
+<p>📘 <strong>讲义之外</strong>：Thornton 对同样推理的表述：如果 <code>Vector</code> 的某个成员函数包含<br><code>ElementType e; e.foo();</code><br>那么 <code>ElementType</code> 必须 (1) 可默认构造（<code>e</code> 无参数构造）、(2) 有析构函数（<code>e</code> 是会被销毁的局部变量），并且 (3) 有一个不接受参数的成员函数 <code>foo</code>（返回类型任意，因为结果被忽略）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#112-%E6%B4%BB%E5%8A%A8-2%E7%B1%BB%E6%A8%A1%E6%9D%BF%E5%B9%BB%E7%81%AF%E7%89%87-38-39">活动 2</a>——编写一个 <code>Pair</code> 类模板，并列出它对 <code>T</code> 的限制。</p>
+</blockquote>
+<hr>
+<h2 id="10-完整实现">10. 完整实现</h2>
+<p>把今天的所有内容放在一个头文件中（幻灯片中的 <code>myMin</code>、<code>Box</code> 和 <code>Pair</code>；<code>myswap</code> 见 <a href="#6-%E6%A8%A1%E6%9D%BF%E4%BB%A3%E7%A0%81%E6%94%BE%E5%9C%A8%E5%93%AA%E9%87%8Chpp-%E4%B8%8E-tpp">§6</a>），外加一个测试驱动程序。使用 <code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code> 编译，无警告。</p>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// templates.hpp</span></span>
+<span class="line"><span style="color:#C586C0">#pragma</span><span style="color:#9CDCFE"> once</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> myMin</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) ? </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Box</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#6A9955">    // 构造函数</span></span>
+<span class="line"><span style="color:#DCDCAA">    Box</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">} {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // 获取函数</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#DCDCAA"> getValue</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // 设置函数</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setValue</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        item</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Pair</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> first</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> second</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">        : </span><span style="color:#DCDCAA">first_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">second_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">second</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">first_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">second_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="47"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（47 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// main.cpp</span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;vector></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> "templates.hpp"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">double</span><span style="color:#D4D4D4">>(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4.5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">   // 显式指定 T 以解决 int/double 冲突</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">{</span><span style="color:#B5CEA8">42</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setValue</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"ICS 46"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bi</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bs</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    Box</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">>> </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">{{</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">}};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">bv</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getValue</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">{</span><span style="color:#CE9178">"Zot"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Zot!"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">() += </span><span style="color:#CE9178">"!"</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">                 // 非 const 重载返回 T&#x26;</span></span>
+<span class="line"><span style="color:#9CDCFE">    p</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Anteater"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> cp</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">  // const 重载返回 const T&#x26;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">cp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">first</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">cp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">second</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#B5CEA8"> 0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">3
+apple
+3
+7 ICS 46
+3
+Zot! Anteater</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<hr>
+<h2 id="11-课堂活动附解答">11. 课堂活动（附解答）</h2>
+<h3 id="111-活动-1函数模板幻灯片-31-32">11.1 活动 1：函数模板（幻灯片 31-32）</h3>
+<ul>
+<li>实现一个名为 <code>myMin</code> 的函数模板，返回两个输入中较小的那个。</li>
+<li>输入的类型有什么约束吗？</li>
+<li>实现一个 main 函数，先用 int 再用字符串测试 <code>myMin</code>。</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：列出函数体对 <code>T</code> 执行的每一项操作，包括 <code>return</code>。</p>
+</blockquote>
+<p><strong>解答</strong>（幻灯片 32 的解答，已编译——输出先为 <code>3</code>，然后是 <code>apple</code>）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#4EC9B0">T</span><span style="color:#DCDCAA"> myMin</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> b</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">) ? </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4"> : </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#DCDCAA">myMin</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"apple"</span><span style="color:#D4D4D4">), </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"banana"</span><span style="color:#D4D4D4">)) &#x3C;&#x3C; </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">endl</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（幻灯片省略了 include：你需要 <code>&lt;iostream&gt;</code> 和 <code>&lt;string&gt;</code>。）</p>
+<p><strong>对 T 的约束</strong>（幻灯片 32）：</p>
+<ul>
+<li>函数<strong>按值返回</strong>，因此 T 需要一个<strong>拷贝（或移动）构造函数</strong>——结果是从 <code>a</code> 或 <code>b</code> 复制出来的。</li>
+<li>T 必须支持 <strong><code>operator&lt;</code></strong>。如果一个结构体没有定义它，g++ 会报告：<code>no match for &#39;operator&lt;&#39; (operand types are &#39;const Point&#39; and &#39;const Point&#39;)</code>。</li>
+<li>此外（隐含地）：两个实参必须推导为<strong>同一个</strong> T，并且 T 必须可销毁（返回的临时对象会被销毁）。</li>
+</ul>
+<p>为什么要用 <code>std::string(&quot;apple&quot;)</code> 而不直接用 <code>&quot;apple&quot;</code>？值得了解的陷阱：</p>
+<ul>
+<li><code>myMin(&quot;apple&quot;, &quot;banana&quot;)</code> 无法编译：字面量分别是 <code>const char[6]</code> 与 <code>const char[7]</code>，是两种不同的类型 → “deduced conflicting types”。</li>
+<li>即使是长度相同的字面量，<code>myMin(&quot;abc&quot;, &quot;abd&quot;)</code> 也会失败：T = <code>char[4]</code>，而函数不能返回数组。</li>
+<li>对于 <code>const char*</code> 变量，它可以编译，但比较的是<strong>地址</strong>，而不是文本——“较小”的指针取决于哪个字符串在内存中位置更低。包装成 <code>std::string</code> 后，<code>&lt;</code> 才会按字母顺序比较。</li>
+<li><code>myMin(3, 4.5)</code> 会失败（int 与 double）；<code>myMin&lt;double&gt;(3, 4.5)</code> 则可以。</li>
+</ul>
+<p>↩ 相关概念：<a href="#51-%E6%8E%A8%E5%AF%BC%E5%A4%B1%E8%B4%A5%E7%9A%84%E6%83%85%E5%86%B5">§5.1 推导</a>、<a href="#7-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%9A%84%E9%9A%90%E5%90%AB%E7%BA%A6%E6%9D%9F">§7 隐含约束</a>。</p>
+<h3 id="112-活动-2类模板幻灯片-38-39">11.2 活动 2：类模板（幻灯片 38-39）</h3>
+<p>实现一个 <code>Pair</code> 类模板，存储两个相同类型 T 的元素。</p>
+<p>类型 T 有哪些限制？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：按照 §9 分析 <code>Box</code> 的方式来做。</p>
+</blockquote>
+<p><strong>解答</strong>（幻灯片 39；幻灯片中两行 setter 超出了右边缘，此处补全为 <code>first_ = value;</code> / <code>second_ = value;</code>，底部的 <code>};</code> 被截断）：</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> T</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Pair</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#DCDCAA">    Pair</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> first</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> second</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">        : </span><span style="color:#DCDCAA">first_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">first</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">second_</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">second</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> first</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#DCDCAA"> second</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setFirst</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">first_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> setSecond</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> T</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">second_</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> first_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    T</span><span style="color:#9CDCFE"> second_</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>为什么每个获取函数要有两个版本？非 <code>const</code> 版本返回 <code>T&amp;</code>，因此你可以原地修改元素（<code>p.first() += &quot;!&quot;</code>）；<code>const</code> 版本只能在 <code>const Pair</code> 上调用，返回 <code>const T&amp;</code>，因此调用者无法修改它。返回引用完全避免了拷贝 T，因此——与 <code>Box::getValue</code> 不同——这些获取函数不要求 T 可拷贝。</p>
+<p><strong>T 的限制</strong>（幻灯片 39）：</p>
+<ul>
+<li>✓ <strong>可拷贝构造</strong>——构造函数所需：<code>first_(first)</code>。</li>
+<li>✓ <strong>可拷贝赋值</strong>——setter <code>setFirst</code> 与 <code>setSecond</code> 所需。</li>
+<li>✓ <strong>可销毁</strong>——当 <code>Pair</code> 离开作用域时，其 <code>T</code> 成员被销毁。</li>
+</ul>
+<p>（如 §9.1 所示，只有当你真的调用 setter 时，可拷贝赋值才起作用。）</p>
+<p>↩ 相关概念：<a href="#8-%E7%B1%BB%E6%A8%A1%E6%9D%BFclass-templates">§8 类模板</a>、<a href="#9-%E7%B1%BB%E6%A8%A1%E6%9D%BF%E7%A4%BA%E4%BE%8Bbox">§9 Box</a>。</p>
+<hr>
+<h2 id="12-速查--必记-5-点">12. 速查 &amp; 必记 5 点</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>语法 / 规则</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>函数模板</td>
+<td>在普通函数定义之前加 <code>template &lt;typename T&gt;</code></td>
+</tr>
+<tr>
+<td>类模板</td>
+<td>在 <code>class Vector { ... };</code> 之前加 <code>template &lt;typename ElementType&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt; &gt;</code> 中的 <code>typename</code> 与 <code>class</code></td>
+<td>含义相同</td>
+</tr>
+<tr>
+<td>非类型参数</td>
+<td><code>template &lt;typename T, int N&gt;</code> —— N 是编译期常量</td>
+</tr>
+<tr>
+<td>推导</td>
+<td>函数模板：从实参类型推导；类模板：通常需要显式 <code>&lt;int&gt;</code>（C++17 可从构造函数实参推导）</td>
+</tr>
+<tr>
+<td>显式实参</td>
+<td><code>myswap&lt;int&gt;(i, j)</code>、<code>myMin&lt;double&gt;(3, 4.5)</code></td>
+</tr>
+<tr>
+<td>推导失败</td>
+<td>类型冲突（<code>int</code> 与 <code>double</code>）或没有提示</td>
+</tr>
+<tr>
+<td>代码放在哪里</td>
+<td><code>.hpp</code>，或在底部 <code>#include</code> <code>.tpp</code> 的 <code>.hpp</code> —— 绝不要单独放在 <code>.cpp</code> 中</td>
+</tr>
+<tr>
+<td>myswap 需要</td>
+<td>拷贝构造函数、拷贝赋值、析构函数</td>
+</tr>
+<tr>
+<td>myMin 需要</td>
+<td><code>operator&lt;</code>、拷贝/移动构造函数（按值返回）</td>
+</tr>
+<tr>
+<td>Box / Pair 需要</td>
+<td>可拷贝构造、可拷贝赋值、可销毁</td>
+</tr>
+<tr>
+<td>实例化</td>
+<td><code>Box&lt;int&gt;</code> 与 <code>Box&lt;double&gt;</code> 是无关、不兼容的类型</td>
+</tr>
+<tr>
+<td>Google Test</td>
+<td><code>TEST(Suite, name) { EXPECT_EQ(expected, actual); }</code>；<code>ASSERT_*</code> 会停止测试，<code>EXPECT_*</code> 则继续</td>
+</tr>
+</tbody></table>
+<p><strong>必记 5 点</strong></p>
+<ol>
+<li>模板是一张<strong>蓝图</strong>：在编译器针对特定类型实例化之前，什么都不存在；每个实例化都是一个独立的类型/函数。</li>
+<li><strong>完整的模板定义必须在使用处可见</strong>，因此它放在头文件中（<code>.hpp</code>，或 <code>.hpp</code> 加底部 <code>#include</code> 的 <code>.tpp</code>）；在 <code>.cpp</code> 中定义会导致链接错误。</li>
+<li>对 <code>T</code> 的约束是<strong>隐含的</strong>：阅读函数体，列出对 <code>T</code> 的每一项操作（拷贝构造、赋值、<code>&lt;</code>、销毁……）——这份清单就是每个“T 有哪些限制？”问题的答案。</li>
+<li><strong>类型推导不做任何转换</strong>：<code>myMin(3, 4.5)</code> 与 <code>myMin(&quot;apple&quot;, &quot;banana&quot;)</code> 会失败；可通过显式的 <code>&lt;double&gt;</code> 或 <code>std::string(...)</code> 修正。</li>
+<li>在 Google Test 中，<strong>每个测试只测一种行为</strong>，以该行为命名；默认使用 <code>EXPECT_*</code>，当继续执行没有意义时使用 <code>ASSERT_*</code>；比较 C 字符串时用 <code>STREQ</code>，而不是 <code>EQ</code>。</li>
+</ol>
+<blockquote>
+<p>➡️ <strong>接续 <a href="/~kazuhak/notes/ics-46/lec-01/zh-CN/">Lecture 1</a></strong>：随机性（幻灯片 1 标题的后半部分）以及编程环境配置。</p>
+</blockquote>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><span data-astro-cid-gxyjxt6l></span><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 1 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>随机数、引用与指针</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 0 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-00/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/ics-46/lec-01/zh-CN/" title="下一篇: 随机数、引用与指针 (])" aria-label="下一篇: 第 1 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 1 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

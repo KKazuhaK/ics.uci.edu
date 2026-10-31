@@ -1,0 +1,727 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 AJAX, Fetch &amp; Promises | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Web APIs, URIs and HTTP verbs, URL escaping, AJAX with XML vs. JSON, XMLHttpRequest vs. fetch(), asynchronous requests, promises with .then()/.catch(), the same-origin policy, and Promise.all."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/en-US/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-08/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1793413984" data-source-url="/~kazuhak/notes/in4matx-133/lec-08/en-US/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-07/en-US/" data-next-url="/~kazuhak/notes/in4matx-133/lec-09/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 8</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 8 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 8 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on October 27, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-8-ajax-fetch--promises">IN4MATX 133: User Interface Software — Lecture 8: AJAX, Fetch, &amp; Promises</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-web-apis">1. Web APIs</a></li>
+<li><a href="#2-anatomy-of-a-web-request-uris">2. Anatomy of a web request: URIs</a></li>
+<li><a href="#3-http-verbs-and-responses">3. HTTP verbs and responses</a></li>
+<li><a href="#4-escaping-characters-in-urls">4. Escaping characters in URLs</a></li>
+<li><a href="#5-ajax-xml-and-json">5. AJAX, XML and JSON</a></li>
+<li><a href="#6-xmlhttprequest">6. XMLHttpRequest</a></li>
+<li><a href="#7-fetch">7. fetch()</a></li>
+<li><a href="#8-asynchronous-requests">8. Asynchronous requests</a></li>
+<li><a href="#9-promises-and-then">9. Promises and .then()</a></li>
+<li><a href="#10-getting-the-data-out-responsejson-and-chaining">10. Getting the data out: response.json() and chaining</a></li>
+<li><a href="#11-client-side-vs-server-side-js-and-the-same-origin-policy">11. Client-side vs server-side JS and the same-origin policy</a></li>
+<li><a href="#12-catching-errors-with-catch">12. Catching errors with .catch()</a></li>
+<li><a href="#13-multiple-promises-with-promiseall">13. Multiple promises with Promise.all</a></li>
+<li><a href="#14-in-class-questions--demos-with-solutions">14. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#15-quick-reference--top-5-things-to-remember">15. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Week 5<br>Built from the Lecture 8 slides and the demo repo folder <code>W4_L1_Oct20_Ajax</code>. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: A1 grades almost done — aiming for early next week.<br>A3 will be posted by Thursday&#39;s class (updated for 2026); due <strong>Wednesday, Nov 11</strong> (pushed back).<br>Friday&#39;s discussion: Angular.</p>
+</blockquote>
+<p>Goals for today: explain how programs access web resources and how those resources respond, implement a <code>fetch</code> request to get a resource from a web API, and use promises to handle the asynchronous request.</p>
+<hr>
+<h2 id="1-web-apis">1. Web APIs</h2>
+<p>Many web services and data sources let you use HTTP (web) requests to access their data. They do this by providing a <strong>web API</strong>.</p>
+<p><strong>API = Application Programming Interface</strong>: the interface you use to interact with an application through programming. An interface is just a defined set of functions — the slide&#39;s example of &quot;an interface&quot;:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> doSomething</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">param1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">param2</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">  //...</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>A web API is the same idea, except each &quot;function&quot; is a URL you send an HTTP request to. Examples on the slides: <strong>PokeAPI</strong> (used for all of today&#39;s demos), <strong>GitHub</strong>, <strong>Spotify</strong> (A3), <strong>OC Transpo</strong>, <strong>Google Maps</strong>, <strong>Stripe</strong>, <strong>US Census Bureau</strong>.</p>
+<p>GitHub example from the slide — the original repo is a normal web page, but the API returns the same kind of information as data:</p>
+<ul>
+<li>Original repo: <code>https://github.com/travislindenreid/GDIM32-Final</code></li>
+<li>All forks of that repo, sorted by stars, up to 100: <code>https://api.github.com/repos/travislindenreid/GDIM32-Final/forks?sort=stargazers&amp;per_page=100</code></li>
+</ul>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://pokeapi.co/">PokeAPI</a> · <a href="https://github.com/travislindenreid/GDIM32-Final">GDIM32-Final repo</a> · <a href="https://api.github.com/repos/travislindenreid/GDIM32-Final/forks?sort=stargazers&per_page=100">GitHub API: forks of GDIM32-Final</a></p>
+</blockquote>
+<h2 id="2-anatomy-of-a-web-request-uris">2. Anatomy of a web request: URIs</h2>
+<p><strong>Using the internet</strong> (slide 7): your browser sends a <strong>request</strong> to a web server and gets a <strong>response</strong> back. The address bar URL <code>https://en.wikipedia.org/wiki/Donald_Bren_School_of_Information_and_Computer_Sciences</code> breaks into three parts — &quot;Hey Wikipedia, I&#39;d like to see the page for the school of ICS!&quot;:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Protocol</td>
+<td><code>https://</code></td>
+<td>how to handle the info</td>
+</tr>
+<tr>
+<td>Host</td>
+<td><code>en.wikipedia.org</code></td>
+<td>who has the info</td>
+</tr>
+<tr>
+<td>Resource</td>
+<td><code>/wiki/Donald_Bren_School_…</code></td>
+<td>what info you want</td>
+</tr>
+</tbody></table>
+<h3 id="21-uri-vs-url">2.1 URI vs URL</h3>
+<p><strong>URI</strong> (the slide expands it as &quot;Uniform Resource Indicator&quot;; the standard name is Uniform Resource <em>Identifier</em>). All URLs are URIs, but URLs also specify the <strong>access mechanism</strong> (<code>http://</code>, <code>file://</code>). A URI returns a <strong>resource</strong> — a webpage, an image file, etc., or just data.</p>
+<ul>
+<li><code>http://www.domain.com/users</code> → returns a list of users. The list of users is the resource.</li>
+<li>Resources can have <strong>sub-resources</strong>: <code>http://www.domain.com/users/shawna</code> → returns one specific user.</li>
+</ul>
+<h3 id="22-base-uri-and-endpoints">2.2 Base URI and endpoints</h3>
+<ul>
+<li><strong>Base URI</strong>: how every request for that API starts — <code>https://pokeapi.co/api/</code></li>
+<li><strong>Endpoint</strong>: a specific resource accessible through the API — <code>v2/pokemon/ditto</code>, <code>v2/type/3</code>. Endpoints often contain an <strong>API version number</strong> (<code>v2</code>).</li>
+</ul>
+<h3 id="23-query-parameters">2.3 Query parameters</h3>
+<p>Some APIs take <strong>key/value pairs after the URI</strong> — parameters for the resource that specify exactly what to return or in what format: <code>?key=value&amp;key=value</code>. PokeAPI doesn&#39;t do this, but Spotify does (you&#39;ll need it for A3). The slide&#39;s Twitter example:</p>
+<div class="code-wrap"><pre><code>https://api.twitter.com/1.1/search/tweets.json?q=UCI&amp;lang=en</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>q=UCI</code> is the &quot;query&quot; — in Twitter, the text or hashtag to search for; <code>lang=en</code> means language = English.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://pokeapi.co/">PokeAPI</a> · <a href="https://docs.x.com/x-api/posts/search/introduction#filter-operators">X API: search filter operators</a></p>
+</blockquote>
+<h2 id="3-http-verbs-and-responses">3. HTTP verbs and responses</h2>
+<p>An HTTP request includes a <strong>target resource</strong> and a <strong>verb</strong> (method) saying what to do with it:</p>
+<table>
+<thead>
+<tr>
+<th>Verb</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET</code></td>
+<td>return a representation of the current state of the resource</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>add a new resource (e.g., a record, an entry)</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>update an existing resource to a new state</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td>update a portion of the resource&#39;s state</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>remove the resource</td>
+</tr>
+<tr>
+<td><code>OPTIONS</code></td>
+<td>return the set of methods that can be performed on the resource</td>
+</tr>
+</tbody></table>
+<p>A <strong>response</strong> includes a <strong>status code</strong> (whether it worked as expected) and a <strong>body</strong> (the actual response):</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>200</code></td>
+<td>OK</td>
+</tr>
+<tr>
+<td><code>201</code></td>
+<td>Created (for <code>POST</code>)</td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td>Bad request (something is wrong with your URI)</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td>Forbidden (some access or authentication issue)</td>
+</tr>
+<tr>
+<td><code>404</code></td>
+<td>Not found (resource does not exist)</td>
+</tr>
+<tr>
+<td><code>500</code></td>
+<td>Internal server error (generic server-side error)</td>
+</tr>
+</tbody></table>
+<p><strong>Putting it all together</strong> (slide 14): <code>HTTP GET https://pokeapi.co/api/v2/pokemon/ditto</code> — use the GET verb to access the Pokémon &quot;Ditto&quot;; we expect/hope for status <code>200</code> (OK); then we access the body. (Section 8&#39;s demo makes exactly this request and logs <code>status: 200 ok: true</code>.)</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.restapitutorial.com/httpstatuscodes.html">REST API Tutorial: HTTP status codes</a></p>
+</blockquote>
+<h2 id="4-escaping-characters-in-urls">4. Escaping characters in URLs</h2>
+<p>Some characters are <strong>reserved</strong> in URLs, so they have to be <strong>encoded</strong> as <code>%</code> + the character&#39;s hex code. The slide&#39;s table (from w3schools; Windows-1252 and UTF-8 agree for these):</p>
+<table>
+<thead>
+<tr>
+<th>Character</th>
+<th>Encoded</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>space</td>
+<td><code>%20</code></td>
+</tr>
+<tr>
+<td><code>!</code></td>
+<td><code>%21</code></td>
+</tr>
+<tr>
+<td><code>&quot;</code></td>
+<td><code>%22</code></td>
+</tr>
+<tr>
+<td><code>#</code></td>
+<td><code>%23</code></td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td><code>%24</code></td>
+</tr>
+<tr>
+<td><code>%</code></td>
+<td><code>%25</code></td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td><code>%26</code></td>
+</tr>
+<tr>
+<td><code>&#39;</code></td>
+<td><code>%27</code></td>
+</tr>
+</tbody></table>
+<p>&quot;Who&#39;s that Pokémon? It&#39;s Farfetch&#39;d!&quot; Strictly we&#39;d have to encode the apostrophe, but PokeAPI simply drops it: <code>HTTP GET https://pokeapi.co/api/v2/pokemon/farfetchd</code> (returns 200).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#141-question-1-reading-mr-mime-from-pokeapi-slides-1618">Question 1 — encoding Mr. Mime</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://www.w3schools.com/tags/ref_urlencode.asp">w3schools: HTML URL encoding reference</a></p>
+</blockquote>
+<h2 id="5-ajax-xml-and-json">5. AJAX, XML and JSON</h2>
+<p>So how does <em>JavaScript</em> make a web request? With <strong>AJAX: Asynchronous JavaScript and XML</strong>.</p>
+<h3 id="51-xml">5.1 XML</h3>
+<p><strong>XML (Extensible Markup Language)</strong>: a generalized syntax for semantically defining structured content. HTML is XML with a defined set of tags; in XML you make up your own:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#F44747">person</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">firstName</span><span style="color:#808080">></span><span style="color:#D4D4D4">Alice</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">firstName</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">lastName</span><span style="color:#808080">></span><span style="color:#D4D4D4">Smith</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">lastName</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;</span><span style="color:#F44747">favorites</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">      &#x3C;</span><span style="color:#F44747">music</span><span style="color:#808080">></span><span style="color:#D4D4D4">jazz</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">music</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">      &#x3C;</span><span style="color:#F44747">food</span><span style="color:#808080">></span><span style="color:#D4D4D4">pizza</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">   &#x3C;/</span><span style="color:#F44747">favorites</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">person</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Slide 22 shows a breakfast menu as plain text and as XML (first item shown; the slide has five: Belgian Waffles, Strawberry Belgian Waffles, Berry-Berry Belgian Waffles, French Toast, Homestyle Breakfast):</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#F44747">breakfast_menu</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">name</span><span style="color:#808080">></span><span style="color:#D4D4D4">Belgian Waffles</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">name</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">price</span><span style="color:#808080">></span><span style="color:#D4D4D4">$5.95</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">price</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">description</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">      Two of our famous Belgian Waffles with plenty of real maple syrup</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;/</span><span style="color:#F44747">description</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#F44747">calories</span><span style="color:#808080">></span><span style="color:#D4D4D4">650</span><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">calories</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;/</span><span style="color:#F44747">food</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#6A9955">  &#x3C;!-- ... four more &#x3C;food> entries ... --></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#F44747">breakfast_menu</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="52-the-same-data-as-json">5.2 The same data as JSON</h3>
+<div class="code-wrap"><pre data-language="json" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">{</span></span>
+<span class="line"><span style="color:#9CDCFE">  "breakfast_menu"</span><span style="color:#D4D4D4">: {</span></span>
+<span class="line"><span style="color:#9CDCFE">    "food"</span><span style="color:#D4D4D4">: [</span></span>
+<span class="line"><span style="color:#D4D4D4">    {</span></span>
+<span class="line"><span style="color:#9CDCFE">      "name"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Belgian Waffles"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "price"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"$5.95"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "description"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"Two of our famous Belgian Waffles with plenty of real maple syrup"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">      "calories"</span><span style="color:#D4D4D4">: </span><span style="color:#CE9178">"650"</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">    ]</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The slide&#39;s array has all five foods.) Notice the mapping: a repeated <code>&lt;food&gt;</code> element becomes an array, child elements become keys.</p>
+<p><strong>XML vs JSON</strong> (slide 24): they represent the same data, but</p>
+<ul>
+<li>JSON is <strong>more concise</strong> → less data to move around on the web;</li>
+<li>JSON is <strong>easier to read</strong> — closing tags in XML are redundant;</li>
+<li>JSON has <strong>taken over</strong> as the typical format of web requests.</li>
+</ul>
+<p>So in practice AJAX is &quot;Asynchronous JavaScript and <del>XML</del> JSON&quot; (slide 25) — the name stuck even though the X is now usually JSON.</p>
+<h2 id="6-xmlhttprequest">6. XMLHttpRequest</h2>
+<p>AJAX requests are built into a browser-provided object called <code>XMLHttpRequest</code> — the original way to do it (slides 27–28):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> xhttp</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> XMLHttpRequest</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">onreadystatechange</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">readyState</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">status</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">200</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">       // Action to be performed when the document is read;</span></span>
+<span class="line"><span style="color:#569CD6">       var</span><span style="color:#9CDCFE"> xml</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">responseXML</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">       var</span><span style="color:#9CDCFE"> movie</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">xml</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementsByTagName</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"track"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#6A9955">       //...</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">open</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"GET"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"filename"</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">true</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">xhttp</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">send</span><span style="color:#D4D4D4">();</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Read it as: create the request object → register a callback that fires every time the request&#39;s state changes → in it, act only when <code>readyState == 4</code> (done) <strong>and</strong> <code>status == 200</code> (OK) → <code>open</code> the request (verb, URL, <code>true</code> = asynchronous) → <code>send</code> it. The response XML is searched with the same DOM methods you use on a page (<code>getElementsByTagName</code>, from <a href="/~kazuhak/notes/in4matx-133/lec-06/en-US/">Lecture 6</a>). It works, but it&#39;s verbose — which is why <code>fetch</code> exists.</p>
+<h2 id="7-fetch">7. fetch()</h2>
+<p><strong><code>fetch</code></strong> is a newer, modern method for submitting these requests, included in most browsers (the slide&#39;s MDN Baseline box: &quot;Widely available … across browsers since March 2017&quot;). Basic form: <code>fetch(&#39;url&#39;)</code>.</p>
+<ul>
+<li><code>fetch(&#39;some-url&#39;)</code> <strong>defaults to a GET</strong> request.</li>
+<li><code>fetch</code> optionally takes a <strong>second &quot;options&quot; argument</strong> (a dictionary / object):<ul>
+<li><code>method</code>: what method to use (e.g., <code>POST</code>, <code>PUT</code>, <code>DELETE</code>)</li>
+<li><code>headers</code>: content type format, etc. (more on headers next week)</li>
+<li><code>body</code>: what you want to send for a <code>POST</code>/<code>PUT</code> request</li>
+</ul>
+</li>
+</ul>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// For a GET request</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'some-url'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// For a POST request</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'some-url'</span><span style="color:#D4D4D4">, {</span></span>
+<span class="line"><span style="color:#9CDCFE">  method:</span><span style="color:#CE9178"> 'POST'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  headers:</span><span style="color:#D4D4D4"> {</span><span style="color:#CE9178">'Content-Type'</span><span style="color:#9CDCFE">:</span><span style="color:#CE9178"> 'application/json'</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#9CDCFE">  body:</span><span style="color:#4FC1FF"> JSON</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">stringify</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">-</span><span style="color:#9CDCFE">to</span><span style="color:#D4D4D4">-</span><span style="color:#9CDCFE">send</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>data-to-send</code> is a placeholder, not real JS — as written it&#39;s a subtraction <code>data - to - send</code>. Use a variable name like <code>dataToSend</code>. Slide 29 also writes <code>fetch(&#39;url&#39;)</code> with curly quotes; in real code they must be straight quotes <code>&#39;url&#39;</code>.</p>
+<p><code>body</code> must be a string, which is why the object is passed through <code>JSON.stringify</code> and the <code>Content-Type</code> header says it&#39;s JSON.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch">MDN: Window.fetch()</a> · <a href="https://css-tricks.com/using-fetch/">CSS-Tricks: Using fetch</a></p>
+</blockquote>
+<h2 id="8-asynchronous-requests">8. Asynchronous requests</h2>
+<p>AJAX requests are <strong>asynchronous</strong>: they happen at the same time as the rest of your code. After the request is sent, the <strong>next line runs without waiting for the request to finish</strong>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'About to send request'</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// (1)</span></span>
+<span class="line"><span style="color:#6A9955">//send request for data to the url</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);                             </span><span style="color:#6A9955">// (2) Does NOT return the data</span></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Sent request'</span><span style="color:#D4D4D4">);            </span><span style="color:#6A9955">// (3)</span></span>
+<span class="line"><span style="color:#6A9955">                                        // (4) Data is actually received sometime later!</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Why do it this way? It&#39;s uncertain how long a request will take. Handling it asynchronously means the person can <strong>keep interacting with your page</strong> — the request doesn&#39;t block their interface interactions. A page that freezes while you try to navigate it is a bad experience.</p>
+<p>If you know Python&#39;s <code>requests.get(url)</code> (blocks until the response arrives) — <code>fetch</code> is the opposite: it returns immediately with a placeholder.</p>
+<p>Try it — a real request to PokeAPI. Note that the third line logs a <strong>Promise</strong>, not Ditto&#39;s data, and the status line only arrives after <code>Sent request</code>:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 32–35 · fetch is asynchronous (live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var url = &#39;https://pokeapi.co/api/v2/pokemon/ditto&#39;;\n\nconsole.log(&#39;About to send request&#39;);\nvar thePromise = fetch(url);   // does NOT return the data\nconsole.log(&#39;Sent request&#39;);\nconsole.log(thePromise);\n\nthePromise.then(function(response) {\n  console.log(&#39;status:&#39;, response.status, &#39;ok:&#39;, response.ok);\n});&quot;}</code></pre><p>Output:</p>
+<div class="code-wrap"><pre><code>About to send request
+Sent request
+Promise
+status: 200 ok: true</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="9-promises-and-then">9. Promises and .then()</h2>
+<p>Because <code>fetch()</code> is asynchronous, it returns a <strong>Promise</strong>: a &quot;placeholder&quot; for the data that will eventually be received from the AJAX request.</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//fetch() returns a Promise</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> thePromise</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Use the <strong><code>.then()</code></strong> method to give a <strong>callback function</strong> that runs when the promise is <strong>fulfilled</strong> (the asynchronous request is finished). The callback is passed the request&#39;s response. <code>.then</code> takes an optional second callback for when the promise is rejected:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">//what to do when we get the response</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> successCallback</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">//when fulfilled, execute the callback function</span></span>
+<span class="line"><span style="color:#6A9955">//(which will be passed the fetched data)</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promise</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">successCallback</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">rejectCallback</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// rejectCallback is optional</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous variables/callbacks:</span></span>
+<span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="91-making-your-own-promise-demo-1">9.1 Making your own promise (Demo 1)</h3>
+<p>Slide 36 (<code>setup1.js</code>) uses a promise with <strong>no fetch at all</strong>, just to show <code>.then()</code>: print &quot;Hello from the future!&quot; 5 seconds after the script loads, sending the string back as the promise&#39;s result. The repo&#39;s solution:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">resolve</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">reject</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">		resolve</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the present!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">hello</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>new Promise(...)</code> takes a function that receives <code>resolve</code> and <code>reject</code>. Calling <code>resolve(value)</code> fulfils the promise; whatever you pass becomes the argument of the <code>.then</code> callback. Output (the console screenshot on slide 36 shows the same two lines):</p>
+<div class="code-wrap"><pre><code>Hello from the present!
+Hello from the future!     ← 5 seconds later</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 36 · solution1.js (Demo 1)&quot;, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console — the second line arrives after 5 seconds.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var hello = new Promise((resolve, reject) =&gt; {\n\tsetTimeout(() =&gt; {\n\t\tresolve(\&quot;Hello from the future!\&quot;);\n\t}, 5000);\n});\n\nconsole.log(\&quot;Hello from the present!\&quot;);\n\nhello.then((text) =&gt; {\n\tconsole.log(text);\n});&quot;}</code></pre><blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo1/setup1.js">setup1.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo1/solution1.js">solution1.js</a></p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#143-demo-1-hello-from-the-future-slide-36--setup1--solution1">Demo 1 — Hello from the future</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then">MDN: Promise.prototype.then()</a></p>
+</blockquote>
+<h2 id="10-getting-the-data-out-responsejson-and-chaining">10. Getting the data out: response.json() and chaining</h2>
+<h3 id="101-the-response-is-not-the-data">10.1 The response is not the data</h3>
+<p>The parameter passed to <code>fetch</code>&#39;s <code>.then()</code> callback is the <strong>Response</strong>, not the data you want. The fetch API gives the response a <code>.json()</code> method to extract the data — but <strong><code>.json()</code> is also asynchronous and returns another promise</strong>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">   var</span><span style="color:#9CDCFE"> newPromise</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">();   </span><span style="color:#6A9955">// another promise, not the data</span></span>
+<span class="line"><span style="color:#6A9955">   //... what now?</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="102-chaining-promises">10.2 Chaining promises</h3>
+<p><strong><code>.then()</code> itself returns a Promise</strong> containing the value returned by its callback. So you can <strong>chain</strong> callbacks — each one runs after the previous promise is fulfilled:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeString</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">join</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4">); </span><span style="color:#6A9955">//a value to put in Promise</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> makeUpper</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">   return</span><span style="color:#9CDCFE"> string</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">toUpperCase</span><span style="color:#D4D4D4">(); </span><span style="color:#6A9955">//a value to put in Promise</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseA</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">();                  </span><span style="color:#6A9955">// when completed, promiseA => json data</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseB</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">promiseA</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeString</span><span style="color:#D4D4D4">);  </span><span style="color:#6A9955">// promiseB => comma-separated string</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> promiseC</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">promiseB</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeUpper</span><span style="color:#D4D4D4">);   </span><span style="color:#6A9955">// promiseC => uppercase string</span></span>
+<span class="line"><span style="color:#9CDCFE">promiseC</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">   console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">);                      </span><span style="color:#6A9955">// an uppercase, comma-separated string</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//more common to use anonymous variables and chain functions</span></span>
+<span class="line"><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">()</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeString</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">makeUpper</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">); });</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Both slide versions (38–39) end with <code>};</code> / <code>};</code> — missing the <code>)</code> that closes <code>.then(</code>; fixed above. <code>getData()</code> is a stand-in for any function returning a promise. If a callback returns a <strong>promise</strong> (like <code>response.json()</code>), the next <code>.then</code> waits for it and receives its <em>value</em> — that&#39;s what makes the next pattern work.</p>
+<h3 id="103-extracting-fetch-data--the-standard-pattern">10.3 Extracting fetch() data — the standard pattern</h3>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">url</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">      var</span><span style="color:#9CDCFE"> dataPromise</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">      return</span><span style="color:#9CDCFE"> dataPromise</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">   })</span></span>
+<span class="line"><span style="color:#D4D4D4">   .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">      //do something with data</span></span>
+<span class="line"><span style="color:#D4D4D4">   });</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Two <code>.then</code>s: the first turns the Response into a data promise; the second gets the parsed JSON object.</p>
+<h3 id="104-getting-pokemon-demo-2">10.4 Getting Pokemon (Demo 2)</h3>
+<p>Slide 41 (<code>setup2.js</code>): use <code>fetch()</code> to get the first 25 Pokémon from PokeAPI and show them in a list — then get them <strong>in order</strong>. The setup gives a helper that builds the DOM (Lecture 6 style) and an empty <code>getPokemon</code>:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">sprite</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> listItem</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'li'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">	var</span><span style="color:#9CDCFE"> nameSpan</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'span'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	nameSpan</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">textContent</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'#'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">': '</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> spriteImg</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">createElement</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'img'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	spriteImg</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">src</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">sprite</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">	listItem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">nameSpan</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">	listItem</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">spriteImg</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">    document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">getElementById</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'pokemon_list'</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">appendChild</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">listItem</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The repo&#39;s solution nests <code>.json()</code> inside the first <code>.then</code> (instead of returning it) and only requests the <strong>next</strong> Pokémon once the current one has arrived:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">	fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">base_url</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'pokemon/'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">			addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sprites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">front_default</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">			if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">				getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		});</span></span>
+<span class="line"><span style="color:#D4D4D4">	});</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Result: <code>#1: bulbasaur</code> … <code>#25: pikachu</code>, each with its sprite, always in order (matches the slide&#39;s screenshot).</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 41 · solution2.js (Demo 2, live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 420, &quot;html&quot;: &quot;&lt;h1&gt;First 25 pokemon&lt;/h1&gt;\n&lt;ul id=\&quot;pokemon_list\&quot;&gt;\n&lt;/ul&gt;&quot;, &quot;js&quot;: &quot;function addPokemonToList(id, name, sprite) {\n    var listItem = document.createElement(&#39;li&#39;);\n\tvar nameSpan = document.createElement(&#39;span&#39;);\n\tnameSpan.textContent = &#39;#&#39; + id + &#39;: &#39; + name;\n    var spriteImg = document.createElement(&#39;img&#39;);\n\tspriteImg.src = sprite;\n\tlistItem.appendChild(nameSpan);\n\tlistItem.appendChild(spriteImg);\n    document.getElementById(&#39;pokemon_list&#39;).appendChild(listItem);\n}\n\nfunction getPokemon(pokedexNumber) {\n\tfetch(base_url + &#39;pokemon/&#39; + pokedexNumber).then((response) =&gt; {\n\t\tresponse.json().then((pokemon_json) =&gt; {\n\t\t\taddPokemonToList(pokemon_json.id, pokemon_json.name, pokemon_json.sprites.front_default);\n\t\t\tif(pokemon_json.id &lt; 25) {\n\t\t\t\tgetPokemon(pokemon_json.id + 1);\n\t\t\t}\n\t\t});\n\t});\n}\n\nvar base_url = &#39;https://pokeapi.co/api/v2/&#39;;\n\ngetPokemon(1); // demo script runs after the list exists, so no DOMContentLoaded needed&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: the setup&#39;s commented-out loop <code>for (var i = 1; i &lt;= 25; i++) getPokemon(i);</code> fires all 25 requests at once, and responses arrive in <strong>whatever order the server answers</strong>. One real run finished in the order <code>2 3 1 5 4 6 7 9 10 8 11 12 13 14 16 15 17 18 20 19 21 22 24 23 25</code>. Async code never guarantees order unless you make it wait.</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/setup2.js">setup2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/solution2.js">solution2.js</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W4_L1_Oct20_Ajax/demo2/solution2.html">solution2.html</a></p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#144-demo-2-first-25-pokemon-in-order-slide-41--setup2--solution2">Demo 2 — first 25 Pokémon, in order</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">MDN: Response</a></p>
+</blockquote>
+<h2 id="11-client-side-vs-server-side-js-and-the-same-origin-policy">11. Client-side vs server-side JS and the same-origin policy</h2>
+<h3 id="111-two-places-javascript-runs">11.1 Two places JavaScript runs</h3>
+<p>Slide 42: in the request/response picture, client-side JS lives in <strong>your browser</strong>, where it can edit what&#39;s being rendered and trigger or react to events. Server-side JS lives on the <strong>web server</strong>, where it can navigate the file system programmatically, dynamically generate pages or views, and transport, store, or interact with data.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Client-side</th>
+<th>Server-side</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Runs</td>
+<td>in the browser</td>
+<td>in the command line, etc. (but maybe can still be accessed from the browser)</td>
+</tr>
+<tr>
+<td>Changes happen</td>
+<td>in real time in the browser</td>
+<td>in response to HTTP requests</td>
+</tr>
+<tr>
+<td>HTTP requests</td>
+<td><strong>cannot</strong> make them to many APIs</td>
+<td><strong>can</strong> make them to most APIs</td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>AJAX, Angular, React, Vue.js</td>
+<td>Node, ASP.NET</td>
+</tr>
+</tbody></table>
+<h3 id="112-same-origin-policy">11.2 Same-origin policy</h3>
+<p>Many browsers will <strong>not permit AJAX requests to a different server</strong>. This helps prevent malicious scripts from accessing data in the DOM. The workaround (slide 43 diagram): your web app in the browser can&#39;t GET from Yahoo directly (&quot;No&quot;), but it can talk to its <strong>own web server acting as a proxy</strong>, and that non-browser proxy can talk to Yahoo (&quot;OK&quot;).</p>
+<p>Why it matters (slides 44–45):</p>
+<ul>
+<li>Two browser tabs: a bank app in one, an evil app in the other. Both have JavaScript, and both run on the <strong>same JavaScript engine</strong>.</li>
+<li>The bank&#39;s script reads/edits your bank data. The <strong>origin</strong> is the HTML page that opened the JavaScript file, so each tab is a separate origin.</li>
+<li>Without the policy, the evil app&#39;s script could read and edit your bank data. With it, each script can only act within its own tab (origin).</li>
+</ul>
+<p>Two exceptions:</p>
+<ol>
+<li>An app can always communicate with other apps in the <strong>same domain</strong> (e.g., localhost apps can communicate with other localhost apps*).</li>
+<li>A <strong>server can designate</strong> that it accepts connections from a particular origin (or any origin).</li>
+</ol>
+<p>You <em>can</em> disable the policy in your browser, but probably shouldn&#39;t.</p>
+<h3 id="113-servers-on-localhost-the-a3-setup">11.3 Servers on localhost (the A3 setup)</h3>
+<p><strong>localhost</strong> = &quot;this computer&quot;. Slide 47&#39;s picture:</p>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  live[&quot;Live server: localhost:8080 (browser)&quot;] &lt;--&gt;|&quot;same domain, can communicate*&quot;| proxy[&quot;Spotify proxy: localhost:7890 (server)&quot;]
+  proxy &lt;--&gt;|&quot;no communication restrictions&quot;| spotify[&quot;Spotify API&quot;]</code></pre><ul>
+<li>The <strong>browser</strong> (Live Server page) implements the same-origin policy to protect the other data you have open in it.</li>
+<li>The <strong>Spotify proxy</strong> runs as a server, so it has no same-origin restrictions and can talk to Spotify.</li>
+<li>They&#39;re both on localhost, so they can communicate*.</li>
+</ul>
+<p>(*The asterisk is followed up in the Lecture 9 deck: different ports are technically different origins; the proxy is configured to allow them.)</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#142-question-2-which-can-make-an-http-request-to-the-spotify-api-slides-4850">Question 2 — who can call the Spotify API?</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://en.wikipedia.org/wiki/Same-origin_policy">Wikipedia: Same-origin policy</a> · <a href="https://security.stackexchange.com/questions/8264/why-is-the-same-origin-policy-so-important">Security StackExchange: Why is the same-origin policy so important?</a></p>
+</blockquote>
+<h2 id="12-catching-errors-with-catch">12. Catching errors with .catch()</h2>
+<p><code>.catch()</code> gives a callback that runs if the promise is <strong>rejected</strong> (an error occurs). It catches errors from <strong>all previous <code>.then()</code>s</strong> in the chain; a <code>.then</code> after the <code>.catch</code> still runs:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">getData</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooSrc</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">firstCallback</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">secondCallback</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">catch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">error</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">     //called if EITHER previous callback</span></span>
+<span class="line"><span style="color:#6A9955">     //has an error</span></span>
+<span class="line"><span style="color:#6A9955">     //param is object representing the error itself</span></span>
+<span class="line"><span style="color:#9CDCFE">     console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">error</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">message</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">thirdCallback</span><span style="color:#D4D4D4">) </span><span style="color:#6A9955">//will only do this if</span></span>
+<span class="line"><span style="color:#6A9955">                       //no previous errors</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>One correction to the slide&#39;s last comment: <code>thirdCallback</code> runs if there were no errors <strong>and also</strong> after <code>.catch</code> handled one — a <code>.catch</code> that returns normally puts the chain back on the success path. Below, the second chain throws in its first callback: the next <code>.then</code> is skipped, <code>.catch</code> logs the message, and the <code>.then</code> after it still runs.</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 38–39, 51 · chaining and .catch()&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// getData() stands in for any function that returns a Promise\nfunction getData() { return Promise.resolve([&#39;ditto&#39;, &#39;pikachu&#39;, &#39;mew&#39;]); }\nfunction makeString(data) { return data.join(&#39;, &#39;); }\nfunction makeUpper(string) { return string.toUpperCase(); }\n\ngetData()\n  .then(makeString)\n  .then(makeUpper)\n  .then(function(d) { console.log(d); });\n\ngetData()\n  .then(function(d) { return d.foo.bar; })   // throws: d.foo is undefined\n  .then(function() { console.log(&#39;skipped&#39;); })\n  .catch(function(error) { console.log(&#39;caught:&#39;, error.message); })\n  .then(function() { console.log(&#39;runs after catch&#39;); });&quot;}</code></pre><p>Output:</p>
+<div class="code-wrap"><pre><code>DITTO, PIKACHU, MEW
+caught: Cannot read properties of undefined (reading &#39;bar&#39;)
+runs after catch</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="13-multiple-promises-with-promiseall">13. Multiple promises with Promise.all</h2>
+<p>Promises are just commands to do something, so you can start several and <strong>wait for all of them</strong> to be done — the requests run concurrently:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> foo</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooUrl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> bar</span><span style="color:#D4D4D4"> = </span><span style="color:#DCDCAA">fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">barUrl</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">//a promise for when all commands ready</span></span>
+<span class="line"><span style="color:#4EC9B0">Promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">foo</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">bar</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooRes</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">barRes</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">     //do something both both responses, e.g.,</span></span>
+<span class="line"><span style="color:#C586C0">     return</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">all</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooRes</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">barRes</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span>
+<span class="line"><span style="color:#D4D4D4">  .</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">function</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">fooData</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">barData</span><span style="color:#D4D4D4">){</span></span>
+<span class="line"><span style="color:#6A9955">     //now have both data sets!</span></span>
+<span class="line"><span style="color:#D4D4D4">  })</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: the slide&#39;s code doesn&#39;t run. <code>Promise.all</code> takes <strong>one array</strong> of promises and fulfils with <strong>one array</strong> of results. <code>Promise.all(foo, bar)</code> rejects with <code>object is not iterable</code>, and a <code>.then</code> callback only ever receives one argument. Fixed version: <code>Promise.all([foo, bar]).then(function([fooRes, barRes]) { return Promise.all([fooRes.json(), barRes.json()]); }).then(function([fooData, barData]) { … })</code>.</p>
+</blockquote>
+<p>Both versions side by side (real requests for Pokémon #1 and #4):</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 52 · Promise.all — slide version vs fixed (live PokeAPI)&quot;, &quot;interactive&quot;: true, &quot;height&quot;: 60, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;var foo = fetch(&#39;https://pokeapi.co/api/v2/pokemon/1&#39;);\nvar bar = fetch(&#39;https://pokeapi.co/api/v2/pokemon/4&#39;);\n\n// Slide version: two separate arguments\nPromise.all(foo, bar)\n  .then(function(fooRes, barRes) { console.log(&#39;never gets here&#39;); })\n  .catch(function(e) { console.log(&#39;slide version rejected:&#39;, e.message); });\n\n// Fixed: pass ONE array, destructure ONE array\nPromise.all([foo, bar])\n  .then(function([fooRes, barRes]) {\n    return Promise.all([fooRes.json(), barRes.json()]);\n  })\n  .then(function([fooData, barData]) {\n    console.log(fooData.name, barData.name);\n  });&quot;}</code></pre><p>Output:</p>
+<div class="code-wrap"><pre><code>slide version rejected: object is not iterable (cannot read property Symbol(Symbol.iterator))
+bulbasaur charmander</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h2 id="14-in-class-questions--demos-with-solutions">14. In-class Questions &amp; Demos (with Solutions)</h2>
+<h3 id="141-question-1-reading-mr-mime-from-pokeapi-slides-1618">14.1 Question 1: Reading Mr. Mime from PokeAPI (slides 16–18)</h3>
+<p><em>If we did need to encode… how would we read the PokeAPI entry for Mr. Mime?</em></p>
+<ul>
+<li>A. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mr. mime</code></li>
+<li>B. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mrmime</code></li>
+<li>C. <code>HTTP GET https://pokeapi.co/api/v2/pokemon/mr%2E%20mime</code></li>
+<li>D. <code>HTTP POST https://pokeapi.co/api/v2/pokemon/mr. mime</code></li>
+<li>E. <code>HTTP POST https://pokeapi.co/api/v2/pokemon/mr%2E%20mime</code></li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: C.</strong> Two decisions: the verb and the encoding.</p>
+<ul>
+<li><em>Reading</em> a resource is <strong>GET</strong>; POST adds a new resource → D and E are out.</li>
+<li>&quot;If we did need to encode&quot;: the space becomes <code>%20</code> and the period <code>%2E</code> → C. A leaves a raw space in the URL; B drops characters, which is what PokeAPI does for Farfetch&#39;d but not &quot;encoding&quot;.</li>
+</ul>
+<p>(Outside the hypothetical: PokeAPI&#39;s actual name for this Pokémon is <code>mr-mime</code>; <code>/pokemon/mrmime</code> returns 404.) Back to <a href="#4-escaping-characters-in-urls">Section 4</a>.</p>
+<h3 id="142-question-2-which-can-make-an-http-request-to-the-spotify-api-slides-4850">14.2 Question 2: Which can make an HTTP request to the Spotify API? (slides 48–50)</h3>
+<p><em>(Assume the browser uses default settings.)</em></p>
+<ol>
+<li>A browser open to spotify.com</li>
+<li>A browser with client-side JavaScript at localhost:8888</li>
+<li>A browser with server-side JavaScript at localhost:8888</li>
+<li>A server running in the Spotify domain</li>
+</ol>
+<ul>
+<li>A. 4</li>
+<li>B. 1, 4</li>
+<li>C. 1, 2, 4</li>
+<li>D. 1, 3, 4</li>
+<li>E. 1, 2, 3, 4</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: B (1, 4).</strong> The slides don&#39;t reveal the poll result; this is the answer that follows from slides 43–47.</p>
+<ul>
+<li>(1) ✅ The page came from Spotify&#39;s own domain, so its scripts talk to Spotify within the same domain (exception 1).</li>
+<li>(2) ❌ Client-side JS on localhost is a different origin than Spotify; the browser&#39;s same-origin policy blocks it — that&#39;s why A3 needs a proxy.</li>
+<li>(3) ❌ The trap: server-side JavaScript doesn&#39;t run <em>in</em> a browser (it runs in the command line, e.g. Node). &quot;A browser with server-side JS&quot; is still a browser bound by the policy.</li>
+<li>(4) ✅ A server has no same-origin restrictions (and it&#39;s in Spotify&#39;s domain anyway).</li>
+</ul>
+<p>Back to <a href="#11-client-side-vs-server-side-js-and-the-same-origin-policy">Section 11</a>.</p>
+<h3 id="143-demo-1-hello-from-the-future-slide-36--setup1--solution1">14.3 Demo 1: Hello from the future (slide 36 · setup1 → solution1)</h3>
+<p>Task (<code>setup1.js</code> is only this comment): <em>Use a promise to print &quot;Hello from the future!&quot; 5 seconds after the JavaScript loads by sending the string back as the result of a promise. No <code>fetch()</code> here — just <code>.then()</code> after a Promise completes.</em></p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (<code>solution1.js</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> hello</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#4EC9B0"> Promise</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">resolve</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">reject</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">	setTimeout</span><span style="color:#D4D4D4">(() </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">		resolve</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the future!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">	}, </span><span style="color:#B5CEA8">5000</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"Hello from the present!"</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">hello</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">	console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output: <code>Hello from the present!</code> immediately, <code>Hello from the future!</code> 5 s later. Key point: the <code>.then</code> is registered right away, but its callback only runs once <code>resolve</code> is called; meanwhile the rest of the script keeps going. Back to <a href="#91-making-your-own-promise-demo-1">Section 9.1</a>.</p>
+<h3 id="144-demo-2-first-25-pokemon-in-order-slide-41--setup2--solution2">14.4 Demo 2: First 25 Pokemon, in order (slide 41 · setup2 → solution2)</h3>
+<p>Task: fill in <code>getPokemon(pokedexNumber)</code> — use <code>fetch()</code> (in a loop) to get the first 25 Pokémon from <code>https://pokeapi.co/api/v2/</code> and add each with <code>addPokemonToList(id, name, sprite)</code>; once they appear, get them <strong>in order</strong>. Starter:</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">	// write fetch call here!</span></span>
+<span class="line"><span style="color:#6A9955">    // use addPokemonToList to create HTML once have pokemon</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">var</span><span style="color:#9CDCFE"> base_url</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'https://pokeapi.co/api/v2/'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9CDCFE">document</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">addEventListener</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'DOMContentLoaded'</span><span style="color:#D4D4D4">, () </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // for(var i = 1; i &#x3C;= 25; i++) {</span></span>
+<span class="line"><span style="color:#6A9955">    //     getPokemon(i);</span></span>
+<span class="line"><span style="color:#6A9955">    // }</span></span>
+<span class="line"><span style="color:#DCDCAA">    getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">});</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (<code>solution2.js</code>):</p>
+<div class="code-wrap"><pre data-language="javascript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">function</span><span style="color:#DCDCAA"> getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">	fetch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">base_url</span><span style="color:#D4D4D4"> + </span><span style="color:#CE9178">'pokemon/'</span><span style="color:#D4D4D4"> + </span><span style="color:#9CDCFE">pokedexNumber</span><span style="color:#D4D4D4">).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">response</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">		response</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">json</span><span style="color:#D4D4D4">().</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#DCDCAA">			addPokemonToList</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">name</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">sprites</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">front_default</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">			if</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#DCDCAA">				getPokemon</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pokemon_json</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">id</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">			}</span></span>
+<span class="line"><span style="color:#D4D4D4">		});</span></span>
+<span class="line"><span style="color:#D4D4D4">	});</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>and the <code>DOMContentLoaded</code> handler calls just <code>getPokemon(1)</code>. The fields used: <code>id</code>, <code>name</code>, <code>sprites.front_default</code> (the sprite image URL). Why the recursion: with the loop, all 25 requests are in flight at once and arrive out of order; requesting #n+1 inside #n&#39;s callback <strong>serializes</strong> them, so the list is always 1 → 25 (at the cost of being slower — one request at a time). Back to <a href="#104-getting-pokemon-demo-2">Section 10.4</a>.</p>
+<h2 id="15-quick-reference--top-5-things-to-remember">15. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>HTTP</strong></p>
+<table>
+<thead>
+<tr>
+<th>Verb</th>
+<th>Use</th>
+<th></th>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET</code></td>
+<td>read</td>
+<td></td>
+<td><code>200</code></td>
+<td>OK</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>add new</td>
+<td></td>
+<td><code>201</code></td>
+<td>Created</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>replace/update</td>
+<td></td>
+<td><code>400</code></td>
+<td>Bad request</td>
+</tr>
+<tr>
+<td><code>PATCH</code></td>
+<td>update part</td>
+<td></td>
+<td><code>403</code></td>
+<td>Forbidden</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>remove</td>
+<td></td>
+<td><code>404</code></td>
+<td>Not found</td>
+</tr>
+<tr>
+<td><code>OPTIONS</code></td>
+<td>list allowed methods</td>
+<td></td>
+<td><code>500</code></td>
+<td>Internal server error</td>
+</tr>
+</tbody></table>
+<p><strong>URI parts</strong>: base URI <code>https://pokeapi.co/api/</code> + endpoint <code>v2/pokemon/ditto</code> + optional query <code>?key=value&amp;key=value</code>. Encode reserved characters: space <code>%20</code>, <code>&#39;</code> <code>%27</code>, <code>&amp;</code> <code>%26</code>.</p>
+<p><strong>fetch &amp; promises</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>What it gives you</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fetch(url)</code></td>
+<td>Promise of a Response (GET)</td>
+</tr>
+<tr>
+<td><code>fetch(url, {method, headers, body})</code></td>
+<td>other verbs; <code>body: JSON.stringify(obj)</code></td>
+</tr>
+<tr>
+<td><code>p.then(onOk, onFail)</code></td>
+<td>new Promise of the callback&#39;s return value</td>
+</tr>
+<tr>
+<td><code>response.json()</code></td>
+<td>Promise of the parsed data</td>
+</tr>
+<tr>
+<td><code>p.catch(fn)</code></td>
+<td>handles a rejection from any earlier step</td>
+</tr>
+<tr>
+<td><code>new Promise((resolve, reject) =&gt; …)</code></td>
+<td>your own promise; <code>resolve(v)</code> fulfils it</td>
+</tr>
+<tr>
+<td><code>Promise.all([p1, p2])</code></td>
+<td>Promise of <code>[v1, v2]</code> once all are done</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li><code>fetch</code> returns a <strong>Promise</strong> immediately — the line after it runs before any data arrives.</li>
+<li>Two steps to the data: <code>.then(response =&gt; response.json())</code>, then <code>.then(data =&gt; …)</code>; the response is not the data.</li>
+<li><code>.then</code> returns a new promise, so chain; <code>.catch</code> handles errors from <strong>every</strong> earlier <code>.then</code>.</li>
+<li>Read = GET, add = POST; encode reserved characters (space → <code>%20</code>).</li>
+<li>The browser&#39;s <strong>same-origin policy</strong> blocks client-side requests to many APIs; a server (or same-domain page) isn&#39;t blocked — hence the localhost proxy for A3.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 7</span><span class="pager-title" data-astro-cid-gxyjxt6l>TypeScript &amp; Data Visualization Tools</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 9 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Server-Side Development, Authentication &amp; Authorization</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-07/en-US/" title="Previous: TypeScript &amp; Data Visualization Tools ([)" aria-label="Previous: Lecture 7" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 7</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 8</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-08/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/~kazuhak/notes/in4matx-133/lec-09/en-US/" title="Next: Server-Side Development, Authentication &amp; Authorization (])" aria-label="Next: Lecture 9" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 9</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a>·<a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>
