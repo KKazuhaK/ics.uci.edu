@@ -34,6 +34,8 @@ with the running line highlighted, variable watch, optional input bar).
 | `insertion-sort` | 7 | Swap version: `arr[j]` swaps left while smaller than `arr[j-1]`, `else break`; comparisons, swaps (= inversions), best/worst counts. |
 | `merge-sort` | 8 | Top-down merge sort as a recursion tree (one row per depth, nodes aligned by index): calls appear on the way down, each merge refills its node from the two halves with i/j/k. `mode: "merge"` shows one merge of two sorted halves as aux + a rows. |
 | `quick-sort` | 8 | Quicksort with the slides' partition (i/j scans, swap, pivot into a[j]); `mode: "partition"` runs one partition. |
+| `tree-traversal` | 10 | Binary tree given by heap positions (`"K, C, N, A, -, B"`): pre-, in-, post-order with the call stack, or level order with the queue; output sequence and visit numbers on the nodes. |
+| `binary-heap` | 10–11 | Array-backed max/min heap (`pq[0]` unused) drawn as tree + array: `insert(x)` (append + swim), `swim(k)`, `sink(k)`, `delMax()`; code panel shows only the routines the ops use. |
 | `recursion-tree` | 6 | Recursion-tree method for T(n) = aT(n/b) + f(n) or T(n-1) + f(n): levels revealed one at a time, per-call work, level totals, sum, and which Master Theorem case dominates. |
 | `tokenize` | CS 121 W2 | Early tokenization: read characters one at a time, alphanumerics build a lower-cased token, a space or special character ends it, tokens shorter than `minLen` are dropped. |
 | `crawl-frontier` | CS 121 W3 | Basic crawl over a link graph: seeds → FIFO frontier → fetch/store/extract, seen-set, per-host politeness delay, crawler trap, budget. Python panel. |

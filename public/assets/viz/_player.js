@@ -464,7 +464,7 @@ export function mount(wrapper, mod, rawConfig, source) {
 			else applyInput(r.value);
 		}
 		else if (act === "random") {
-			const value = mod.input.random();
+			const value = mod.input.random(config);
 			const raw = Object.assign({}, config);
 			raw[mod.input.key] = value;
 			inputEl.value = mod.input.format(raw);
