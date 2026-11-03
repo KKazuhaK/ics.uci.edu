@@ -230,14 +230,16 @@ const CSS = `
 .vz-tt .tt-node.is-just circle { animation: vz-tt-flash .5s ease-out; }
 .vz-tt .tt-cursor { fill: none; stroke: var(--vz-cmp-bd); stroke-width: 3; transition: transform .38s cubic-bezier(0.45, 0, 0.25, 1), opacity .25s; }
 .vz-tt .tt-rank { fill: var(--vz-blue); font-size: 10px; font-weight: 700; text-anchor: middle; }
-.vz-tt-out { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: center; margin-top: .4rem; min-height: 1.7rem; }
-.vz-tt-out span { border: 1px solid var(--vz-sorted-bd); background: var(--vz-sorted-bg); color: var(--vz-sorted-fg); border-radius: .3rem; padding: .05rem .4rem; font-family: "Consolas", "Menlo", monospace; font-weight: 600; }
-.vz-tt-out span.is-new { animation: vz-tt-in .4s ease-out; }
+.vz-tt-outlabel { text-align: center; color: var(--vz-muted); font-size: .8rem; margin-top: .5rem; }
+.vz-tt-out { flex-wrap: wrap; row-gap: .5rem; }
+.vz-tt-out .vz-col { flex: 0 0 2.6rem; }
+.vz-tt-out .vz-cell.is-empty { border-style: dashed; color: transparent; }
+.vz-tt-out .vz-cell.is-new { animation: vz-tt-in .4s ease-out; }
 @keyframes vz-tt-in { from { opacity: 0; transform: translateY(-10px) scale(.8); } to { opacity: 1; transform: none; } }
 @keyframes vz-tt-flash { 0% { stroke-width: 6; } 100% { stroke-width: 1.6; } }
 @media (prefers-reduced-motion: reduce) {
   .vz-tt .tt-cursor { transition: none; }
-  .vz-tt .tt-node.is-just circle, .vz-tt-out span.is-new { animation: none; }
+  .vz-tt .tt-node.is-just circle, .vz-tt-out .vz-cell.is-new { animation: none; }
 }
 `;
 
@@ -300,12 +302,28 @@ function build(stage, pos) {
 	// The cursor ring sits at the origin and is moved with a CSS transform, so it can glide.
 	const cursor = el("circle", { "class": "tt-cursor", cx: 0, cy: 0, r: R + 4 }, svg);
 	wrap.appendChild(svg);
+	// Output = an array with one slot per node, filled in visit order
+	// (the same big cells as the other array demos).
+	const label = document.createElement("div");
+	label.className = "vz-tt-outlabel";
+	label.textContent = "output (visit order)";
 	const out = document.createElement("div");
-	out.className = "vz-tt-out";
-	out.setAttribute("aria-label", "output");
+	out.className = "vz-row vz-tt-out";
+	out.setAttribute("role", "group");
+	out.setAttribute("aria-label", "output (visit order)");
+	const cells = [];
+	for (let p = 1; p < pos.length; p++) {
+		if (pos[p] === null) continue;
+		const col = document.createElement("div");
+		col.className = "vz-col";
+		col.innerHTML = '<div class="vz-cell is-empty"></div><div class="vz-idx">' + (cells.length + 1) + "</div>";
+		out.appendChild(col);
+		cells.push(col.firstChild);
+	}
 	stage.appendChild(wrap);
+	stage.appendChild(label);
 	stage.appendChild(out);
-	return { key: pos.join(","), xy: xy, edges: edges, nodes: nodes, cursor: cursor, out: out, lastStep: -2, shownOut: -1 };
+	return { key: pos.join(","), xy: xy, edges: edges, nodes: nodes, cursor: cursor, out: out, cells: cells, lastStep: -2, shownOut: -1 };
 }
 
 export function render(stage, frame) {
@@ -348,20 +366,13 @@ export function render(stage, frame) {
 		st.cursorShown = false;
 	}
 
-	// Output chips: append one when a node was just visited, else redraw.
-	if (justVisited && st.out.childElementCount === frame.visited.length - 1) {
-		const sp = document.createElement("span");
-		sp.className = "is-new";
-		sp.textContent = pos[justVisited];
-		st.out.appendChild(sp);
-	} else if (st.out.childElementCount !== frame.visited.length || !forward) {
-		st.out.textContent = "";
-		frame.visited.forEach(function(p) {
-			const sp = document.createElement("span");
-			sp.textContent = pos[p];
-			st.out.appendChild(sp);
-		});
-	}
+	// Output cells: fill slot k with the k-th visited node; the newest one drops in.
+	st.cells.forEach(function(cell, k) {
+		const p = frame.visited[k];
+		const isNew = !!justVisited && k === frame.visited.length - 1;
+		cell.textContent = p ? pos[p] : "";
+		cell.className = "vz-cell " + (p ? "is-sorted" : "is-empty") + (isNew ? " is-new" : "");
+	});
 	st.shownOut = frame.visited.length;
 	st.lastStep = frame.step;
 }
