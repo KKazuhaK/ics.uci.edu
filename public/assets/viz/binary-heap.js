@@ -193,6 +193,8 @@ export function steps(config) {
 			ghost: f.ghost || null,
 			k: f.k || 0, j: f.j || 0,
 			swapped: f.swapped || null,
+			swap: f.swapped && f.swapped.length === 2 ? f.swapped.slice() : null,
+			step: frames.length,
 			settled: f.settled || 0,
 			lines: f.lines || [],
 			group: f.group,
@@ -282,7 +284,7 @@ export function steps(config) {
 			n--;
 			pq.length = n + 1;
 			returned = String(removed);
-			push({ k: 1, ghost: { idx: last, key: removed }, swapped: n >= 1 && last !== 1 ? [1] : null, lines: [23], group: g,
+			push({ k: 1, ghost: { idx: last, key: removed }, swapped: last !== 1 ? [1, last] : null, lines: [23], group: g,
 				msg: n >= 1
 					? "`exch(1, n--)`: the last key `" + pq[1] + "` goes to the root and `" + removed + "` leaves the heap (n is now " + n + ")."
 					: "`exch(1, n--)`: `" + removed + "` was the only key; it leaves and the heap is empty." });
@@ -301,13 +303,18 @@ export function steps(config) {
 }
 
 // ---------- drawing ----------
+// The DOM is built once per heap shape and then only updated, so colour
+// changes fade (CSS transitions) and an exchange is animated: the two keys
+// glide along the tree edge, and the player arcs the two array cells
+// (frame.swap). Motion runs only on a forward step.
 
 const CSS = `
 .vz-bh-wrap { overflow-x: auto; }
-.vz-bh { display: block; margin: 0 auto; font-family: "Consolas", "Menlo", monospace; }
+.vz-bh { display: block; margin: 0 auto; font-family: "Consolas", "Menlo", monospace; overflow: visible; }
 .vz-bh .bh-edge { stroke: var(--vz-muted); stroke-width: 1.4; }
-.vz-bh .bh-node circle { fill: var(--vz-surface); stroke: var(--vz-border); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
-.vz-bh .bh-node text { fill: var(--vz-ink); font-weight: 600; text-anchor: middle; dominant-baseline: central; font-size: 13px; }
+.vz-bh .bh-edge.is-path { stroke: var(--vz-swap-bd); stroke-width: 4; }
+.vz-bh .bh-node circle { fill: var(--vz-surface); stroke: var(--vz-border); stroke-width: 1.6; transition: fill .3s, stroke .3s, stroke-width .3s; }
+.vz-bh .bh-node text { fill: var(--vz-ink); font-weight: 600; text-anchor: middle; dominant-baseline: central; font-size: 13px; transition: fill .3s; }
 .vz-bh .bh-node.is-cmp circle { fill: var(--vz-cmp-bg); stroke: var(--vz-cmp-bd); stroke-width: 3; }
 .vz-bh .bh-node.is-min circle { fill: var(--vz-min-bg); stroke: var(--vz-min-bd); stroke-width: 2.5; }
 .vz-bh .bh-node.is-min text { fill: var(--vz-min-fg); }
@@ -317,9 +324,12 @@ const CSS = `
 .vz-bh .bh-node.is-sorted text { fill: var(--vz-sorted-fg); }
 .vz-bh .bh-node.is-ghost circle { stroke-dasharray: 4 3; fill: none; }
 .vz-bh .bh-node.is-ghost text { fill: var(--vz-muted); }
+.vz-bh .bh-node.is-new { animation: vz-bh-pop .45s ease-out; }
 .vz-bh .bh-idx { fill: var(--vz-blue); font-size: 10px; font-weight: 700; text-anchor: end; }
 .vz-bh-arr .vz-cell.is-unused { color: var(--vz-muted); border-style: dashed; }
 .vz-bh-arr .vz-cell.is-ghost { color: var(--vz-muted); border-style: dashed; text-decoration: line-through; }
+@keyframes vz-bh-pop { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .vz-bh .bh-node.is-new { animation: none; } }
 `;
 
 function ensureCss() {
@@ -330,7 +340,13 @@ function ensureCss() {
 	document.head.appendChild(st);
 }
 
-function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) {
+	const e = document.createElementNS(SVGNS, tag);
+	for (const k in attrs) e.setAttribute(k, attrs[k]);
+	if (parent) parent.appendChild(e);
+	return e;
+}
 
 function cls(frame, i) {
 	if (frame.swapped && frame.swapped.indexOf(i) >= 0) return "is-swap";
@@ -340,45 +356,124 @@ function cls(frame, i) {
 	return "";
 }
 
+function reducedMotion() {
+	return typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+// Build the SVG tree + array row for `total` slots.
+function build(stage, total) {
+	const depth = total ? Math.floor(Math.log2(total)) : 0;
+	const slots = Math.pow(2, depth);
+	const colW = 46, rowH = 56, pad = 24, R = 15;
+	const W = Math.max(slots * colW + pad * 2, 220), H = (depth + 1) * rowH + pad;
+	const pos = [null];
+	for (let i = 1; i <= total; i++) {
+		const d = Math.floor(Math.log2(i));
+		const span = slots / Math.pow(2, d);
+		pos.push({ x: pad + ((i - Math.pow(2, d)) * span + span / 2) * colW, y: pad + d * rowH });
+	}
+	stage.textContent = "";
+	const wrap = document.createElement("div");
+	wrap.className = "vz-bh-wrap";
+	const svg = el("svg", { "class": "vz-bh", viewBox: "0 0 " + W + " " + H, width: W, role: "img", "aria-label": "binary heap" });
+	svg.style.maxWidth = "100%";
+	svg.style.height = "auto";
+	const edges = [null, null], nodes = [null];
+	const gE = el("g", {}, svg), gN = el("g", {}, svg);
+	for (let i = 2; i <= total; i++) {
+		edges.push(el("line", { "class": "bh-edge", x1: pos[i >> 1].x, y1: pos[i >> 1].y, x2: pos[i].x, y2: pos[i].y }, gE));
+	}
+	for (let i = 1; i <= total; i++) {
+		const g = el("g", { "class": "bh-node" }, gN);
+		el("circle", { cx: pos[i].x, cy: pos[i].y, r: R }, g);
+		const t = el("text", { x: pos[i].x, y: pos[i].y }, g);
+		const ix = el("text", { "class": "bh-idx", x: pos[i].x - R + 1, y: pos[i].y - R - 1 }, gN);
+		ix.textContent = String(i);
+		nodes.push({ g: g, text: t, idx: ix });
+	}
+	wrap.appendChild(svg);
+	const row = document.createElement("div");
+	row.className = "vz-row vz-bh-arr";
+	const cells = [];
+	for (let i = 0; i <= total; i++) {
+		const col = document.createElement("div");
+		col.className = "vz-col";
+		col.innerHTML = '<div class="vz-cell"></div><div class="vz-idx">' + i + "</div>";
+		row.appendChild(col);
+		cells.push(col.firstChild);
+	}
+	stage.appendChild(wrap);
+	stage.appendChild(row);
+	return { total: total, pos: pos, edges: edges, nodes: nodes, cells: cells, lastStep: -2, lastN: -1 };
+}
+
 export function render(stage, frame) {
 	ensureCss();
 	const pq = frame.pq;
 	const n = pq.length - 1;
 	const total = Math.max(n, frame.ghost ? frame.ghost.idx : 0);
-	const depth = total ? Math.floor(Math.log2(total)) : 0;
-	const slots = Math.pow(2, depth);
-	const colW = 46, rowH = 56, pad = 24, R = 15;
-	const W = Math.max(slots * colW + pad * 2, 220), H = (depth + 1) * rowH + pad;
-	function pos(i) {
-		const d = Math.floor(Math.log2(i));
-		const span = slots / Math.pow(2, d);
-		const off = i - Math.pow(2, d);
-		return { x: pad + (off * span + span / 2) * colW, y: pad + d * rowH };
+	let st = stage._bh;
+	// Rebuild only when the number of slots changes (insert / delMax) or the stage was emptied.
+	if (!st || st.total !== total || !stage.contains(st.cells[0])) {
+		const prev = st;
+		st = stage._bh = build(stage, total);
+		// Keep the step history so the frame that grew/shrank the heap still counts as a forward step.
+		if (prev) { st.lastStep = prev.lastStep; st.lastN = prev.lastN; }
 	}
-	let svg = '<svg class="vz-bh" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" style="max-width:100%;height:auto" role="img" aria-label="binary heap">';
-	for (let i = 2; i <= total; i++) {
-		if (i > n && !(frame.ghost && frame.ghost.idx === i)) continue;
-		const a = pos(i >> 1), b = pos(i);
-		svg += '<line class="bh-edge" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"' + (i > n ? ' stroke-dasharray="4 3"' : "") + "/>";
-	}
+	// Finish any glide still running (fast playback) before drawing the next frame.
+	(st.anims || []).forEach(function(an) { an.cancel(); });
+	st.anims = [];
+	const forward = frame.step === st.lastStep + 1;
+	const grew = forward && st.lastN >= 0 && n > st.lastN;
+
 	for (let i = 1; i <= total; i++) {
+		const node = st.nodes[i];
 		let label, c;
 		if (i <= n) { label = pq[i]; c = cls(frame, i); }
 		else if (frame.ghost && frame.ghost.idx === i) { label = frame.ghost.key; c = "is-ghost"; }
-		else continue;
-		const p = pos(i);
-		svg += '<g class="bh-node ' + c + '"><circle cx="' + p.x + '" cy="' + p.y + '" r="' + R + '"/><text x="' + p.x + '" y="' + p.y + '">' + esc(label) + "</text></g>" +
-			'<text class="bh-idx" x="' + (p.x - R + 1) + '" y="' + (p.y - R - 1) + '">' + i + "</text>";
+		else { label = null; }
+		node.g.style.display = label === null ? "none" : "";
+		if (label === null) node.g.setAttribute("class", "bh-node");
+		node.idx.style.display = label === null ? "none" : "";
+		if (label !== null) {
+			node.text.textContent = String(label);
+			node.g.setAttribute("class", "bh-node " + c + (grew && i === n ? " is-new" : ""));
+		}
+		if (i >= 2) {
+			const e = st.edges[i];
+			e.style.display = label === null ? "none" : "";
+			if (i > n) e.setAttribute("stroke-dasharray", "4 3"); else e.removeAttribute("stroke-dasharray");
+			const onPath = frame.swapped && frame.swapped.length === 2 && frame.swapped.indexOf(i) >= 0 && frame.swapped.indexOf(i >> 1) >= 0;
+			e.setAttribute("class", "bh-edge" + (onPath ? " is-path" : ""));
+		}
 	}
-	svg += "</svg>";
-	let arr = '<div class="vz-row vz-bh-arr">';
 	for (let i = 0; i <= total; i++) {
-		let label, c;
-		if (i === 0) { label = "–"; c = "is-unused"; }
-		else if (i <= n) { label = pq[i]; c = cls(frame, i); }
-		else { label = frame.ghost.key; c = "is-ghost"; }
-		arr += '<div class="vz-col"><div class="vz-cell ' + c + '">' + esc(label) + '</div><div class="vz-idx">' + i + "</div></div>";
+		const cell = st.cells[i];
+		if (i === 0) { cell.textContent = "–"; cell.className = "vz-cell is-unused"; }
+		else if (i <= n) { cell.textContent = String(pq[i]); cell.className = "vz-cell " + cls(frame, i); }
+		else { cell.textContent = String(frame.ghost.key); cell.className = "vz-cell is-ghost"; }
 	}
-	arr += "</div>";
-	stage.innerHTML = '<div class="vz-bh-wrap">' + svg + "</div>" + arr;
+
+	// Exchange: the two keys (already showing their new values) glide from each
+	// other's node along the edge, one bowing left and one right so they don't overlap.
+	if (forward && frame.swapped && frame.swapped.length === 2 && !reducedMotion()) {
+		const a = frame.swapped[0], b = frame.swapped[1];
+		const pa = st.pos[a], pb = st.pos[b];
+		if (pa && pb && st.nodes[a].g.animate) {
+			const opts = { duration: 600, easing: "cubic-bezier(0.45, 0, 0.25, 1)" };
+			const nx = -(pb.y - pa.y), ny = pb.x - pa.x, len = Math.hypot(nx, ny) || 1, bow = 16;
+			[[a, pb, pa, 1], [b, pa, pb, -1]].forEach(function(t) {
+				const from = t[1], to = t[2], sgn = t[3];
+				const dx = from.x - to.x, dy = from.y - to.y;
+				const mx = dx / 2 + sgn * bow * nx / len, my = dy / 2 + sgn * bow * ny / len;
+				st.anims.push(st.nodes[t[0]].g.animate([
+					{ transform: "translate(" + dx + "px," + dy + "px)" },
+					{ transform: "translate(" + mx + "px," + my + "px)", offset: 0.5 },
+					{ transform: "translate(0px,0px)" }
+				], opts));
+			});
+		}
+	}
+	st.lastStep = frame.step;
+	st.lastN = n;
 }

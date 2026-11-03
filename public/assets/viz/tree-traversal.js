@@ -93,7 +93,7 @@ export function code(config) {
 }
 
 export const legend = [
-	{ cls: "is-cmp", label: "Current node t (thick outline)" },
+	{ cls: "is-cmp", label: "Current node t (moving ring)" },
 	{ cls: "is-min", label: "On the call stack / in the queue" },
 	{ cls: "is-sorted", label: "Visited" }
 ];
@@ -132,8 +132,10 @@ export function steps(config) {
 
 	function push(cur, lines, msg) {
 		frames.push({
+			step: frames.length,
 			pos: pos,
 			cur: cur,
+			order: order,
 			active: order === "level" ? queue.slice() : stack.slice(),
 			visited: out.slice(),
 			lines: lines,
@@ -210,21 +212,33 @@ export function steps(config) {
 }
 
 // ---------- drawing ----------
+// Built once per tree and then only updated: node colours fade, a ring glides
+// from node to node as `t` moves, and each newly visited node's chip slides
+// into the output row.
 
 const CSS = `
 .vz-tt-wrap { overflow-x: auto; }
-.vz-tt { display: block; margin: 0 auto; font-family: "Consolas", "Menlo", monospace; }
-.vz-tt .tt-edge { stroke: var(--vz-muted); stroke-width: 1.4; }
-.vz-tt .tt-node circle { fill: var(--vz-surface); stroke: var(--vz-border); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
-.vz-tt .tt-node text { fill: var(--vz-ink); font-weight: 600; text-anchor: middle; dominant-baseline: central; font-size: 13px; }
+.vz-tt { display: block; margin: 0 auto; font-family: "Consolas", "Menlo", monospace; overflow: visible; }
+.vz-tt .tt-edge { stroke: var(--vz-muted); stroke-width: 1.4; transition: stroke .3s, stroke-width .3s; }
+.vz-tt .tt-edge.is-active { stroke: var(--vz-min-bd); stroke-width: 3; }
+.vz-tt .tt-node circle { fill: var(--vz-surface); stroke: var(--vz-border); stroke-width: 1.6; transition: fill .3s, stroke .3s; }
+.vz-tt .tt-node text { fill: var(--vz-ink); font-weight: 600; text-anchor: middle; dominant-baseline: central; font-size: 13px; transition: fill .3s; }
 .vz-tt .tt-node.is-active circle { fill: var(--vz-min-bg); stroke: var(--vz-min-bd); }
 .vz-tt .tt-node.is-active text { fill: var(--vz-min-fg); }
 .vz-tt .tt-node.is-visited circle { fill: var(--vz-sorted-bg); stroke: var(--vz-sorted-bd); }
 .vz-tt .tt-node.is-visited text { fill: var(--vz-sorted-fg); }
-.vz-tt .tt-node.is-cur circle { stroke: var(--vz-cmp-bd); stroke-width: 3; }
+.vz-tt .tt-node.is-just circle { animation: vz-tt-flash .5s ease-out; }
+.vz-tt .tt-cursor { fill: none; stroke: var(--vz-cmp-bd); stroke-width: 3; transition: transform .38s cubic-bezier(0.45, 0, 0.25, 1), opacity .25s; }
 .vz-tt .tt-rank { fill: var(--vz-blue); font-size: 10px; font-weight: 700; text-anchor: middle; }
 .vz-tt-out { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: center; margin-top: .4rem; min-height: 1.7rem; }
 .vz-tt-out span { border: 1px solid var(--vz-sorted-bd); background: var(--vz-sorted-bg); color: var(--vz-sorted-fg); border-radius: .3rem; padding: .05rem .4rem; font-family: "Consolas", "Menlo", monospace; font-weight: 600; }
+.vz-tt-out span.is-new { animation: vz-tt-in .4s ease-out; }
+@keyframes vz-tt-in { from { opacity: 0; transform: translateY(-10px) scale(.8); } to { opacity: 1; transform: none; } }
+@keyframes vz-tt-flash { 0% { stroke-width: 6; } 100% { stroke-width: 1.6; } }
+@media (prefers-reduced-motion: reduce) {
+  .vz-tt .tt-cursor { transition: none; }
+  .vz-tt .tt-node.is-just circle, .vz-tt-out span.is-new { animation: none; }
+}
 `;
 
 function ensureCss() {
@@ -235,7 +249,13 @@ function ensureCss() {
 	document.head.appendChild(st);
 }
 
-function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) {
+	const e = document.createElementNS(SVGNS, tag);
+	for (const k in attrs) e.setAttribute(k, attrs[k]);
+	if (parent) parent.appendChild(e);
+	return e;
+}
 
 // x = in-order rank (each node its own column), y = depth.
 function layout(pos) {
@@ -252,32 +272,96 @@ function layout(pos) {
 	return { x: x, y: y, cols: rank, depth: maxD };
 }
 
-export function render(stage, frame) {
-	ensureCss();
-	const pos = frame.pos;
+function build(stage, pos) {
 	const g = layout(pos);
 	const colW = 42, rowH = 58, pad = 22, R = 16;
 	const W = Math.max(g.cols * colW + pad * 2, 200), H = (g.depth + 1) * rowH + pad;
-	const cx = function(p) { return pad + g.x[p] * colW + colW / 2; };
-	const cy = function(p) { return pad + g.y[p] * rowH; };
-	let svg = '<svg class="vz-tt" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" style="max-width:100%;height:auto" role="img" aria-label="binary tree">';
+	const xy = {};
+	for (let p = 1; p < pos.length; p++) if (pos[p] !== null) xy[p] = { x: pad + g.x[p] * colW + colW / 2, y: pad + g.y[p] * rowH };
+	stage.textContent = "";
+	const wrap = document.createElement("div");
+	wrap.className = "vz-tt-wrap";
+	const svg = el("svg", { "class": "vz-tt", viewBox: "0 0 " + W + " " + H, width: W, role: "img", "aria-label": "binary tree" });
+	svg.style.maxWidth = "100%";
+	svg.style.height = "auto";
+	const edges = {}, nodes = {};
 	for (let p = 2; p < pos.length; p++) {
 		if (pos[p] === null) continue;
-		svg += '<line class="tt-edge" x1="' + cx(p >> 1) + '" y1="' + cy(p >> 1) + '" x2="' + cx(p) + '" y2="' + cy(p) + '"/>';
+		edges[p] = el("line", { "class": "tt-edge", x1: xy[p >> 1].x, y1: xy[p >> 1].y, x2: xy[p].x, y2: xy[p].y }, svg);
 	}
-	const rankOf = {};
-	frame.visited.forEach(function(p, k) { rankOf[p] = k + 1; });
 	for (let p = 1; p < pos.length; p++) {
 		if (pos[p] === null) continue;
-		const cls = ["tt-node"];
-		if (rankOf[p]) cls.push("is-visited");
-		else if (frame.active.indexOf(p) >= 0) cls.push("is-active");
-		if (p === frame.cur) cls.push("is-cur");
-		svg += '<g class="' + cls.join(" ") + '"><circle cx="' + cx(p) + '" cy="' + cy(p) + '" r="' + R + '"/>' +
-			'<text x="' + cx(p) + '" y="' + cy(p) + '">' + esc(pos[p]) + "</text></g>";
-		if (rankOf[p]) svg += '<text class="tt-rank" x="' + (cx(p) + R + 2) + '" y="' + (cy(p) - R + 2) + '">' + rankOf[p] + "</text>";
+		const gr = el("g", { "class": "tt-node" }, svg);
+		el("circle", { cx: xy[p].x, cy: xy[p].y, r: R }, gr);
+		el("text", { x: xy[p].x, y: xy[p].y }, gr).textContent = pos[p];
+		const rk = el("text", { "class": "tt-rank", x: xy[p].x + R + 2, y: xy[p].y - R + 2 }, svg);
+		nodes[p] = { g: gr, rank: rk };
 	}
-	svg += "</svg>";
-	const outHtml = frame.visited.map(function(p) { return "<span>" + esc(pos[p]) + "</span>"; }).join("");
-	stage.innerHTML = '<div class="vz-tt-wrap">' + svg + '</div><div class="vz-tt-out" aria-label="output">' + outHtml + "</div>";
+	// The cursor ring sits at the origin and is moved with a CSS transform, so it can glide.
+	const cursor = el("circle", { "class": "tt-cursor", cx: 0, cy: 0, r: R + 4 }, svg);
+	wrap.appendChild(svg);
+	const out = document.createElement("div");
+	out.className = "vz-tt-out";
+	out.setAttribute("aria-label", "output");
+	stage.appendChild(wrap);
+	stage.appendChild(out);
+	return { key: pos.join(","), xy: xy, edges: edges, nodes: nodes, cursor: cursor, out: out, lastStep: -2, shownOut: -1 };
+}
+
+export function render(stage, frame) {
+	ensureCss();
+	const pos = frame.pos;
+	const key = pos.join(",");
+	let st = stage._tt;
+	if (!st || st.key !== key || !stage.contains(st.out)) st = stage._tt = build(stage, pos);
+	const forward = frame.step === st.lastStep + 1;
+
+	const rankOf = {};
+	frame.visited.forEach(function(p, k) { rankOf[p] = k + 1; });
+	const justVisited = forward && frame.visited.length === st.shownOut + 1 ? frame.visited[frame.visited.length - 1] : 0;
+	for (let p = 1; p < pos.length; p++) {
+		if (pos[p] === null) continue;
+		const c = ["tt-node"];
+		if (rankOf[p]) c.push("is-visited");
+		else if (frame.active.indexOf(p) >= 0) c.push("is-active");
+		if (p === justVisited) c.push("is-just");
+		st.nodes[p].g.setAttribute("class", c.join(" "));
+		st.nodes[p].rank.textContent = rankOf[p] ? String(rankOf[p]) : "";
+		// Highlight the edges along the current call stack (DFS only).
+		if (st.edges[p]) {
+			const on = frame.order !== "level" && frame.active.indexOf(p) >= 0 && frame.active.indexOf(p >> 1) >= 0;
+			st.edges[p].setAttribute("class", "tt-edge" + (on ? " is-active" : ""));
+		}
+	}
+
+	if (frame.cur && st.xy[frame.cur]) {
+		const q = st.xy[frame.cur];
+		// Glide only when stepping forward from a visible ring; otherwise jump there.
+		const jump = !st.cursorShown || (!forward && frame.step !== st.lastStep);
+		if (jump) st.cursor.style.transition = "none";
+		st.cursor.style.transform = "translate(" + q.x + "px," + q.y + "px)";
+		st.cursor.style.opacity = "1";
+		if (jump) { void st.cursor.getBoundingClientRect(); st.cursor.style.transition = ""; }
+		st.cursorShown = true;
+	} else {
+		st.cursor.style.opacity = "0";
+		st.cursorShown = false;
+	}
+
+	// Output chips: append one when a node was just visited, else redraw.
+	if (justVisited && st.out.childElementCount === frame.visited.length - 1) {
+		const sp = document.createElement("span");
+		sp.className = "is-new";
+		sp.textContent = pos[justVisited];
+		st.out.appendChild(sp);
+	} else if (st.out.childElementCount !== frame.visited.length || !forward) {
+		st.out.textContent = "";
+		frame.visited.forEach(function(p) {
+			const sp = document.createElement("span");
+			sp.textContent = pos[p];
+			st.out.appendChild(sp);
+		});
+	}
+	st.shownOut = frame.visited.length;
+	st.lastStep = frame.step;
 }
