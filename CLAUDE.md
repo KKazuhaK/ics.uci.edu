@@ -39,7 +39,7 @@ git clone https://github.com/KKazuhaK/ics.uci.edu ~/site     # only the scripts 
 
 Guards: it only syncs a build whose `Site-Target` matches `TARGET`; refuses `/`, `$HOME` and other system dirs as `WEB_ROOT`, a web root containing `.git`, and a non-empty web root it hasn't synced before unless `--adopt`. Without `-c` it uses `$SITE_SYNC_CONF` or the only `*.conf` in `~/.config/kzh-site/`. `SELF_UPDATE=1` (default) fast-forwards the checkout the script runs from, so the script stays current.
 
-ICS uses `deploy/ics.conf.example` (`KEEP` = the old `deploy.sh` excludes). Switching ICS from the old cron: `init ics`, `sync --dry-run --adopt`, `sync --adopt`, then `install-cron 5 --replace-legacy` (removes the `pull-deploy.sh` entry). `pull-deploy.sh` / `update_site.sh` keep working until then; afterwards `site-sync.sh now` replaces `update_site.sh`.
+ICS uses `deploy/ics.conf.example` (`KEEP` = the old `deploy.sh` excludes). Switching ICS from the old cron (after at least one `main` build made by `build-targets.sh`, so `deploy` carries a `Site-Target` trailer): comment out the `pull-deploy.sh` line in `crontab -e` (two crons syncing at once use different locks), then `init ics`, `sync --dry-run --adopt`, `sync --adopt`, `install-cron 5 --replace-legacy` (removes the old line). `pull-deploy.sh` / `update_site.sh` keep working until then; afterwards `site-sync.sh now` replaces `update_site.sh`.
 
 Local commands (still work; a local `npm run deploy` is replaced by the next CI build):
 

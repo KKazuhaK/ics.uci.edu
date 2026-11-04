@@ -40,7 +40,10 @@ jobs:
         env:
           TZ: America/Los_Angeles
         run: |
-          for t in $(scripts/build-targets.sh list branch); do
+          # A failure inside $(…) would not stop the loop, so list first and require targets.
+          targets="$(scripts/build-targets.sh list branch)"
+          [ -n "$targets" ] || { echo "no branch targets in deploy/targets.json"; exit 1; }
+          for t in $targets; do
             scripts/build-targets.sh build "$t" "out/$t"
           done
 
@@ -50,7 +53,10 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MSG: ${{ github.event.head_commit.message }}
         run: |
-          for t in $(scripts/build-targets.sh list branch); do
+          # A failure inside $(…) would not stop the loop, so list first and require targets.
+          targets="$(scripts/build-targets.sh list branch)"
+          [ -n "$targets" ] || { echo "no branch targets in deploy/targets.json"; exit 1; }
+          for t in $targets; do
             scripts/build-targets.sh push "$t" "out/$t"
           done
 

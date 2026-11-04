@@ -56,6 +56,7 @@ load_conf() {
   local tool
   for tool in git rsync flock; do command -v "$tool" >/dev/null || die "$tool is not installed"; done
   [ -n "$TARGET" ] || die "$conf: TARGET is not set"
+  case "$TARGET" in *[!A-Za-z0-9_-]*) die "$conf: TARGET may only use letters, digits, - and _" ;; esac
   [ -n "$BRANCH" ] || die "$conf: BRANCH is not set"
   [ -n "$WEB_ROOT" ] || die "$conf: WEB_ROOT is not set"
   case "$WEB_ROOT" in /*) ;; *) die "$conf: WEB_ROOT must be an absolute path" ;; esac
@@ -150,6 +151,8 @@ cmd_sync() {
   local head deployed=""
   head="$(git -C "$CHECKOUT" rev-parse HEAD)"
   [ -f "$STATE_DIR/deployed" ] && deployed="$(cat "$STATE_DIR/deployed")"
+  # A different WEB_ROOT than the last sync means nothing is deployed there yet.
+  [ -f "$STATE_DIR/adopted" ] && [ "$(cat "$STATE_DIR/adopted")" != "$(readlink -f "$WEB_ROOT" 2>/dev/null || echo "$WEB_ROOT")" ] && deployed=""
   if [ "$head" = "$deployed" ] && [ -z "$force" ] && [ -z "$dry" ]; then
     [ -t 1 ] && echo "already live: $(git -C "$CHECKOUT" log -1 --format=%s)"
     return 0
@@ -165,6 +168,10 @@ cmd_sync() {
   mkdir -p "$WEB_ROOT"
   real="$(readlink -f "$WEB_ROOT")"; home_real="$(readlink -f "$HOME")"
   case "$real" in /|"$home_real"|/home|/var|/usr|/etc|/srv) die "refusing to sync into $real" ;; esac
+  local inside
+  for inside in "$(readlink -f "$CHECKOUT")" "$(readlink -f "$STATE_DIR")" "$here"; do
+    case "$inside/" in "$real"/*) die "refusing to sync into $real: it contains $inside" ;; esac
+  done
   [ -e "$real/.git" ] && die "$real/.git exists; move it aside (e.g. mv $real/.git $real.git.bak) first"
   if [ ! -f "$STATE_DIR/adopted" ] || [ "$(cat "$STATE_DIR/adopted")" != "$real" ]; then
     if [ -n "$(ls -A "$real")" ] && [ -z "$adopt" ]; then
@@ -181,7 +188,7 @@ then run it without --dry-run. Anything not listed in KEEP gets deleted."
     echo "Dry run: $(git -C "$CHECKOUT" log -1 --format=%s) → $real"
     echo "  (KEEP: ${KEEP[*]+${KEEP[*]}})"
     rsync "${args[@]}" -n --itemize-changes "$CHECKOUT/" "$real/" | awk '
-      /^\*deleting/ { del++; if (del <= 50) print "  delete  " $2; next }
+      /^\*deleting/ { del++; if (del <= 50) print "  delete  " substr($0, index($0, $2)); next }
       { chg++ }
       END { printf "  %d files to add or update, %d to delete%s\n", chg, del, (del > 50 ? " (first 50 shown)" : "") }'
     return 0
@@ -247,7 +254,7 @@ cmd_status() {
   else
     echo "deployed:  never"
   fi
-  local line; line="$(crontab -l 2>/dev/null | grep -F "# site-sync:$TARGET" || true)"
+  local line; line="$(crontab -l 2>/dev/null | grep -E "# site-sync:${TARGET}\$" || true)"
   echo "cron:      ${line:-not installed}"
   crontab -l 2>/dev/null | grep -F "scripts/pull-deploy.sh" | sed 's/^/legacy:    /' || true
   [ -f "$STATE_DIR/sync.log" ] && { echo "log:       $STATE_DIR/sync.log"; tail -3 "$STATE_DIR/sync.log" | sed 's/^/           /'; }
@@ -268,9 +275,13 @@ cmd_install_cron() {
   load_conf
   command -v crontab >/dev/null || die "crontab not found"
   local entry
-  entry="*/$min * * * * $(printf '%q' "$self") -c $(printf '%q' "$conf") sync >> $(printf '%q' "$STATE_DIR/sync.log") 2>&1 # site-sync:$TARGET"
+  local p
+  for p in "$self" "$conf" "$STATE_DIR"; do
+    case "$p" in *"'"*|*%*|*$'\n'*) die "path not usable in a cron line (quote, % or newline): $p" ;; esac
+  done
+  entry="*/$min * * * * '$self' -c '$conf' sync >> '$STATE_DIR/sync.log' 2>&1 # site-sync:$TARGET"
   local current; current="$(crontab -l 2>/dev/null || true)"
-  local kept; kept="$(printf '%s\n' "$current" | grep -vF "# site-sync:$TARGET" || true)"
+  local kept; kept="$(printf '%s\n' "$current" | grep -vE "# site-sync:${TARGET}\$" || true)"
   if [ -n "$legacy" ]; then
     printf '%s\n' "$kept" | grep -F "scripts/pull-deploy.sh" | sed 's/^/removed legacy: /' || true
     kept="$(printf '%s\n' "$kept" | grep -vF "scripts/pull-deploy.sh" || true)"
@@ -283,7 +294,7 @@ cmd_install_cron() {
 
 cmd_uninstall_cron() {
   load_conf
-  local kept; kept="$(crontab -l 2>/dev/null | grep -vF "# site-sync:$TARGET" || true)"
+  local kept; kept="$(crontab -l 2>/dev/null | grep -vE "# site-sync:${TARGET}\$" || true)"
   if [ -n "$kept" ]; then printf '%s\n' "$kept" | crontab -; else crontab -r 2>/dev/null || true; fi
   echo "removed the site-sync:$TARGET cron entry"
 }
