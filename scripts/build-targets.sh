@@ -5,8 +5,8 @@
 #   scripts/build-targets.sh push NAME DIR    force-push DIR as the single commit of the target's branch
 #
 # A "branch" target is a server that pulls its prebuilt site from a branch with
-# scripts/site-sync.sh. Each build commit carries trailers that site-sync.sh checks
-# before syncing, so a server can never publish a build made for another target:
+# scripts/pull-deploy.sh (settings in that server's deploy.env). Each build commit
+# carries trailers; pull-deploy.sh refuses a build whose Site-Base differs from its own:
 #   Site-Target: <name>
 #   Site-Base: <base>
 #   Source-Commit: <full sha>
