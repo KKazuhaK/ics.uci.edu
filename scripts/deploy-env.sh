@@ -1,12 +1,28 @@
 # Sourced by update_site.sh, scripts/pull-deploy.sh and scripts/deploy.sh.
-# Loads deploy.env.example (defaults: the UCI ICS server), then deploy.env if this
-# server has one, so a deploy.env only needs the lines that differ.
+# Loads this server's deploy.env (repo root, git-ignored). There are no defaults:
+# a missing file or setting stops the script before anything is touched.
 _repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ ! -f "$_repo_root/deploy.env" ]; then
+  echo "No $_repo_root/deploy.env. Create it from the template and set every value:" >&2
+  echo "  cp $_repo_root/deploy.env.example $_repo_root/deploy.env" >&2
+  exit 1
+fi
+# Start from empty so nothing leaks in from the environment.
+unset DEPLOY_BRANCH SITE_BASE PUBLIC_URL WEB_ROOT KEEP DIST_DIR STATE_DIR GH_REPO
 # shellcheck disable=SC1091
-. "$_repo_root/deploy.env.example"
-# shellcheck disable=SC1091
-[ -f "$_repo_root/deploy.env" ] && . "$_repo_root/deploy.env"
-unset _repo_root
+. "$_repo_root/deploy.env"
+
+_missing=""
+for _v in DEPLOY_BRANCH SITE_BASE PUBLIC_URL WEB_ROOT DIST_DIR STATE_DIR GH_REPO; do
+  [ -n "${!_v:-}" ] || _missing="$_missing $_v"
+done
+# KEEP may be empty on purpose, but it must be set.
+[ -n "${KEEP+set}" ] || _missing="$_missing KEEP"
+if [ -n "$_missing" ]; then
+  echo "$_repo_root/deploy.env is missing:$_missing (see deploy.env.example)" >&2
+  exit 1
+fi
+unset _repo_root _missing _v
 
 WEB_ROOT="${WEB_ROOT%/}"
 case "$WEB_ROOT" in /*) ;; *) echo "deploy.env: WEB_ROOT must be an absolute path" >&2; exit 1 ;; esac

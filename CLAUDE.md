@@ -9,24 +9,20 @@
 
 ## Workflow
 
-**Publishing = pushing to GitHub `main`.** No server step is needed:
+**Publishing = pushing to GitHub `main`, then `~/update_site.sh` on the ICS server** (by hand; there is no cron):
 
 1. Push to `KKazuhaK/ics.uci.edu` `main` (from here, Claude Code on the web, or claude.ai).
 2. GitHub Actions (`.github/workflows/site.yml`) runs `astro check`, the renderer parity test and the build on every push. A failing build stops here and the live site stays as it was (see the Actions tab for the error).
 3. On `main`, each server target in `deploy/targets.json` (kind `branch`; today only `ics` → `deploy`) is built by `scripts/build-targets.sh` and force-pushed to its branch (one commit, the latest build only, with `Site-Target` / `Site-Base` / `Source-Commit` trailers).
-4. Cron on circinus-19 runs `scripts/pull-deploy.sh` every 5 minutes: if `deploy` holds a build not yet deployed, it syncs it into `~/public_html` via `deploy.sh` (log: `~/.cache/site-pull-deploy.log`; it also fast-forwards `~/site`). `scripts/pull-deploy.sh --force` redeploys now.
+4. On the ICS server, `~/update_site.sh` (symlink to `~/site/update_site.sh`) pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise runs `scripts/pull-deploy.sh`: if `deploy` holds a build not yet deployed, it syncs it into `~/public_html` via `deploy.sh`. `--force` republishes.
 
 **GitHub Pages mirror** (`https://kazuha.infp.info/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds the `pages` target of `deploy/targets.json` (`SITE_URL=https://kazuha.infp.info`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `infp.info` zone, CNAME `kazuha` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
 
-To update right away instead of waiting for cron: `~/update_site.sh` (symlink to `~/site/update_site.sh`): pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise publishes that build (`--force` republishes).
-
-Cron entry (per openlab node; re-add if the job lives on another node): `~/update_site.sh --install-cron` writes `*/5 * * * * '$HOME/site/scripts/pull-deploy.sh' >> '$HOME/.cache/site-pull-deploy.log' 2>&1`.
-
 ### Server settings (`deploy.env`)
 
-`update_site.sh`, `scripts/pull-deploy.sh` and `scripts/deploy.sh` read their settings through `scripts/deploy-env.sh`: first `deploy.env.example` (committed; defaults = the ICS server), then `deploy.env` in the repo root if the server has one (git-ignored; only the lines that differ). Settings: `DEPLOY_BRANCH`, `SITE_BASE` (checked against the build's `href` and its `Site-Base` trailer), `PUBLIC_URL`, `WEB_ROOT`, `KEEP` (space-separated paths under the web root that aren't built from the repo; never touched by `--delete`), `DIST_DIR`, `LOG_FILE`, `CRON_SCHEDULE`, `GH_REPO`. `deploy.sh` refuses `/`, `$HOME` and system dirs as `WEB_ROOT`. A deploy that fails half-way is retried on the next cron run (the last deployed build is recorded next to `LOG_FILE`).
+`update_site.sh`, `scripts/pull-deploy.sh` and `scripts/deploy.sh` read their settings through `scripts/deploy-env.sh` from `deploy.env` in the repo root (git-ignored, one per server). There are **no defaults**: without `deploy.env`, or with any setting missing, the scripts stop before touching anything. `deploy.env.example` is only the template (its values are the ICS ones). Settings: `DEPLOY_BRANCH`, `SITE_BASE` (checked against the build's `href` and its `Site-Base` trailer), `PUBLIC_URL`, `WEB_ROOT`, `KEEP` (one quoted, space-separated string of paths under the web root that aren't built from the repo; never touched by `--delete`), `DIST_DIR`, `STATE_DIR` (lock + last deployed build), `GH_REPO`. `deploy.sh` refuses `/`, `$HOME`, system dirs, and any `WEB_ROOT` containing the repo, `DIST_DIR` or `STATE_DIR`. A deploy that fails half-way is retried by the next run.
 
-The ICS server has no `deploy.env` and needs none. New server: add a `branch` target to `deploy/targets.json` (branch `deploy-<name>`, site, base) and push; then on the server `git clone https://github.com/KKazuhaK/ics.uci.edu ~/site`, `cp ~/site/deploy.env.example ~/site/deploy.env` and edit it, `ln -s ~/site/update_site.sh ~/update_site.sh`, `~/update_site.sh --install-cron` (adds or replaces the `pull-deploy.sh` entry using `CRON_SCHEDULE`; `--remove-cron` removes it), and `~/update_site.sh` to publish now.
+New server: add a `branch` target to `deploy/targets.json` (branch `deploy-<name>`, site, base) and push; on the server `git clone https://github.com/KKazuhaK/ics.uci.edu ~/site`, `cp ~/site/deploy.env.example ~/site/deploy.env` and set every value, `ln -s ~/site/update_site.sh ~/update_site.sh`, then `~/update_site.sh` whenever you want to publish.
 
 The local `npm run deploy` / `deploy:next` scripts build for the ICS base (`/~kazuhak`); on a server whose `deploy.env` sets another `SITE_BASE`, `deploy.sh` refuses those builds, so publish through CI there.
 
@@ -57,7 +53,7 @@ npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note
 ├── integrations/legacy-redirects.ts  # appends 301s for pre-Astro URLs to dist/.htaccess
 ├── .github/workflows/site.yml    # CI: check + build every push; main → deploy branch
 ├── scripts/deploy.sh             # staging / prod rsync with guards (SRC=<dir> for another build)
-├── scripts/pull-deploy.sh        # cron: deploy branch → ~/public_html
+├── scripts/pull-deploy.sh        # deploy branch → web root (run by update_site.sh)
 ├── scripts/migrate/              # one-off migration scripts (kept for reference) + parity.ts
 ├── .lastmod-ignore-revs          # commits that don't count as "last edited" (bulk moves)
 ├── public/                       # copied verbatim: .htaccess, assets/{css,js,viz,config}, images, favicon,

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Copy the Astro build (dist/) into the web root (settings: deploy.env, defaults in
-# deploy.env.example).
+# Copy the Astro build (dist/) into the web root (settings: deploy.env).
 #   next  -> $WEB_ROOT/next/ (staging; safe to wipe)
 #   prod  -> $WEB_ROOT itself
 # SRC=<dir> deploys another build (scripts/pull-deploy.sh passes the CI build).
@@ -32,7 +31,7 @@ case "$real" in
   /|"$(readlink -f "$HOME")"|/home|/var|/usr|/etc|/srv) echo "refusing to deploy into $web; check WEB_ROOT in deploy.env" >&2; exit 1 ;;
 esac
 # ... and never on (or above) this repo or the build checkout.
-for inside in "$PWD" "$(readlink -f "$DIST_DIR" 2>/dev/null || echo "$DIST_DIR")" "$(readlink -f "$src")"; do
+for inside in "$PWD" "$(readlink -f "$DIST_DIR" 2>/dev/null || echo "$DIST_DIR")" "$(readlink -f "$STATE_DIR" 2>/dev/null || echo "$STATE_DIR")" "$(readlink -f "$src")"; do
   case "$inside/" in "$real"/*) echo "refusing to deploy into $web: it contains $inside; check WEB_ROOT in deploy.env" >&2; exit 1 ;; esac
 done
 

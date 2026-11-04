@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Cron job: publish the latest CI build to the web root (settings: deploy.env,
-# defaults in deploy.env.example). GitHub Actions builds every push to main and
+# Publish the latest CI build to the web root (settings: deploy.env). Run by
+# ./update_site.sh, which waits for CI first. GitHub Actions builds every push to main and
 # force-pushes the result to DEPLOY_BRANCH; this fetches that branch into DIST_DIR
 # and, when it holds a build not yet deployed, syncs it with scripts/deploy.sh.
-# No Node needed on the server. Install the cron entry with ./update_site.sh --install-cron.
+# No Node needed on the server.
 #   scripts/pull-deploy.sh           # deploy only if the build changed
 #   scripts/pull-deploy.sh --force   # redeploy the current build anyway
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
 . "$here/scripts/deploy-env.sh"
 dist="$DIST_DIR"
-state="$(dirname "$LOG_FILE")"
+state="$STATE_DIR"
 mkdir -p "$state"
 exec 9>"$state/site-pull-deploy.lock"
 flock -n 9 || exit 0
