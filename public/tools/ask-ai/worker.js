@@ -14,7 +14,7 @@
 //
 // Entra ID App Registration setup:
 //   1. Go to Azure Portal → Entra ID → App registrations → New registration
-//   2. Redirect URI: https://<your-worker>.workers.dev/auth/callback (Web)
+//   2. Redirect URI: https://<worker host>/auth/callback (Web), for each host that serves /auth/login
 //   3. API permissions: openid, profile, email (Microsoft Graph)
 //   4. Certificates & secrets: create a client secret
 //   5. Set environment variables above with the values

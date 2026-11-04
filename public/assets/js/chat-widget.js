@@ -5,7 +5,8 @@
 (function () {
   "use strict";
 
-  var WORKER_URL = "https://ics-uci-edu-chat-ai.kazuhahub.workers.dev";
+  // Custom Domain of the ics-uci-edu-chat-ai Worker (*.workers.dev is DNS-poisoned in mainland China).
+  var WORKER_URL = "https://ics-uci-edu-ask-ai.cf-worker.kazuha.org";
 
   // Don't load on the standalone chat page
   if (location.pathname.replace(/\/$/, "").endsWith("/tools/ask-ai")) return;
