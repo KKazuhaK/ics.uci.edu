@@ -26,7 +26,7 @@ New server: add a `branch` target to `deploy/targets.json` (branch `deploy-<name
 
 The local `npm run deploy` / `deploy:next` scripts build for the ICS base (`/~kazuhak`); on a server whose `deploy.env` sets another `SITE_BASE`, `deploy.sh` refuses those builds, so publish through CI there.
 
-Local commands (still work; a local `npm run deploy` is replaced by the next CI build):
+Local commands (still work; a local `npm run deploy` is replaced by the next `update_site.sh` run):
 
 ```bash
 npm run dev           # local dev server
@@ -36,7 +36,7 @@ npm run deploy        # check → build with base /~kazuhak     → rsync to ~/p
 npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note (kept as a regression test)
 ```
 
-- `scripts/deploy.sh` refuses to sync a build made for the other base, and refuses `prod` while `~/public_html/.git` exists. rsync runs with `--delete --chmod=D755,F644` (so the old umask/403 problem is gone) and **excludes** what isn't built from this repo (`KEEP` in `deploy.env.example`): `resources/`, `remote_profiles/`, `temp/`, `.venv/`, `.claude/`, `.codex`, `CLAUDE.md`, `next/`, `assets/config/*.local.json`. Anything else put straight into `~/public_html/` is deleted by the next deploy.
+- `scripts/deploy.sh` refuses to sync a build made for the other base, and refuses `prod` while `~/public_html/.git` exists. rsync runs with `--delete --chmod=D755,F644` (so the old umask/403 problem is gone) and **excludes** what isn't built from this repo (`KEEP` in `deploy.env`; the template has the ICS list): `resources/`, `remote_profiles/`, `temp/`, `.venv/`, `.claude/`, `.codex`, `CLAUDE.md`, `next/`, `assets/config/*.local.json`. Anything else put straight into `~/public_html/` is deleted by the next deploy.
 - Base path: `SITE_BASE` env (default `/~kazuhak`). In code always build links with `url()` / `courseUrl()` / `noteUrl()` from `src/lib/urls.ts`; never hard-code `/~kazuhak/`.
 - `build.format: "preserve"`: `about.astro` → `about.html`, `x/index.astro` → `x/index.html`, so legacy URLs keep working.
 - Before committing: Opus adversarial review of the diff (see the global CLAUDE.md).
