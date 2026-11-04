@@ -37,7 +37,7 @@ const SITEMAP_URL = "https://ics.uci.edu/~kazuhak/sitemap.json";
 const CHAT_PAGE   = "https://ics.uci.edu/~kazuhak/tools/ask-ai/";
 const ALLOWED_ORIGINS = [
   "https://ics.uci.edu",
-  "https://kazuha.infp.info", // GitHub Pages mirror
+  "https://uci.kazuha.me", // GitHub Pages mirror
   "http://localhost",
 ];
 

@@ -11,18 +11,18 @@
 
 **Publishing = pushing to GitHub `main`, then `~/update_site.sh` on the ICS server** (by hand; there is no cron):
 
-1. Push to `KKazuhaK/ics.uci.edu` `main` (from here, Claude Code on the web, or claude.ai).
+1. Push to `KKazuhaK/uci.kazuha.me` `main` (from here, Claude Code on the web, or claude.ai).
 2. GitHub Actions (`.github/workflows/site.yml`) runs `astro check`, the renderer parity test and the build on every push. A failing build stops here and the live site stays as it was (see the Actions tab for the error).
 3. On `main`, each server target in `deploy/targets.json` (kind `branch`; today only `ics` → `deploy`) is built by `scripts/build-targets.sh` and force-pushed to its branch (one commit, the latest build only, with `Site-Target` / `Site-Base` / `Source-Commit` trailers).
 4. On the ICS server, `~/update_site.sh` (symlink to `~/site/update_site.sh`) pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise runs `scripts/pull-deploy.sh`: if `deploy` holds a build not yet deployed, it syncs it into `~/public_html` via `deploy.sh`. `--force` republishes.
 
-**GitHub Pages mirror** (`https://kazuha.infp.info/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds the `pages` target of `deploy/targets.json` (`SITE_URL=https://kazuha.infp.info`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `infp.info` zone, CNAME `kazuha` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
+**GitHub Pages mirror** (`https://uci.kazuha.me/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds the `pages` target of `deploy/targets.json` (`SITE_URL=https://uci.kazuha.me`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `kazuha.me` zone, CNAME `uci` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
 
 ### Server settings (`deploy.env`)
 
 `update_site.sh`, `scripts/pull-deploy.sh` and `scripts/deploy.sh` read their settings through `scripts/deploy-env.sh` from `deploy.env` in the repo root (git-ignored, one per server). There are **no defaults**: without `deploy.env`, or with any setting missing, the scripts stop before touching anything. `deploy.env.example` is only the template (its values are the ICS ones). Settings: `DEPLOY_BRANCH`, `SITE_BASE` (checked against the build's `href` and its `Site-Base` trailer), `PUBLIC_URL`, `WEB_ROOT`, `KEEP` (one quoted, space-separated string of paths under the web root that aren't built from the repo; never touched by `--delete`), `DIST_DIR`, `STATE_DIR` (lock + last deployed build), `GH_REPO`. `deploy.sh` refuses `/`, `$HOME`, system dirs, and any `WEB_ROOT` containing the repo, `DIST_DIR` or `STATE_DIR`. A deploy that fails half-way is retried by the next run.
 
-New server: add a `branch` target to `deploy/targets.json` (branch `deploy-<name>`, site, base) and push; on the server `git clone https://github.com/KKazuhaK/ics.uci.edu ~/site`, `cp ~/site/deploy.env.example ~/site/deploy.env` and set every value, `ln -s ~/site/update_site.sh ~/update_site.sh`, then `~/update_site.sh` whenever you want to publish.
+New server: add a `branch` target to `deploy/targets.json` (branch `deploy-<name>`, site, base) and push; on the server `git clone https://github.com/KKazuhaK/uci.kazuha.me ~/site`, `cp ~/site/deploy.env.example ~/site/deploy.env` and set every value, `ln -s ~/site/update_site.sh ~/update_site.sh`, then `~/update_site.sh` whenever you want to publish.
 
 The local `npm run deploy` / `deploy:next` scripts build for the ICS base (`/~kazuhak`); on a server whose `deploy.env` sets another `SITE_BASE`, `deploy.sh` refuses those builds, so publish through CI there.
 
@@ -41,7 +41,7 @@ npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note
 - `build.format: "preserve"`: `about.astro` → `about.html`, `x/index.astro` → `x/index.html`, so legacy URLs keep working.
 - Before committing: Opus adversarial review of the diff (see the global CLAUDE.md).
 - Commits and PRs are authored solely by Kazuha: no `Co-Authored-By`, no Claude author/committer, no "Generated with" lines, no AI credit in code or docs.
-- GitHub `KKazuhaK/ics.uci.edu` `main` is the source of truth; pull before working locally. Don't commit to the `deploy` branch (CI overwrites it).
+- GitHub `KKazuhaK/uci.kazuha.me` `main` is the source of truth; pull before working locally. Don't commit to the `deploy` branch (CI overwrites it).
 
 ---
 
@@ -194,7 +194,7 @@ Cloudflare Workers AI (Gemma 4 text, Llama 4 Scout for images).
 
 - **Widget** `public/assets/js/chat-widget.js` on every page (via BaseLayout); reads page text (16000 chars) as context; Markdown + KaTeX rendering; image/PDF/text upload (8 MB). Skipped on `/tools/ask-ai/`. Groups with `#back-to-top` into `#cw-btn-group`.
 - **Standalone** `/tools/ask-ai/`: no system prompt; login via Kazuha Hub SSO (Entra ID → JWT, 7 days) or access code (`CHAT_PASSWORD`, comma-separated).
-- **Worker** reference copy `public/tools/ask-ai/worker.js`, deployed at `https://ics-uci-edu-chat-ai.kazuhahub.workers.dev`. Env: binding `AI`; `CHAT_PASSWORD`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`. Free plan 10,000 neurons/day (error 4006 → "try again tomorrow"). Re-emits OpenAI-style SSE. Thinking on, reasoning dropped. Routes: `GET /auth/login`, `GET /auth/callback`, `POST /` (`mode: "page" | "chat"`). CORS: `https://ics.uci.edu`, `https://kazuha.infp.info` (Pages mirror), `http://localhost`. SSO login always returns to the ICS `/tools/ask-ai/`. Redeploy after changing prompt/model/auth.
+- **Worker** reference copy `public/tools/ask-ai/worker.js`, deployed at `https://ics-uci-edu-chat-ai.kazuhahub.workers.dev`. Env: binding `AI`; `CHAT_PASSWORD`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`. Free plan 10,000 neurons/day (error 4006 → "try again tomorrow"). Re-emits OpenAI-style SSE. Thinking on, reasoning dropped. Routes: `GET /auth/login`, `GET /auth/callback`, `POST /` (`mode: "page" | "chat"`). CORS: `https://ics.uci.edu`, `https://uci.kazuha.me` (Pages mirror), `http://localhost`. SSO login always returns to the ICS `/tools/ask-ai/`. Redeploy after changing prompt/model/auth.
 - **Knowledge base**: worker fetches `/sitemap.json` hourly and pastes it into the widget's system prompt (`SCOPE_RULES`: site-only, never reveal model/provider). `sitemap.json` is generated from courses/notes/data at build — nothing to run by hand.
 
 ---
