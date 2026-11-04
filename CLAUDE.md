@@ -13,14 +13,33 @@
 
 1. Push to `KKazuhaK/ics.uci.edu` `main` (from here, Claude Code on the web, or claude.ai).
 2. GitHub Actions (`.github/workflows/site.yml`) runs `astro check`, the renderer parity test and the build on every push. A failing build stops here and the live site stays as it was (see the Actions tab for the error).
-3. On `main`, the build is force-pushed to the `deploy` branch (one commit, the latest build only).
+3. On `main`, each server target in `deploy/targets.json` (kind `branch`; today only `ics` → `deploy`) is built by `scripts/build-targets.sh` and force-pushed to its branch (one commit, the latest build only, with `Site-Target` / `Site-Base` / `Source-Commit` trailers).
 4. Cron on circinus-19 runs `scripts/pull-deploy.sh` every 5 minutes: if `deploy` moved, it syncs that build into `~/public_html` via `deploy.sh` (log: `~/.cache/site-pull-deploy.log`; it also fast-forwards `~/site`). `scripts/pull-deploy.sh --force` redeploys now.
 
-**GitHub Pages mirror** (`https://kazuha.infp.info/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds again with `SITE_URL=https://kazuha.infp.info`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/` (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `infp.info` zone, CNAME `kazuha` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
+**GitHub Pages mirror** (`https://kazuha.infp.info/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds the `pages` target of `deploy/targets.json` (`SITE_URL=https://kazuha.infp.info`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `infp.info` zone, CNAME `kazuha` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
 
 To update right away instead of waiting for cron: `~/update_site.sh` (symlink to `~/site/update_site.sh`): pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise publishes that build (`--force` republishes).
 
 Cron entry (per openlab node; re-add if the job lives on another node): `*/5 * * * * $HOME/site/scripts/pull-deploy.sh >> $HOME/.cache/site-pull-deploy.log 2>&1`
+
+### Servers (`scripts/site-sync.sh`)
+
+Any server serves a prebuilt branch with `scripts/site-sync.sh` (bash + git + rsync + flock; `gh` only for `now`; no Node). Its settings live outside the repo in `~/.config/kzh-site/<target>.conf` (sourced by bash: `TARGET`, `BRANCH`, `WEB_ROOT`, `KEEP=(…)` paths under the web root that aren't built from the repo; optional `REPO`, `GH_REPO`, `CHECKOUT`, `CHMOD`, `SELF_UPDATE`). State, lock and cron log: `~/.cache/kzh-site/<target>/`.
+
+New server: add a `branch` target to `deploy/targets.json` (name, branch `deploy-<name>`, site, base; optional canonical), push, then on the server:
+
+```bash
+git clone https://github.com/KKazuhaK/ics.uci.edu ~/site     # only the scripts are used
+~/site/scripts/site-sync.sh init <name>                      # writes the config (from deploy/<name>.conf.example if present)
+~/site/scripts/site-sync.sh sync --dry-run --adopt           # shows what would change / be deleted
+~/site/scripts/site-sync.sh sync --adopt                     # first real sync into a non-empty web root
+~/site/scripts/site-sync.sh install-cron 5                   # */5 cron entry, tagged "# site-sync:<name>"
+~/site/scripts/site-sync.sh status | now | sync --force | uninstall-cron
+```
+
+Guards: it only syncs a build whose `Site-Target` matches `TARGET`; refuses `/`, `$HOME` and other system dirs as `WEB_ROOT`, a web root containing `.git`, and a non-empty web root it hasn't synced before unless `--adopt`. Without `-c` it uses `$SITE_SYNC_CONF` or the only `*.conf` in `~/.config/kzh-site/`. `SELF_UPDATE=1` (default) fast-forwards the checkout the script runs from, so the script stays current.
+
+ICS uses `deploy/ics.conf.example` (`KEEP` = the old `deploy.sh` excludes). Switching ICS from the old cron: `init ics`, `sync --dry-run --adopt`, `sync --adopt`, then `install-cron 5 --replace-legacy` (removes the `pull-deploy.sh` entry). `pull-deploy.sh` / `update_site.sh` keep working until then; afterwards `site-sync.sh now` replaces `update_site.sh`.
 
 Local commands (still work; a local `npm run deploy` is replaced by the next CI build):
 

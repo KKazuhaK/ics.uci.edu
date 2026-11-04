@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Build and publish the deployment targets listed in deploy/targets.json (used by CI).
+#   scripts/build-targets.sh list [KIND]      target names, optionally only one kind ("branch", "pages")
+#   scripts/build-targets.sh build NAME OUT   astro build for that target's site/base, output moved to OUT/
+#   scripts/build-targets.sh push NAME DIR    force-push DIR as the single commit of the target's branch
+#
+# A "branch" target is a server that pulls its prebuilt site from a branch with
+# scripts/site-sync.sh. Each build commit carries trailers that site-sync.sh checks
+# before syncing, so a server can never publish a build made for another target:
+#   Site-Target: <name>
+#   Site-Base: <base>
+#   Source-Commit: <full sha>
+# push needs TOKEN, GITHUB_REPOSITORY, GITHUB_SHA and (optional) MSG, as in Actions.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+targets="deploy/targets.json"
+
+# field NAME KEY -> value, or "" when the key is absent
+field() {
+  node -e '
+    const t = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))[process.argv[2]];
+    if (!t) { console.error(`unknown target: ${process.argv[2]}`); process.exit(1); }
+    const v = t[process.argv[3]];
+    process.stdout.write(v == null ? "" : String(v));
+  ' "$targets" "$1" "$2"
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  list)
+    node -e '
+      const all = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+      for (const [name, t] of Object.entries(all)) if (!process.argv[2] || t.kind === process.argv[2]) console.log(name);
+    ' "$targets" "${2:-}"
+    ;;
+
+  build)
+    name="${2:?usage: build NAME OUT}"; out="${3:?usage: build NAME OUT}"
+    site="$(field "$name" site)"; base="$(field "$name" base)"; canonical="$(field "$name" canonical)"
+    [ -n "$site" ] && [ -n "$base" ] || { echo "target $name needs site and base" >&2; exit 1; }
+    echo "→ $name: site=$site base=$base${canonical:+ canonical=$canonical}"
+    if [ -n "$canonical" ]; then
+      SITE_URL="$site" SITE_BASE="$base" CANONICAL_URL="$canonical" npx astro build
+    else
+      env -u CANONICAL_URL SITE_URL="$site" SITE_BASE="$base" npx astro build
+    fi
+    if [ "${out%/}" != "dist" ]; then
+      rm -rf "$out"; mkdir -p "$(dirname "$out")"; mv dist "$out"
+    fi
+    ;;
+
+  push)
+    name="${2:?usage: push NAME DIR}"; dir="${3:?usage: push NAME DIR}"
+    [ "$(field "$name" kind)" = "branch" ] || { echo "target $name is not a branch target" >&2; exit 1; }
+    branch="$(field "$name" branch)"; base="$(field "$name" base)"
+    [ -n "$branch" ] || { echo "target $name has no branch" >&2; exit 1; }
+    : "${TOKEN:?}" "${GITHUB_REPOSITORY:?}" "${GITHUB_SHA:?}"
+    msg="${MSG:-}"; msg="${msg%%$'\n'*}"
+    cd "$dir"
+    rm -rf .git
+    git init -q -b "$branch"
+    git add -A
+    git -c user.name="Kazuha Mo" -c user.email="kazuhak@uci.edu" commit -q -F - <<EOF
+Build ${GITHUB_SHA::7}${msg:+: $msg}
+
+Site-Target: ${name}
+Site-Base: ${base}
+Source-Commit: ${GITHUB_SHA}
+EOF
+    git push -q -f "${PUSH_REMOTE:-https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git}" "$branch"
+    echo "→ $name: pushed $(git rev-parse --short HEAD) to $branch"
+    ;;
+
+  *)
+    sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
+esac
