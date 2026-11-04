@@ -16,7 +16,9 @@
 3. On `main`, the build is force-pushed to the `deploy` branch (one commit, the latest build only).
 4. Cron on circinus-19 runs `scripts/pull-deploy.sh` every 5 minutes: if `deploy` moved, it syncs that build into `~/public_html` via `deploy.sh` (log: `~/.cache/site-pull-deploy.log`; it also fast-forwards `~/site`). `scripts/pull-deploy.sh --force` redeploys now.
 
-To update right away instead of waiting for cron: `~/update_site.sh` (symlink to `~/site/update_site.sh`): pulls `~/site`, waits for CI on the latest `main` commit, stops if it failed, otherwise publishes that build (`--force` republishes).
+**GitHub Pages mirror** (`https://kazuha.infp.info/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds again with `SITE_URL=https://kazuha.infp.info`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/` (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `infp.info` zone, CNAME `kazuha` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
+
+To update right away instead of waiting for cron: `~/update_site.sh` (symlink to `~/site/update_site.sh`): pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise publishes that build (`--force` republishes).
 
 Cron entry (per openlab node; re-add if the job lives on another node): `*/5 * * * * $HOME/site/scripts/pull-deploy.sh >> $HOME/.cache/site-pull-deploy.log 2>&1`
 
@@ -188,7 +190,7 @@ Cloudflare Workers AI (Gemma 4 text, Llama 4 Scout for images).
 
 - **Widget** `public/assets/js/chat-widget.js` on every page (via BaseLayout); reads page text (16000 chars) as context; Markdown + KaTeX rendering; image/PDF/text upload (8 MB). Skipped on `/tools/ask-ai/`. Groups with `#back-to-top` into `#cw-btn-group`.
 - **Standalone** `/tools/ask-ai/`: no system prompt; login via Kazuha Hub SSO (Entra ID → JWT, 7 days) or access code (`CHAT_PASSWORD`, comma-separated).
-- **Worker** reference copy `public/tools/ask-ai/worker.js`, deployed at `https://ics-uci-edu-chat-ai.kazuhahub.workers.dev`. Env: binding `AI`; `CHAT_PASSWORD`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`. Free plan 10,000 neurons/day (error 4006 → "try again tomorrow"). Re-emits OpenAI-style SSE. Thinking on, reasoning dropped. Routes: `GET /auth/login`, `GET /auth/callback`, `POST /` (`mode: "page" | "chat"`). CORS: `https://ics.uci.edu`, `http://localhost`. Redeploy after changing prompt/model/auth.
+- **Worker** reference copy `public/tools/ask-ai/worker.js`, deployed at `https://ics-uci-edu-chat-ai.kazuhahub.workers.dev`. Env: binding `AI`; `CHAT_PASSWORD`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `JWT_SECRET`. Free plan 10,000 neurons/day (error 4006 → "try again tomorrow"). Re-emits OpenAI-style SSE. Thinking on, reasoning dropped. Routes: `GET /auth/login`, `GET /auth/callback`, `POST /` (`mode: "page" | "chat"`). CORS: `https://ics.uci.edu`, `https://kazuha.infp.info` (Pages mirror), `http://localhost`. SSO login always returns to the ICS `/tools/ask-ai/`. Redeploy after changing prompt/model/auth.
 - **Knowledge base**: worker fetches `/sitemap.json` hourly and pastes it into the widget's system prompt (`SCOPE_RULES`: site-only, never reveal model/provider). `sitemap.json` is generated from courses/notes/data at build — nothing to run by hand.
 
 ---
