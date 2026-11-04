@@ -1,5 +1,6 @@
 # Build and check every push; on main, publish the build to the `deploy` branch.
 # The ICS server picks it up within 5 minutes (scripts/pull-deploy.sh via cron).
+# On main, the `pages` job also publishes a mirror build to GitHub Pages.
 name: site
 
 on:
@@ -50,3 +51,54 @@ jobs:
           git -c user.name="Kazuha Mo" -c user.email="kazuhak@uci.edu" \
             commit -q -m "Build ${GITHUB_SHA::7}: ${MSG%%$'\n'*}"
           git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy
+
+  # GitHub Pages mirror at kazuha.infp.info. Runs only after `build` passed, and
+  # never touches the `deploy` branch, so the ICS site is unaffected either way.
+  pages:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.22"
+          cache: npm
+
+      - run: npm ci
+      - name: Build for the mirror's domain root
+        run: npx astro build
+        env:
+          SITE_URL: https://kazuha.infp.info
+          SITE_BASE: /
+          CANONICAL_URL: https://ics.uci.edu/~kazuhak/
+          TZ: America/Los_Angeles
+
+      # Deployment-local config (read by bento.js), from the repo variable
+      # PAGES_SITE_LOCAL_JSON; skipped when the variable is unset.
+      - name: Write assets/config/site.local.json
+        if: vars.PAGES_SITE_LOCAL_JSON != ''
+        env:
+          JSON: ${{ vars.PAGES_SITE_LOCAL_JSON }}
+        run: node -e 'JSON.parse(process.env.JSON); require("fs").writeFileSync("dist/assets/config/site.local.json", process.env.JSON)'
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

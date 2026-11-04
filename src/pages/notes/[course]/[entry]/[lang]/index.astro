@@ -4,6 +4,7 @@ import BaseLayout from "../../../../../layouts/BaseLayout.astro";
 import NoteReader from "../../../../../components/NoteReader.astro";
 import { getCourses, getNoteGroups } from "../../../../../lib/notes";
 import type { Lang } from "../../../../../lib/i18n";
+import { canonicalUrl } from "../../../../../lib/canonical";
 import { noteUrl } from "../../../../../lib/urls";
 
 export const getStaticPaths = (async () => {
@@ -26,7 +27,7 @@ const note = props.group.versions[props.lang]!;
 
 <BaseLayout title={`${props.course.data.name} ${note.data.title}`} description={note.data.summary} lang={props.lang} navPath="notes/">
   {Object.keys(props.group.versions).map((l) => (
-    <link slot="head" rel="alternate" hreflang={l} href={new URL(noteUrl(props.group.courseSlug, props.group.slug, l as Lang), Astro.site).href} />
+    <link slot="head" rel="alternate" hreflang={l} href={canonicalUrl(noteUrl(props.group.courseSlug, props.group.slug, l as Lang), Astro.site)} />
   ))}
   <NoteReader {...props} />
 </BaseLayout>

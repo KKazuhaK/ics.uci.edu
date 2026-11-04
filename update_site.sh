@@ -17,10 +17,19 @@ if command -v gh >/dev/null 2>&1; then
   if [ -z "$run" ]; then
     echo "  no CI run found for this commit yet (just pushed?); publishing the latest finished build"
   else
-    read -r id status conclusion <<<"$run"
+    read -r id _ _ <<<"$run"
+    # Only the `build` job decides what reaches the ICS site; the `pages` job
+    # (GitHub Pages mirror) can fail or still be running without affecting it.
+    build_job() { gh run view "$id" --repo "$repo" --json jobs --jq '.jobs[] | select(.name == "build") | "\(.status) \(.conclusion)"' 2>/dev/null || true; }
+    read -r status conclusion <<<"$(build_job)"
     if [ "$status" != "completed" ]; then
       echo "→ CI is still building this commit; waiting…"
-      gh run watch "$id" --repo "$repo" --interval 10 --exit-status >/dev/null 2>&1 && conclusion=success || conclusion=failure
+      for _ in $(seq 90); do  # give up after ~15 minutes
+        sleep 10
+        read -r status conclusion <<<"$(build_job)"
+        [ "$status" = "completed" ] && break
+      done
+      [ "$status" = "completed" ] || conclusion=timeout
     fi
     if [ "$conclusion" != "success" ]; then
       echo "✗ CI failed for this commit, so it was not published. The live site keeps the last good build."
