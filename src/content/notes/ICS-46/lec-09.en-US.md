@@ -1,6 +1,6 @@
 ---
 title: "Quick Sort"
-summary: "Quick sort: Hoare/Sedgewick 2-pointer partitioning, full traces, worst/best/average analysis, stability and in-place properties, comparison of all sorts so far, and pivot/cutoff improvements."
+summary: "Quick sort: Hoare/Sedgewick 2-pointer partitioning, full traces, worst/best/average analysis, stability and in-place properties, comparison of all sorts so far, and pivot/cutoff improvements with Lab 4's median-of-three and random pivots and timings."
 ---
 
 # Information and Computer Science 46 — Lecture 9: Quick Sort
@@ -231,6 +231,39 @@ Slide 42:
 > 📘 **Beyond the lecture**: algs4 suggests a cutoff anywhere from about 5 to 15 elements for switching to insertion sort, and says a sample of **3** (median-of-three) captures most of the benefit of median-of-sample.
 
 Slide 43 links "dance" videos of [merge sort](https://www.youtube.com/watch?v=XaqR3G_NVoo) and [quick sort](https://www.youtube.com/watch?v=3San3uKKHgg) — the quick sort dance uses a **different partition variant** than the one in lecture, so don't use it to check traces.
+
+### 7.1 Pivot strategies in code (Lab 4)
+
+Lab 4's `QuickOptimized` implements improvement 2 with **no up-front shuffle**. The constructor takes `"LO"` (default), `"MEDIAN"` or `"RANDOM"`, and `choosePivot` runs before every `partition`. Whatever it picks is **swapped into `data[lo]`**, so `partition` stays exactly the slide 8 code (pivot `v = a[lo]`).
+
+```cpp
+// MEDIAN: order a[lo], a[mid], a[hi],
+// then move the median into a[lo]
+int mid = lo + (hi - lo) / 2;
+if (a[mid] < a[lo]) std::swap(a[lo], a[mid]);
+if (a[hi] < a[lo])  std::swap(a[lo], a[hi]);
+if (a[hi] < a[mid]) std::swap(a[mid], a[hi]);
+std::swap(a[lo], a[mid]);
+
+// RANDOM: any index in [lo, hi] (inclusive)
+std::uniform_int_distribution<int> dist{lo, hi};
+std::swap(a[lo], a[dist(rng)]);
+```
+
+- After the three compare-swaps, `a[lo] <= a[mid] <= a[hi]`, so `a[mid]` is the median of the three; the last swap moves it to `lo`. Anything else that is not `"MEDIAN"`/`"RANDOM"` falls back to `"LO"` (pivot = first element).
+- `rng` is a member (`std::mt19937 rng{std::random_device{}()};`), seeded once. Creating a `random_device` on every call is slow.
+- **Why it matters — sorted input.** With `"LO"` the pivot is the smallest key every time, so each partition splits 0 / n−1: ~n²/2 compares and recursion depth n (a deep enough input overflows the stack). Median-of-three picks the true middle of a sorted range, so the top-level split is perfect and the ones below stay near-perfect; a random pivot gives the probabilistic n log n guarantee that the shuffle used to give.
+
+Measured with the lab's `main.cpp` (g++ -O2, one run, ms):
+
+| n = 64,000 | Selection | Insertion | Merge | Merge, cutoff 32 | Quick LO | Quick MEDIAN | Quick RANDOM |
+|---|---|---|---|---|---|---|---|
+| random | 836 | 7,766 | 6.5 | 8.6 | 5.2 | 6.2 | 5.5 |
+| already sorted | 871 | 0.04 | 0.34 | 0.08 | **983** | 0.72 | 1.95 |
+
+The table is section 6's point in numbers: quick sort is the fastest on random data but quadratic with a bad pivot; insertion sort is the fastest of all on sorted data and the slowest on random data, even slower than selection sort with the same O(n²), because every step of the swap-based version is a dependent swap rather than a cheap compare. Merge sort tuning (cutoff, skip check) is in [Lecture 8](lec-08.en-US.md#61-improvements-1-and-2-in-code-lab-4).
+
+> ⚠️ **Pitfall**: `medianOfThree` / `randomPivot` must leave the pivot **in `a[lo]`**, because `partition` assumes it. Returning the pivot value but leaving it at `mid` (or at the random index) partitions around the wrong element.
 
 ## 8. Complete Implementation
 

@@ -277,6 +277,8 @@ n=1000 reversed: insertion cmps=499500 swaps=499500
 
 > 💡 **Key Insight**: both are O(n²) in the worst case. Selection sort pays n²/2 comparisons *every* time. Insertion sort pays only for the disorder that is actually there.
 
+Lab 4 times both (with merge and quick sort): on 64,000 random ints this swap-based insertion sort is ~9× *slower* than selection sort (each step is a dependent swap rather than a cheap compare, so equal-looking O(n²) costs very different constants); on sorted input it is ~20,000× faster. Table in [Lecture 9](lec-09.en-US.md#71-pivot-strategies-in-code-lab-4).
+
 > ➡️ **Continued in [Lecture 8](lec-08.en-US.md)**: merge sort (merge implementation and trace, slides p28–44 of this deck, repeated in Lecture 8).
 
 ---

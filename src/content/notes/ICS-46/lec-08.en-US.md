@@ -1,6 +1,6 @@
 ---
 title: "Merge Sort, Quick Sort"
-summary: "Merging sorted halves, top-down merge sort and its N log N analysis, stability and improvements, plus quick sort's background (continued in Lecture 9)."
+summary: "Merging sorted halves, top-down merge sort and its N log N analysis, stability and improvements (Lab 4 cutoff and skip check, HW 5 merge without bounds checks), plus quick sort's background (continued in Lecture 9)."
 ---
 
 # Information and Computer Science 46 — Lecture 8: Merge Sort, Quick Sort
@@ -220,6 +220,80 @@ Sorting so far (slide 47):
 | merge sort | | ✓ | O(n log n) | O(n log n) | O(n log n) | guaranteed performance; stable |
 
 > ⚠️ **Pitfall**: change the tie-break to `aux[j] <= aux[i]` and merge sort is no longer stable (equal items from the right jump ahead).
+
+### 6.1 Improvements 1 and 2 in code (Lab 4)
+
+Lab 4's `MergeOptimized` (TimingSort project) builds improvements 1 and 2 into the recursive helper. Same algorithm as section 3, but on `std::vector<T>&`, with `aux` allocated once in `sort()`:
+
+```cpp
+template <typename T>
+void MergeOptimized<T>::mergeSortHelper(std::vector<T>& data,
+        std::vector<T>& aux, int lo, int hi)
+{
+    if (hi <= lo) return;
+
+    // 1. small range: insertion sort on data[lo..hi]
+    if (insertionSortThreshold > 0 &&
+        hi - lo + 1 <= insertionSortThreshold) {
+        for (int i = lo + 1; i <= hi; ++i)
+            for (int j = i; j > lo && data[j] < data[j - 1]; --j)
+                std::swap(data[j], data[j - 1]);
+        return;
+    }
+
+    int mid = lo + (hi - lo) / 2;
+    mergeSortHelper(data, aux, lo, mid);
+    mergeSortHelper(data, aux, mid + 1, hi);
+
+    // 2. halves already in order: nothing to merge
+    if (data[mid] <= data[mid + 1]) return;
+    merge(data, aux, lo, mid, hi);
+}
+```
+
+- **Threshold ≤ 0 turns the cutoff off.** The constructor's default threshold is `-1` (no cutoff, `MergeOptimized<int>()`), and `name()` prints `MergeSort: 32` only when it is on.
+- **Skip check**: on already sorted input every `merge` is skipped, so the whole sort costs T(n) = 2T(n/2) + 1 = **Θ(n)** (n − 1 comparisons). Neither change moves equal keys past each other, so the sort **stays stable** (the lab's `IsStable` test checks this).
+- **Measured** (lab `main.cpp`, g++ -O2, 64,000 ints): random 6.5 ms without cutoff vs 8.6 ms (cutoff 32) and 12.0 ms (cutoff 64); sorted 0.34 ms vs 0.08 ms. A separate benchmark on 2²⁰ random ints (best of 5): no cutoff 128 ms, cutoff 8 → 130, 16 → 140, 32 → 169, 64 → 221. So with this swap-based insertion sort the cutoff only pays off on (nearly) sorted data, and 32/64 is far above algs4's ~10–15. Table in [Lecture 9](lec-09.en-US.md#71-pivot-strategies-in-code-lab-4).
+
+> ⚠️ **Pitfall**: the insertion sort inside the helper must stop at `j > lo`, not `j > 0`. With `j > 0` it keeps swapping into the neighbouring subarray, which the recursion has not finished yet.
+
+### 6.2 Merging without the exhaustion checks (HW 5)
+
+HW 5 (Gradescope, "Mergesort problems" 1) asks to make `merge` faster by removing the first two tests, `i > mid` and `j > hi`. The trick (algs4 exercise 2.2.10, "faster merge"): copy the right half into `aux` **in reverse**. Then `aux[lo..hi]` rises through the left half and falls through the right half, and the largest item of each half sits next to the middle. When one half runs out, its pointer moves onto the other half's **largest** item, which is never smaller than anything still waiting, so it acts as a sentinel and no bounds checks are needed. Merge from both ends: `i` moves right from `lo`, `j` moves left from `hi`.
+
+```cpp
+template <typename T>
+void merge(T* a, T* aux, int lo, int mid, int hi)
+{
+    for (int k = lo; k <= mid; ++k) {
+        aux[k] = a[k];
+    }
+
+    for (int k = mid + 1; k <= hi; ++k) {
+        aux[k] = a[hi + mid + 1 - k];
+    }
+
+    int i = lo;
+    int j = hi;
+
+    for (int k = lo; k <= hi; ++k) {
+        if (aux[j] < aux[i]) {
+            a[k] = aux[j--];
+        }
+        else {
+            a[k] = aux[i++];
+        }
+    }
+}
+```
+
+Example with section 2's halves: `A G L O R | H I M S T` is copied as `aux = A G L O R T S M I H`. The merge takes A, G (left), H, I, (right from the end) … and after R the left pointer moves onto T, so S and T come out in order without any `i > mid` test.
+
+- Index check: `k = mid + 1` copies `a[hi]`, `k = hi` copies `a[mid + 1]`, so the second loop reverses exactly the right half.
+- Cost: one comparison per step instead of up to three, still Θ(n) per merge and **Θ(n log n)** overall. Same separate benchmark (2²⁰ random ints): 118 ms vs 128 ms (~8% faster).
+- **Not stable.** Once the left half is used up, `i` walks into the reversed right half, and on a tie the `else` branch takes `aux[i]`, the item that came *later*. Example: `(1a) | (2b 2c)` → `aux = 1a 2c 2b` → result `1a 2c 2b`. That's why Lab 4's `merge` (which must pass `IsStable`) keeps the four-branch version from section 2.
+
+> ⚠️ **Pitfall**: two easy slips in this version. The first copy loop must start at `lo`, not `0` (copying from 0 makes each merge cost O(hi), and the whole sort O(n²)). And the left pointer moves forward (`aux[i++]`); only `j` counts down.
 
 ## 7. Quick Sort: Background
 

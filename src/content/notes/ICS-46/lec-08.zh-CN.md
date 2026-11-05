@@ -1,6 +1,6 @@
 ---
 title: "归并排序与快速排序"
-summary: "合并两个有序半段、自顶向下归并排序及其 N log N 分析、稳定性与改进，以及快速排序的背景（在 Lecture 9 中继续）。"
+summary: "合并两个有序半段、自顶向下归并排序及其 N log N 分析、稳定性与改进（Lab 4 的阈值切换与跳过检查、HW 5 去掉边界检查的合并），以及快速排序的背景（在 Lecture 9 中继续）。"
 ---
 
 # Information and Computer Science 46 — Lecture 8：归并排序与快速排序
@@ -220,6 +220,80 @@ $$C(n) = 2\,C(n/2) + (n - 1), \qquad C(1) = 0$$
 | 归并排序 | | ✓ | O(n log n) | O(n log n) | O(n log n) | 性能有保证；稳定 |
 
 > ⚠️ **易错点**：如果把平局判断改为 `aux[j] <= aux[i]`，归并排序就不再稳定了（来自右侧的相等元素会跑到前面）。
+
+### 6.1 改进 1 和 2 的代码实现（Lab 4）
+
+Lab 4 的 `MergeOptimized`（TimingSort 项目）把改进 1 和 2 写进了递归辅助函数。算法与第 3 节相同，只是改用 `std::vector<T>&`，`aux` 在 `sort()` 中只分配一次：
+
+```cpp
+template <typename T>
+void MergeOptimized<T>::mergeSortHelper(std::vector<T>& data,
+        std::vector<T>& aux, int lo, int hi)
+{
+    if (hi <= lo) return;
+
+    // 1. small range: insertion sort on data[lo..hi]
+    if (insertionSortThreshold > 0 &&
+        hi - lo + 1 <= insertionSortThreshold) {
+        for (int i = lo + 1; i <= hi; ++i)
+            for (int j = i; j > lo && data[j] < data[j - 1]; --j)
+                std::swap(data[j], data[j - 1]);
+        return;
+    }
+
+    int mid = lo + (hi - lo) / 2;
+    mergeSortHelper(data, aux, lo, mid);
+    mergeSortHelper(data, aux, mid + 1, hi);
+
+    // 2. halves already in order: nothing to merge
+    if (data[mid] <= data[mid + 1]) return;
+    merge(data, aux, lo, mid, hi);
+}
+```
+
+- **阈值 ≤ 0 表示关闭切换。** 构造函数的默认阈值是 `-1`（不切换，`MergeOptimized<int>()`），只有开启时 `name()` 才输出 `MergeSort: 32`。
+- **跳过检查**：输入已排序时每次 `merge` 都被跳过，整个排序的代价是 T(n) = 2T(n/2) + 1 = **Θ(n)**（n − 1 次比较）。两项改动都不会让相等的键互相越过，所以排序**仍然稳定**（Lab 的 `IsStable` 测试检查的就是这一点）。
+- **实测**（Lab 的 `main.cpp`，g++ -O2，64,000 个 int）：随机数据不切换 6.5 ms，阈值 32 为 8.6 ms，阈值 64 为 12.0 ms；已排序数据 0.34 ms 对 0.08 ms。另做的基准测试，2²⁰ 个随机 int（5 次取最好）：不切换 128 ms，阈值 8 → 130，16 → 140，32 → 169，64 → 221。也就是说，用这种基于交换的插入排序，切换只在（接近）有序的数据上划算，而 32/64 远高于 algs4 建议的 ~10–15。表格见 [Lecture 9](lec-09.zh-CN.md#71-枢轴策略的代码实现lab-4)。
+
+> ⚠️ **易错点**：辅助函数里的插入排序必须在 `j > lo` 处停下，而不是 `j > 0`。写成 `j > 0` 会一直交换到相邻的子数组里，而那一段递归还没有处理完。
+
+### 6.2 去掉耗尽检查的合并（HW 5）
+
+HW 5（Gradescope，"Mergesort problems" 第 1 题）要求去掉 `merge` 中前两个判断 `i > mid` 和 `j > hi` 来加速。技巧（algs4 习题 2.2.10 "faster merge"）：把右半段**倒序**复制进 `aux`。这样 `aux[lo..hi]` 在左半段递增、在右半段递减，两个半段各自的最大元素都挨着中间。一个半段用完时，它的指针会走到另一个半段的**最大**元素上，这个元素不小于任何还在等待的元素，于是它充当了哨兵，不再需要边界检查。从两端合并：`i` 从 `lo` 向右走，`j` 从 `hi` 向左走。
+
+```cpp
+template <typename T>
+void merge(T* a, T* aux, int lo, int mid, int hi)
+{
+    for (int k = lo; k <= mid; ++k) {
+        aux[k] = a[k];
+    }
+
+    for (int k = mid + 1; k <= hi; ++k) {
+        aux[k] = a[hi + mid + 1 - k];
+    }
+
+    int i = lo;
+    int j = hi;
+
+    for (int k = lo; k <= hi; ++k) {
+        if (aux[j] < aux[i]) {
+            a[k] = aux[j--];
+        }
+        else {
+            a[k] = aux[i++];
+        }
+    }
+}
+```
+
+用第 2 节的两个半段举例：`A G L O R | H I M S T` 被复制成 `aux = A G L O R T S M I H`。合并依次取 A、G（左侧）、H、I（右侧，从末尾取）……取完 R 之后，左指针走到 T 上，于是 S 和 T 按顺序输出，不需要任何 `i > mid` 判断。
+
+- 下标检查：`k = mid + 1` 复制的是 `a[hi]`，`k = hi` 复制的是 `a[mid + 1]`，所以第二个循环恰好把右半段倒过来。
+- 代价：每步一次比较，而不是最多三次；每次合并仍是 Θ(n)，总体仍是 **Θ(n log n)**。同一个另做的基准测试（2²⁰ 个随机 int）：118 ms 对 128 ms（约快 8%）。
+- **不稳定。** 左半段用完后，`i` 会走进倒序的右半段；遇到相等时 `else` 分支取 `aux[i]`，也就是原本排在*后面*的那个。例子：`(1a) | (2b 2c)` → `aux = 1a 2c 2b` → 结果 `1a 2c 2b`。所以 Lab 4 的 `merge`（必须通过 `IsStable`）仍用第 2 节的四分支版本。
+
+> ⚠️ **易错点**：这个版本有两个容易写错的地方。第一个复制循环必须从 `lo` 开始，而不是 `0`（从 0 开始复制会让每次合并花 O(hi)，整个排序变成 O(n²)）。左指针是向前走的（`aux[i++]`），只有 `j` 递减。
 
 ## 7. 快速排序：背景
 

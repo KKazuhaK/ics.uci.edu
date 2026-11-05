@@ -1,6 +1,6 @@
 ---
 title: "快速排序"
-summary: "快速排序：Hoare/Sedgewick 双指针划分、完整排序过程追踪、最坏/最好/平均情况分析、稳定性与原地性、目前各排序算法对比，以及选主元与小数组截断等改进。"
+summary: "快速排序：Hoare/Sedgewick 双指针划分、完整排序过程追踪、最坏/最好/平均情况分析、稳定性与原地性、目前各排序算法对比，以及选主元与小数组截断等改进（含 Lab 4 的三数取中、随机枢轴与实测计时）。"
 ---
 
 # Information and Computer Science 46 — Lecture 9：快速排序
@@ -231,6 +231,39 @@ int partition(T* a, int lo, int hi) {
 > 📘 **课外补充**：algs4 建议切换到插入排序的阈值大约在 5 到 15 个元素之间，并指出取 **3** 个样本（三数取中）就能获得大部分“样本中位数”的好处。
 
 幻灯片 43 链接了 [归并排序](https://www.youtube.com/watch?v=XaqR3G_NVoo) 与 [快速排序](https://www.youtube.com/watch?v=3San3uKKHgg) 的“舞蹈”视频——快速排序的舞蹈使用的是与课上不同的**划分变体**，因此不要用它来核对追踪过程。
+
+### 7.1 枢轴策略的代码实现（Lab 4）
+
+Lab 4 的 `QuickOptimized` 实现了改进 2，并且**不做开始时的洗牌**。构造函数接受 `"LO"`（默认）、`"MEDIAN"` 或 `"RANDOM"`，每次 `partition` 之前先调用 `choosePivot`。无论选中哪个元素，都会被**交换到 `data[lo]`**，所以 `partition` 完全沿用幻灯片 8 的代码（枢轴 `v = a[lo]`）。
+
+```cpp
+// MEDIAN: order a[lo], a[mid], a[hi],
+// then move the median into a[lo]
+int mid = lo + (hi - lo) / 2;
+if (a[mid] < a[lo]) std::swap(a[lo], a[mid]);
+if (a[hi] < a[lo])  std::swap(a[lo], a[hi]);
+if (a[hi] < a[mid]) std::swap(a[mid], a[hi]);
+std::swap(a[lo], a[mid]);
+
+// RANDOM: any index in [lo, hi] (inclusive)
+std::uniform_int_distribution<int> dist{lo, hi};
+std::swap(a[lo], a[dist(rng)]);
+```
+
+- 三次比较交换之后 `a[lo] <= a[mid] <= a[hi]`，所以 `a[mid]` 是三者的中位数；最后一次交换把它移到 `lo`。除 `"MEDIAN"`/`"RANDOM"` 以外的取值都回退到 `"LO"`（枢轴 = 第一个元素）。
+- `rng` 是成员变量（`std::mt19937 rng{std::random_device{}()};`），只播种一次。每次调用都新建 `random_device` 会很慢。
+- **为什么重要——已排序的输入。** 用 `"LO"` 时枢轴每次都是最小的键，每次划分都是 0 / n−1：约 n²/2 次比较，递归深度为 n（输入足够大时会栈溢出）。三数取中在有序区间上正好取到中间值，顶层切分完美，下面各层也接近完美；随机枢轴则提供了原来由洗牌提供的“概率意义上的 n log n”保证。
+
+用 Lab 的 `main.cpp` 实测（g++ -O2，单次运行，单位 ms）：
+
+| n = 64,000 | 选择 | 插入 | 归并 | 归并，阈值 32 | 快排 LO | 快排 MEDIAN | 快排 RANDOM |
+|---|---|---|---|---|---|---|---|
+| 随机 | 836 | 7,766 | 6.5 | 8.6 | 5.2 | 6.2 | 5.5 |
+| 已排序 | 871 | 0.04 | 0.34 | 0.08 | **983** | 0.72 | 1.95 |
+
+这张表就是第 6 节观点的数字版：快速排序在随机数据上最快，但枢轴选得差就退化为平方级；插入排序在有序数据上是所有算法里最快的，在随机数据上却最慢，甚至比同为 O(n²) 的选择排序还慢，因为基于交换的版本每一步都是相互依赖的交换，而不是廉价的比较。归并排序的调优（阈值切换、跳过检查）见 [Lecture 8](lec-08.zh-CN.md#61-改进-1-和-2-的代码实现lab-4)。
+
+> ⚠️ **易错点**：`medianOfThree` / `randomPivot` 必须把枢轴**留在 `a[lo]`**，因为 `partition` 依赖这一点。只返回枢轴的值、却把它留在 `mid`（或随机下标）处，划分就会围绕错误的元素进行。
 
 ## 8. 完整实现
 
