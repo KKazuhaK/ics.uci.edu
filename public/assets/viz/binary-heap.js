@@ -10,7 +10,7 @@ export const meta = {
 	groupLabel: "operation",
 	params: {
 		heap: { type: "string", default: "", desc: "Starting keys pq[1..n] in level order, comma-separated (ints or 1–3 char words; at most 15). Need not be heap-ordered when the first op is swim/sink." },
-		ops: { type: "string", required: true, desc: "Operations separated by ';': insert(x), swim(k), sink(k), delMax(). At most 10." },
+		ops: { type: "string", required: true, desc: "Operations separated by ';': insert(x), swim(k), sink(k), delMax(). delMin() on a min-heap. At most 16." },
 		order: { type: "enum", values: ["max", "min"], default: "max", desc: "Max-heap (parent ≥ children) or min-heap (parent ≤ children; less() is flipped, use delMin())." },
 		code: { type: "enum", values: ["cpp", "none"], default: "cpp", desc: "Code shown beside the demo, with the running line highlighted." }
 	},
@@ -33,7 +33,7 @@ function parseHeap(text) {
 function parseOps(text) {
 	const parts = String(text).split(";").map(function(s) { return s.trim(); }).filter(Boolean);
 	if (parts.length === 0) return { error: "\"ops\" is empty" };
-	if (parts.length > 10) return { error: "\"ops\" has " + parts.length + " operations; at most 10" };
+	if (parts.length > 16) return { error: "\"ops\" has " + parts.length + " operations; at most 16" };
 	const ops = [];
 	for (const p of parts) {
 		let m;

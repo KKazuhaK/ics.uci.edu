@@ -212,6 +212,11 @@ function animateSwap(stage, swap) {
 	if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 	const row = stage.querySelector(".vz-row");
 	if (!row) return;
+	// Finish any arc still flying from the previous step (fast stepping / Play),
+	// so cells never stack up mid-air. Only the arcs made here are cancelled;
+	// the cells' CSS colour transitions keep running.
+	(stage._vzSwapAnims || []).forEach(function(an) { an.cancel(); });
+	stage._vzSwapAnims = [];
 	const a = row.children[swap[0]] && row.children[swap[0]].querySelector(".vz-cell");
 	const b = row.children[swap[1]] && row.children[swap[1]].querySelector(".vz-cell");
 	if (!a || !b) return;
@@ -221,11 +226,11 @@ function animateSwap(stage, swap) {
 	const lift = Math.min(ra.height * 0.75, 40);
 	const opts = { duration: 520, easing: "cubic-bezier(0.45, 0, 0.25, 1)" };
 	[[a, dx, -lift], [b, -dx, lift]].forEach(function(t) {
-		t[0].animate([
+		stage._vzSwapAnims.push(t[0].animate([
 			{ transform: "translate(" + t[1] + "px, 0)", zIndex: 2 },
 			{ transform: "translate(" + t[1] / 2 + "px, " + t[2] + "px) scale(1.08)", zIndex: 2, offset: 0.5 },
 			{ transform: "translate(0, 0)", zIndex: 2 }
-		], opts);
+		], opts));
 	});
 }
 
