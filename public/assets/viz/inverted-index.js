@@ -210,10 +210,10 @@ export function steps(config) {
 }
 
 const STYLE = `
-.vz-ii { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; justify-content: center; font: 0.76rem/1.25 "Consolas", "Menlo", monospace; }
-.vz-ii-box { max-height: 26rem; overflow: auto; border: 1px solid var(--vz-border); border-radius: 0.3rem; }
+.vz-ii { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; justify-content: center; max-height: 28rem; overflow: auto; font: 0.76rem/1.25 "Consolas", "Menlo", monospace; }
+.vz-ii-box { border: 1px solid var(--vz-border); border-radius: 0.3rem; }
 .vz-ii table { border-collapse: collapse; }
-.vz-ii th, .vz-ii td { border-bottom: 1px solid var(--vz-border); padding: 0.18rem 0.5rem; text-align: left; white-space: nowrap; }
+.vz-ii th, .vz-ii td { border-bottom: 1px solid var(--vz-border); padding: 0.18rem 0.4rem; text-align: left; white-space: nowrap; }
 .vz-ii thead th { position: sticky; top: 0; background: var(--vz-surface); font: 600 0.7rem/1.2 system-ui, sans-serif; color: var(--vz-muted); }
 .vz-ii td.num { text-align: right; }
 .vz-ii tr.is-cmp td { background: var(--vz-cmp-bg); }
