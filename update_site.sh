@@ -21,8 +21,8 @@ if command -v gh >/dev/null 2>&1; then
     echo "  no CI run found for this commit yet (just pushed?); publishing the latest finished build"
   else
     read -r id _ _ <<<"$run"
-    # Only the `build` job decides what reaches the servers; the `pages` job
-    # (GitHub Pages mirror) can fail or still be running without affecting them.
+    # Only the `build` job decides what reaches the servers; the `cloudflare` jobs
+    # (uci.kazuha.me) can fail or still be running without affecting them.
     build_job() { gh run view "$id" --repo "$repo" --json jobs --jq '.jobs[] | select(.name == "build") | "\(.status) \(.conclusion)"' 2>/dev/null || true; }
     read -r status conclusion <<<"$(build_job)"
     if [ "$status" != "completed" ]; then

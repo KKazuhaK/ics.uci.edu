@@ -3,7 +3,7 @@
 **Source:** `~/site/` (this repo) · **Served from:** `~/public_html/` (build output only, never edit it by hand)
 **Public URL:** `https://ics.uci.edu/~kazuhak/`
 **Stack:** Astro 7.4.1 + TypeScript (strictest), static output. Node 22.22 on the ICS host caps Astro at 7.4.1 (7.4.2+ needs Node ≥ 22.23.4).
-**Design system:** Bento — UCI blue + gold, Inter, pill nav, card grid. Vanilla JS in the browser, no framework runtime, no jQuery.
+**Design system:** Bento — UCI blue + gold, Inter (self-hosted via `@fontsource/inter`, no Google Fonts), pill nav, card grid. Vanilla JS in the browser, no framework runtime, no jQuery.
 
 ---
 
@@ -14,9 +14,12 @@
 1. Push to `KKazuhaK/uci.kazuha.me` `main` (from here, Claude Code on the web, or claude.ai).
 2. GitHub Actions (`.github/workflows/site.yml`) runs `astro check`, the renderer parity test and the build on every push. A failing build stops here and the live site stays as it was (see the Actions tab for the error).
 3. On `main`, each server target in `deploy/targets.json` (kind `branch`; today only `ics` → `deploy`) is built by `scripts/build-targets.sh` and force-pushed to its branch (one commit, the latest build only, with `Site-Target` / `Site-Base` / `Source-Commit` trailers).
-4. On the ICS server, `~/update_site.sh` (symlink to `~/site/update_site.sh`) pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `pages` job is ignored), stops if it failed, otherwise runs `scripts/pull-deploy.sh`: if `deploy` holds a build not yet deployed, it syncs it into `~/public_html` via `deploy.sh`. `--force` republishes.
+4. On the ICS server, `~/update_site.sh` (symlink to `~/site/update_site.sh`) pulls `~/site`, waits for the CI `build` job on the latest `main` commit (the `cloudflare` jobs are ignored), stops if it failed, otherwise runs `scripts/pull-deploy.sh`: if `deploy` holds a build not yet deployed, it syncs it into `~/public_html` via `deploy.sh`. `--force` republishes.
 
-**GitHub Pages mirror** (`https://uci.kazuha.me/`): on `main`, after `build` passes, the `pages` job in `site.yml` builds the `pages` target of `deploy/targets.json` (`SITE_URL=https://uci.kazuha.me`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`) and deploys with `actions/deploy-pages`. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp). Pages serves no `.htaccess` (hidden files are left out of the artifact), so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only. Its deployment-local `assets/config/site.local.json` comes from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset). DNS: Cloudflare `kazuha.me` zone, CNAME `uci` → `kkazuhak.github.io`, DNS only (grey cloud); domain set in repo Settings → Pages (Source: GitHub Actions).
+**Cloudflare mirror** (`https://uci.kazuha.me/`): on `main`, after `build` passes, the `cloudflare` job in `site.yml` builds the `cloudflare` target of `deploy/targets.json` (`SITE_URL=https://uci.kazuha.me`, `SITE_BASE=/`, `CANONICAL_URL=https://ics.uci.edu/~kazuhak/`) (canonical and hreflang tags point at the ICS pages, via `src/lib/canonical.ts`), writes `assets/config/site.local.json` from the repo variable `PAGES_SITE_LOCAL_JSON` (skipped when unset), and `scripts/build-targets.sh wrap` lays it out for a Worker: the build in `dist/`, plus a generated `wrangler.jsonc` (Worker `uci-kazuha-me`), `worker.js` (from `deploy/cloudflare/worker.js`), `dist/_headers` (`/_astro/*` cached 7 days) and `dist/.assetsignore`. The `cloudflare-publish` job (the only one with write access; it runs nothing from npm) force-pushes that as the single commit of the `cf-deploy` branch. Cloudflare Workers Builds watches `cf-deploy` with an empty build command and deploy command `npx wrangler@4.157.0 deploy`; no Cloudflare token is stored anywhere. It never touches the `deploy` branch; with none of those env vars set the build is the ICS one (identical output apart from the per-build `data-viz-version` stamp).
+- Static assets are served first; `worker.js` only answers what matches no asset: the speedtest's `tools/speedtest/downloading` (30 MiB, over the 25 MiB per-asset limit, so it is streamed instead) and `tools/speedtest/upload` (POST sink). `wrap` removes both from the build; `.htaccess` is in `.assetsignore`, so legacy redirects, the `.md` MIME type and the README/CLAUDE.md 403s are ICS-only.
+- Cloudflare's default `auto-trailing-slash` HTML handling serves `about.html` at `/about` (`/about.html` 307-redirects there); folder pages keep their trailing slash.
+- DNS: Cloudflare `kazuha.me` zone; `uci.kazuha.me` is a Custom Domain of the `uci-kazuha-me` Worker (it replaced the old `uci` CNAME to `kkazuhak.github.io`; GitHub Pages is turned off for this repo). Workers Builds: production branch `cf-deploy`, non-production branch builds off. Rollback: revert on `main`; a rollback in the Cloudflare dashboard lasts only until the next push.
 
 ### Server settings (`deploy.env`)
 
@@ -51,7 +54,9 @@ npx tsx scripts/migrate/parity.ts   # renderer vs legacy md-viewer on every note
 ~/site/
 ├── astro.config.mjs              # base, preserve format, legacy-redirects integration
 ├── integrations/legacy-redirects.ts  # appends 301s for pre-Astro URLs to dist/.htaccess
-├── .github/workflows/site.yml    # CI: check + build every push; main → deploy branch
+├── .github/workflows/site.yml    # CI: check + build every push; main → deploy branch (ICS) and cf-deploy (Cloudflare)
+├── deploy/targets.json           # build targets (ICS server branch, Cloudflare Worker)
+├── deploy/cloudflare/worker.js   # Worker script for uci.kazuha.me (speedtest download/upload only)
 ├── scripts/deploy.sh             # staging / prod rsync with guards (SRC=<dir> for another build)
 ├── scripts/pull-deploy.sh        # deploy branch → web root (run by update_site.sh)
 ├── scripts/migrate/              # one-off migration scripts (kept for reference) + parity.ts

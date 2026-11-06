@@ -1,7 +1,8 @@
 # Check and build every push. Targets live in deploy/targets.json:
 #   kind "branch" -> on main, each build is force-pushed to its branch; a server
 #                    pulls it with ./update_site.sh (ICS: `deploy`, run by hand)
-#   kind "pages"  -> on main, the `pages` job deploys it to GitHub Pages
+#   kind "cloudflare" -> on main, the `cloudflare` jobs build it and push it to its
+#                    branch (cf-deploy); Cloudflare Workers Builds deploys that branch
 name: site
 
 on:
@@ -60,26 +61,22 @@ jobs:
             scripts/build-targets.sh push "$t" "out/$t"
           done
 
-  # GitHub Pages mirror (`pages` target). Runs only after `build` passed, and
-  # never touches any server branch, so the servers are unaffected either way.
-  pages:
+  # uci.kazuha.me (`cloudflare` target): build here, push the result to its branch
+  # (cf-deploy); Cloudflare Workers Builds watches that branch and only runs
+  # `wrangler deploy`. Runs only after `build` passed and never touches any
+  # server branch, so the servers are unaffected either way.
+  cloudflare:
     needs: build
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # Runs third-party code (npm ci, astro build): read-only token.
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
@@ -87,8 +84,8 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - name: Build the `pages` target from deploy/targets.json
-        run: scripts/build-targets.sh build pages dist
+      - name: Build the `cloudflare` target from deploy/targets.json
+        run: scripts/build-targets.sh build cloudflare out/cloudflare
         env:
           TZ: America/Los_Angeles
 
@@ -98,12 +95,39 @@ jobs:
         if: vars.PAGES_SITE_LOCAL_JSON != ''
         env:
           JSON: ${{ vars.PAGES_SITE_LOCAL_JSON }}
-        run: node -e 'JSON.parse(process.env.JSON); require("fs").writeFileSync("dist/assets/config/site.local.json", process.env.JSON)'
+        run: node -e 'JSON.parse(process.env.JSON); require("fs").writeFileSync("out/cloudflare/assets/config/site.local.json", process.env.JSON)'
 
-      - uses: actions/upload-pages-artifact@v5
+      - name: Add wrangler.jsonc, _headers and .assetsignore
+        run: scripts/build-targets.sh wrap cloudflare out/cloudflare
+
+      - uses: actions/upload-artifact@v7
         with:
-          path: dist
+          name: cloudflare
+          path: out/cloudflare
+          include-hidden-files: true
+          retention-days: 1
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+  # Only this job can write to the repo, and it installs and runs nothing from npm.
+  cloudflare-publish:
+    needs: cloudflare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: cloudflare-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: cloudflare
+          path: ${{ runner.temp }}/cloudflare
+
+      - name: Push the build to its branch
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: scripts/build-targets.sh push cloudflare "$RUNNER_TEMP/cloudflare"
