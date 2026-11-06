@@ -44,7 +44,11 @@ In CS we draw trees upside down: the **root** at the top, the **leaves** at the 
 - if $T$ is non-empty, it has a special node, the **root**, that has no parent;
 - every node $v$ other than the root has a **unique parent**.
 
-Example: root A; A's children B and C; B's children D and E; C's child F; E's child G; F's children H and I.
+Example (slide 7's tree diagram): root A; A's children B and C; B has only a right child D; C's children E and F; E has a left child G; F's children H and I. Step through it (← / → keys work when the demo is focused):
+
+```viz binary-tree
+{"title": "Slide 7: the tree diagram", "tree": "A, B, C, -, D, E, F, -, -, -, -, G, -, H, I", "views": "root; parent:C; ancestors:G"}
+```
 
 ## 2. Tree Terminology
 
@@ -73,6 +77,12 @@ All examples use the slides' **example tree** (slides 8–9, 13–14, 18, 21–2
 | Degree (arity) of a tree | max degree of any node | 2 |
 | Binary tree | a tree with arity 2: each node has at most 2 children, each in a **left** or **right** slot | |
 
+Each term on the example tree, one step per term:
+
+```viz binary-tree
+{"title": "Slides 8–9, 13: terminology on the example tree", "tree": "K, C, N, A, F, M, V, -, B, D, H, -, -, U", "views": "parent:K; siblings:A; ancestors:B; subtree:N; leaves; internal; path:K-N-V-U; path:K-C-A; degree"}
+```
+
 > ⚠️ **Pitfall**: Slide 9's "Quick Checks" answer lists the leaves as {B, D, H, M, U, V} and the internal nodes as {K, C, N, A, F}. V has a child (U), so V is **internal**: leaves {B, D, H, M, U}, internal {K, C, N, A, F, V}.
 
 ## 3. Depth, Level and Height
@@ -88,6 +98,12 @@ The **height of the tree** is the height of its root. So depth counts down from 
 
 Example (slides 11–12): in the slide's 10-node tree the leaves are labelled 0, their parents 1 and 2, and the root 3; the deepest leaves sit at depth 3, so tree depth = tree height = 3. In the example tree from §2: depth(F) = 2, height(F) = 1, height(K) = 3.
 
+Depth (badges counted down from the root) and height (counted up from the leaves) on the example tree — the slide's own 10-node tree has a node with three children, so it isn't a binary tree:
+
+```viz binary-tree
+{"title": "Slides 10–12: depth vs height", "tree": "K, C, N, A, F, M, V, -, B, D, H, -, -, U", "views": "depth; height"}
+```
+
 > ⚠️ **Pitfall**: Depth and height are counted in **edges**, not nodes. A single-node tree has height 0; with the recursive formula an empty tree is given height −1 so that a leaf comes out as 1 + max(−1, −1) = 0 (see `height()` in §14).
 
 ## 4. Full and Complete Binary Trees
@@ -101,6 +117,12 @@ The two properties are independent (slide 15 shows one tree of each kind):
 |---|---|---|
 | **Complete** | every level full, or last level left-packed with pairs | last level ends with a lone left child |
 | **Not complete** | some leaf missing on an upper level, or a gap on the last level, but no node with one child | e.g. a node with one child *and* a gap |
+
+Slide 15's four shapes, then the example tree — nodes with one child are marked purple for *full*, gaps in level order show as dashed slots for *complete*:
+
+```viz binary-tree
+{"title": "Slide 15: complete and full", "tree": "Neither complete nor full = A, B, C, D, E, F, G, H, -, -, -, I, J | Complete but not full = A, B, C, D, E, F, G, H | Full but not complete = A, B, C, D, E, F, G, H, I, -, -, J, K | Complete and full = A, B, C, D, E, F, G, H, I | Example tree = K, C, N, A, F, M, V, -, B, D, H, -, -, U", "views": "full; complete"}
+```
 
 The example tree from §2 is **neither**: A and V have one child each (not full), and its last level has a hole where A's left child would be (not complete).
 
@@ -118,6 +140,10 @@ $$h + 1 \le n \le 2^{h+1} - 1 \qquad\Longleftrightarrow\qquad \log_2(n+1) - 1 \l
 - **Maximum** $n = 1 + 2 + 4 + \dots + 2^h = 2^{h+1} - 1$: every level full. So the **best-case height is $O(\log n)$**, reached by compact (complete) trees.
 
 Example: 7 nodes can have height anywhere from 2 (all three levels full) to 6 (a stick).
+
+```viz binary-tree
+{"title": "Slide 18: fewest vs most nodes for the same height h = 2", "tree": "h = 2, most nodes (7) = A, B, C, D, E, F, G | h = 2, fewest nodes (3, a stick) = A, B, -, C", "views": "depth"}
+```
 
 > 💡 **Key Insight**: Every tree operation that walks one root-to-leaf path costs O(height) — between O(log n) and O(n). Keeping trees short is what balanced trees (Lec 13) and heaps (§9) are about.
 
@@ -148,6 +174,10 @@ private:
 ```
 
 The picture on slide 19 names the parts: `root` points at the top node; each `left`/`right` pointer is a **link**; any node together with everything below it is a **subtree** (so every link points at a subtree — that's why tree code is naturally recursive); a **leaf** is a node whose two links are both **null links** (`nullptr`).
+
+```viz binary-tree
+{"title": "Slide 19: root, subtree and null links", "tree": "K, C, N, A, F, M, V, -, B, D, H, -, -, U", "views": "root; subtree:C; nulls"}
+```
 
 Example: a 3-node tree is `new Node(new Node(nullptr, nullptr, "A"), new Node(nullptr, nullptr, "C"), "B")` — note the constructor takes the children **first** and the value last.
 
@@ -547,6 +577,10 @@ Back to [§8 Depth-first traversals](#8-depth-first-pre--in--and-post-order).
 **(a) B: Complete.** Levels 0 and 1 are full and the last level (three leaves) is packed to the left. Not full: the root's right child has exactly one child.
 
 **(b) D: Neither.** The root has exactly one child (not full), and the last level's only node is on the right, leaving a hole on the left (not complete). A root whose only child is on the **left** would be complete.
+
+```viz binary-tree
+{"title": "Practice check: (a) and (b)", "tree": "(a) = A, B, C, D, E, F | (b) = A, -, B", "views": "full; complete"}
+```
 
 Back to [§4 Full and complete](#4-full-and-complete-binary-trees).
 

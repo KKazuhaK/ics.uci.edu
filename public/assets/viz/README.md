@@ -11,7 +11,7 @@ with the running line highlighted, variable watch, optional input bar).
 
 | File | Role |
 | --- | --- |
-| `_player.js` | Shared player UI. Expand button opens the block in a near-fullscreen `<dialog>` (the same node is moved, so state survives; components may export `moved(stage, config)` to react, since iframes reload). Hides the toolbar when a demo has only one frame (`.is-static`). `meta.msgPosition: "top"` puts the step note under the toolbar. |
+| `_player.js` | Shared player UI. A component may declare `meta.switch = { key, label, options: [{ value, label }] }` to get a one-click button row that re-runs the demo with that param changed (code panel follows; e.g. tree-traversal's order). Expand button opens the block in a near-fullscreen `<dialog>` (the same node is moved, so state survives; components may export `moved(stage, config)` to react, since iframes reload). Hides the toolbar when a demo has only one frame (`.is-static`). `meta.msgPosition: "top"` puts the step note under the toolbar. |
 | `_core.js` | DOM-free helpers: `checkParams`, `withDefaults`, parsing. Param types: `string`, `bool`, `int`, `enum`, `int[]`, `number[]`, `json-array`. |
 | `<component>.js` | One component each. Must stay DOM-free at import time (check_md.py runs `validate`/`steps` under node); only `render` touches the DOM. |
 
@@ -34,7 +34,8 @@ with the running line highlighted, variable watch, optional input bar).
 | `insertion-sort` | 7 | Swap version: `arr[j]` swaps left while smaller than `arr[j-1]`, `else break`; comparisons, swaps (= inversions), best/worst counts. |
 | `merge-sort` | 8 | Top-down merge sort as a recursion tree (one row per depth, nodes aligned by index): calls appear on the way down, each merge refills its node from the two halves with i/j/k. `mode: "merge"` shows one merge of two sorted halves as aux + a rows. |
 | `quick-sort` | 8 | Quicksort with the slides' partition (i/j scans, swap, pivot into a[j]); `mode: "partition"` runs one partition. |
-| `tree-traversal` | 10 | Binary tree given by heap positions (`"K, C, N, A, -, B"`): pre-, in-, post-order with the call stack, or level order with the queue; output sequence and visit numbers on the nodes. |
+| `binary-tree` | 10 | A binary tree drawn like the slides (heap positions, `"-"` = empty; several trees with `"Label = …"`, separated by a vertical bar), one idea per step via `views`: root, parent:X, siblings:X, ancestors:X, subtree:X, leaves, internal, path:X-Y-Z, depth, height, degree, full, complete (gaps dashed), nulls. No code panel. |
+| `tree-traversal` | 10 | Binary tree given by heap positions (`"K, C, N, A, -, B"`): pre-, in-, post-order with the call stack, or level order with the queue (switchable in the demo); output sequence and visit numbers on the nodes. |
 | `binary-heap` | 10–11 | Array-backed max/min heap (`pq[0]` unused) drawn as tree + array: `insert(x)` (append + swim), `swim(k)`, `sink(k)`, `delMax()` (`delMin()` with `"order": "min"`), up to 16 ops; code panel shows only the routines the ops use. |
 | `recursion-tree` | 6 | Recursion-tree method for T(n) = aT(n/b) + f(n) or T(n-1) + f(n): levels revealed one at a time, per-call work, level totals, sum, and which Master Theorem case dominates. |
 | `tokenize` | CS 121 W2 | Early tokenization: read characters one at a time, alphanumerics build a lower-cased token, a space or special character ends it, tokens shorter than `minLen` are dropped. |

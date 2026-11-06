@@ -112,6 +112,9 @@ html.viz-modal-open { overflow: hidden; }
 .viz-btn:hover:not(:disabled) { background: var(--vz-btn-hover); }
 .viz-btn:disabled { opacity: 0.4; cursor: default; }
 .viz-btn.is-icon { padding: 0.4rem 0.55rem; }
+.viz-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.1rem 0 0.6rem; }
+.viz-switch-label { color: var(--vz-muted); font-size: 0.85rem; margin-right: 0.15rem; }
+.viz-btn.is-on { background: var(--vz-cmp-bg); border-color: var(--vz-cmp-bd); color: var(--vz-ink); font-weight: 600; }
 .viz-spacer { flex: 1; }
 .viz-step { color: var(--vz-muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
 .viz-speed { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--vz-muted); font-size: 0.82rem; }
@@ -272,6 +275,11 @@ export function mount(wrapper, mod, rawConfig, source) {
 	const msgTop = mod.meta.msgPosition === "top";
 	const hasGroups = frames.some(function(f) { return f.group !== undefined; });
 	const hasVars = frames.some(function(f) { return f.vars && f.vars.length; });
+	// Optional one-click switch between values of one param (e.g. traversal order):
+	// meta.switch = { key, label, options: [{ value, label }] }.
+	const sw = mod.meta.switch && mod.meta.switch.options && mod.meta.switch.options.length ? mod.meta.switch : null;
+	// The raw config as last run, so Run / Random / switch all build on each other.
+	let raw = Object.assign({}, rawConfig);
 
 	wrapper.innerHTML =
 		'<div class="viz-head">' + (config.title ? '<div class="viz-title">' + escapeHtml(config.title) + "</div>" : "") +
@@ -287,6 +295,10 @@ export function mount(wrapper, mod, rawConfig, source) {
 			'<span class="viz-step" aria-live="off"></span>' +
 			'<label class="viz-speed">Speed <input type="range" min="1" max="5" step="1" value="3" data-act="speed"></label>' +
 		"</div>" +
+		(sw ? '<div class="viz-switch" role="group" aria-label="' + escapeHtml(sw.label) + '"><span class="viz-switch-label">' + escapeHtml(sw.label) + "</span>" +
+			sw.options.map(function(o) {
+				return '<button type="button" class="viz-btn" data-act="switch" data-val="' + escapeHtml(o.value) + '" aria-pressed="false">' + escapeHtml(o.label) + "</button>";
+			}).join("") + "</div>" : "") +
 		(msgTop ? '<div class="viz-msg is-top" aria-live="polite"></div>' : "") +
 		'<div class="viz-stage"></div>' +
 		(legend && legend.length ? '<div class="viz-legend">' + legend.map(function(l) {
@@ -313,7 +325,27 @@ export function mount(wrapper, mod, rawConfig, source) {
 	const msgEl = $(".viz-msg");
 	const stepEl = $(".viz-step");
 	const varsEl = $(".viz-vars");
-	const lineEls = Array.from(wrapper.querySelectorAll(".viz-line"));
+	let lineEls = Array.from(wrapper.querySelectorAll(".viz-line"));
+
+	// Redraw the code panel when a new config brings different code (switch / Run).
+	function refreshCode() {
+		const codeEl = $(".viz-code");
+		if (!codeEl) return;
+		const src = typeof mod.code === "function" ? mod.code(config) : mod.code;
+		const lines = (config.code && config.code !== "none" && src && src[config.code]) || [];
+		codeEl.innerHTML = lines.map(function(line, k) {
+			return '<div class="viz-line"><span class="viz-ln">' + (k + 1) + "</span><span>" + (highlightCpp(line) || " ") + "</span></div>";
+		}).join("");
+		lineEls = Array.from(codeEl.querySelectorAll(".viz-line"));
+	}
+	function refreshSwitch() {
+		if (!sw) return;
+		wrapper.querySelectorAll('[data-act="switch"]').forEach(function(b) {
+			const on = String(config[sw.key]) === b.dataset.val;
+			b.classList.toggle("is-on", on);
+			b.setAttribute("aria-pressed", on ? "true" : "false");
+		});
+	}
 	const playBtn = $('[data-act="play"]');
 	const inputEl = $(".viz-input input");
 	const inputErr = $(".viz-input-err");
@@ -432,19 +464,25 @@ export function mount(wrapper, mod, rawConfig, source) {
 		config = newConfig;
 		frames = mod.steps(config);
 		idx = 0;
+		refreshCode();
+		refreshSwitch();
 		update();
 	}
 
-	function applyInput(value) {
-		const raw = Object.assign({}, rawConfig);
-		raw[mod.input.key] = value;
-		const errs = mod.validate(raw);
-		if (errs.length) {
-			inputErr.textContent = errs.join("; ");
-			return;
-		}
-		inputErr.textContent = "";
+	// Re-run with one param changed; returns the validation errors (empty on success).
+	function applyParam(key, value) {
+		const next = Object.assign({}, raw);
+		next[key] = value;
+		const errs = mod.validate(next);
+		if (errs.length) return errs;
+		raw = next;
 		rebuild(withDefaults(mod.meta.params, raw));
+		return [];
+	}
+
+	function applyInput(value) {
+		const errs = applyParam(mod.input.key, value);
+		inputErr.textContent = errs.join("; ");
 	}
 
 	wrapper.addEventListener("click", function(e) {
@@ -468,11 +506,20 @@ export function mount(wrapper, mod, rawConfig, source) {
 			if (r.error) inputErr.textContent = r.error;
 			else applyInput(r.value);
 		}
+		else if (act === "switch") {
+			if (String(config[sw.key]) !== btn.dataset.val) {
+				const errs = applyParam(sw.key, btn.dataset.val);
+				if (errs.length) {
+					if (inputErr) inputErr.textContent = errs.join("; ");
+					else msgEl.textContent = errs.join("; ");
+				}
+			}
+		}
 		else if (act === "random") {
 			const value = mod.input.random(config);
-			const raw = Object.assign({}, config);
-			raw[mod.input.key] = value;
-			inputEl.value = mod.input.format(raw);
+			const shownCfg = Object.assign({}, config);
+			shownCfg[mod.input.key] = value;
+			inputEl.value = mod.input.format(shownCfg);
 			applyInput(value);
 		}
 	});
@@ -497,5 +544,6 @@ export function mount(wrapper, mod, rawConfig, source) {
 		else if (e.key === " " && e.target === wrapper) { e.preventDefault(); playBtn.click(); }
 	});
 
+	refreshSwitch();
 	update();
 }

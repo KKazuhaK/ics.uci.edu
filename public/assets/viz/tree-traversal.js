@@ -15,7 +15,14 @@ export const meta = {
 		order: { type: "enum", values: ["pre", "in", "post", "level"], default: "pre", desc: "Which traversal to run." },
 		code: { type: "enum", values: ["cpp", "none"], default: "cpp", desc: "Code shown beside the demo, with the running line highlighted." }
 	},
-	example: { tree: "K, C, N, A, F, M, V, -, B, D, H, -, -, U", order: "in" }
+	example: { tree: "K, C, N, A, F, M, V, -, B, D, H, -, -, U", order: "in" },
+	// One-click switch in the player between the four traversals on the same tree.
+	switch: { key: "order", label: "Order", options: [
+		{ value: "pre", label: "Pre-order" },
+		{ value: "in", label: "In-order" },
+		{ value: "post", label: "Post-order" },
+		{ value: "level", label: "Level order" }
+	] }
 };
 
 // Parse the position list into an array indexed 1..len (null = empty).
