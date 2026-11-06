@@ -1,0 +1,697 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>ICS 46 堆与优先队列 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="堆的插入与下沉练习、删除最大值（2 log n 次比较）、堆操作的运行时间、优先队列 ADT 及其数组与堆实现、最小堆、堆排序计划，以及最优的自底向上建堆。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-11/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-11/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-11/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/BaseLayout.D6FvEM2t.css"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1794007378" data-source-url="/~kazuhak/notes/ics-46/lec-11/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/ics-46/lec-11/en-US/" data-prev-url="/~kazuhak/notes/ics-46/lec-10/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 11 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/ics-46/lec-11/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 11 讲 · 数据结构课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 ICS 46 第 11 讲 的课程笔记，适合按讲复习 C++ 模板、指针与所有权、算法分析和各类数据结构的实现。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 11 月 5 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-11堆优先队列">Information and Computer Science 46 — Lecture 11：堆、优先队列</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E5%9B%9E%E9%A1%BE%E6%8F%92%E5%85%A5%E4%B8%8E%E4%B8%8B%E6%B2%89">1. 回顾：插入与下沉</a></li>
+<li><a href="#2-%E5%88%A0%E9%99%A4%E6%9C%80%E5%A4%A7%E5%80%BC">2. 删除最大值</a></li>
+<li><a href="#3-%E5%A0%86%E6%93%8D%E4%BD%9C%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E9%97%B4">3. 堆操作的运行时间</a></li>
+<li><a href="#4-%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97-adt">4. 优先队列 ADT</a></li>
+<li><a href="#5-%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97%E7%9A%84%E5%AE%9E%E7%8E%B0">5. 优先队列的实现</a></li>
+<li><a href="#6-%E6%9C%80%E5%B0%8F%E5%A0%86%E4%B8%8E-delmin">6. 最小堆与 delMin</a></li>
+<li><a href="#7-%E5%A0%86%E6%8E%92%E5%BA%8F%E8%AE%A1%E5%88%92">7. 堆排序：计划</a></li>
+<li><a href="#8-%E6%9C%80%E4%BC%98%E8%87%AA%E5%BA%95%E5%90%91%E4%B8%8A%E5%BB%BA%E5%A0%86">8. 最优（自底向上）建堆</a></li>
+<li><a href="#9-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0">9. 完整实现</a></li>
+<li><a href="#10-%E8%AF%BE%E5%A0%82%E6%B4%BB%E5%8A%A8%E9%99%84%E8%A7%A3%E7%AD%94">10. 课堂活动（附解答）</a></li>
+<li><a href="#11-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">11. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 11/03/26<br>整理自 Lecture 11 幻灯片（其中也包含 Lecture 10 讲义末尾的堆活动与删除最大值幻灯片；堆运行时间汇总幻灯片取自 Lecture 10 讲义）；补充材料：algs4 §2.4 Priority Queues。按概念组织，而不是按资料来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：Quiz 4 本周五 11/6（Sorting、Trees、Heaps）· 期中考试下周四 11/12 · 期中考试之前没有 HW 或 Lab<br>期中考试范围：模板、随机性、指针、引用、智能指针、多维数据；算法分析、ArrayList、链表；栈、队列、双端队列；均摊分析、递归分析；基于比较的排序<br>期中复习：样题、测验、课堂活动、作业、实验——实验中的实现也在考试范围内<br>已批改完成：HW 2、3，Lab 2，Quiz 2，课堂活动 5–10 · AI 工具访问需要提交两部分同意书（存储的数据不会用于学术诚信调查；研究同意可获 1% 额外学分，之后会提供其他获得额外学分的方式）</p>
+</blockquote>
+<hr>
+<h2 id="1-回顾插入与下沉">1. 回顾：插入与下沉</h2>
+<p>Insert 和 sink 都已在 <a href="/~kazuhak/notes/ics-46/lec-10/zh-CN/#12-%E5%A0%86%E7%9A%84%E6%8F%92%E5%85%A5">第 10 讲</a> 中介绍过；本讲先用最大堆 <code>– 100 19 36 17 3 25 1 2 7</code>（下标 0 不使用）练习这两个操作。</p>
+<ul>
+<li><strong>插入（insert）</strong>：把键放入 <code>pq[++n]</code>（最底层末尾），然后<strong>上浮（swim）</strong>，直到它不大于其父节点。最坏情况：每层一次比较，<strong>O(log n)</strong>。</li>
+<li><strong>下沉（sink）</strong>：只要某键小于某个子节点，就与<strong>较大</strong>的子节点交换。最坏情况：每层两次比较，<strong>O(log n)</strong>。</li>
+</ul>
+<p>例：插入 47 会落在下标 10（3 的子节点）处。47 &gt; 3 → 交换；47 &gt; 19 → 交换；47 &lt; 100 → 停止。数组变为 <code>– 100 47 36 17 19 25 1 2 7 3</code>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#101-%E7%BB%83%E4%B9%A0%E5%A0%86%E6%8F%92%E5%85%A5%E5%B9%BB%E7%81%AF%E7%89%87-5">练习：堆插入</a> 和 <a href="#102-%E7%BB%83%E4%B9%A0%E5%A0%86%E4%B8%8B%E6%B2%89%E5%B9%BB%E7%81%AF%E7%89%87-6">练习：堆下沉</a>。</p>
+</blockquote>
+<h2 id="2-删除最大值">2. 删除最大值</h2>
+<p><strong>删除最大值（delete max）</strong>：交换根与末尾节点，把换到末尾的原根从堆中移除（并返回它），然后对新根执行<strong>下沉（sink）</strong>。对于最小堆，同样的代码返回（并删除）最小值。</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#4EC9B0">Key</span><span style="color:#DCDCAA"> delMax</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    Key</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">    exch</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">--);</span></span>
+<span class="line"><span style="color:#DCDCAA">    sink</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>exch(1, n--)</code> 先交换 <code>pq[1]</code> 与 <code>pq[n]</code>，然后才让 n 减一，因此旧的最大值正好位于堆末尾之后，不再属于堆的一部分。</p>
+<p><strong>代价：最多 2 log n 次比较。</strong> 幻灯片问：为什么是 2 log n 而不是 log n？下沉每层需要<strong>两次比较</strong>——一次选出较大的子节点（<code>less(j, j+1)</code>），一次将键与该子节点比较（<code>less(k, j)</code>）——并且最多经过 log n 层。上浮（插入）每层只需一次比较，因为一个节点只有一个父节点：最多 log n + 1 次。</p>
+<p>幻灯片 8 的例子：删除 <code>– T S R N P O A E I G H</code> 的最大值。交换 T 与 H，T 离开堆，然后 H 下沉：H &lt; S → 交换；H &lt; P → 交换；H &gt; G → 停止。结果为 <code>– S P R N H O A E I G</code>。</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;幻灯片 8：delMax() 作用于 T S R N P O A E I G H&quot;, &quot;heap&quot;: &quot;T, S, R, N, P, O, A, E, I, G, H&quot;, &quot;ops&quot;: &quot;delMax()&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：执行 <code>exch(1, n--)</code> 之后，新的根是原来的<em>最后一个键</em>，它通常是最小的之一——因此几乎总会下沉到接近底部。不要从下标 n 下沉，也不要从根上浮；delMax 只会调用 <code>sink(1)</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#103-%E6%B4%BB%E5%8A%A8-1%E5%88%A0%E9%99%A4%E6%9C%80%E5%A4%A7%E5%80%BC%E5%B9%BB%E7%81%AF%E7%89%87-9">活动 1</a> —— 删除一次最大值、分析其复杂度，以及连续删除九次。</p>
+</blockquote>
+<h2 id="3-堆操作的运行时间">3. 堆操作的运行时间</h2>
+<p>以下是取自第 10 讲讲义末尾的运行时间汇总幻灯片：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>最坏情况</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>插入</td>
+<td>O(log n)</td>
+<td>追加 + 沿一条叶到根路径上浮</td>
+</tr>
+<tr>
+<td>删除最大值</td>
+<td>O(log n)</td>
+<td>exch + 沿一条根到叶路径下沉（≤ 2 log n 次比较）</td>
+</tr>
+<tr>
+<td>查找最大值</td>
+<td>O(1)</td>
+<td>它就是 <code>pq[1]</code></td>
+</tr>
+<tr>
+<td>空间</td>
+<td>O(n)</td>
+<td>每个键占一个数组位置（另加未使用的 <code>pq[0]</code>）</td>
+</tr>
+</tbody></table>
+<p>幻灯片以 algs4 <em>2.4 Binary Heap Demo</em>（字母堆上插入与删除最大值的动画）结束堆的部分。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：若使用固定大小的数组，log n 界是最坏情况。若数组像 ArrayList 一样在插入时倍增扩容（删除时收缩），界就变为<strong>均摊</strong> O(log n)——偶尔一次插入还要付出 O(n) 的复制代价。（algs4 §2.4，实践中的考虑）</p>
+</blockquote>
+<h2 id="4-优先队列-adt">4. 优先队列 ADT</h2>
+<p><strong>优先队列</strong>总是先服务<strong>优先级最高</strong>的元素，与 FIFO 队列（先进先出，最早的先出）或 LIFO 栈（后进先出，最新的先出）不同。它有两个关键操作：</p>
+<ol>
+<li><strong>删除（并返回）最大值</strong>——取出优先级最高的元素；</li>
+<li><strong>插入</strong>——加入一个带有优先级的新元素。</li>
+</ol>
+<p>幻灯片列出的应用：操作系统（负载均衡、中断处理）、压缩（Huffman 编码）、AI（A* 搜索）、图搜索（Dijkstra 算法和 Prim 算法）。关键问题是：<em>如何高效地实现优先队列？</em></p>
+<p>例：依次插入 5、1、9，然后删除最大值 → 9；再插入 7，删除最大值 → 7。若是 FIFO 队列，则会先返回 5，再返回 1。</p>
+<h2 id="5-优先队列的实现">5. 优先队列的实现</h2>
+<table>
+<thead>
+<tr>
+<th>实现</th>
+<th>插入</th>
+<th>删除最大值</th>
+<th>思路</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方案 1：无序数组（&quot;惰性&quot;）</td>
+<td>O(1)</td>
+<td>O(n)</td>
+<td>直接追加；删除时扫描整个数组找最大值</td>
+</tr>
+<tr>
+<td>方案 2：有序数组（&quot;急切&quot;）</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>保持有序，使最大值位于末尾；插入时需要移动元素</td>
+</tr>
+<tr>
+<td>方案 3：二叉堆（&quot;最优平衡&quot;）</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>树结构使两种操作都是对数时间</td>
+</tr>
+</tbody></table>
+<p>数组迫使我们在 O(1) 与 O(n) 之间做极端取舍；二叉堆把两种操作都降到对数时间，这就是它成为优先队列 ADT 标准选择的原因。若各进行 m 次操作，数组的最坏代价为 O(mn)，堆为 O(m log n)。</p>
+<blockquote>
+<p>📘 <strong>课外补充</strong>：&quot;最佳&quot;选择取决于操作的组合。若插入次数极多而删除最大值很少，无序数组更好（插入为 O(1)）。若查找最大值很频繁而更新很少，有序数组更好（最大值总在末尾）。当两种操作都频繁时，堆是首选。（algs4 §2.4 练习）</p>
+</blockquote>
+<h2 id="6-最小堆与-delmin">6. 最小堆与 delMin</h2>
+<p><strong>最小堆</strong>使每个键 <strong>≤</strong> 其子节点，因此最小值位于根。代码就是最大堆代码把每个比较反过来（<code>less(a, b)</code> 变为&quot;a 大于 b&quot;），删除最大值变为 <strong>delMin</strong>：交换根与最后一个键，移除换到末尾的原根，然后把新根向<em>较小</em>的子节点下沉。</p>
+<p>幻灯片 14 的优先队列使用最小堆。依次执行它的 12 个操作（插入 P、Q、E，删除最小值，插入 X、A、M，删除最小值，插入 P、L、E，删除最小值），返回 <strong>E、A、E</strong>，并留下 <code>– L P M Q P X</code>。可在下方逐步演示（演示获得焦点时，← / → 键可用）：</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;幻灯片 14：最小堆上的活动 2&quot;, &quot;ops&quot;: &quot;insert(P); insert(Q); insert(E); delMin(); insert(X); insert(A); insert(M); delMin(); insert(P); insert(L); insert(E); delMin()&quot;, &quot;order&quot;: &quot;min&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：允许重复键。在第 9 步中插入第二个 P 时，堆中已有一个 P；<code>less</code> 是严格的，因此相等的键遇到相等的父节点时会立即停止上浮，不会与之交换。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#104-%E6%B4%BB%E5%8A%A8-2%E5%81%87%E8%AE%BE%E4%B8%BA%E6%9C%80%E5%B0%8F%E5%A0%86%E5%B9%BB%E7%81%AF%E7%89%87-14">活动 2</a> —— 每一步之后画出堆的状态。</p>
+</blockquote>
+<h2 id="7-堆排序计划">7. 堆排序：计划</h2>
+<p>用堆来排序，分两步：</p>
+<ol>
+<li><strong>建堆（heap construction）</strong>——用待排序的全部 n 个键构建一个二叉堆；</li>
+<li><strong>Sortdown（下沉排序）</strong>——反复删除并返回最大值。</li>
+</ol>
+<p>例：活动 1 堆的 9 个键经过九次删除最大值后依次输出 <code>100 36 25 19 17 7 3 2 1</code>——降序排列。由于 <code>exch(1, n--)</code> 把每次删除的最大值放在不断缩小的堆之后，数组本身最终变为升序：<code>– 1 2 3 7 17 19 25 36 100</code>。这种原地技巧就是 sortdown，将在第 12 讲中介绍。</p>
+<h2 id="8-最优自底向上建堆">8. 最优（自底向上）建堆</h2>
+<p>把任意数组转换为堆：</p>
+<ol>
+<li>把数组视为一棵完全二叉树（按层序排列，它本来就是）；</li>
+<li><strong>忽略所有叶子</strong>（下标 n/2 + 1，…，n）——单个节点本身就是堆；</li>
+<li>从最后一个内部节点到根，逐个下沉其余每个节点：</li>
+</ol>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> ( </span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">-- )</span></span>
+<span class="line"><span style="color:#DCDCAA">    sink</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">);</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>关键洞见：</strong> 执行 <code>sink(a, k, n)</code> 之后，以 k 为根的子树就是堆。从右到左下沉，意味着处理 k 时它的两个子节点都已经是堆，因此一次下沉即可修复整棵子树；执行完 <code>sink(a, 1, n)</code> 之后，整个数组就是堆。</p>
+<p><strong>为什么从 n/2 开始？</strong> 节点 k 有左子节点当且仅当 2k ≤ n，即 k ≤ n/2。最后一个节点 n 的父节点是 ⌊n/2⌋，因此 ⌊n/2⌋ 是最后一个拥有子节点的节点；比它大的下标都是叶子。当 n = 11 时，循环从 k = 5 开始。</p>
+<p><code>sink(a, k, n)</code> 是把数组及其大小作为参数的堆 <code>sink</code>（这样堆排序可以作用于任意数组）；其函数体与<a href="/~kazuhak/notes/ics-46/lec-10/zh-CN/#13-%E4%B8%8B%E6%B2%89sink">第 10 讲</a>中的 <code>sink(k)</code> 相同。</p>
+<p>幻灯片 17–18 对 <code>S O R T E X A M P L E</code>（n = 11）的追踪：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>调用</th>
+<th>移动的内容</th>
+<th>之后的数组</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a)</td>
+<td>开始（任意顺序）</td>
+<td>—</td>
+<td>S O R T E X A M P L E</td>
+</tr>
+<tr>
+<td>b)</td>
+<td>sink(5, 11)</td>
+<td>E 与其较大的子节点 L 交换</td>
+<td>S O R T L X A M P E E</td>
+</tr>
+<tr>
+<td>c)</td>
+<td>sink(4, 11)</td>
+<td>T ≥ M、P：不移动</td>
+<td>S O R T L X A M P E E</td>
+</tr>
+<tr>
+<td>d)</td>
+<td>sink(3, 11)</td>
+<td>R 与 X 交换</td>
+<td>S O X T L R A M P E E</td>
+</tr>
+<tr>
+<td>e)</td>
+<td>sink(2, 11)</td>
+<td>O 先与 T 交换，再与 P 交换</td>
+<td>S T X P L R A M O E E</td>
+</tr>
+<tr>
+<td>f)</td>
+<td>sink(1, 11)</td>
+<td>S 与 X 交换，停在 R 和 A 之上</td>
+<td>X T S P L R A M O E E</td>
+</tr>
+</tbody></table>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;幻灯片 17–18：自底向上建堆&quot;, &quot;heap&quot;: &quot;S, O, R, T, E, X, A, M, P, L, E&quot;, &quot;ops&quot;: &quot;sink(5); sink(4); sink(3); sink(2); sink(1)&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>➡️ <strong>接续见 第 12 讲</strong>：建堆活动（朴素与优化的代价对比）、O(n) 建堆分析、sortdown、堆排序分析、排序总结和二叉搜索树——第 12 讲的讲义会重复这些内容。</p>
+</blockquote>
+<h2 id="9-完整实现">9. 完整实现</h2>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;vector></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Max-oriented priority queue on a binary heap, pq[0] unused.</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Key</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> MaxPQ</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">Key</span><span style="color:#D4D4D4">{}};</span><span style="color:#6A9955">   // pq[0] unused</span></span>
+<span class="line"><span style="color:#569CD6">    size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> less</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> exch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> swim</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">)) {</span></span>
+<span class="line"><span style="color:#DCDCAA">            exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">            k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> sink</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">            size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)) </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">)) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">            exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">            k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> isEmpty</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> == </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    size_t</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> insert</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Key</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push_back</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">              // slide: pq[++n] = x;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        swim</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#4EC9B0">    Key</span><span style="color:#DCDCAA"> delMax</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Key</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">        exch</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">--);</span></span>
+<span class="line"><span style="color:#DCDCAA">        sink</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop_back</span><span style="color:#D4D4D4">();</span><span style="color:#6A9955">                // drop the old maximum from the vector</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> max</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> load</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> keys</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">   // as-is, for the activities</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">assign</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Key</span><span style="color:#D4D4D4">{});</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">begin</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> sinkAt</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">sink</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Min-oriented version: same code with less() flipped.</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Key</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> MinPQ</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">Key</span><span style="color:#D4D4D4">{}};</span></span>
+<span class="line"><span style="color:#569CD6">    size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> greater</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">]; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> exch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> swim</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">greater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">)) { </span><span style="color:#DCDCAA">exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> sink</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">            size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">greater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)) </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">greater</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">)) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">            exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">            k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> insert</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Key</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) { </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push_back</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">); ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#DCDCAA">swim</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#4EC9B0">    Key</span><span style="color:#DCDCAA"> delMin</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Key</span><span style="color:#9CDCFE"> min</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#DCDCAA">        exch</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">--);</span></span>
+<span class="line"><span style="color:#DCDCAA">        sink</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop_back</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> min</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">// Heap construction on a 1-based array a[1..n] (slide p17).</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Key</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sink</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">]) </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (!(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">])) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#9CDCFE">        k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Key</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> heapify</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> a</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">           // a[0] unused</span></span>
+<span class="line"><span style="color:#569CD6">    size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() - </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> >= </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">--) {</span></span>
+<span class="line"><span style="color:#DCDCAA">        sink</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"  after sink("</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">", "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"): "</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4"> = {</span><span style="color:#B5CEA8">100</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">19</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">36</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">17</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxPQ</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">load</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">); </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">47</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"insert 47: "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">a</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxPQ</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">load</span><span style="color:#D4D4D4">({</span><span style="color:#B5CEA8">19</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">7</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">36</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">17</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">25</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">}); </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sinkAt</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"sink 7:    "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">b</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxPQ</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">load</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"delMax -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">delMax</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">", heap: "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxPQ</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">int</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">load</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"9 x delMax:"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (!</span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">isEmpty</span><span style="color:#D4D4D4">()) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">d</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">delMax</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MinPQ</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">char</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">m</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"Activity 2 (min-heap):</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#9CDCFE"> ops</span><span style="color:#D4D4D4">[] = {</span><span style="color:#CE9178">"P"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"Q"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"E"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"X"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"A"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"M"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"P"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"L"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"E"</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#9CDCFE"> step</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> op</span><span style="color:#D4D4D4"> : </span><span style="color:#9CDCFE">ops</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"  "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">step</span><span style="color:#D4D4D4">++ &#x3C;&#x3C; </span><span style="color:#CE9178">". "</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">op</span><span style="color:#D4D4D4"> == </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"delMin -> "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">m</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">delMin</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">" | "</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">m</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">op</span><span style="color:#D4D4D4">[</span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">]); </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"insert "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">op</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">" | "</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#9CDCFE">        m</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">char</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4"> = {</span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">'S'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'O'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'R'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'T'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'E'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'X'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'A'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'M'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'P'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'L'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'E'</span><span style="color:#D4D4D4">};</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"heap construction:</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">"</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    heapify</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="146"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（146 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>输出（<code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code>）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">insert 47: 100 47 36 17 19 25 1 2 7 3 
+sink 7:    19 17 36 7 3 25 1 2 
+delMax -&gt; 100, heap: 36 19 25 17 3 7 1 2 
+9 x delMax: 100 36 25 19 17 7 3 2 1
+Activity 2 (min-heap):
+  1. insert P | P 
+  2. insert Q | P Q 
+  3. insert E | E Q P 
+  4. delMin -&gt; E | P Q 
+  5. insert X | P Q X 
+  6. insert A | A P X Q 
+  7. insert M | A M X Q P 
+  8. delMin -&gt; A | M P X Q 
+  9. insert P | M P X Q P 
+  10. insert L | L P M Q P X 
+  11. insert E | E P L Q P X M 
+  12. delMin -&gt; E | L P M Q P X 
+heap construction:
+  after sink(5, 11): S O R T L X A M P E E 
+  after sink(4, 11): S O R T L X A M P E E 
+  after sink(3, 11): S O X T L R A M P E E 
+  after sink(2, 11): S T X P L R A M O E E 
+  after sink(1, 11): X T S P L R A M O E E </code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片 p17 的循环使用 <code>int k</code>；这里 <code>k</code> 为 <code>size_t</code>，以匹配 <code>n</code>。这样做之所以安全，只是因为循环条件是 <code>k &gt;= 1</code>（到 1 就停）——若 <code>size_t</code> 的循环一直递减到 0，它会回绕而不是变为负数。</p>
+<h2 id="10-课堂活动附解答">10. 课堂活动（附解答）</h2>
+<p>三道堆练习都从下面这个最大堆开始（下标：键）：</p>
+<table>
+<thead>
+<tr>
+<th>下标</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>键</td>
+<td>100</td>
+<td>19</td>
+<td>36</td>
+<td>17</td>
+<td>3</td>
+<td>25</td>
+<td>1</td>
+<td>2</td>
+<td>7</td>
+</tr>
+</tbody></table>
+<h3 id="101-练习堆插入幻灯片-5">10.1 练习：堆插入（幻灯片 5）</h3>
+<p>在此二叉堆中插入 47。</p>
+<ul>
+<li><strong>任务 1：</strong> 展示插入的每一步</li>
+<li><strong>任务 2：</strong> 给出结果二叉堆的数组表示</li>
+<li><strong>任务 3：</strong> 插入的最坏情况时间复杂度是多少？</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：新键进入下标 10——那个位置是哪个节点的子节点？</p>
+</blockquote>
+<p><strong>解答</strong></p>
+<p><strong>任务 1：</strong> 47 放入 <code>pq[10]</code>，它是下标 5（键为 3）的<strong>左</strong>子节点，因为 2·5 = 10。上浮：47 &gt; 3 → 交换（47 到达下标 5）；47 &gt; 19 → 交换（47 到达下标 2）；47 &lt; 100 → 停止。</p>
+<p><strong>任务 2：</strong> <code>– 100 47 36 17 19 25 1 2 7 3</code></p>
+<p><strong>任务 3：</strong> O(log n)——沿通往根的路径每层至多一次交换（≤ log n + 1 次比较）。</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;练习验证：insert(47)&quot;, &quot;heap&quot;: &quot;100, 19, 36, 17, 3, 25, 1, 2, 7&quot;, &quot;ops&quot;: &quot;insert(47)&quot;}</code></pre><p>返回 <a href="#1-%E5%9B%9E%E9%A1%BE%E6%8F%92%E5%85%A5%E4%B8%8E%E4%B8%8B%E6%B2%89">§1 回顾</a>。</p>
+<h3 id="102-练习堆下沉幻灯片-6">10.2 练习：堆下沉（幻灯片 6）</h3>
+<p>将 7 下沉到此二叉堆中的适当位置：<code>– 19 7 36 17 3 25 1 2</code>（7 位于下标 2）。</p>
+<ul>
+<li><strong>任务 1：</strong> 展示下沉的每一步</li>
+<li><strong>任务 2：</strong> 给出结果二叉堆的数组表示</li>
+<li><strong>任务 3：</strong> 下沉的最坏情况时间复杂度是多少？</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答</strong></p>
+<p><strong>任务 1：</strong> 7 的子节点是 17（下标 4）和 3（下标 5）；较大的是 17，而 7 &lt; 17 → 交换（7 到达下标 4）。它唯一的子节点是 2（下标 8）；7 &gt; 2 → 停止。</p>
+<p><strong>任务 2：</strong> <code>– 19 17 36 7 3 25 1 2</code></p>
+<p><strong>任务 3：</strong> O(log n)——每层一次交换，每层两次比较（≤ 2 log n 次比较）。</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;练习验证：sink(2)&quot;, &quot;heap&quot;: &quot;19, 7, 36, 17, 3, 25, 1, 2&quot;, &quot;ops&quot;: &quot;sink(2)&quot;}</code></pre><p>返回 <a href="#1-%E5%9B%9E%E9%A1%BE%E6%8F%92%E5%85%A5%E4%B8%8E%E4%B8%8B%E6%B2%89">§1 回顾</a>。</p>
+<h3 id="103-活动-1删除最大值幻灯片-9">10.3 活动 1：删除最大值（幻灯片 9）</h3>
+<p>初始最大堆：见上表。</p>
+<p><strong>(01) 单次删除</strong> —— 调用删除最大值，并展示堆的状态。</p>
+<p><strong>(02) 复杂度</strong> —— deleteMax 的最坏情况时间复杂度是多少？</p>
+<p><strong>(03) 数组追踪</strong> —— 对原始堆连续调用九次删除最大值，并展示数组中的值。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：交换之后，下沉总是朝<em>较大</em>的子节点方向进行。</p>
+</blockquote>
+<p><strong>解答</strong></p>
+<p><strong>(01)</strong> 交换 100 与最后一个键 7，并删除 100。下沉 7：子节点为 19 和 36 → 与 36 交换（7 到达下标 3）；子节点为 25 和 1 → 与 25 交换（7 到达下标 6）；下标 6 没有子节点 → 停止。堆变为 <code>– 36 19 25 17 3 7 1 2</code>，返回 100。</p>
+<p><strong>(02)</strong> O(log n)：沿一条根到叶的路径，最多 2 log n 次比较。</p>
+<p><strong>(03)</strong> 九次调用依次返回 <code>100 36 25 19 17 7 3 2 1</code>（降序）。由于每次调用都把删除的最大值放在不断缩小的堆之后，数组本身变为 <code>– 1 2 3 7 17 19 25 36 100</code>——升序（这正是堆排序的思想，见 <a href="#7-%E5%A0%86%E6%8E%92%E5%BA%8F%E8%AE%A1%E5%88%92">§7</a>）。</p>
+<p>每次调用后的数组（<code>|</code> 标出堆的末尾；它右边的键已被删除，由 <code>exch(1, n--)</code> 放在那里）：</p>
+<table>
+<thead>
+<tr>
+<th>调用</th>
+<th>返回</th>
+<th><code>pq[1..9]</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>100</td>
+<td>36 19 25 17 3 7 1 2 | 100</td>
+</tr>
+<tr>
+<td>2</td>
+<td>36</td>
+<td>25 19 7 17 3 2 1 | 36 100</td>
+</tr>
+<tr>
+<td>3</td>
+<td>25</td>
+<td>19 17 7 1 3 2 | 25 36 100</td>
+</tr>
+<tr>
+<td>4</td>
+<td>19</td>
+<td>17 3 7 1 2 | 19 25 36 100</td>
+</tr>
+<tr>
+<td>5</td>
+<td>17</td>
+<td>7 3 2 1 | 17 19 25 36 100</td>
+</tr>
+<tr>
+<td>6</td>
+<td>7</td>
+<td>3 1 2 | 7 17 19 25 36 100</td>
+</tr>
+<tr>
+<td>7</td>
+<td>3</td>
+<td>2 1 | 3 7 17 19 25 36 100</td>
+</tr>
+<tr>
+<td>8</td>
+<td>2</td>
+<td>1 | 2 3 7 17 19 25 36 100</td>
+</tr>
+<tr>
+<td>9</td>
+<td>1</td>
+<td>| 1 2 3 7 17 19 25 36 100</td>
+</tr>
+</tbody></table>
+<p>下面的演示把每次删除的键直接从图中去掉，而不是放到堆末尾之后，所以最后显示的是一个空堆；上表才是幻灯片中原地操作的数组。</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;活动 1 验证：九次 delMax() 调用&quot;, &quot;heap&quot;: &quot;100, 19, 36, 17, 3, 25, 1, 2, 7&quot;, &quot;ops&quot;: &quot;delMax(); delMax(); delMax(); delMax(); delMax(); delMax(); delMax(); delMax(); delMax()&quot;}</code></pre><p>返回 <a href="#2-%E5%88%A0%E9%99%A4%E6%9C%80%E5%A4%A7%E5%80%BC">§2 删除最大值</a>。</p>
+<h3 id="104-活动-2假设为最小堆幻灯片-14">10.4 活动 2：假设为最小堆（幻灯片 14）</h3>
+<p>在基于堆的优先队列中执行以下操作（注意：每一步结束时画出堆的内容）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 插入 P</td>
+<td>4. 删除最小值</td>
+<td>7. 插入 M</td>
+<td>10. 插入 L</td>
+</tr>
+<tr>
+<td>2. 插入 Q</td>
+<td>5. 插入 X</td>
+<td>8. 删除最小值</td>
+<td>11. 插入 E</td>
+</tr>
+<tr>
+<td>3. 插入 E</td>
+<td>6. 插入 A</td>
+<td>9. 插入 P</td>
+<td>12. 删除最小值</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong> 提示：在最小堆中，键在比父节点<em>更小</em>时会上浮。</p>
+</blockquote>
+<p><strong>解答</strong>（每一步之后的堆数组，按层序列出）</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>返回值</th>
+<th>堆</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>插入 P</td>
+<td></td>
+<td>P</td>
+</tr>
+<tr>
+<td>2</td>
+<td>插入 Q</td>
+<td></td>
+<td>P Q</td>
+</tr>
+<tr>
+<td>3</td>
+<td>插入 E</td>
+<td></td>
+<td>E Q P</td>
+</tr>
+<tr>
+<td>4</td>
+<td>删除最小值</td>
+<td>E</td>
+<td>P Q</td>
+</tr>
+<tr>
+<td>5</td>
+<td>插入 X</td>
+<td></td>
+<td>P Q X</td>
+</tr>
+<tr>
+<td>6</td>
+<td>插入 A</td>
+<td></td>
+<td>A P X Q</td>
+</tr>
+<tr>
+<td>7</td>
+<td>插入 M</td>
+<td></td>
+<td>A M X Q P</td>
+</tr>
+<tr>
+<td>8</td>
+<td>删除最小值</td>
+<td>A</td>
+<td>M P X Q</td>
+</tr>
+<tr>
+<td>9</td>
+<td>插入 P</td>
+<td></td>
+<td>M P X Q P</td>
+</tr>
+<tr>
+<td>10</td>
+<td>插入 L</td>
+<td></td>
+<td>L P M Q P X</td>
+</tr>
+<tr>
+<td>11</td>
+<td>插入 E</td>
+<td></td>
+<td>E P L Q P X M</td>
+</tr>
+<tr>
+<td>12</td>
+<td>删除最小值</td>
+<td>E</td>
+<td>L P M Q P X</td>
+</tr>
+</tbody></table>
+<p>关键步骤：第 6 步中，A 从下标 4 出发，越过 Q 和 P，上浮到根；第 10 步中，L 越过 X 和 M，上浮到根；第 12 步中，最后一个键 M 移到根并下沉到下标 3。<a href="#6-%E6%9C%80%E5%B0%8F%E5%A0%86%E4%B8%8E-delmin">§6</a> 中的演示会逐步展示全部十二个操作。</p>
+<h2 id="11-速查与必记的-5-个要点">11. 速查与必记的 5 个要点</h2>
+<table>
+<thead>
+<tr>
+<th>操作（二叉堆，n 个键）</th>
+<th>最坏情况</th>
+<th>比较次数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>插入（追加 + 上浮）</td>
+<td>O(log n)</td>
+<td>≤ log n + 1</td>
+</tr>
+<tr>
+<td>删除最大值 / 删除最小值（exch + sink）</td>
+<td>O(log n)</td>
+<td>≤ 2 log n</td>
+</tr>
+<tr>
+<td>查找最大值 / 最小值</td>
+<td>O(1)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>自底向上建堆</td>
+<td>见第 12 讲</td>
+<td>k 从 n/2 递减到 1，逐个下沉</td>
+</tr>
+<tr>
+<td>空间</td>
+<td>O(n)</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>优先队列</th>
+<th>插入</th>
+<th>删除最大值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无序数组</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>有序数组</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>二叉堆</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>delMax：保存 <code>pq[1]</code>，<code>exch(1, n--)</code>，<code>sink(1)</code>，然后返回——旧的最后一个键被放到根上并下沉。</li>
+<li>下沉每层 2 次比较（先选出较大的子节点，再比较），上浮每层 1 次——因此分别为 2 log n 与 log n + 1。</li>
+<li>优先队列总是先服务优先级最高的元素；堆使插入与删除最大值都达到 O(log n)，而数组是在 O(1) 与 O(n) 之间取舍。</li>
+<li>最小堆就是把比较全部反过来的同一段代码：最小值在根，向较小的子节点下沉。</li>
+<li>自底向上建堆跳过叶子，从 k = n/2 递减到 1 进行下沉，因为 ⌊n/2⌋ 是最后一个有子节点的节点。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/ics-46/lec-10/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 10 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>树</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/ics-46/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>ICS 46 · Data Structure Implementation and Analysis</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/ics-46/lec-10/zh-CN/" title="上一篇: 树 ([)" aria-label="上一篇: 第 10 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 10 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 11 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/ics-46/lec-11/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

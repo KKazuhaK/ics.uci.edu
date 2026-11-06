@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Outline Designs Demo · Markdown Editor | Kazuha Mo — UC Irvine</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+		</script>
+		<style>
+			:root {
+				--demo-ink: #23324a;
+				--demo-muted: #516074;
+				--demo-border: rgba(42, 79, 133, 0.16);
+				--demo-blue: #244f8f;
+				--demo-blue-bg: rgba(36, 79, 143, 0.10);
+				--demo-blue-border: rgba(36, 79, 143, 0.22);
+				--demo-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--demo-blue-hover: #183b73;
+				--demo-card-bg: linear-gradient(135deg, #ffffff 0%, #f6f9ff 58%, #fafcff 100%);
+				--demo-card-border: rgba(42, 79, 133, 0.16);
+				--demo-card-shadow: 0 22px 44px -32px rgba(36, 79, 143, 0.45);
+				--demo-toolbar-bg: #f8f9fb;
+				--demo-editor-bg: #ffffff;
+				--demo-editor-text: #1d2939;
+				--demo-h-color: #244f8f;
+			}
+			html[data-theme="dark"] {
+				--demo-ink: #e6edf7;
+				--demo-muted: #98a4b6;
+				--demo-border: rgba(170, 195, 230, 0.18);
+				--demo-blue: #7aa9e6;
+				--demo-blue-bg: rgba(122, 169, 230, 0.13);
+				--demo-blue-border: rgba(122, 169, 230, 0.30);
+				--demo-blue-bg-strong: rgba(122, 169, 230, 0.20);
+				--demo-blue-hover: #b6cef0;
+				--demo-card-bg: linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--demo-card-border: rgba(170, 195, 230, 0.18);
+				--demo-card-shadow: 0 22px 44px -32px rgba(0, 0, 0, 0.65);
+				--demo-toolbar-bg: #181d26;
+				--demo-editor-bg: #0f1319;
+				--demo-editor-text: #dde4f0;
+				--demo-h-color: #7aa9e6;
+			}
+
+			.demo-shell {
+				max-width: 1100px;
+				margin: 0 auto;
+				padding: 1.5rem 1.25rem 4rem;
+				color: var(--demo-ink);
+			}
+			.demo-shell h1 { font-size: 1.5rem; margin: 0 0 0.4rem; }
+			.demo-shell .lede { color: var(--demo-muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+
+			.demo-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+			.demo-tab {
+				padding: 0.5rem 0.95rem;
+				border-radius: 999px;
+				border: 1.5px solid var(--demo-border);
+				background: transparent;
+				color: var(--demo-muted);
+				font: 600 0.85rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				transition: all 0.18s ease;
+			}
+			.demo-tab:hover { color: var(--demo-blue); border-color: var(--demo-blue-border); }
+			.demo-tab.active { background: var(--demo-blue); border-color: var(--demo-blue); color: #fff; }
+			html[data-theme="dark"] .demo-tab.active { color: #0e1626; }
+
+			.demo-meta { font-size: 0.86rem; color: var(--demo-muted); margin: 0 0 1rem; line-height: 1.55; }
+			.demo-meta strong { color: var(--demo-ink); }
+			.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.5rem 0 1rem; font-size: 0.82rem; }
+			.pros-cons div { padding: 0.45rem 0.7rem; border-radius: 0.55rem; border: 1px solid var(--demo-border); }
+			.pros-cons .pros { background: rgba(12, 138, 95, 0.13); border-color: rgba(12, 138, 95, 0.28); color: #0c8a5f; }
+			.pros-cons .cons { background: rgba(192, 57, 43, 0.10); border-color: rgba(192, 57, 43, 0.28); color: #c0392b; }
+			html[data-theme="dark"] .pros-cons .cons { color: #f08a7c; }
+
+			/* ── Mock editor card ── */
+			.mock-card {
+				position: relative;
+				background: var(--demo-card-bg);
+				border: 1px solid var(--demo-card-border);
+				border-radius: 1.1rem;
+				box-shadow: var(--demo-card-shadow);
+				overflow: hidden;
+				margin-bottom: 1.2rem;
+			}
+			.mock-toolbar {
+				background: var(--demo-toolbar-bg);
+				border-bottom: 1px solid var(--demo-border);
+				padding: 0.5rem 0.75rem;
+				display: flex;
+				gap: 0.35rem;
+				align-items: center;
+			}
+			.tb-btn {
+				width: 28px;
+				height: 28px;
+				border: 0;
+				border-radius: 0.35rem;
+				background: transparent;
+				color: var(--demo-muted);
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				font: 600 0.78rem/1 "Inter", sans-serif;
+				transition: background 0.15s ease, color 0.15s ease;
+			}
+			.tb-btn:hover { background: var(--demo-blue-bg); color: var(--demo-blue); }
+			.tb-btn.active { background: var(--demo-blue-bg-strong); color: var(--demo-blue); }
+			.tb-sep { width: 1px; height: 18px; background: var(--demo-border); margin: 0 0.2rem; }
+
+			.mock-body {
+				display: flex;
+				min-height: 460px;
+				position: relative;
+			}
+			.mock-editor {
+				flex: 1 1 auto;
+				background: var(--demo-editor-bg);
+				color: var(--demo-editor-text);
+				padding: 1rem 1.5rem;
+				font: 400 0.92rem/1.65 "JetBrains Mono", "SF Mono", "Consolas", monospace;
+				overflow-y: auto;
+				max-height: 500px;
+			}
+			.mock-editor h1, .mock-editor h2, .mock-editor h3 {
+				color: var(--demo-h-color);
+				font-weight: 700;
+				margin: 1.5rem 0 0.55rem;
+				font-family: inherit;
+			}
+			.mock-editor h1 { font-size: 1.2rem; margin-top: 0; }
+			.mock-editor h2 { font-size: 1.05rem; }
+			.mock-editor h3 { font-size: 0.95rem; opacity: 0.85; }
+			.mock-editor p { margin: 0.4rem 0 0.9rem; opacity: 0.85; }
+			.mock-editor .heading-anchor { scroll-margin-top: 12px; }
+
+			/* ── Variant A: Right-side toggleable panel ── */
+			.outline-panel {
+				flex: 0 0 240px;
+				background: var(--demo-toolbar-bg);
+				border-left: 1px solid var(--demo-border);
+				overflow-y: auto;
+				max-height: 500px;
+				padding: 0.7rem 0.5rem;
+				transition: flex-basis 0.2s ease, padding 0.2s ease, opacity 0.2s ease;
+			}
+			.outline-panel.collapsed {
+				flex-basis: 0;
+				padding: 0;
+				opacity: 0;
+				border-left: 0;
+				overflow: hidden;
+			}
+			.outline-title {
+				font: 700 0.72rem/1 "Inter", sans-serif;
+				color: var(--demo-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				padding: 0.3rem 0.55rem 0.55rem;
+			}
+			.outline-list { display: flex; flex-direction: column; gap: 1px; }
+			.outline-item {
+				cursor: pointer;
+				padding: 0.32rem 0.55rem;
+				border-radius: 0.3rem;
+				font: 500 0.82rem/1.4 "Inter", sans-serif;
+				color: var(--demo-muted);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				transition: background 0.12s ease, color 0.12s ease;
+				border-left: 2px solid transparent;
+			}
+			.outline-item:hover { background: var(--demo-blue-bg); color: var(--demo-ink); }
+			.outline-item.active {
+				background: var(--demo-blue-bg-strong);
+				color: var(--demo-blue);
+				border-left-color: var(--demo-blue);
+				font-weight: 700;
+			}
+			.outline-item.h2 { padding-left: 1.1rem; font-size: 0.8rem; }
+			.outline-item.h3 { padding-left: 1.7rem; font-size: 0.76rem; opacity: 0.8; }
+
+			/* ── Variant B: Toolbar popover ── */
+			.outline-popover {
+				position: absolute;
+				top: 48px;
+				right: 12px;
+				width: 280px;
+				max-height: 360px;
+				overflow-y: auto;
+				background: var(--demo-card-bg);
+				border: 1px solid var(--demo-border);
+				border-radius: 0.6rem;
+				box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+				padding: 0.6rem 0.5rem;
+				z-index: 20;
+				transform-origin: top right;
+				transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+			}
+			.outline-popover[hidden] {
+				display: block !important;
+				opacity: 0;
+				transform: scale(0.95);
+				visibility: hidden;
+				pointer-events: none;
+			}
+
+			/* ── Variant C: Command palette ── */
+			.palette-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.42);
+				display: flex;
+				align-items: flex-start;
+				justify-content: center;
+				padding-top: 12vh;
+				z-index: 100;
+				transition: opacity 0.15s ease;
+			}
+			.palette-overlay[hidden] { display: none; }
+			.palette {
+				width: min(560px, 90vw);
+				background: var(--demo-card-bg);
+				border: 1px solid var(--demo-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+				overflow: hidden;
+			}
+			.palette input {
+				width: 100%;
+				border: 0;
+				border-bottom: 1px solid var(--demo-border);
+				background: transparent;
+				padding: 0.85rem 1rem;
+				font: 500 0.95rem/1.3 "Inter", sans-serif;
+				color: var(--demo-ink);
+				outline: none;
+				box-sizing: border-box;
+			}
+			.palette-list {
+				max-height: 50vh;
+				overflow-y: auto;
+				padding: 0.35rem;
+			}
+			.palette-item {
+				padding: 0.5rem 0.7rem;
+				border-radius: 0.4rem;
+				cursor: pointer;
+				color: var(--demo-ink);
+				font: 500 0.86rem/1.4 "Inter", sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			.palette-item .badge {
+				font: 600 0.66rem/1 "Menlo", monospace;
+				color: var(--demo-muted);
+				background: var(--demo-blue-bg);
+				padding: 0.18rem 0.4rem;
+				border-radius: 0.25rem;
+				flex-shrink: 0;
+			}
+			.palette-item.h2 { padding-left: 1.2rem; }
+			.palette-item.h3 { padding-left: 1.9rem; opacity: 0.85; }
+			.palette-item.active { background: var(--demo-blue-bg-strong); color: var(--demo-blue); }
+			.palette-empty { color: var(--demo-muted); padding: 0.6rem 0.7rem; font-size: 0.84rem; }
+
+			.panel { display: none; }
+			.panel.active { display: block; }
+
+			.kbd {
+				font: 600 0.78rem/1 "Menlo", monospace;
+				padding: 0.15rem 0.45rem;
+				border-radius: 0.3rem;
+				background: var(--demo-blue-bg);
+				border: 1px solid var(--demo-blue-border);
+				color: var(--demo-blue);
+			}
+
+			@media (max-width: 700px) {
+				.pros-cons { grid-template-columns: 1fr; }
+				.outline-panel { flex-basis: 200px; }
+			}
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="../../" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="../../" class="nav-link">Home</a>
+					<a href="../../notes/" class="nav-link">Notes</a>
+					<a href="../../tools/" class="nav-link">Tools</a>
+					<a href="../../about.html" class="nav-link">About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
+			</nav>
+
+			<main class="page">
+				<div class="demo-shell">
+					<h1>Outline Designs · Demo</h1>
+					<p class="lede">三种 Outline 范式直接给你点 —— 同一份样例笔记（10 个标题），每个 Tab 是一种交互方式。点击 / 按快捷键试试感觉。</p>
+
+					<div class="demo-tabs" id="tabs">
+						<button class="demo-tab active" data-target="A">A · Right-side panel (Typora/Obsidian)</button>
+						<button class="demo-tab" data-target="B">B · Toolbar popover</button>
+						<button class="demo-tab" data-target="C">C · Command palette (VS Code)</button>
+					</div>
+
+					<!-- ============ Variant A: Right panel ============ -->
+					<section class="panel active" data-panel="A">
+						<p class="demo-meta"><strong>A · 右侧常驻面板（Typora/Obsidian 范式）</strong> — Toolbar 的 📑 Outline 按钮切换显示，状态记到 localStorage。点标题跳转，标题自动高亮。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 始终可见全局结构；零额外操作；最直观；最像 Typora/Obsidian</div>
+							<div class="cons">− 占编辑区水平空间；side-by-side 模式下三栏会挤</div>
+						</div>
+
+						<div class="mock-card">
+							<div class="mock-toolbar">
+								<button class="tb-btn">B</button>
+								<button class="tb-btn">I</button>
+								<button class="tb-btn">S</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">H1</button>
+								<button class="tb-btn">H2</button>
+								<button class="tb-btn">H3</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">⫶≡</button>
+								<button class="tb-btn">▤▥</button>
+								<span style="margin-left:auto"></span>
+								<button class="tb-btn active" id="toggleA" title="Toggle outline">📑</button>
+							</div>
+							<div class="mock-body">
+								<div class="mock-editor" id="editorA"></div>
+								<aside class="outline-panel" id="panelA">
+									<div class="outline-title">Outline</div>
+									<div class="outline-list" id="listA"></div>
+								</aside>
+							</div>
+						</div>
+					</section>
+
+					<!-- ============ Variant B: Toolbar popover ============ -->
+					<section class="panel" data-panel="B">
+						<p class="demo-meta"><strong>B · Toolbar 弹出层</strong> — 同一个 📑 按钮，但点击后弹一个 280px 浮层（不挤主区），点外部或再点按钮关闭。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 不占布局；按需出现；视觉干净；和搜索栏类似的浮层范式</div>
+							<div class="cons">− 浮层会盖住右侧内容；要点击/关闭两次操作</div>
+						</div>
+
+						<div class="mock-card">
+							<div class="mock-toolbar">
+								<button class="tb-btn">B</button>
+								<button class="tb-btn">I</button>
+								<button class="tb-btn">S</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">H1</button>
+								<button class="tb-btn">H2</button>
+								<button class="tb-btn">H3</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">⫶≡</button>
+								<button class="tb-btn">▤▥</button>
+								<span style="margin-left:auto"></span>
+								<button class="tb-btn" id="toggleB" title="Outline">📑</button>
+							</div>
+							<div class="mock-body">
+								<div class="mock-editor" id="editorB"></div>
+								<div class="outline-popover" id="popoverB" hidden>
+									<div class="outline-title">Outline</div>
+									<div class="outline-list" id="listB"></div>
+								</div>
+							</div>
+						</div>
+					</section>
+
+					<!-- ============ Variant C: Command palette ============ -->
+					<section class="panel" data-panel="C">
+						<p class="demo-meta"><strong>C · Goto-symbol 命令面板（VS Code 范式）</strong> — 按 <span class="kbd">Ctrl/Cmd+Shift+O</span>（或点 toolbar 按钮）弹出居中搜索 + 列表，输入字符模糊筛选，<span class="kbd">↑↓</span> + <span class="kbd">Enter</span> 跳转，<span class="kbd">Esc</span> 关闭。</p>
+						<div class="pros-cons">
+							<div class="pros">+ 0 持久 UI；最快路径；筛选很爽；最 power-user</div>
+							<div class="cons">− 鼠标用户不易发现（需 toolbar 兜底）；必须记快捷键</div>
+						</div>
+
+						<div class="mock-card">
+							<div class="mock-toolbar">
+								<button class="tb-btn">B</button>
+								<button class="tb-btn">I</button>
+								<button class="tb-btn">S</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">H1</button>
+								<button class="tb-btn">H2</button>
+								<button class="tb-btn">H3</button>
+								<span class="tb-sep"></span>
+								<button class="tb-btn">⫶≡</button>
+								<button class="tb-btn">▤▥</button>
+								<span style="margin-left:auto"></span>
+								<button class="tb-btn" id="toggleC" title="Goto symbol (Ctrl/Cmd+Shift+O)">📑</button>
+							</div>
+							<div class="mock-body">
+								<div class="mock-editor" id="editorC"></div>
+							</div>
+						</div>
+						<div class="palette-overlay" id="paletteOverlay" hidden>
+							<div class="palette" role="dialog" aria-label="Goto symbol">
+								<input type="text" id="paletteInput" placeholder="@ Type to filter headings…" autocomplete="off" />
+								<div class="palette-list" id="paletteList"></div>
+							</div>
+						</div>
+					</section>
+
+					<p class="demo-meta" style="margin-top:1.5rem;font-size:0.85rem;">
+						💡 <strong>推荐：A + C 组合</strong> —— 鼠标党有 A（Typora 范式，常驻可切换），键盘党有 C（VS Code 范式，<span class="kbd">Ctrl+Shift+O</span> 闪电跳转），同一份数据。B 单独有点鸡肋（功能上是 A 的"按需"版，但失去常驻好处）。
+					</p>
+				</div>
+			</main>
+
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span>
+			</footer>
+		</div>
+
+		<script src="../../assets/js/bento.js" defer></script>
+		<script>
+			(function () {
+				// Sample document with realistic headings
+				var DOC = [
+					{ level: 1, text: "ICS 45C Week 6: Inheritance & Polymorphism" },
+					{ level: 2, text: "1. Introduction" },
+					{ level: 2, text: "2. Class Inheritance" },
+					{ level: 3, text: "2.1 Syntax & access modifiers" },
+					{ level: 3, text: "2.2 Constructor chaining" },
+					{ level: 2, text: "3. Polymorphism" },
+					{ level: 3, text: "3.1 Virtual functions" },
+					{ level: 3, text: "3.2 vtables under the hood" },
+					{ level: 2, text: "4. Worked examples" },
+					{ level: 2, text: "5. Practice problems" }
+				];
+
+				function renderEditor(el) {
+					var html = "";
+					DOC.forEach(function (h, i) {
+						var tag = "h" + h.level;
+						html += "<" + tag + ' class="heading-anchor" id="' + el.id + '-h' + i + '">' + escapeHtml(h.text) + "</" + tag + ">";
+						// filler paragraphs for scrolling
+						var paragraphs = h.level === 1 ? 2 : 3;
+						for (var j = 0; j < paragraphs; j++) {
+							html += '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>';
+						}
+					});
+					el.innerHTML = html;
+				}
+
+				function escapeHtml(s) {
+					return s.replace(/[&<>"']/g, function(c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; });
+				}
+
+				// Tab switch
+				var tabs = document.querySelectorAll(".demo-tab");
+				var panels = document.querySelectorAll(".panel");
+				tabs.forEach(function (t) {
+					t.addEventListener("click", function () {
+						tabs.forEach(function (x) { x.classList.remove("active"); });
+						panels.forEach(function (x) { x.classList.remove("active"); });
+						t.classList.add("active");
+						document.querySelector('[data-panel="' + t.dataset.target + '"]').classList.add("active");
+					});
+				});
+
+				// Render mock editors
+				var editorA = document.getElementById("editorA");
+				var editorB = document.getElementById("editorB");
+				var editorC = document.getElementById("editorC");
+				renderEditor(editorA);
+				renderEditor(editorB);
+				renderEditor(editorC);
+
+				// Build outline list as DOM
+				function buildOutlineList(target, editorEl, onClick) {
+					target.innerHTML = "";
+					DOC.forEach(function (h, i) {
+						var item = document.createElement("div");
+						item.className = "outline-item h" + h.level;
+						item.textContent = h.text;
+						item.dataset.idx = i;
+						item.addEventListener("click", function () {
+							var el = document.getElementById(editorEl.id + "-h" + i);
+							if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+							highlight(target, i);
+							if (onClick) onClick();
+						});
+						target.appendChild(item);
+					});
+				}
+
+				function highlight(listEl, idx) {
+					listEl.querySelectorAll(".outline-item").forEach(function (it, i) {
+						it.classList.toggle("active", i === idx);
+					});
+				}
+
+				// Active tracking on scroll
+				function trackScroll(editorEl, listEl) {
+					editorEl.addEventListener("scroll", function () {
+						var scrollTop = editorEl.scrollTop;
+						var headings = DOC.map(function (_, i) { return document.getElementById(editorEl.id + "-h" + i); });
+						var idx = 0;
+						for (var i = 0; i < headings.length; i++) {
+							if (headings[i] && headings[i].offsetTop - editorEl.offsetTop <= scrollTop + 30) idx = i;
+							else break;
+						}
+						highlight(listEl, idx);
+					});
+				}
+
+				// ── Variant A ──
+				var listA = document.getElementById("listA");
+				var panelA = document.getElementById("panelA");
+				var toggleA = document.getElementById("toggleA");
+				buildOutlineList(listA, editorA);
+				trackScroll(editorA, listA);
+				highlight(listA, 0);
+				toggleA.addEventListener("click", function () {
+					panelA.classList.toggle("collapsed");
+					toggleA.classList.toggle("active", !panelA.classList.contains("collapsed"));
+				});
+
+				// ── Variant B ──
+				var listB = document.getElementById("listB");
+				var popoverB = document.getElementById("popoverB");
+				var toggleB = document.getElementById("toggleB");
+				buildOutlineList(listB, editorB, function () { popoverB.hidden = true; toggleB.classList.remove("active"); });
+				toggleB.addEventListener("click", function (e) {
+					e.stopPropagation();
+					popoverB.hidden = !popoverB.hidden;
+					toggleB.classList.toggle("active", !popoverB.hidden);
+				});
+				document.addEventListener("click", function (e) {
+					if (!popoverB.hidden && !popoverB.contains(e.target) && e.target !== toggleB) {
+						popoverB.hidden = true;
+						toggleB.classList.remove("active");
+					}
+				});
+
+				// ── Variant C: Palette ──
+				var paletteOverlay = document.getElementById("paletteOverlay");
+				var paletteInput = document.getElementById("paletteInput");
+				var paletteList = document.getElementById("paletteList");
+				var toggleC = document.getElementById("toggleC");
+				var paletteIdx = 0;
+				var filtered = [];
+
+				function renderPalette() {
+					var q = paletteInput.value.toLowerCase().trim();
+					filtered = DOC.map(function (h, i) { return { h: h, i: i }; }).filter(function (item) {
+						if (!q) return true;
+						return item.h.text.toLowerCase().indexOf(q) >= 0;
+					});
+					if (filtered.length === 0) {
+						paletteList.innerHTML = '<div class="palette-empty">No matching headings</div>';
+						return;
+					}
+					paletteIdx = 0;
+					paletteList.innerHTML = filtered.map(function (item, i) {
+						var badge = "H" + item.h.level;
+						return '<div class="palette-item h' + item.h.level + (i === 0 ? " active" : "") + '" data-idx="' + item.i + '">'
+							+ '<span class="badge">' + badge + '</span>'
+							+ escapeHtml(item.h.text)
+							+ '</div>';
+					}).join("");
+				}
+
+				function openPalette() {
+					paletteInput.value = "";
+					renderPalette();
+					paletteOverlay.hidden = false;
+					setTimeout(function () { paletteInput.focus(); }, 0);
+				}
+				function closePalette() {
+					paletteOverlay.hidden = true;
+				}
+				function jumpC(idx) {
+					var el = document.getElementById(editorC.id + "-h" + idx);
+					if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+					closePalette();
+				}
+
+				toggleC.addEventListener("click", openPalette);
+
+				// Trigger Cmd/Ctrl+Shift+O only when this panel is active
+				document.addEventListener("keydown", function (e) {
+					var panelCActive = document.querySelector('[data-panel="C"]').classList.contains("active");
+					if (!panelCActive) return;
+					if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "o" || e.key === "O")) {
+						e.preventDefault(); openPalette();
+					}
+				});
+
+				paletteInput.addEventListener("input", renderPalette);
+				paletteInput.addEventListener("keydown", function (e) {
+					if (e.key === "Escape") { e.preventDefault(); closePalette(); }
+					else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+						e.preventDefault();
+						var items = paletteList.querySelectorAll(".palette-item");
+						if (items.length === 0) return;
+						items[paletteIdx] && items[paletteIdx].classList.remove("active");
+						paletteIdx = (paletteIdx + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+						items[paletteIdx].classList.add("active");
+						items[paletteIdx].scrollIntoView({ block: "nearest" });
+					} else if (e.key === "Enter") {
+						e.preventDefault();
+						if (filtered[paletteIdx]) jumpC(filtered[paletteIdx].i);
+					}
+				});
+				paletteList.addEventListener("click", function (e) {
+					var item = e.target.closest(".palette-item");
+					if (item) jumpC(parseInt(item.dataset.idx, 10));
+				});
+				paletteOverlay.addEventListener("click", function (e) {
+					if (e.target === paletteOverlay) closePalette();
+				});
+			})();
+		</script>
+	</body>
+</html>

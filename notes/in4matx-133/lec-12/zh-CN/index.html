@@ -1,0 +1,520 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 混合与原生架构 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="移动优先设计，构建移动应用的几种方式（原生、WebView、编译型混合和响应式），iOS 与 Android 的原生工具链，如何选择开发方式，混合与原生的优缺点，以及 Ionic、Capacitor 和 Ionic 组件各自的位置。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/BaseLayout.D6FvEM2t.css"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1794007384" data-source-url="/~kazuhak/notes/in4matx-133/lec-12/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/in4matx-133/lec-12/en-US/" data-prev-url="/~kazuhak/notes/in4matx-133/lec-11/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 12 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/in4matx-133/lec-12/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 12 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 12 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 11 月 5 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-12混合与原生架构">IN4MATX 133: User Interface Software — Lecture 12：混合与原生架构</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E7%A7%BB%E5%8A%A8%E4%BC%98%E5%85%88%E8%AE%BE%E8%AE%A1">1. 移动优先设计</a></li>
+<li><a href="#2-%E6%9E%84%E5%BB%BA%E7%A7%BB%E5%8A%A8%E5%BA%94%E7%94%A8%E7%9A%84%E6%96%B9%E5%BC%8F">2. 构建移动应用的方式</a></li>
+<li><a href="#3-%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8">3. 原生应用</a></li>
+<li><a href="#4-%E6%B7%B7%E5%90%88%E5%BA%94%E7%94%A8%E4%B8%80%E5%A5%97%E4%BB%A3%E7%A0%81%E5%A4%9A%E4%B8%AA%E5%B9%B3%E5%8F%B0">4. 混合应用：一套代码，多个平台</a></li>
+<li><a href="#5-webview-%E5%BA%94%E7%94%A8">5. WebView 应用</a></li>
+<li><a href="#6-%E7%BC%96%E8%AF%91%E5%9E%8B%E6%B7%B7%E5%90%88%E5%BA%94%E7%94%A8">6. 编译型混合应用</a></li>
+<li><a href="#7-%E9%80%89%E6%8B%A9%E5%BC%80%E5%8F%91%E6%96%B9%E5%BC%8F">7. 选择开发方式</a></li>
+<li><a href="#8-%E4%BC%98%E7%BC%BA%E7%82%B9%E6%B7%B7%E5%90%88%E4%B8%8E%E5%8E%9F%E7%94%9F%E5%AF%B9%E6%AF%94">8. 优缺点：混合与原生对比</a></li>
+<li><a href="#9-ionic-%E4%B8%8E-capacitor">9. Ionic 与 Capacitor</a></li>
+<li><a href="#10-%E6%B5%8B%E8%AF%95%E4%B8%8E%E9%83%A8%E7%BD%B2-ionic-%E5%BA%94%E7%94%A8">10. 测试与部署 Ionic 应用</a></li>
+<li><a href="#11-ionic-%E7%9B%B8%E6%AF%94-angular-%E5%A2%9E%E5%8A%A0%E7%9A%84%E5%86%85%E5%AE%B9%E7%BB%84%E4%BB%B6">11. Ionic 相比 Angular 增加的内容：组件</a></li>
+<li><a href="#12-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">12. 课堂问题与演示（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">13. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周四 11/5（第 6 周）<br>内容整理自 Lecture 12 的幻灯片（共 53 页）。“No code today!”——本讲在课程仓库中没有 demo 文件夹。按概念组织，而不是按来源组织。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：今天没有代码——我们进入 A4 的概念内容。<br>A2 的成绩将于下周初公布。<br>A3 截止于 <strong>周三 11/11</strong>（即将到来的这个周三）。<br>A4 周二开放；截止 <strong>周一 11/23 午夜</strong>。</p>
+</blockquote>
+<p>本讲目标：区分开发移动界面的不同方式；描述开发原生、混合和网页应用的优缺点；解释 Ionic 采用哪种方式开发应用。</p>
+<hr>
+<h2 id="1-移动优先设计">1. 移动优先设计</h2>
+<p>本讲开头重申了 <a href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/#6-%E7%A7%BB%E5%8A%A8%E4%BC%98%E5%85%88%E8%AE%BE%E8%AE%A1">Lecture 4</a> 中的移动优先理念：</p>
+<ul>
+<li><strong>先为移动端规划设计。</strong></li>
+<li><strong>然后利用更大的屏幕空间让应用变得<em>更好</em>：</strong> 增加功能，并让已有功能更易于导航。</li>
+<li>许多企业会先做<strong>对移动端友好的网站，然后再开发专门的应用</strong>。</li>
+</ul>
+<p>幻灯片的图示对比了两种方向。<em>Mobile last</em>（桌面 → 平板 → 手机 → 老式手机）被标注为“degraded、shoe-horned、short-sighted、crappy”（降级、硬塞、短视、糟糕）；<em>Mobile first</em>（老式手机 → 手机 → 平板 → 桌面）则被标注为“progressively enhanced、future-friendly、awesome”（渐进增强、面向未来、出色）。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/mobile-first-diagram.png" alt="幻灯片 4：“Mobile last”把桌面设计缩小到较小的设备上；“Mobile first”从手机开始，逐级增强到桌面"></p>
+<p>在 CSS 中，移动优先意味着基础规则<em>就是</em>手机端的设计，<code>min-width</code> 媒体查询在此基础上叠加。在下面的示例中（这是我自己做的，不是幻灯片的内容），375px 的页面只显示必要内容和一个菜单按钮；从 768px 起（以 1024px 展示）媒体查询会显示导航链接（更易于导航）以及一个侧边栏（更多功能）。</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Mobile-first design (slide 4) · hand-made example&quot;, &quot;html&quot;: &quot;&lt;header&gt;\n  &lt;h1&gt;Anteater Eats&lt;/h1&gt;\n  &lt;button class=\&quot;menu\&quot;&gt;☰ Menu&lt;/button&gt;\n  &lt;nav&gt;&lt;a href=\&quot;#\&quot;&gt;Menu&lt;/a&gt; &lt;a href=\&quot;#\&quot;&gt;Order&lt;/a&gt; &lt;a href=\&quot;#\&quot;&gt;Hours&lt;/a&gt;&lt;/nav&gt;\n&lt;/header&gt;\n&lt;div class=\&quot;layout\&quot;&gt;\n  &lt;main&gt;\n    &lt;h2&gt;Today&#39;s special&lt;/h2&gt;\n    &lt;p&gt;Spicy tofu bowl — $9&lt;/p&gt;\n    &lt;button&gt;Order now&lt;/button&gt;\n  &lt;/main&gt;\n  &lt;aside&gt;\n    &lt;h2&gt;Extra for big screens&lt;/h2&gt;\n    &lt;p&gt;Weekly calendar, map, reviews…&lt;/p&gt;\n  &lt;/aside&gt;\n&lt;/div&gt;&quot;, &quot;css&quot;: &quot;/* Base styles = the phone design */\nbody { font-family: sans-serif; margin: 0; }\nheader { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #0064a4; color: white; }\nh1 { font-size: 18px; margin: 0; }\nnav { display: none; }           /* phone: links hidden behind the menu button */\nnav a { color: white; margin-left: 12px; }\nmain, aside { padding: 12px; }\naside { display: none; }         /* phone: no room for extras */\n\n/* Then make it better with more real estate */\n@media (min-width: 768px) {\n  .menu { display: none; }\n  nav { display: block; }        /* easier to navigate */\n  .layout { display: grid; grid-template-columns: 2fr 1fr; }\n  aside { display: block; background: #fff4cc; }  /* more features */\n}&quot;, &quot;width&quot;: 375, &quot;height&quot;: 260, &quot;steps&quot;: [{&quot;note&quot;: &quot;At 1024px the media query adds the visible nav links and the extra sidebar.&quot;, &quot;width&quot;: 1024}], &quot;interactive&quot;: true}</code></pre><p>幻灯片接着提出：企业为什么会想要移动<em>应用</em>，而不是移动<em>网站</em>？这是一个开放式讨论；见 <a href="#121-%E9%97%AE%E9%A2%98-1%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E7%A7%BB%E5%8A%A8%E5%BA%94%E7%94%A8%E8%80%8C%E4%B8%8D%E6%98%AF%E7%A7%BB%E5%8A%A8%E7%BD%91%E7%AB%99%E5%B9%BB%E7%81%AF%E7%89%87-5">问题 1</a>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E9%97%AE%E9%A2%98-1%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E7%A7%BB%E5%8A%A8%E5%BA%94%E7%94%A8%E8%80%8C%E4%B8%8D%E6%98%AF%E7%A7%BB%E5%8A%A8%E7%BD%91%E7%AB%99%E5%B9%BB%E7%81%AF%E7%89%87-5">问题 1</a><br>🔗 <strong>延伸阅读</strong>：<a href="https://bradfrostweb.com/blog/web/mobile-first-responsive-web-design">Brad Frost：移动优先的响应式网页设计（幻灯片图示的来源）</a></p>
+</blockquote>
+<h2 id="2-构建移动应用的方式">2. 构建移动应用的方式</h2>
+<p>构建移动应用的方式有很多种。讲义比较了四种<strong>移动开发方法</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>你构建的是什么</th>
+<th>详见</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>原生</strong></td>
+<td>每个平台各自一个应用，使用平台厂商的工具和语言</td>
+<td><a href="#3-%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8">第 3 节</a></td>
+</tr>
+<tr>
+<td><strong>WebView</strong>（混合的一种）</td>
+<td>一个网站，运行在轻量的原生应用中，由它调用手机的浏览器</td>
+<td><a href="#5-webview-%E5%BA%94%E7%94%A8">第 5 节</a></td>
+</tr>
+<tr>
+<td><strong>混合</strong>（幻灯片 18 把混合分为 WebView 和编译型两类；本行指编译型）</td>
+<td>一套代码编译成每个平台的原生应用</td>
+<td><a href="#6-%E7%BC%96%E8%AF%91%E5%9E%8B%E6%B7%B7%E5%90%88%E5%BA%94%E7%94%A8">第 6 节</a></td>
+</tr>
+<tr>
+<td><strong>响应式</strong></td>
+<td>一个会适应屏幕的网站，在手机浏览器中打开</td>
+<td><a href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/#2-%E8%87%AA%E9%80%82%E5%BA%94%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%93%8D%E5%BA%94%E5%BC%8F%E8%AE%BE%E8%AE%A1">Lecture 4</a></td>
+</tr>
+</tbody></table>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  subgraph N[&quot;Native&quot;]
+    n1[&quot;Swift / Objective-C&quot;] --&gt; n2[&quot;iOS app&quot;]
+    n3[&quot;Java / Kotlin&quot;] --&gt; n4[&quot;Android app&quot;]
+  end
+  subgraph W[&quot;WebView hybrid&quot;]
+    w1[&quot;HTML / CSS / JS (one codebase)&quot;] --&gt; w2[&quot;native shell + WebView (iOS)&quot;]
+    w1 --&gt; w3[&quot;native shell + WebView (Android)&quot;]
+  end
+  subgraph C[&quot;Compiled hybrid&quot;]
+    c1[&quot;C# or JavaScript (one codebase)&quot;] --&gt;|&quot;compile&quot;| c2[&quot;native iOS app&quot;]
+    c1 --&gt;|&quot;compile&quot;| c3[&quot;native Android app&quot;]
+  end
+  subgraph R[&quot;Responsive web&quot;]
+    r1[&quot;HTML / CSS / JS&quot;] --&gt; r2[&quot;phone&#39;s browser&quot;]
+  end</code></pre><h2 id="3-原生应用">3. 原生应用</h2>
+<h3 id="31-什么是原生应用">3.1 什么是原生应用</h3>
+<p><strong>原生应用</strong>是为特定硬件设计的应用，通常使用硬件或平台厂商自己开发的工具构建：</p>
+<ul>
+<li><strong>Android Studio</strong>，用于 Android，使用 <strong>Java</strong></li>
+<li><strong>Xcode</strong>，用于 iOS，使用 <strong>Swift</strong> 或 <strong>Objective-C</strong></li>
+</ul>
+<p>我们今天所理解的原生应用始于<strong>第一代 iPhone</strong>：苹果在发布硬件的同时也发布了开发平台（幻灯片展示的是 iPhone 发布时的舞台画面）。</p>
+<h3 id="32-ios">3.2 iOS</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>iOS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言</td>
+<td><strong>Objective-C</strong>、<strong>Swift</strong>，以及 <strong>Cocoa Touch</strong>（API）</td>
+</tr>
+<tr>
+<td>工具</td>
+<td><strong>Xcode</strong>、<strong>iOS 软件开发工具包（SDK）</strong></td>
+</tr>
+<tr>
+<td>SDK 提供的能力</td>
+<td>访问手机的存储、摄像头、传感器等</td>
+</tr>
+</tbody></table>
+<p>这些语言要么由苹果开发，要么几乎只有苹果在用。幻灯片提问：<strong>开发者锁定（developer lock-in）是……缺点？优点？还是两者兼有？</strong>（一种理解方式：锁定意味着你的 iOS 技能和代码只能留在苹果平台上——想要离开时是一种成本，但一切都设计得天衣无缝。）</p>
+<h3 id="33-android">3.3 Android</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Android</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言</td>
+<td>主要是 <strong>Java</strong>；通过 <strong>Android Native Development Kit（NDK）</strong> 使用 <strong>C 和 C++</strong>；近来也支持 <strong>Kotlin</strong></td>
+</tr>
+<tr>
+<td>工具</td>
+<td><strong>Android Studio</strong>、Android SDK（幻灯片拼写为 &quot;Android Source Development Kit&quot;），以及 Rider 或 VS 等各种 IDE</td>
+</tr>
+</tbody></table>
+<p>Android 的语言与其他场景中使用的语言更接近。幻灯片同样提问这是优点还是缺点（一种理解方式——与 iOS 的锁定正好相反：更容易把已有技能和代码带进来，但也不那么贴合平台。）</p>
+<h3 id="34-平台专属的代码库">3.4 平台专属的代码库</h3>
+<p>原生开发的难点在于<strong>平台专属的代码库</strong>。</p>
+<ul>
+<li>Android 使用 Java，iOS 使用 Objective-C 或 Swift。</li>
+<li>两者使用不同的库与硬件通信。</li>
+<li>支持一个新平台通常意味着<strong>从零开始编码</strong>。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：“原生”意味着<em>按平台划分</em>。同一产品的 iOS 应用和 Android 应用是两个独立的程序，使用两种语言、两套工具链——这正是混合应用想要避免的成本。</p>
+</blockquote>
+<h2 id="4-混合应用一套代码多个平台">4. 混合应用：一套代码，多个平台</h2>
+<p>两个问题促使人们寻找替代方案：</p>
+<ul>
+<li>如果我们的应用已经有了<strong>网站</strong>，或者有其他现成的代码库，怎么办？</li>
+<li>如果我们想要<strong>在多个手机平台之间共享代码</strong>，怎么办？</li>
+</ul>
+<p><strong>解决方案：混合应用</strong>——“使用共同的代码库，在多种平台上部署类原生应用”。主要有两种方式：</p>
+<ol>
+<li><strong>WebView 应用</strong>（<a href="#5-webview-%E5%BA%94%E7%94%A8">第 5 节</a>）</li>
+<li><strong>编译型混合应用</strong>（<a href="#6-%E7%BC%96%E8%AF%91%E5%9E%8B%E6%B7%B7%E5%90%88%E5%BA%94%E7%94%A8">第 6 节</a>）</li>
+</ol>
+<h2 id="5-webview-应用">5. WebView 应用</h2>
+<h3 id="51-webview-应用的工作方式">5.1 WebView 应用的工作方式</h3>
+<ul>
+<li>在轻量的原生应用中<strong>加载手机的内置浏览器</strong>。</li>
+<li>在该浏览器中<strong>运行用 HTML/CSS/JavaScript 编写的网页</strong>。</li>
+<li>理想情况下，<strong>向浏览器暴露一些原生 API</strong>。</li>
+</ul>
+<p>本质上，<strong>这个应用就是一个网站</strong>。这使得同一套或相似的代码既能用于应用，也能用于网站。</p>
+<h3 id="52-webview-应用框架">5.2 WebView 应用框架</h3>
+<p><strong>Ionic</strong> 和 <strong>NativeScript</strong>。这些框架使用网页技术（HTML、CSS、TypeScript、JavaScript），而不是平台专属技术。</p>
+<p>既然 WebView 应用只是网站，这些框架到底提供了什么？</p>
+<ul>
+<li><strong>常见的移动界面元素</strong>，如滑块和按钮（下周会详细介绍）</li>
+<li><strong>用来运行网站的原生应用</strong></li>
+<li><strong>一些与平台 SDK 通信的 API</strong></li>
+</ul>
+<h2 id="6-编译型混合应用">6. 编译型混合应用</h2>
+<h3 id="61-编译型混合应用的工作方式">6.1 编译型混合应用的工作方式</h3>
+<p>“用一种语言编写代码，例如 C# 或 JavaScript，然后将其编译为每个平台所支持的原生代码。”</p>
+<ul>
+<li><strong>结果</strong>：每个平台都有一个原生应用。</li>
+<li><strong>挑战</strong>：开发时的自由度较低。</li>
+</ul>
+<h3 id="62-编译型混合应用框架">6.2 编译型混合应用框架</h3>
+<table>
+<thead>
+<tr>
+<th>框架</th>
+<th>语言</th>
+<th>幻灯片的说法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Unity</strong></td>
+<td>C#</td>
+<td>领先的游戏开发平台；支持主机、网页和移动端（“Build once, deploy anywhere”，一次构建，随处部署）；你需要导入或使用平台专属的 SDK</td>
+</tr>
+<tr>
+<td><strong>React Native</strong></td>
+<td>JavaScript</td>
+<td>使用 <strong>React</strong>（一种与 Angular 类似的网页框架）；将网页编译为原生应用。幻灯片中的 &quot;Who&#39;s using React Native?&quot; 面板列出了 Facebook、Instagram、Airbnb、Skype、Tesla、Walmart 等公司</td>
+</tr>
+</tbody></table>
+<p>React 是 <a href="/~kazuhak/notes/in4matx-133/lec-10/zh-CN/#1-%E5%B0%8F%E5%9E%8B%E4%B8%8E%E5%A4%A7%E5%9E%8B%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%95%8C%E9%9D%A2%E4%BB%A5%E5%8F%8A%E6%A1%86%E6%9E%B6">Lecture 10</a> 中与 Angular 并列提到的框架之一。</p>
+<blockquote>
+<p>💡 <strong>关键点</strong>：WebView 和编译型混合都从一套代码开始；区别在于最终装到手机上的是什么。WebView 应用交付的是<em>一个网站加上浏览器外壳</em>；编译型混合应用交付的是<em>原生代码</em>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#122-%E9%97%AE%E9%A2%98-2%E6%80%A7%E8%83%BD%E6%9C%80%E5%A5%BD%E4%B8%8E%E6%9C%80%E5%B7%AE%E5%B9%BB%E7%81%AF%E7%89%87-2729">问题 2</a>——原生、WebView 和编译型混合，哪一种性能最好，哪一种最差？</p>
+</blockquote>
+<h2 id="7-选择开发方式">7. 选择开发方式</h2>
+<p>性能只是其中一个因素。我们该如何选择开发方式？幻灯片把考量因素分成三类：</p>
+<table>
+<thead>
+<tr>
+<th>商业</th>
+<th>用户体验与设计</th>
+<th>技术</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发时间</td>
+<td>与平台的一致性</td>
+<td>编程语言</td>
+</tr>
+<tr>
+<td>开发成本</td>
+<td>设备能力</td>
+<td>与设备的集成</td>
+</tr>
+<tr>
+<td>维护问题</td>
+<td>支持的交互模式</td>
+<td>性能</td>
+</tr>
+<tr>
+<td>现有基础设施</td>
+<td>性能与可用性</td>
+<td>升级与维护</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>灵活性</td>
+</tr>
+</tbody></table>
+<h2 id="8-优缺点混合与原生对比">8. 优缺点：混合与原生对比</h2>
+<h3 id="81-混合应用">8.1 混合应用</h3>
+<table>
+<thead>
+<tr>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可以在网页和移动端之间共享代码库</td>
+<td>性能问题</td>
+</tr>
+<tr>
+<td>有时能节省时间和精力</td>
+<td>与平台不协调</td>
+</tr>
+<tr>
+<td>可以访问部分设备能力</td>
+<td>对设备能力的访问有限</td>
+</tr>
+</tbody></table>
+<h3 id="82-原生应用">8.2 原生应用</h3>
+<table>
+<thead>
+<tr>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>与平台保持一致的体验</td>
+<td>需要为每个平台分别开发</td>
+</tr>
+<tr>
+<td>能充分利用设备能力</td>
+<td>应用的开发和维护成本</td>
+</tr>
+<tr>
+<td>使用原生 UI 元素</td>
+<td>需要学习和管理多种编程语言</td>
+</tr>
+<tr>
+<td></td>
+<td>需要管理多套工具</td>
+</tr>
+</tbody></table>
+<p>幻灯片中的原生 UI 示例是 <strong>iOS 上下文菜单</strong>（长按照片后出现：拷贝、分享、收藏、在所有照片中显示、删除）。React Native 和 Unity <strong>没有</strong>上下文菜单功能——社区开发的包是例外。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ios-context-menu.png" alt="幻灯片 37：iOS 上下文菜单——拷贝、分享、收藏、在所有照片中显示，以及红色的删除"></p>
+<h3 id="83-结论">8.3 结论</h3>
+<ul>
+<li><strong>当性能和与平台的一致性是主要考量时，原生应用最合适。</strong></li>
+<li><strong>当时间或金钱是主要考量，并且需要在多个平台上部署时，混合应用最合适。</strong></li>
+<li>另外，许多应用是<strong>部分原生、部分混合</strong>构建的。</li>
+</ul>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E9%97%AE%E9%A2%98-3%E5%A6%82%E6%9E%9C%E5%81%9A%E4%B8%80%E4%B8%AA%E5%BC%80%E6%94%BE%E5%BC%8F-a5%E4%BD%A0%E4%BC%9A%E5%81%9A%E4%BB%80%E4%B9%88%E5%B9%BB%E7%81%AF%E7%89%87-4041">问题 3</a></p>
+</blockquote>
+<h2 id="9-ionic-与-capacitor">9. Ionic 与 Capacitor</h2>
+<h3 id="91-ionic">9.1 Ionic</h3>
+<p>这是一个混合（WebView）框架：</p>
+<ul>
+<li><strong>WebView 应用框架</strong>，发布于 <strong>2013 年</strong></li>
+<li>界面基于 <strong>Angular</strong> 实现；后来增加了对 <strong>React 和 Vue</strong> 的支持</li>
+<li><strong>Capacitor</strong> 是 Ionic 推荐的混合应用运行时</li>
+</ul>
+<h3 id="92-capacitor">9.2 Capacitor</h3>
+<ul>
+<li>它提供<strong>打开 WebView 的原生应用</strong>。</li>
+<li>它还提供<strong>连接设备资源的插件</strong>，数量很多，既有官方的也有社区的。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>官方插件示例</th>
+<th>社区插件示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地理定位（Geolocation）</td>
+<td>Facebook</td>
+</tr>
+<tr>
+<td>推送通知（Push Notifications）</td>
+<td>LinkedIn</td>
+</tr>
+<tr>
+<td>摄像头（Camera）</td>
+<td>微信（WeChat）</td>
+</tr>
+<tr>
+<td>运动传感器（Motion）</td>
+<td>Apple Pay</td>
+</tr>
+<tr>
+<td>触觉反馈（Haptic）</td>
+<td>Google Maps</td>
+</tr>
+<tr>
+<td></td>
+<td>YouTube</td>
+</tr>
+</tbody></table>
+<p>用 <a href="#52-webview-%E5%BA%94%E7%94%A8%E6%A1%86%E6%9E%B6">第 5.2 节</a> 的术语来说：Ionic 提供移动界面元素，Capacitor 提供原生应用，以及通向平台 SDK 的 API。</p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ionicframework.com/resources/articles/capacitor-vs-cordova-modern-hybrid-app-development">Ionic：Capacitor 与 Cordova 对比，现代混合应用开发</a> · <a href="https://capacitorjs.com/docs/apis">Capacitor：API（官方插件）</a> · <a href="https://github.com/capacitor-community/">Capacitor Community（GitHub）</a> · <a href="https://ionicframework.com/docs/native/">Ionic：Native</a> · <a href="https://capacitorjs.com/docs/plugins/community">Capacitor：社区插件</a></p>
+</blockquote>
+<h2 id="10-测试与部署-ionic-应用">10. 测试与部署 Ionic 应用</h2>
+<h3 id="101-ionic-dev在浏览器中测试">10.1 Ionic Dev：在浏览器中测试</h3>
+<p>Ionic Dev 提供一个 WebView 来打开 Ionic 应用，让你可以<strong>在浏览器中测试 Ionic 应用</strong>。幻灯片截图显示的是 Chrome 响应式模式（465 × 938）下 <code>localhost:8101/tabs/tab1</code> 的 Ionic 标签页起始模板，并打开了 Elements 面板。页面就是普通的 DOM：Ionic 组件以 <code>&lt;ion-router-outlet&gt;</code>、<code>&lt;ion-header&gt;</code>、<code>&lt;ion-content&gt;</code> 和 <code>&lt;ion-tab-bar&gt;</code> 等元素出现，此外还有常见的 <code>runtime.js</code>、<code>polyfills.js</code>、<code>vendor.js</code>、<code>main.js</code> 脚本。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-serve-browser.png" alt="幻灯片 47：在 localhost 上运行的 Ionic 应用（"Tab 1 page"，标签栏 Tab 1–3），Chrome 响应式模式下的开发者工具显示 ion-* 元素"></p>
+<p>既然 WebView 应用就是一个网页，同一个起始界面也可以用纯 HTML、CSS 和 DOM 事件重新实现。试试点击标签页，或修改代码后按 Run：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;A WebView app is just a web page: the Ionic tabs starter (slides 47, 49) re-created by hand in plain HTML/CSS/JS — not Ionic&quot;, &quot;html&quot;: &quot;&lt;div class=\&quot;app\&quot;&gt;\n  &lt;header id=\&quot;title\&quot;&gt;Tab 1&lt;/header&gt;\n  &lt;section class=\&quot;page\&quot;&gt;\n    &lt;strong id=\&quot;page\&quot;&gt;Tab 1 page&lt;/strong&gt;\n    &lt;span&gt;Explore &lt;a href=\&quot;#\&quot;&gt;UI Components&lt;/a&gt;&lt;/span&gt;\n  &lt;/section&gt;\n  &lt;footer class=\&quot;tabbar\&quot;&gt;\n    &lt;button class=\&quot;tab active\&quot; data-n=\&quot;1\&quot;&gt;▲&lt;br&gt;Tab 1&lt;/button&gt;\n    &lt;button class=\&quot;tab\&quot; data-n=\&quot;2\&quot;&gt;●&lt;br&gt;Tab 2&lt;/button&gt;\n    &lt;button class=\&quot;tab\&quot; data-n=\&quot;3\&quot;&gt;■&lt;br&gt;Tab 3&lt;/button&gt;\n  &lt;/footer&gt;\n&lt;/div&gt;&quot;, &quot;css&quot;: &quot;body { margin: 0; font-family: -apple-system, sans-serif; }\n.app { display: flex; flex-direction: column; height: 100vh; background: #121212; color: white; }\nheader { padding: 14px 16px; font-size: 20px; background: #1f1f1f; }\n.page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }\n.page span { color: #aaa; font-size: 14px; }\na { color: #4d8dff; text-decoration: none; }\n.tabbar { display: flex; background: #1f1f1f; }\n.tab { flex: 1; padding: 6px 0; border: none; background: none; color: #888; font-size: 12px; }\n.tab.active { color: #4d8dff; }&quot;, &quot;js&quot;: &quot;for (const tab of document.querySelectorAll(&#39;.tab&#39;)) {\n  tab.addEventListener(&#39;click&#39;, () =&gt; {\n    const n = tab.dataset.n;\n    document.querySelector(&#39;.tab.active&#39;).classList.remove(&#39;active&#39;);\n    tab.classList.add(&#39;active&#39;);\n    document.getElementById(&#39;title&#39;).textContent = &#39;Tab &#39; + n;\n    document.getElementById(&#39;page&#39;).textContent = &#39;Tab &#39; + n + &#39; page&#39;;\n    console.log(&#39;showing Tab &#39; + n);\n  });\n}&quot;, &quot;width&quot;: 375, &quot;height&quot;: 520, &quot;steps&quot;: [{&quot;note&quot;: &quot;Tap Tab 2: plain DOM code swaps the title and page — no native code involved.&quot;, &quot;js&quot;: &quot;document.querySelectorAll(&#39;.tab&#39;)[1].click();&quot;}], &quot;interactive&quot;: true}</code></pre><p>点击 Tab 2 后，标题和页面文字会变为 &quot;Tab 2&quot;，并输出 <code>showing Tab 2</code>。</p>
+<h3 id="102-部署到应用商店">10.2 部署到应用商店</h3>
+<ul>
+<li>部署包括<strong>打包应用，并以开发者身份对其“签名”</strong>。</li>
+<li>对于 <strong>Android</strong>，需要安装 <strong>Android Studio</strong>。</li>
+<li>对于 <strong>iOS</strong>，需要安装 <strong>Xcode</strong> 并拥有<strong>开发者账号</strong>。</li>
+<li>然后就可以把应用“部署”到应用商店。</li>
+<li>iOS 应用商店提供面向一小群开发者的<strong>“测试版”部署</strong>功能。</li>
+<li>这个过程通常很麻烦。</li>
+</ul>
+<h3 id="103-capacitor-拥抱原生工具">10.3 Capacitor 拥抱原生工具</h3>
+<p>“Capacitor 的核心理念是，开发者应当拥抱 Android Studio 和 Xcode 等原生工具。”</p>
+<ul>
+<li>Capacitor <strong>预先构建项目</strong>，供 Xcode 和 Android Studio 使用。</li>
+<li>这样你就可以在<strong>真机或模拟器</strong>上测试 Ionic 应用。</li>
+<li><strong>模拟器对插件的支持有限。</strong></li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-emulators.png" alt="幻灯片 49：同一个 Ionic 标签页应用分别在 Android Studio（左）和 Xcode（右）中模拟运行"></p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：浏览器（Ionic Dev）和模拟器用于测试界面。与设备硬件交互的插件在模拟器中受限，因此应在真机上测试这些插件。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ionicframework.com/docs/cli/commands/serve">Ionic CLI：ionic serve</a> · <a href="https://ionicframework.com/docs/building/ios">Ionic：为 iOS 构建</a> · <a href="https://ionicframework.com/docs/building/android">Ionic：为 Android 构建</a> · <a href="https://ionicframework.com/docs/developing/starting">Ionic：开始开发</a></p>
+</blockquote>
+<h2 id="11-ionic-相比-angular-增加的内容组件">11. Ionic 相比 Angular 增加的内容：组件</h2>
+<p>Ionic 为移动界面中常见的许多元素提供了<strong>Angular 风格的组件</strong>：<strong>列表、按钮、滑块、标签页、模态对话框、搜索栏</strong>等等。这些将是下一讲的重点。</p>
+<p>幻灯片展示了其中两个：<strong>List</strong>（“Recent conversations”和“Online”两个分区，每行包含头像、名称和预览文字）以及 <strong>Range</strong> 滑块（“Adjust display”，两端带图标）。</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-components.png" alt="幻灯片 51：Ionic 的 List 组件（带头像的会话行）和 Range 组件（“Adjust display”下的滑块）"></p>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ionicframework.com/docs/components/">Ionic：UI 组件</a></p>
+</blockquote>
+<h2 id="12-课堂问题与演示附解答">12. 课堂问题与演示（附解答）</h2>
+<p>本讲没有编码演示（“No code today!”）。幻灯片 28 显示每个选项都是 0%，幻灯片 41 尚无回答，因此没有公布任何结果；下面的答案来自讲义自身的幻灯片。</p>
+<h3 id="121-问题-1为什么用移动应用而不是移动网站幻灯片-5">12.1 问题 1：为什么用移动应用而不是移动网站？（幻灯片 5）</h3>
+<p><em>问题：企业为什么可能更想要移动应用，而不是移动网站？</em>（开放式讨论，没有选项）</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（来自讲义后面的幻灯片）：应用，尤其是原生应用，能做到手机浏览器中的网站做不到的事：<strong>设备能力</strong>（通过 SDK 访问存储、摄像头和传感器；即使是混合应用也能“访问部分设备能力”，幻灯片 35），以及对原生应用而言的<strong>原生 UI 元素</strong>，如 iOS 上下文菜单、与平台<strong>一致</strong>的体验，还有最佳性能（幻灯片 11、37、39）。代价是成本：每个平台都要单独开发，使用不同的工具和语言（幻灯片 38）。这就是许多企业先做对移动端友好的网站、之后再开发专门应用的原因（幻灯片 4）。回到 <a href="#1-%E7%A7%BB%E5%8A%A8%E4%BC%98%E5%85%88%E8%AE%BE%E8%AE%A1">第 1 节</a>。</p>
+<h3 id="122-问题-2性能最好与最差幻灯片-2729">12.2 问题 2：性能最好与最差（幻灯片 27–29）</h3>
+<p><em>原生、WebView 和编译型混合应用，哪一种性能最好，哪一种最差？</em>（性能的定义较宽泛：页面加载时间、点击延迟等。）</p>
+<ul>
+<li>A. 编译型混合性能最好，WebView 性能最差</li>
+<li>B. WebView 性能最好，编译型混合性能最差</li>
+<li>C. WebView 性能最好，原生性能最差</li>
+<li>D. 原生性能最好，编译型混合性能最差</li>
+<li>E. 原生性能最好，WebView 性能最差</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案：E。</strong> 原生应用是为特定硬件、使用平台自己的工具构建的，讲义也建议在“性能……是主要考量”时选择原生（幻灯片 39）。编译型混合应用最终同样会变成每个平台的原生代码（幻灯片 23），因此它居于两者之间。WebView 应用是运行在手机浏览器中的网站，而“性能问题”是混合应用的第一个劣势（幻灯片 36），因此它最慢。</p>
+<ul>
+<li>A 错误：编译型混合是编译<em>成</em>原生代码；它不会比直接编写原生代码更快。</li>
+<li>B 和 C 把 WebView 排在第一，但 WebView 在你的代码和设备之间增加了一层浏览器。</li>
+<li>D 是陷阱：编译型混合是<em>中间</em>的选项，而不是最差的。没有变成原生代码的是 WebView 应用。</li>
+</ul>
+<p>回到 <a href="#6-%E7%BC%96%E8%AF%91%E5%9E%8B%E6%B7%B7%E5%90%88%E5%BA%94%E7%94%A8">第 6 节</a>。</p>
+<h3 id="123-问题-3如果做一个开放式-a5你会做什么幻灯片-4041">12.3 问题 3：如果做一个开放式 A5，你会做什么？（幻灯片 40–41）</h3>
+<p>（幻灯片把这个投票标为 &quot;L12, Q2&quot;；性能投票是本讲的第一个投票。）</p>
+<p><em>L12, Q2：如果 A5 是一个开放式的网页或应用开发项目，你会做什么？</em> 假设你会使用 Angular，或 Ionic + Angular 来构建网站或应用。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>：这是一个意见投票，没有标准答案。要在网站（Angular）和应用（Ionic + Angular）之间做选择，可以参考 <a href="#7-%E9%80%89%E6%8B%A9%E5%BC%80%E5%8F%91%E6%96%B9%E5%BC%8F">第 7 节</a> 的考量因素，以及 <a href="#8-%E4%BC%98%E7%BC%BA%E7%82%B9%E6%B7%B7%E5%90%88%E4%B8%8E%E5%8E%9F%E7%94%9F%E5%AF%B9%E6%AF%94">第 8 节</a> 的权衡：这个想法是否需要设备能力（摄像头、地理定位，即 Capacitor 插件），或需要移动应用般的体验，还是一个响应式网站就足够了？</p>
+<h2 id="13-速查与必记的-5-个要点">13. 速查与必记的 5 个要点</h2>
+<p><strong>开发方式</strong></p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>代码库</th>
+<th>手机上运行的是什么</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原生</td>
+<td>每个平台一套</td>
+<td>原生应用</td>
+<td>Xcode + Swift/Objective-C；Android Studio + Java/Kotlin</td>
+</tr>
+<tr>
+<td>WebView 混合</td>
+<td>一套（HTML/CSS/TS/JS）</td>
+<td>手机浏览器中的网站，装在轻量的原生应用内</td>
+<td>Ionic（+ Capacitor）、NativeScript</td>
+</tr>
+<tr>
+<td>编译型混合</td>
+<td>一套（C# 或 JavaScript）</td>
+<td>每个平台各自编译出的原生应用</td>
+<td>Unity（C#）、React Native（JavaScript）</td>
+</tr>
+<tr>
+<td>响应式网页</td>
+<td>一套</td>
+<td>浏览器中的网站</td>
+<td>Bootstrap 风格的网站（<a href="/~kazuhak/notes/in4matx-133/lec-04/zh-CN/#10-bootstrap-%E7%BD%91%E6%A0%BC%E7%B3%BB%E7%BB%9F">Lecture 4</a>）</td>
+</tr>
+</tbody></table>
+<p><strong>平台</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>iOS</th>
+<th>Android</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言</td>
+<td>Objective-C、Swift（Cocoa Touch API）</td>
+<td>Java、Kotlin；通过 NDK 使用 C/C++</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>Xcode、iOS SDK</td>
+<td>Android Studio、Android SDK、Rider / VS</td>
+</tr>
+<tr>
+<td>部署方式</td>
+<td>Xcode + 开发者账号；提供测试版部署</td>
+<td>Android Studio</td>
+</tr>
+</tbody></table>
+<p><strong>Ionic 技术栈</strong></p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ionic</td>
+<td>WebView 框架（2013 年）；Angular 风格的移动组件；也支持 React 和 Vue</td>
+</tr>
+<tr>
+<td>Capacitor</td>
+<td>打开 WebView 的原生应用，以及设备资源插件（官方和社区）</td>
+</tr>
+<tr>
+<td>Ionic Dev</td>
+<td>在浏览器中测试应用</td>
+</tr>
+<tr>
+<td>Xcode / Android Studio</td>
+<td>由 Capacitor 预先构建的项目；在真机或模拟器上运行（插件受限），并签名以上架应用商店</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>原生 = 每个平台一个应用，使用平台厂商的工具和语言：性能和平台一致性最佳，成本最高。</li>
+<li>混合 = 一套代码覆盖多个平台，分两种：WebView（原生外壳中的网站）和编译型混合（编译为原生代码）。</li>
+<li>性能排序：原生最好，编译型混合居中，WebView 最差。</li>
+<li>当性能和与平台的一致性最重要时选择原生；当时间或金钱更重要、且必须在多个平台发布时选择混合。许多真实应用两者兼用。</li>
+<li>Ionic 是基于 Angular 的 WebView 框架；Capacitor 提供原生应用和插件，而测试真机和部署仍需要 Xcode / Android Studio。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/in4matx-133/lec-11/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 11 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>Angular 中的分离</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/in4matx-133/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>IN4MATX 133 · User Interface Software</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/in4matx-133/lec-11/zh-CN/" title="上一篇: Angular 中的分离 ([)" aria-label="上一篇: 第 11 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 11 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 12 讲</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/in4matx-133/lec-12/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>

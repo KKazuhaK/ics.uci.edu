@@ -1,0 +1,990 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>CS 121 倒排索引、索引构建 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="倒排索引（词典与 postings）、索引器的排序与合并步骤、通过合并 postings 处理 AND 查询、布尔检索模型、排序的抽象模型、带计数、位置、区段与分数的 postings、简单的内存索引器、docID，以及使内存索引失效的硬件限制。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/zh-CN/"><link rel="icon" href="/~kazuhak/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/~kazuhak/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/zh-CN/"><link rel="stylesheet" href="/~kazuhak/_astro/BaseLayout.D6FvEM2t.css"><link rel="stylesheet" href="/~kazuhak/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/~kazuhak/_astro/katex.D1M0OS0E.css"><link rel="stylesheet" href="/~kazuhak/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/~kazuhak/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/~kazuhak/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/~kazuhak/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/~kazuhak/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/~kazuhak/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/~kazuhak/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/~kazuhak/assets/viz/" data-viz-version="1794007380" data-source-url="/~kazuhak/notes/cs-121/week-06/zh-CN/source.md" data-editor-url="/~kazuhak/tools/md-editor/" data-alt-url="/~kazuhak/notes/cs-121/week-06/en-US/" data-prev-url="/~kazuhak/notes/cs-121/week-05/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/~kazuhak/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/~kazuhak/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 6 周</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/~kazuhak/notes/cs-121/week-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 6 周 · 信息检索课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 CS 121 第 6 周 的课程笔记，适合按周复习文本处理、网络图、SEO、网络爬虫，以及搜索引擎如何索引网页并为其排序。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 11 月 4 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-6倒排索引索引构建查询处理">CS 121: Information Retrieval — Week 6：倒排索引、索引构建、查询处理</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E6%88%91%E4%BB%AC%E6%89%80%E5%9C%A8%E7%9A%84%E4%BD%8D%E7%BD%AE%E4%BB%8E%E7%9F%A9%E9%98%B5%E5%88%B0%E7%B4%A2%E5%BC%95">1. 我们所在的位置：从矩阵到索引</a></li>
+<li><a href="#2-%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95%E8%AF%8D%E5%85%B8%E4%B8%8E-postings">2. 倒排索引：词典与 postings</a></li>
+<li><a href="#3-%E6%9E%84%E5%BB%BA%E7%B4%A2%E5%BC%95%E7%B4%A2%E5%BC%95%E5%99%A8%E7%9A%84%E6%AD%A5%E9%AA%A4">3. 构建索引：索引器的步骤</a></li>
+<li><a href="#4-%E7%B4%A2%E5%BC%95%E8%83%BD%E6%94%BE%E8%BF%9B%E5%86%85%E5%AD%98%E5%90%97">4. 索引能放进内存吗？</a></li>
+<li><a href="#5-%E6%9F%A5%E8%AF%A2%E5%A4%84%E7%90%86%E7%94%A8%E5%90%88%E5%B9%B6-postings-%E5%AE%9E%E7%8E%B0-and">5. 查询处理：用合并 postings 实现 AND</a></li>
+<li><a href="#6-%E5%B8%83%E5%B0%94%E6%A3%80%E7%B4%A2%E6%A8%A1%E5%9E%8B">6. 布尔检索模型</a></li>
+<li><a href="#7-%E7%B4%A2%E5%BC%95%E4%B8%8E%E6%8E%92%E5%BA%8F%E6%8A%BD%E8%B1%A1%E6%A8%A1%E5%9E%8B">7. 索引与排序：抽象模型</a></li>
+<li><a href="#8-%E6%9B%B4%E4%B8%B0%E5%AF%8C%E7%9A%84-postings%E8%AE%A1%E6%95%B0%E4%BD%8D%E7%BD%AE%E5%8C%BA%E6%AE%B5%E4%B8%8E%E5%88%86%E6%95%B0">8. 更丰富的 postings：计数、位置、区段与分数</a></li>
+<li><a href="#9-%E7%AE%80%E5%8D%95%E7%9A%84%E5%86%85%E5%AD%98%E7%B4%A2%E5%BC%95%E5%99%A8%E4%B8%8E-docid">9. 简单的内存索引器与 docID</a></li>
+<li><a href="#10-%E6%89%A9%E5%B1%95%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%9F%BA%E7%A1%80">10. 扩展索引构建：硬件基础</a></li>
+<li><a href="#11-%E8%AF%BE%E5%A0%82%E7%AC%94%E8%AE%B0%E4%B8%8E%E4%BD%9C%E4%B8%9A%E6%8F%90%E7%A4%BA">11. 课堂笔记与作业提示</a></li>
+<li><a href="#12-%E7%A4%BA%E4%BE%8B%E9%A2%98%E9%99%84%E8%A7%A3%E7%AD%94">12. 示例题（附解答）</a></li>
+<li><a href="#13-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%BB%B6%E4%BA%8B">13. 速查与必记的 5 件事</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Nov 4<br>整理自 Lecture 15 和 16 的幻灯片（YuJa 视频未收录；课堂用的 Lecture 14.5 幻灯片未发布）。按概念组织，而不是按讲次组织。<br>📖 本周阅读：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al.，第 5 章 Ranking with Indexes</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning, Raghavan &amp; Schütze，<em>Introduction to IR</em>，第 2 和第 4 章</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：Online Quiz 2 在 <strong>11 月 4 日（周三）</strong> 课上进行（请带笔记本电脑）。<br>Assignment 3 Milestone 1（索引器）截止时间为 <strong>11 月 6 日（周五）</strong>。<br>下周：<strong>11 月 11 日没有线下课</strong>（退伍军人节）；Assignment 3 Milestone 2 截止时间为 <strong>11 月 13 日（周五）</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="1-我们所在的位置从矩阵到索引">1. 我们所在的位置：从矩阵到索引</h2>
+<p>两份幻灯片都从架构图开始（L15 p2、p28 · L16 p2）；完整的架构图见<a href="/~kazuhak/notes/cs-121/week-01/zh-CN/#10-%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84">第 1 周第 10 节</a>。本周的内容集中在两个方框里：<strong>索引创建</strong>（Index Creation，用处理过的文本建立索引）和<strong>查询过程</strong>（Querying Process，利用索引回答查询）。</p>
+<p>L15 从回顾第 14 讲的结尾开始（L15 p3–9）：Shakespeare 查询 <em>Brutus AND Caesar but NOT Calpurnia</em>，词项-文档关联矩阵，以及在 0/1 的行上做<strong>按位 AND</strong> 得到结果 <code>1 0 0 1 0 0</code>（即 <em>Antony and Cleopatra</em> 和 <em>Hamlet</em>）。这些内容都在<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#13-%E8%AF%8D%E9%A1%B9-%E6%96%87%E6%A1%A3%E5%85%B3%E8%81%94%E7%9F%A9%E9%98%B5">第 5 周第 13 节</a>，并附有演示。</p>
+<p>&quot;Problem&quot; 幻灯片（L15 p9）是通向本周内容的桥梁：这个矩阵因为规模太大，对大量文档<strong>不可行</strong>——<strong>但矩阵是稀疏的</strong>。数字见<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#14-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B8%AA%E7%9F%A9%E9%98%B5%E6%97%A0%E6%B3%95%E6%89%A9%E5%B1%95">第 5 周第 14 节</a>。&quot;所以……&quot;——只存储其中的 1。这就是倒排索引。</p>
+<hr>
+<h2 id="2-倒排索引词典与-postings">2. 倒排索引：词典与 postings</h2>
+<h3 id="21-每个词项一个列表">2.1 每个词项一个列表</h3>
+<p><strong>对每个词项 <em>t</em>，存储一个包含 <em>t</em> 的所有文档的列表</strong>（L15 p10–13）。每个文档由一个 <strong>docID</strong>（文档编号，即文档的序号）标识。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Brutus    → 1  2  4  11  31  45  173  174
+Caesar    → 1  2  4   5   6  16   57  132
+Calpurnia → 2  31 54 101</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>幻灯片提出的问题：<strong>能否用定长数组来存？</strong> 如果把词 <em>Caesar</em> 加入文档 14，会发生什么？（答案见<a href="#121-%E6%8A%8A-caesar-%E5%8A%A0%E5%85%A5%E6%96%87%E6%A1%A3-14l15-p1114">例题 12.1</a>。）因此我们需要<strong>变长的 postings 列表</strong>（L15 p14）：</p>
+<ul>
+<li><strong>在磁盘上</strong>，<strong>连续存放的一串 postings</strong> 是最优方案。</li>
+<li><strong>在内存中</strong>，可以用链表、变长数组或关联数组——需要在<strong>大小与插入的便利性</strong>之间权衡。</li>
+</ul>
+<p>该幻灯片上的词汇：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>词典</strong>（Dictionary）</td>
+<td>词项（Brutus、Caesar、Calpurnia）</td>
+</tr>
+<tr>
+<td><strong>Postings</strong></td>
+<td>所有列表合在一起</td>
+</tr>
+<tr>
+<td><strong>Posting</strong></td>
+<td>列表中的一项（一个 docID）</td>
+</tr>
+</tbody></table>
+<p>列表按 <strong>docID 排序</strong>（&quot;稍后再讲为什么&quot;——原因见<a href="#5-%E6%9F%A5%E8%AF%A2%E5%A4%84%E7%90%86%E7%94%A8%E5%90%88%E5%B9%B6-postings-%E5%AE%9E%E7%8E%B0-and">第 5 节</a>中的合并）。</p>
+<p>在代码中，倒排索引通常是一个映射（map / dictionary），以词项为键，以 postings 列表为值（L15 p15）：<code>friend → 2, 4, …</code>、<code>roman → 1, 2, …</code>、<code>countryman → 13, 16</code>。</p>
+<h3 id="22-索引的一般概念与术语">2.2 索引的一般概念与术语</h3>
+<p><strong>索引是为加快搜索而设计的数据结构</strong>（L15 p38–39 · L16 p3）。文本搜索有其独特的需求，因此也催生了独特的数据结构。其中最常见的是<strong>倒排索引</strong>：</p>
+<ul>
+<li>它是<strong>一类结构的统称</strong>，而不是某种固定的布局；</li>
+<li>之所以叫&quot;倒排&quot;，是因为它把<strong>词与文档反过来关联</strong>——文档与词相关联，而不是词与文档相关联，类似书末的索引（concordance）。</li>
+</ul>
+<p>Croft 的术语（L15 p46）：</p>
+<ul>
+<li>每个索引词项都关联一个<strong>倒排列表</strong>（inverted list）。它包含文档列表，或文档中词出现位置的列表，以及其他信息。</li>
+<li>每一项是一个 <strong>posting</strong>。posting 中指向某个具体文档或位置的部分称为<strong>指针</strong>（pointer）。</li>
+<li>文档集合中的每个文档都获得一个<strong>唯一编号</strong>。</li>
+<li>列表通常按<strong>文档顺序</strong>排列（按文档编号排序）。</li>
+</ul>
+<h3 id="23-运行示例s1s4">2.3 运行示例：S1–S4</h3>
+<p>两份幻灯片都使用的 Croft 示例（L15 p47 · L16 p9）对四个关于热带鱼的句子建立索引：</p>
+<ul>
+<li><strong>S1</strong> Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species.</li>
+<li><strong>S2</strong> Fishkeepers often use the term tropical fish to refer only those requiring fresh water, with saltwater tropical fish referred to as marine fish.</li>
+<li><strong>S3</strong> Tropical fish are popular aquarium fish, due to their often bright coloration.</li>
+<li><strong>S4</strong> In freshwater fish, this coloration typically derives from iridescence, while salt water fish are generally pigmented.</li>
+</ul>
+<p>其简单倒排索引（每个 posting 是句子编号；共 46 个词项）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">and          1          marine       2           species      1
+aquarium     3          often        2 3         term         2
+are          3 4        only         2           the          1 2
+around       1          pigmented    4           their        3
+as           2          popular      3           this         4
+both         1          refer        2           those        2
+bright       3          referred     2           to           2 3
+coloration   3 4        requiring    2           tropical     1 2 3
+derives      4          salt         1 4         typically    4
+due          3          saltwater    2           use          2
+environments 1          fish         1 2 3 4     water        1 2 4
+fishkeepers  2          found        1           while        4
+fresh        2          freshwater   1 4         with         2
+from         4          generally    4           world        1
+in           1 4        include      1
+including    1          iridescence  4</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：索引从不存储 0。<code>fish</code> 有 4 个 posting，<code>marine</code> 只有 1 个——存储空间随（词项，文档）对的数量增长，而不是随词项数 × 文档数增长。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#121-%E6%8A%8A-caesar-%E5%8A%A0%E5%85%A5%E6%96%87%E6%A1%A3-14l15-p1114">例题 12.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.3 Inverted Indexes 与 §5.3.1 Documents（书中第 129、131 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 1–2 章</a></p>
+</blockquote>
+<hr>
+<h2 id="3-构建索引索引器的步骤">3. 构建索引：索引器的步骤</h2>
+<h3 id="31-整体流程">3.1 整体流程</h3>
+<p>倒排索引的构建流程（L15 p16–19，逐阶段逐帧展开）：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>待索引的文档</td>
+<td><code>Friends, Romans, countrymen.</code></td>
+</tr>
+<tr>
+<td><strong>分词器</strong>（Tokenizer）→ 词元流</td>
+<td><code>Friends</code> <code>Romans</code> <code>Countrymen</code></td>
+</tr>
+<tr>
+<td><strong>文本处理：语言学模块</strong> → 处理后的词元</td>
+<td><code>friend</code> <code>roman</code> <code>countryman</code></td>
+</tr>
+<tr>
+<td><strong>索引器</strong>（Indexer）→ 倒排索引</td>
+<td><code>friend → 2 → 4</code>，<code>roman → 1 → 2</code>，<code>countryman → 13 → 16</code></td>
+</tr>
+</tbody></table>
+<p><strong>文本处理的典型最小阶段</strong>（L15 p20）就是第 5 周的内容：<strong>分词</strong>（把字符序列切成词元；处理 &quot;John&#39;s&quot; 以及 <em>a state-of-the-art solution</em>）、<strong>规范化</strong>（把文本与查询词映射到同一形式：希望 <em>U.S.A.</em> 与 <em>USA</em> 能匹配）、<strong>可选的词干提取</strong>（<em>authorize</em>、<em>authorization</em>），以及<strong>可选的停用词去除</strong>（<em>the, a, to, of</em>——可以去掉，也可以保留）。详情见<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#3-%E5%88%86%E8%AF%8D%E8%BF%87%E7%A8%8B">第 5 周第 3 节 分词过程</a>、<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#4-%E5%81%9C%E7%94%A8%E8%AF%8D%E5%8E%BB%E9%99%A4">第 4 节 停用词去除</a>、<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#5-%E8%AF%8D%E5%B9%B2%E6%8F%90%E5%8F%96">第 5 节 词干提取</a>。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：对文档词元做的任何处理，都必须对<strong>查询</strong>词也做一遍（这就是&quot;把文本与查询词映射到同一形式&quot;的含义）。如果索引里对 <em>authorization</em> 做了词干提取，而查询里没做，查询就会漏掉结果。</p>
+</blockquote>
+<h3 id="32-词元序列排序以及词典与-postings">3.2 词元序列、排序，以及词典与 postings</h3>
+<p>两份文档（L15 p21）：</p>
+<ul>
+<li><strong>Doc 1</strong>：<em>I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me.</em></li>
+<li><strong>Doc 2</strong>：<em>So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious</em></li>
+</ul>
+<ol>
+<li><strong>词元序列</strong>（L15 p21）：按文本顺序排列的 <strong>（修正后的词元，文档 ID）对</strong>序列——<code>(I, 1) (did, 1) (enact, 1) … (me, 1) (so, 2) … (ambitious, 2)</code>：共 29 对。</li>
+<li><strong>排序</strong>（L15 p22）：先按词项，再按 docID 排序：<code>(ambitious, 2) (be, 2) (brutus, 1) (brutus, 2) (caesar, 1) (caesar, 2) (caesar, 2) (capitol, 1) …</code>。</li>
+<li><strong>合并与拆分</strong>（L15 p22）：同一文档中某词项的多个条目被<strong>合并</strong>；结果被拆分为<strong>词典</strong>和 <strong>postings</strong>；<strong>文档频率</strong>（包含该词的文档数）被加入词典。&quot;为什么要统计频率？之后再讨论。&quot;</li>
+</ol>
+<p>结果：22 个词项。有两个 posting 的是 <code>brutus</code>、<code>caesar</code>、<code>the</code>、<code>was</code>（df = 2，postings <code>1 → 2</code>）；其他词项的 df 都是 1。</p>
+<blockquote>
+<p>⚠️ <strong>幻灯片错误</strong>（L15 p22）：排序表中列的是 <code>hath | 1</code>，但 <em>hath</em> 只出现在 Doc 2 中。同一张幻灯片上的 postings 列（以及 p23）正确地显示 <code>hath → 2</code>。同一张表还把 <code>capitol</code> 排在 <code>caesar</code> 之前。</p>
+</blockquote>
+<p>逐步演示构建过程，或输入你自己的文档（<code>docID: text; docID: text</code>）：</p>
+<pre data-language="viz" data-viz="inverted-index"><code>{&quot;title&quot;: &quot;Doc 1 与 Doc 2 的索引构建步骤（L15 p21–23）&quot;, &quot;docs&quot;: &quot;1: I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me. ; 2: So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious&quot;, &quot;postings&quot;: &quot;docs&quot;, &quot;lang&quot;: &quot;zh&quot;, &quot;interactive&quot;: true}</code></pre><h3 id="33-存储的代价在哪里">3.3 存储的代价在哪里？</h3>
+<p>L15 p23 指向结果的两部分：<strong>词项与计数</strong>（词典），以及 <strong>docID 列表</strong>（postings）。IR 系统实现的两个问题是：<strong>如何高效地建索引？</strong> 以及<strong>需要多少存储空间？</strong>——见<a href="#4-%E7%B4%A2%E5%BC%95%E8%83%BD%E6%94%BE%E8%BF%9B%E5%86%85%E5%AD%98%E5%90%97">第 4 节</a>、<a href="#9-%E7%AE%80%E5%8D%95%E7%9A%84%E5%86%85%E5%AD%98%E7%B4%A2%E5%BC%95%E5%99%A8%E4%B8%8E-docid">第 9 节</a>和<a href="#10-%E6%89%A9%E5%B1%95%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%9F%BA%E7%A1%80">第 10 节</a>。</p>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#122-%E4%B8%BA%E6%96%87%E6%A1%A3-1-%E5%92%8C%E6%96%87%E6%A1%A3-2-%E5%BB%BA%E7%AB%8B%E7%B4%A2%E5%BC%95l15-p2123">例题 12.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.6.1 Simple Construction（书中第 156 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 1、2 章</a></p>
+</blockquote>
+<hr>
+<h2 id="4-索引能放进内存吗">4. 索引能放进内存吗？</h2>
+<p><strong>小数据的倒排索引</strong>（L15 p24–25）。如果能放进内存，就用 Python 的字典 <code>{}</code>（或 Java 的 <code>HashMap</code>）：</p>
+<ul>
+<li>建索引时往里填充，</li>
+<li>把它写入文件，</li>
+<li>搜索时再把它加载回字典 / HashMap。</li>
+</ul>
+<p>实现起来非常简单……<strong>但这在任何真实的网络搜索引擎中都行不通</strong>。</p>
+<p><strong>大数据的倒排索引</strong>——一个粗略的估算（L15 p26）：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>词汇表</td>
+<td>50,000 个词元</td>
+</tr>
+<tr>
+<td>平均 postings 列表长度</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Postings 数</td>
+<td>50,000 × 20 = <strong>1,000,000</strong></td>
+</tr>
+<tr>
+<td>DocID = URL，平均 50 个字符</td>
+<td>每个约 100 字节（Python）</td>
+</tr>
+<tr>
+<td>Postings 存储</td>
+<td>1,000,000 × 100 = <strong>100,000,000 字节 = 100 MB</strong></td>
+</tr>
+<tr>
+<td>每条 posting 的附加载荷（如 tf-idf），每个 4 字节</td>
+<td>还要再多出好几 MB</td>
+</tr>
+</tbody></table>
+<p>而网络上的文档远远超过 10⁶ 个（仅主机数就超过 10⁹）。所以<strong>通常索引无法一次全部放进内存</strong>，会出现内存不足（out-of-memory）错误。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：这张幻灯片引出两个杠杆：让 postings 变小（用整数 docID 代替 URL，见<a href="#92-docidurl-%E8%BF%98%E6%98%AF%E6%95%B4%E6%95%B0">第 9.2 节</a>），以及不再假设整个索引都放在内存中（见<a href="#10-%E6%89%A9%E5%B1%95%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%9F%BA%E7%A1%80">第 10 节</a>）。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#123-%E7%B4%A2%E5%BC%95%E6%9C%89%E5%A4%9A%E5%A4%A7l15-p26">例题 12.3</a></p>
+</blockquote>
+<hr>
+<h2 id="5-查询处理用合并-postings-实现-and">5. 查询处理：用合并 postings 实现 AND</h2>
+<p>&quot;我们刚建好的索引：如何处理查询？&quot;（L15 p27–29；<em>可以处理哪些类型的查询</em>放在后面讲。）</p>
+<p>查询 <strong>Brutus AND Caesar</strong>（L15 p30）：</p>
+<ol>
+<li>在词典中找到 <em>Brutus</em>，取出它的 postings。</li>
+<li>在词典中找到 <em>Caesar</em>，取出它的 postings。</li>
+<li><strong>&quot;合并&quot;</strong>（merge）两个 postings：对文档集合取<strong>交集</strong>。</li>
+</ol>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Brutus → 2 → 4 → 8 → 16 → 32 → 64 → 128
+Caesar → 1 → 2 → 3 → 5 → 8 → 13 → 21 → 34
+answer:  2, 8</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>合并</strong>（L15 p31）：同时遍历两个 postings，所需时间与两个 postings 的总条目数<strong>呈线性关系</strong>。若两个列表长度分别为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>，查询时的合并需要 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> 次操作。<strong>关键：postings 必须按 docID 排序。</strong></p>
+<p>算法（L15 p32）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">INTERSECT(p1, p2)
+ 1  answer ← ⟨ ⟩
+ 2  while p1 ≠ NIL and p2 ≠ NIL
+ 3  do if docID(p1) = docID(p2)
+ 4        then ADD(answer, docID(p1))
+ 5             p1 ← next(p1)
+ 6             p2 ← next(p2)
+ 7        else if docID(p1) &lt; docID(p2)
+ 8                then p1 ← next(p1)
+ 9                else p2 ← next(p2)
+10  return answer</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>同样的算法用 Python 实现，用列表下标充当指针：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> intersect</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#CE9178">    """INTERSECT from L15 p32, on Python lists."""</span></span>
+<span class="line"><span style="color:#D4D4D4">    answer = []</span></span>
+<span class="line"><span style="color:#D4D4D4">    i = j = </span><span style="color:#B5CEA8">0</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> i &#x3C; </span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(p1) </span><span style="color:#569CD6">and</span><span style="color:#D4D4D4"> j &#x3C; </span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(p2):</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> p1[i] == p2[j]:</span></span>
+<span class="line"><span style="color:#D4D4D4">            answer.append(p1[i])</span></span>
+<span class="line"><span style="color:#D4D4D4">            i += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#D4D4D4">            j += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">        elif</span><span style="color:#D4D4D4"> p1[i] &#x3C; p2[j]:</span></span>
+<span class="line"><span style="color:#D4D4D4">            i += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#D4D4D4">            j += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> answer</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">brutus = [</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">16</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">32</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">64</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">128</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">caesar = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">13</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">21</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">34</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(intersect(brutus, caesar))   </span><span style="color:#6A9955"># [2, 8]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>为什么较小的指针可以移动：如果 <code>p1[i] &lt; p2[j]</code>，另一个列表已经越过了 <code>p1[i]</code>（列表是有序的），所以文档 <code>p1[i]</code> 不可能同时出现在两个列表中。输入你自己的列表（<code>list1 | list2</code>）试试：</p>
+<pre data-language="viz" data-viz="postings-intersect"><code>{&quot;title&quot;: &quot;Brutus AND Caesar（L15 p30–32）&quot;, &quot;lists&quot;: &quot;2 4 8 16 32 64 128 | 1 2 3 5 8 13 21 34&quot;, &quot;terms&quot;: &quot;Brutus, Caesar&quot;, &quot;lang&quot;: &quot;zh&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>易错点</strong>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> 的合并依赖于两个列表<strong>都按 docID 排序</strong>（L15 p31）——这就是 L15 p14 中&quot;稍后再讲为什么&quot;的原因。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#124-%E9%80%9A%E8%BF%87%E5%90%88%E5%B9%B6%E6%B1%82-brutus-and-caesarl15-p3032">例题 12.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.7 Query Processing（书中第 165 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 1 章（处理布尔查询）</a></p>
+</blockquote>
+<hr>
+<h2 id="6-布尔检索模型">6. 布尔检索模型</h2>
+<p><strong>布尔查询：精确匹配</strong>（L15 p33–34）：</p>
+<ul>
+<li>在<strong>布尔检索模型</strong>（Boolean retrieval model）中，查询是用 <strong>AND、OR 和 NOT</strong> 连接词项的布尔表达式。</li>
+<li>它把每篇文档看作<strong>一个词的集合</strong>。</li>
+<li>它很<strong>精确</strong>：文档要么<strong>符合条件，要么不符合</strong>——没有排序。</li>
+<li>也许是构建 IR 系统最简单的模型；它是<strong>三十年来主要的商用检索工具</strong>。</li>
+<li>许多搜索系统至今仍然是布尔式的：<strong>电子邮件、图书馆目录、macOS Spotlight</strong>。</li>
+</ul>
+<p><strong>例子：WestLaw</strong>（L15 p35–37）是最大的商用（付费订户）法律搜索服务：1975 年启动，1992 年加入排序，2010 年加入联邦搜索；数据量达数十 TB，约 70 万用户。幻灯片展示了它的高级搜索页面（包括词项、连接符与扩展符、日期和引用限制等字段）。<strong>大多数用户仍然使用布尔查询</strong>——在法律领域，<strong>&quot;精确&quot;</strong>的结果非常重要。</p>
+<table>
+<thead>
+<tr>
+<th>信息需求</th>
+<th>WestLaw 查询</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>在涉及联邦侵权索赔法（federal tort claims act）的案件中，诉讼时效是什么？</td>
+<td><code>LIMIT! /3 STATUTE ACTION /S FEDERAL /2 TORT /3 CLAIM</code></td>
+</tr>
+<tr>
+<td>残疾人进入工作场所的无障碍要求</td>
+<td><code>disabl! /p access! /s work-site work-place (employment /3 place</code></td>
+</tr>
+</tbody></table>
+<p><code>/3</code> = 3 个词之内，<code>/S</code> = 同一句之内。<strong>注意，空格表示的是析取（OR），而不是合取（AND）！</strong></p>
+<p>这些查询很长、很精确，带有邻近运算符，并且是逐步构造出来的——<strong>与网络搜索完全不同</strong>。许多专业检索人员仍然喜欢布尔搜索：<strong>你确切知道自己会得到什么。</strong></p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在 WestLaw 中，<code>work-site work-place</code> 表示 work-site <strong>或</strong> work-place。而在 Assignment 3 MS2 中则相反：<code>cristina lopes</code> 表示 AND（见<a href="#11-%E8%AF%BE%E5%A0%82%E7%AC%94%E8%AE%B0%E4%B8%8E%E4%BD%9C%E4%B8%9A%E6%8F%90%E7%A4%BA">第 11 节</a>）。空格运算符是每个系统自己的设计选择。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="http://www.westlaw.com/">WestLaw（幻灯片链接）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 1 章（布尔检索模型）</a></p>
+</blockquote>
+<hr>
+<h2 id="7-索引与排序抽象模型">7. 索引与排序：抽象模型</h2>
+<p><strong>索引与排序</strong>（L15 p40）：索引的设计是为了支持搜索——<strong>更快的响应时间，以及更新</strong>。网络搜索引擎使用一种特定的搜索形式，即<strong>排序检索</strong>（ranking）：文档按照根据文档表示、查询和排序算法计算出的<strong>分数</strong>，以<strong>排好的顺序</strong>返回。一个合理的<strong>排序抽象模型</strong>让我们可以在不涉及具体检索模型细节的情况下讨论索引。</p>
+<p><strong>排序的抽象模型</strong>（L15 p41–44 · L16 p4–7，分四帧逐步展开）。文档是 <em>Fred&#39;s Tropical Fish Shop</em>（&quot;…the best place to find tropical fish at low, low prices. Whether you&#39;re looking for a little fish or a big fish… We even have fake seaweed for your fishtank (and little surfboards too).&quot;）。</p>
+<table>
+<thead>
+<tr>
+<th>主题特征（来自文本）</th>
+<th>质量特征（关于文档本身）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9.7 fish · 4.2 tropical · 22.1 tropical fish · 8.2 seaweed · 4.2 surfboards</td>
+<td>14 个入链 · 距上次更新 3 天</td>
+</tr>
+</tbody></table>
+<p><strong>特征函数</strong>（feature function）把文本映射为一个实数，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mtext>text</mtext><mo stretchy="false">)</mo><mo>→</mo><mi mathvariant="double-struck">R</mi></mrow><annotation encoding="application/x-tex">f(\text{text}) \to \mathbb{R}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord text"><span class="mord">text</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6889em;"></span><span class="mord mathbb">R</span></span></span></span>（L15 p43）。<strong>排序函数</strong>（ranking function）接收特征与查询（<em>tropical fish</em>），输出一个<strong>文档分数</strong>（抽象图中为 24.5）。</p>
+<p><strong>更具体的模型</strong>（L15 p45 · L16 p8）：</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D) = \sum_i g_i(Q)\, f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3277em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">f_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是<strong>文档特征函数</strong>，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">g_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 是<strong>查询特征函数</strong>，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 遍历各个特征。查询 <em>tropical fish</em> 有自己的特征值：</p>
+<table>
+<thead>
+<tr>
+<th>特征 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span></th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">g_i(Q)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fish</td>
+<td>9.7</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>tropical</td>
+<td>4.2</td>
+<td>3.4</td>
+</tr>
+<tr>
+<td>tropical fish</td>
+<td>22.1</td>
+<td>9.9</td>
+</tr>
+<tr>
+<td>seaweed</td>
+<td>8.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>surfboards</td>
+<td>4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>chichlids</td>
+<td>—</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>barbs</td>
+<td>—</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>incoming links</td>
+<td>14</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>update count</td>
+<td>3</td>
+<td>0.9</td>
+</tr>
+</tbody></table>
+<p>只有两边都有的特征才参与计算，得到幻灯片中的<strong>文档分数 303.01</strong>。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：排序是对各特征求和（查询权重 × 文档取值）。索引的作用是让 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span> 能被快速找到——这也是为什么<a href="#8-%E6%9B%B4%E4%B8%B0%E5%AF%8C%E7%9A%84-postings%E8%AE%A1%E6%95%B0%E4%BD%8D%E7%BD%AE%E5%8C%BA%E6%AE%B5%E4%B8%8E%E5%88%86%E6%95%B0">第 8 节</a>要在 postings 中放入更多信息。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#125-%E6%96%87%E6%A1%A3%E5%BE%97%E5%88%86-30301l15-p45--l16-p8">例题 12.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.2 Abstract Model of Ranking（书中第 126 页）</a></p>
+</blockquote>
+<hr>
+<h2 id="8-更丰富的-postings计数位置区段与分数">8. 更丰富的 postings：计数、位置、区段与分数</h2>
+<p>L16 p9–18 以<a href="#23-%E8%BF%90%E8%A1%8C%E7%A4%BA%E4%BE%8Bs1s4">第 2.3 节</a>的 S1–S4 索引为起点，每次为每条 posting 增加一种信息。</p>
+<h3 id="81-计数">8.1 计数</h3>
+<p><strong>带计数的倒排索引</strong>（L16 p10）：每个 posting 是 <code>docID:count</code>，即该词在该文档中出现的次数。它<strong>支持更好的排序算法</strong>。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">fish      1:2  2:3  3:2  4:2
+tropical  1:2  2:2  3:1
+to        2:2  3:1
+the       1:1  2:1</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（其他词在每个所在文档中的计数都是 1。）</p>
+<h3 id="82-位置与邻近匹配">8.2 位置与邻近匹配</h3>
+<p><strong>带位置的倒排索引</strong>（L16 p11）：每个 posting 是 <code>docID,position</code>（词在句子中的序号），每次出现对应一个 posting。它<strong>支持邻近匹配</strong>。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">tropical  1,1  1,7  2,6  2,17  3,1
+fish      1,2  1,4  2,7  2,18  2,23  3,2  3,6  4,3  4,13
+water     1,17  2,14  4,12</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>邻近匹配</strong>（L16 p12–13）：匹配<strong>短语</strong>（&quot;tropical fish&quot;），或<strong>窗口内的词</strong>（在 <em>fish</em> 的 5 个词之内找 <em>tropical</em>）。如果倒排索引的 posting 存储了位置——即 postings <code>[docID, 词位置]</code>——这些查询特征就能<strong>高效</strong>实现：对齐两个列表，查找同一文档中位于 <em>tropical</em> 位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span>、紧接其后位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 处的 <code>fish</code>。</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">tropical  1,1        1,7  2,6  2,17        3,1
+fish      1,2  1,4        2,7  2,18  2,23  3,2  3,6  4,3  4,13</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>短语 <em>tropical fish</em> 出现在 1,1–2 · 2,6–7 · 2,17–18 · 3,1–2 处（S4 中没有 <em>tropical</em>）。完整的位置索引，逐步展示如下：</p>
+<pre data-language="viz" data-viz="inverted-index"><code>{&quot;title&quot;: &quot;S1–S4 的位置索引（L16 p11）&quot;, &quot;docs&quot;: &quot;1: Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species. ; 2: Fishkeepers often use the term tropical fish to refer only those requiring fresh water, with saltwater tropical fish referred to as marine fish. ; 3: Tropical fish are popular aquarium fish, due to their often bright coloration. ; 4: In freshwater fish, this coloration typically derives from iridescence, while salt water fish are generally pigmented.&quot;, &quot;postings&quot;: &quot;positions&quot;, &quot;lang&quot;: &quot;zh&quot;}</code></pre><h3 id="83-字段与区段">8.3 字段与区段</h3>
+<p><strong>文档结构对搜索有用</strong>（L16 p14–15；<a href="/~kazuhak/notes/cs-121/week-05/zh-CN/#11-%E6%96%87%E6%A1%A3%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A0%87%E8%AE%B0">第 5 周第 11 节</a>）：</p>
+<ul>
+<li><strong>字段限制</strong>——例如日期、<code>from:</code> 等；</li>
+<li><strong>某些字段中的词更重要</strong>——例如标题！</li>
+</ul>
+<p>在索引中捕获这一点的选项：</p>
+<ol>
+<li><strong>为每种字段类型建立单独的倒排索引</strong>；</li>
+<li><strong>在 postings 中加入字段信息</strong>；</li>
+<li>使用<strong>区段列表</strong>（extent lists）。</li>
+</ol>
+<p><strong>区段列表</strong>（L16 p16）：<strong>区段</strong>（extent）是文档中一段<strong>连续的区域</strong>，用词的位置表示。某个<strong>字段类型</strong>的倒排列表记录了该字段的所有区段：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">fish   1,2  1,4  2,7  2,18  2,23  3,2  3,6  4,3  4,13
+title  1:(1,3)  2:(1,5)  4:(9,15)</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>1:(1,3)</code> 表示文档 1 中的一个标题区段，由词位置 1 和 3 给出。要匹配<strong>标题中的 fish</strong>，对齐两个列表：<code>1,2</code> 落在 <code>1:(1,3)</code> 内，<code>4,13</code> 落在 <code>4:(9,15)</code> 内；文档 2 的标题区段 <code>(1,5)</code> 中没有 <code>fish</code> 的 posting，文档 3 没有标题区段。</p>
+<h3 id="84-分数与按分数排序的列表">8.4 分数与按分数排序的列表</h3>
+<p><strong>其他可能性</strong>（L16 p17–18）：</p>
+<ul>
+<li><strong>存储预先计算的分数</strong>：例如 <em>fish</em> 的列表为 <code>[(1:3.6), (3:2.2)]</code>，其中 3.6 是文档 1 的特征值总和。<strong>提高了速度，但降低了灵活性</strong>（如果更改排序方法，就必须重建索引）。</li>
+<li><strong>创建按分数排序的列表</strong>：查询处理引擎可以<strong>只关注每个倒排列表的顶部</strong>，即分数最高的文档所在处。<strong>对单词查询非常高效</strong>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Posting 存储的内容</th>
+<th>示例</th>
+<th>支持的功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>docID</td>
+<td><code>fish 1 2 3 4</code></td>
+<td>布尔查询（AND/OR/NOT）</td>
+</tr>
+<tr>
+<td>docID:count</td>
+<td><code>fish 1:2 2:3 3:2 4:2</code></td>
+<td>更好的排序（词频）</td>
+</tr>
+<tr>
+<td>docID,position</td>
+<td><code>fish 1,2 1,4 …</code></td>
+<td>短语、邻近窗口</td>
+</tr>
+<tr>
+<td>每个字段的区段列表</td>
+<td><code>title 1:(1,3) …</code></td>
+<td>字段限制、标题加权</td>
+</tr>
+<tr>
+<td>docID:score</td>
+<td><code>fish (1:3.6) (3:2.2)</code></td>
+<td>快速排序；灵活性较低</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#126-%E6%89%BE%E5%87%BA%E7%9F%AD%E8%AF%AD-tropical-fishl16-p1113">例题 12.6</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.3.2 Counts（第 133 页）、§5.3.3 Positions（第 134 页）、§5.3.4 Fields and Extents（第 136 页）、§5.3.5 Scores（第 138 页）、§5.3.6 Ordering（第 139 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 2 章（位置 postings 与短语查询）</a></p>
+</blockquote>
+<hr>
+<h2 id="9-简单的内存索引器与-docid">9. 简单的内存索引器与 docID</h2>
+<h3 id="91-buildindex">9.1 BuildIndex</h3>
+<p><strong>简单的内存索引器</strong>（L16 p19–22；后续几帧分别高亮其中的部分）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">procedure BuildIndex(D)                      ▷ D is a set of text documents
+    I ← HashTable()                          ▷ Inverted list storage
+    n ← 0                                    ▷ Document numbering
+    for all documents d ∈ D do
+        n ← n + 1
+        T ← Parse(d)                         ▷ Parse document into tokens
+        Remove duplicates from T
+        for all tokens t ∈ T do
+            if I_t ∉ I then
+                I_t ← List&lt;Posting&gt;()
+            end if
+            I_t.append(Posting(n))
+        end for
+    end for
+    return I
+end procedure</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>高亮处所指的内容：</p>
+<ul>
+<li><code>n ← 0</code> / <code>n ← n + 1</code>（L16 p22）：<strong>文档编号</strong>——docID 是一个计数器，而不是 URL（<a href="#92-docidurl-%E8%BF%98%E6%98%AF%E6%95%B4%E6%95%B0">第 9.2 节</a>）。</li>
+<li><code>List&lt;Posting&gt;()</code> / <code>Posting(n)</code>（L16 p29）：posting 内部存放的内容（<a href="#93-%E4%B8%80%E4%B8%AA-posting-%E5%8C%85%E5%90%AB%E4%BB%80%E4%B9%88">第 9.3 节</a>）。</li>
+<li><code>I ← HashTable()</code> 和 <code>return I</code>（L16 p32）：整个索引存放在一个内存哈希表中。&quot;如果内存用完了会怎样？&quot;（L16 p33）→ 见<a href="#10-%E6%89%A9%E5%B1%95%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%9F%BA%E7%A1%80">第 10 节</a>。</li>
+</ul>
+<p>带有幻灯片中 <code>Posting</code> 类（L16 p31，保存频率计数）的可运行 Python 版本：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> re</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Posting</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> __init__</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">docid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tfidf</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">fields</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.docid = docid</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.tfidf = tfidf  </span><span style="color:#6A9955"># use freq counts for now</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.fields = fields</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> parse</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> re.findall(</span><span style="color:#569CD6">r</span><span style="color:#D16969">"</span><span style="color:#CE9178">[</span><span style="color:#D16969">a-z0-9'</span><span style="color:#CE9178">]</span><span style="color:#D7BA7D">+</span><span style="color:#D16969">"</span><span style="color:#D4D4D4">, text.lower())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> build_index</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">docs</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#CE9178">    """BuildIndex(D) from L16 p20, with docIDs 1, 2, ..."""</span></span>
+<span class="line"><span style="color:#D4D4D4">    index = {}                          </span><span style="color:#6A9955"># I &#x3C;- HashTable()</span></span>
+<span class="line"><span style="color:#D4D4D4">    n = </span><span style="color:#B5CEA8">0</span><span style="color:#6A9955">                               # document numbering</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> d </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> docs:</span></span>
+<span class="line"><span style="color:#D4D4D4">        n += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#D4D4D4">        tokens = parse(d)               </span><span style="color:#6A9955"># T &#x3C;- Parse(d)</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> t </span><span style="color:#C586C0">in</span><span style="color:#4EC9B0"> set</span><span style="color:#D4D4D4">(tokens):           </span><span style="color:#6A9955"># remove duplicates</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> t </span><span style="color:#569CD6">not</span><span style="color:#569CD6"> in</span><span style="color:#D4D4D4"> index:</span></span>
+<span class="line"><span style="color:#D4D4D4">                index[t] = []           </span><span style="color:#6A9955"># List&#x3C;Posting>()</span></span>
+<span class="line"><span style="color:#D4D4D4">            index[t].append(Posting(n, tokens.count(t), []))</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> index</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">docs = [</span><span style="color:#CE9178">"I did enact Julius Caesar I was killed i' the Capitol; Brutus killed me."</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">        "So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious"</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">index = build_index(docs)</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> term </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"brutus"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"caesar"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"killed"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"hath"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(term, [(p.docid, p.tfidf) </span><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> p </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> index[term]])</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(index), </span><span style="color:#CE9178">"terms"</span><span style="color:#D4D4D4">)</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">brutus [(1, 1), (2, 1)]
+caesar [(1, 1), (2, 2)]
+killed [(1, 2)]
+hath [(2, 1)]
+22 terms</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>与<a href="#32-%E8%AF%8D%E5%85%83%E5%BA%8F%E5%88%97%E6%8E%92%E5%BA%8F%E4%BB%A5%E5%8F%8A%E8%AF%8D%E5%85%B8%E4%B8%8E-postings">第 3.2 节</a>基于排序的步骤得到的是同样的 22 个词项。文档按 docID 顺序处理，因此每个列表无需排序就已按 docID 排好。</p>
+<h3 id="92-docidurl-还是整数">9.2 docID：URL 还是整数</h3>
+<p><strong>如果 docID 是 URL</strong>（L16 p23）：<code>https://www.ics.uci.edu/~aburtsev/238P/lectures/lecture03-calling-conventions</code> 有 <strong>77 个字符</strong>——在 C++ 中占 77 字节，在 Python 3 中占 126 字节，在 Java 中占 352 字节。DocID 用于 postings 列表，并且根据 posting 的结构，可能在同一列表中<strong>多次出现</strong>。<strong>字符串的存储和比较都非常浪费。</strong></p>
+<p><strong>在处理文档时把 URL 映射为整数</strong>（L16 p24）：</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">0 → https://www.ics.uci.edu/~aburtsev/238P/lectures/lecture03-calling-conventions
+1 → https://www.ics.uci.edu/~goodrich/teach/ics247/notes
+2 → https://www.ics.uci.edu/~thornton/ics184/MidtermSolutions.html
+…</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>整数在 <strong>C、C++ 和 Java 中占 4 字节，在 Python 中占 28 字节</strong>——几乎总是相同的大小，与字符串长度无关。</p>
+<p>Python 3 的估算（L16 p25–27）：10,000 个索引词项，每个词约 20 条 posting，平均 URL 为 51 个字符（约 100 字节）：</p>
+<table>
+<thead>
+<tr>
+<th>DocID 形式</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL</td>
+<td>10,000 × 20 × 100 ≈ <strong>20,000,000 字节（20 MB）</strong></td>
+</tr>
+<tr>
+<td>整数</td>
+<td>10,000 × 20 × 28 ≈ <strong>5,600,000 字节（5.6 MB）</strong></td>
+</tr>
+</tbody></table>
+<p><strong>降到了字符串版本的 28%</strong>——相当于能在内存中多放约 <strong>4 倍</strong>的 postings，而且<strong>排序明显更快</strong>。</p>
+<p><strong>你必须把这个映射保存在某处</strong>（L16 p28）：展示搜索结果时需要它（用户要的是 URL，而不是数字）。它通常<strong>不属于倒排索引本身</strong>，而是一个<strong>辅助性质的记账结构，序列化保存到文件中</strong>（辅助结构之后还会再讲）。</p>
+<blockquote>
+<p>⚠️ <strong>幻灯片说明</strong>（L16 p24）：幻灯片上 &quot;converts integers to longs when they overflow&quot;（整数溢出时转换为 long）这句话描述的是 Python 2；Python 3 只有一种任意精度的 <code>int</code>。</p>
+</blockquote>
+<h3 id="93-一个-posting-包含什么">9.3 一个 posting 包含什么</h3>
+<p><strong>postings 包含词项在文档中出现的上下文</strong>（L16 p30–31）：<strong>doc id</strong>、<strong>频率计数或 TF-IDF</strong>、<strong>字段</strong>、<strong>位置</strong>，等等。整个列表被框起来，标注为 &quot;Required for Project 3&quot;（Project 3 必需），并且 L16 p30 用红色高亮了 doc id 和频率计数 / TF-IDF：</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Posting</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> __init__</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">docid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tfidf</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">fields</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.docid = docid</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.tfidf = tfidf  </span><span style="color:#6A9955"># use freq counts for now</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.fields = fields</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#127-docid-%E7%94%A8-url-%E8%BF%98%E6%98%AF%E6%95%B4%E6%95%B0l16-p2327">例题 12.7</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.5 Auxiliary Structures（第 154 页）、§5.6 Index Construction（第 156 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 4 章（索引构建）</a></p>
+</blockquote>
+<hr>
+<h2 id="10-扩展索引构建硬件基础">10. 扩展索引构建：硬件基础</h2>
+<p><strong>内存中的索引构建无法扩展</strong>（L16 p33–37）：你无法把整个文档集合放进内存。如何在<strong>考虑硬件约束</strong>（内存、磁盘、速度等）的前提下，为非常大的文档集合构建索引？</p>
+<p><strong>硬件基础</strong>（L16 p38–42）：</p>
+<ul>
+<li>IR 系统中使用的服务器通常有<strong>几 GB 的主存</strong>，有时达数百 GB。可用<strong>磁盘空间比内存大 2–3 个数量级</strong>。</li>
+<li>但<strong>容错非常昂贵</strong>：用<strong>许多普通机器</strong>比用一台容错机器便宜得多——而普通机器的内存要小得多。</li>
+<li>大规模存储基于<strong>机械硬盘</strong>（spinning disk）。访问内存中的数据比访问磁盘上的数据<strong>快得多</strong>。</li>
+<li><strong>磁盘寻道</strong>（disk seek）：磁头定位期间不传输任何数据。因此把<strong>一大块</strong>数据从磁盘传输到内存，比传输<strong>许多小块</strong>要快。</li>
+<li><strong>磁盘 I/O 以块为单位</strong>：读写的是整块，而不是更小的数据片段。块大小为 <strong>8 KB 到 256 KB</strong>。</li>
+</ul>
+<p>Jeff Dean 的 <strong>&quot;Latency Numbers Every Programmer Should Know&quot;</strong>（L16 p43，2020 年更新版）：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>延迟</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>L1 缓存访问</td>
+<td>0.5–1.5 ns</td>
+</tr>
+<tr>
+<td>L2 缓存访问</td>
+<td>5–7 ns</td>
+</tr>
+<tr>
+<td>L3 缓存访问</td>
+<td>16–25 ns</td>
+</tr>
+<tr>
+<td>互斥锁加锁 / 解锁</td>
+<td>25 ns</td>
+</tr>
+<tr>
+<td>访问 64 MB 主存</td>
+<td>50–75 ns</td>
+</tr>
+<tr>
+<td>通过 100 Gbps HPC 网络发送 4 KB</td>
+<td>1,040 ns</td>
+</tr>
+<tr>
+<td>用 Zippy 压缩 1 KB</td>
+<td>2,000 ns（2 µs）</td>
+</tr>
+<tr>
+<td>从内存顺序读取 1 MB</td>
+<td>3,000 ns（3 µs）</td>
+</tr>
+<tr>
+<td>通过 10 Gbps 以太网发送 4 KB</td>
+<td>10,000 ns（10 µs）</td>
+</tr>
+<tr>
+<td>从 SSD 顺序读取 1 MB</td>
+<td>49,000 ns（49 µs）</td>
+</tr>
+<tr>
+<td>从 HDD 顺序读取 1 MB</td>
+<td>825,000 ns（825 µs）</td>
+</tr>
+<tr>
+<td>磁盘寻道（最长）</td>
+<td>2,000,000 ns（2,000 µs）</td>
+</tr>
+<tr>
+<td>发送数据包 CA → 荷兰 → CA</td>
+<td>150,000,000 ns（150,000 µs）</td>
+</tr>
+</tbody></table>
+<p>所以回到索引器的 <code>I ← HashTable()</code>：<strong>它能直接是一个文件吗？</strong>（L16 p36、p44）<strong>不能。</strong> 把最长 2 ms 的磁盘寻道与上表中 50–75 ns 的内存访问相比较即可。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：一次磁盘寻道的代价相当于数万次内存访问，而且传输一大块数据比传输许多小块快（L16 p41）。如何构建无法放入内存的索引，之后再讲（Schedule 中的第 7 周：分布式索引）。</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>延伸阅读</strong>：<a href="https://ai.google/research/people/jeff/">Jeff Dean（幻灯片链接）</a> · <a href="http://norvig.com/21-days.html#answers">原始数据（Norvig）</a> · <a href="https://gist.github.com/eshelman/343a1c46cb3fba142c1afdcdeec17646">2019 版（gist）</a> · <a href="https://colin-scott.github.io/personal_website/research/interactive_latency.html">2020 交互版</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.6.2 Merging（书中第 157 页）</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR 第 4 章（硬件基础）</a></p>
+</blockquote>
+<hr>
+<h2 id="11-课堂笔记与作业提示">11. 课堂笔记与作业提示</h2>
+<p>&quot;On Assignment 3&quot;（L16 p45–48）——搜索引擎分三个里程碑完成。</p>
+<p><strong>MS1：简单的索引器</strong>（L16 p46）。<strong>从少量文件开始——开发周期要短！</strong></p>
+<ul>
+<li>遍历文件夹并读取 JSON；</li>
+<li>每次打开并读取<strong>一个文件</strong>；</li>
+<li>解析（要处理<strong>损坏的 HTML</strong>！）；</li>
+<li>分词与词干提取；</li>
+<li>简单的<strong>内存中</strong>倒排索引；</li>
+<li>将简单索引<strong>序列化到磁盘</strong>。</li>
+</ul>
+<p><strong>逐步扩展！！暂时不需要扩大规模……</strong></p>
+<p><strong>MS2：简单的布尔检索——仅支持 AND</strong>（L16 p47）。查询中的每个词都做 AND：<code>cristina lopes</code>、<code>eppstein Wikipedia</code>、<code>master of software engineering</code> 都表示 AND。<strong>必需：文本界面。</strong> MS3 中的 Web GUI 可获得额外加分。暂时没有速度要求……</p>
+<p><strong>MS3：排序检索</strong>（L16 p48）。<strong>扩大规模</strong>；采用完全不同的方法（之后的课程会讲）；可能受益于位置信息。<strong>必须在 300 ms 内完成</strong>，最好约 100 ms，低于 300 ms 不扣分。在代码中加一个<strong>计时器</strong>，打印从查询到达到产生结果之间的时间（不计 Web GUI 的渲染时间）。</p>
+<blockquote>
+<p>💡 <strong>关键见解</strong>：这些里程碑与本周的幻灯片相互对应——MS1 的内存索引正是<a href="#91-buildindex">第 9.1 节</a>，MS2 的 AND 是<a href="#5-%E6%9F%A5%E8%AF%A2%E5%A4%84%E7%90%86%E7%94%A8%E5%90%88%E5%B9%B6-postings-%E5%AE%9E%E7%8E%B0-and">第 5 节</a>，MS3 的扩大规模则是<a href="#10-%E6%89%A9%E5%B1%95%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA%E7%A1%AC%E4%BB%B6%E5%9F%BA%E7%A1%80">第 10 节</a>的问题。postings 至少需要包含 doc id 和频率（或 TF-IDF）（<a href="#93-%E4%B8%80%E4%B8%AA-posting-%E5%8C%85%E5%90%AB%E4%BB%80%E4%B9%88">第 9.3 节</a>）。</p>
+</blockquote>
+<hr>
+<h2 id="12-示例题附解答">12. 示例题（附解答）</h2>
+<h3 id="121-把-caesar-加入文档-14l15-p1114">12.1 把 Caesar 加入文档 14（L15 p11–14）</h3>
+<p>Caesar 的 postings 存储在定长数组 <code>1 2 4 5 6 16 57 132</code> 中。现在把 <em>Caesar</em> 加入文档 14。会发生什么？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 列表必须保持按 docID 排序，所以 14 应该放在 6 和 16 之间：<code>1 2 4 5 6 14 16 57 132</code>。在定长数组中，这意味着把 16、57 和 132 <strong>右移</strong>一个位置——如果数组已满（Caesar 的数组有 8 个位置，且已存满 8 项），就需要一个<strong>更大的数组</strong>。列表会随词项而增长和缩小，所以定长数组行不通：我们需要<strong>变长的 postings 列表</strong>（L15 p14）——磁盘上是一段连续存放的内容，内存中则是链表、变长数组或关联数组，需要在大小与插入的便利性之间权衡。</p>
+<h3 id="122-为文档-1-和文档-2-建立索引l15-p2123">12.2 为文档 1 和文档 2 建立索引（L15 p21–23）</h3>
+<p>Doc 1：<em>I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me.</em> Doc 2：<em>So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious</em>。建立词典（包含文档频率）和 postings。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong></p>
+<ol>
+<li>词元序列：29 个 (词项, docID) 对，其中 14 个来自 Doc 1，15 个来自 Doc 2（<code>I</code> 出现两次，<code>killed</code> 出现两次，Doc 2 中 <code>caesar</code> 出现两次）。</li>
+<li>按词项、再按 docID 排序。</li>
+<li>合并同一文档中的重复项，并统计文档数：</li>
+</ol>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">term       df  postings     term       df  postings
+ambitious  1   2            julius     1   1
+be         1   2            killed     1   1
+brutus     2   1 → 2        let        1   2
+caesar     2   1 → 2        me         1   1
+capitol    1   1            noble      1   2
+did        1   1            so         1   2
+enact      1   1            the        2   1 → 2
+hath       1   2            told       1   2
+i          1   1            was        2   1 → 2
+i&#39;         1   1            with       1   2
+it         1   2            you        1   2</code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>22 个词项。<code>killed</code> 在 Doc 1 中出现两次，但 df = 1 且只有一条 posting——合并是按文档进行的。（幻灯片的排序表中显示 <code>hath | 1</code>；实际应为 2。）</p>
+<h3 id="123-索引有多大l15-p26">12.3 索引有多大？（L15 p26）</h3>
+<p>词汇表 50,000 个词元，平均 postings 列表长度 20，docID 为约 50 个字符的 URL，在 Python 中约 100 字节。postings 需要多少内存？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> Postings：50,000 × 20 = 1,000,000。字节数：1,000,000 × 100 = 100,000,000 ≈ <strong>100 MB</strong>——这还不包括附加载荷（tf-idf，每个 4 字节，会再增加）。这只是 10⁶ 条 postings；网络上的文档远远超过 10⁶ 个，所以索引通常<strong>无法一次全部放进内存</strong>。</p>
+<h3 id="124-通过合并求-brutus-and-caesarl15-p3032">12.4 通过合并求 Brutus AND Caesar（L15 p30–32）</h3>
+<p>Brutus → <code>2 4 8 16 32 64 128</code>，Caesar → <code>1 2 3 5 8 13 21 34</code>。运行 INTERSECT。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 指针对（Brutus, Caesar）：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>比较</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2 vs 1</td>
+<td>1 &lt; 2 → 前移 Caesar</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2 vs 2</td>
+<td>相等 → <strong>加入 2</strong>，两个指针都前移</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4 vs 3</td>
+<td>3 &lt; 4 → 前移 Caesar</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4 vs 5</td>
+<td>4 &lt; 5 → 前移 Brutus</td>
+</tr>
+<tr>
+<td>5</td>
+<td>8 vs 5</td>
+<td>5 &lt; 8 → 前移 Caesar</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8 vs 8</td>
+<td>相等 → <strong>加入 8</strong>，两个指针都前移</td>
+</tr>
+<tr>
+<td>7</td>
+<td>16 vs 13</td>
+<td>13 &lt; 16 → 前移 Caesar</td>
+</tr>
+<tr>
+<td>8</td>
+<td>16 vs 21</td>
+<td>16 &lt; 21 → 前移 Brutus</td>
+</tr>
+<tr>
+<td>9</td>
+<td>32 vs 21</td>
+<td>21 &lt; 32 → 前移 Caesar</td>
+</tr>
+<tr>
+<td>10</td>
+<td>32 vs 34</td>
+<td>32 &lt; 34 → 前移 Brutus</td>
+</tr>
+<tr>
+<td>11</td>
+<td>64 vs 34</td>
+<td>34 &lt; 64 → 前移 Caesar → Caesar 耗尽，停止</td>
+</tr>
+</tbody></table>
+<p>结果为 <strong>[2, 8]</strong>，共 11 次比较，在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>+</mo><mi>y</mi><mo>=</mo><mn>7</mn><mo>+</mo><mn>8</mn><mo>=</mo><mn>15</mn></mrow><annotation encoding="application/x-tex">x + y = 7 + 8 = 15</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">15</span></span></span></span> 的上界之内。128 从未被检查。</p>
+<h3 id="125-文档得分-30301l15-p45--l16-p8">12.5 文档得分 303.01（L15 p45 · L16 p8）</h3>
+<p>使用 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q,D) = \sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span> 和<a href="#7-%E7%B4%A2%E5%BC%95%E4%B8%8E%E6%8E%92%E5%BA%8F%E6%8A%BD%E8%B1%A1%E6%A8%A1%E5%9E%8B">第 7 节</a>中的表格。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 只有同时具有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">f_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">g_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的特征才计入（seaweed 和 surfboards 没有查询权重；chichlids 和 barbs 不在文档中）：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">g_i(Q) \cdot f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fish</td>
+<td>5.2 × 9.7 = 50.44</td>
+</tr>
+<tr>
+<td>tropical</td>
+<td>3.4 × 4.2 = 14.28</td>
+</tr>
+<tr>
+<td>tropical fish</td>
+<td>9.9 × 22.1 = 218.79</td>
+</tr>
+<tr>
+<td>incoming links</td>
+<td>1.2 × 14 = 16.80</td>
+</tr>
+<tr>
+<td>update count</td>
+<td>0.9 × 3 = 2.70</td>
+</tr>
+</tbody></table>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>50.44</mn><mo>+</mo><mn>14.28</mn><mo>+</mo><mn>218.79</mn><mo>+</mo><mn>16.80</mn><mo>+</mo><mn>2.70</mn><mo>=</mo><mn mathvariant="bold">303.01</mn></mrow><annotation encoding="application/x-tex">R = 50.44 + 14.28 + 218.79 + 16.80 + 2.70 = \mathbf{303.01}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">50.44</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14.28</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">218.79</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16.80</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2.70</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord"><span class="mord mathbf">303.01</span></span></span></span></span>，即幻灯片中的文档分数。短语特征 <em>tropical fish</em> 贡献了其中最大的部分。</p>
+<h3 id="126-找出短语-tropical-fishl16-p1113">12.6 找出短语 tropical fish（L16 p11–13）</h3>
+<p>tropical → <code>1,1 1,7 2,6 2,17 3,1</code>；fish → <code>1,2 1,4 2,7 2,18 2,23 3,2 3,6 4,3 4,13</code>。短语出现在哪里？</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> 短语匹配要求：在与 <code>tropical</code> 位于位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span> 的同一文档中，<code>fish</code> 位于位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>：</p>
+<table>
+<thead>
+<tr>
+<th>tropical</th>
+<th>需要 fish 位于</th>
+<th>是否找到</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1,1</td>
+<td>1,2</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>1,7</td>
+<td>1,8</td>
+<td>✗（S1 中第 8 个词是 <em>environments</em>）</td>
+</tr>
+<tr>
+<td>2,6</td>
+<td>2,7</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>2,17</td>
+<td>2,18</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>3,1</td>
+<td>3,2</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<p>短语出现 <strong>4 次</strong>，分别位于<strong>文档 1、2 和 3</strong> 中。文档 4 包含 <em>fish</em> 但不包含 <em>tropical</em>，因此只有文档级索引（<code>tropical 1 2 3</code>、<code>fish 1 2 3 4</code>）无法把短语与两个词分别出现在任何位置区分开来——这正是位置信息的价值。</p>
+<h3 id="127-docid-用-url-还是整数l16-p2327">12.7 docID 用 URL 还是整数？（L16 p23–27）</h3>
+<p>10,000 个索引词项，每个约 20 条 posting，平均 URL 为 51 个字符（Python 3 中约 100 字节），Python 整数为 28 字节。比较两者的 postings 大小。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答。</strong> URL：10,000 × 20 × 100 = 20,000,000 字节 ≈ <strong>20 MB</strong>。整数：10,000 × 20 × 28 = 5,600,000 字节 ≈ <strong>5.6 MB</strong>——是 URL 版本的 28%，因此在相同内存中大约能多放 3.6 倍（100 / 28 ≈ 3.6，接近 4 倍）的 postings；而且整数的排序和比较快得多。代价是：需要一个 docID → URL 的辅助映射，保存到文件中，以便展示结果。</p>
+<hr>
+<h2 id="13-速查与必记的-5-件事">13. 速查与必记的 5 件事</h2>
+<p><strong>索引词汇</strong></p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>词典（Dictionary）</td>
+<td>词项的集合（包含文档频率）</td>
+</tr>
+<tr>
+<td>倒排列表 / postings 列表（Postings list / inverted list）</td>
+<td>某个词项的 docID（及更多信息），按 docID 排序</td>
+</tr>
+<tr>
+<td>Posting</td>
+<td>一项记录；其中的文档部分称为<em>指针</em></td>
+</tr>
+<tr>
+<td>文档频率（document frequency, df）</td>
+<td>包含该词项的文档数</td>
+</tr>
+<tr>
+<td>区段（Extent）</td>
+<td>文档中一段连续的区域（一个字段），用词位置表示</td>
+</tr>
+</tbody></table>
+<p><strong>索引器步骤</strong></p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分词 + 语言学模块</td>
+<td>处理后的词元</td>
+</tr>
+<tr>
+<td>生成对</td>
+<td>按文本顺序排列的 (词项, docID)</td>
+</tr>
+<tr>
+<td>排序</td>
+<td>先按词项，再按 docID</td>
+</tr>
+<tr>
+<td>合并</td>
+<td>每个词项一条词典项 + df + postings</td>
+</tr>
+</tbody></table>
+<p><strong>查询处理</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>代价</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>t1 AND t2</code>（INTERSECT）</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x + y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></td>
+<td>postings 按 docID 排序</td>
+</tr>
+<tr>
+<td>短语 <code>&quot;t1 t2&quot;</code></td>
+<td>按 docID 合并，然后比较位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo separator="true">,</mo><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p, p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span></td>
+<td>带位置的 postings</td>
+</tr>
+<tr>
+<td>排序</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q,D) = \sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></td>
+<td>索引中存有特征（计数、位置、分数）</td>
+</tr>
+</tbody></table>
+<p><strong>大小与延迟</strong></p>
+<table>
+<thead>
+<tr>
+<th>事实</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>使用 URL docID 的 1M 条 postings（Python）</td>
+<td>约 100 MB（L15 p26）</td>
+</tr>
+<tr>
+<td>URL 与整数 docID，20 万条 postings</td>
+<td>20 MB 对 5.6 MB（28%）</td>
+</tr>
+<tr>
+<td>整数大小</td>
+<td>C/C++/Java 为 4 字节，Python 为 28 字节</td>
+</tr>
+<tr>
+<td>内存访问与磁盘寻道</td>
+<td>50–75 ns 对最长 2 ms</td>
+</tr>
+<tr>
+<td>磁盘块大小</td>
+<td>8–256 KB</td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 件事</strong></p>
+<ol>
+<li>倒排索引把每个<strong>词项 → docID 的 postings 列表</strong>对应起来，只存储稀疏矩阵中的 1，并保持列表<strong>按 docID 排序</strong>。</li>
+<li>索引器生成 <strong>(词项, docID) 对，按词项再按 docID 排序，并合并同一文档中的重复项</strong>；<strong>df</strong> 是文档数，而不是出现次数。</li>
+<li><strong>AND = 用两个指针合并两个有序的 postings</strong>，时间为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>；遇到不匹配时，前移<strong>较小</strong> docID 所在的指针。</li>
+<li>Postings 可以携带<strong>计数</strong>（用于排序）、<strong>位置</strong>（用于短语与邻近）、<strong>区段</strong>（用于字段）或<strong>预先计算的分数</strong>（速度与灵活性之间的权衡）；分数为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span>。</li>
+<li>使用<strong>整数 docID</strong> 加上辅助的 URL 映射，并且不要直接在文件中构建索引（L16 p44：<strong>不能</strong>）——<strong>一次磁盘寻道的代价相当于数万次内存访问</strong>，而内存中的构建同样无法扩展。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 5 周</span><span class="pager-title" data-astro-cid-gxyjxt6l>文本处理、词项-文档矩阵</span></a><a class="card interactive pager-card pager-next" href="/~kazuhak/notes/cs-121/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>课程主页<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>CS 121 · Information Retrieval</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/~kazuhak/notes/cs-121/week-05/zh-CN/" title="上一篇: 文本处理、词项-文档矩阵 ([)" aria-label="上一篇: 第 5 周" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 5 周</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 6 周</span></button><a class="rb-btn rb-lang" href="/~kazuhak/notes/cs-121/week-06/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/~kazuhak/_astro/NoteReader.astro_astro_type_script_index_0_lang.DCEDUArq.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/~kazuhak/assets/js/bento.js" defer></script><script src="/~kazuhak/assets/js/chat-widget.js" defer></script></body></html>
