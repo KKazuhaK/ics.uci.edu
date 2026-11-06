@@ -1,0 +1,549 @@
+<!DOCTYPE html><html lang="zh-CN"><head><title>IN4MATX 133 Angular 中的分离 | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Standalone 组件与根组件、路由与 ActivatedRoute、服务与依赖注入、普通类与 npm 库、Angular 的文件结构，以及掷骰子服务演示。"><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/zh-CN/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/zh-CN/"><link rel="stylesheet" href="/_astro/BaseLayout.CnlNRG6h.css"><link rel="stylesheet" href="/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/_astro/katex.mPfuf26R.css"><link rel="stylesheet" href="/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="zh-CN" data-viz-base="/assets/viz/" data-viz-version="1794007443" data-source-url="/notes/in4matx-133/lec-11/zh-CN/source.md" data-editor-url="/tools/md-editor/" data-alt-url="/notes/in4matx-133/lec-11/en-US/" data-prev-url="/notes/in4matx-133/lec-10/zh-CN/" data-next-url="/notes/in4matx-133/lec-12/zh-CN/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>第 11 讲</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/notes/in4matx-133/lec-11/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>English</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>目录</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>在编辑器中打开</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>第 11 讲 · 用户界面软件课程阅读笔记</h2><p id="reader-description" data-astro-cid-gxyjxt6l>这页整理的是 IN4MATX 133 第 11 讲 的课程笔记，适合按讲复习 HTML、CSS、JavaScript、DOM 和 UI 工具，并配有可编辑运行的实时演示。下面这条路径可以带你回到 Notes、Course Notes、课程主页，或定位到当前笔记。将鼠标悬停在右侧的 ≡ 图标上可以打开目录。</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>最后编辑于 2026 年 11 月 3 日</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-11angular-中的分离与人类表现建模">IN4MATX 133: User Interface Software — Lecture 11：Angular 中的分离与人类表现建模</h1>
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#1-%E8%BF%90%E8%A1%8C-angular-%E9%A1%B9%E7%9B%AE">1. 运行 Angular 项目</a></li>
+<li><a href="#2-%E5%A4%A7%E5%9E%8B%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%95%8C%E9%9D%A2%E9%9C%80%E8%A6%81%E7%BB%84%E4%BB%B6">2. 大型客户端界面需要组件</a></li>
+<li><a href="#3-%E7%8B%AC%E7%AB%8B%E7%BB%84%E4%BB%B6%E4%B8%8E%E6%A0%B9%E7%BB%84%E4%BB%B6">3. 独立组件与根组件</a></li>
+<li><a href="#4-angular-%E8%B7%AF%E7%94%B1">4. Angular 路由</a></li>
+<li><a href="#5-angular-%E6%9C%8D%E5%8A%A1">5. Angular 服务</a></li>
+<li><a href="#6-%E6%99%AE%E9%80%9A%E7%B1%BB">6. 普通类</a></li>
+<li><a href="#7-%E5%AF%BC%E5%85%A5%E5%BA%93">7. 导入库</a></li>
+<li><a href="#8-angular-%E7%9A%84%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84">8. Angular 的文件结构</a></li>
+<li><a href="#9-%E8%AF%BE%E5%A0%82%E9%97%AE%E9%A2%98%E4%B8%8E%E6%BC%94%E7%A4%BA%E9%99%84%E8%A7%A3%E7%AD%94">9. 课堂问题与演示（附解答）</a></li>
+<li><a href="#10-%E9%80%9F%E6%9F%A5%E4%B8%8E%E5%BF%85%E8%AE%B0%E7%9A%84-5-%E4%B8%AA%E8%A6%81%E7%82%B9">10. 速查与必记的 5 个要点</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid，2026 年秋季学期，周二 11/3（第 6 周）<br>内容整理自 Lecture 11 的幻灯片和 demo 仓库文件夹 <code>W6_L1_AngularServices</code>（<code>setup1</code> → <code>solution1</code>）。按概念组织，而不是按来源组织。<br>幻灯片的标题还提到了“Modeling human performance”（人类表现建模），但没有任何一张幻灯片涉及该主题——这里的内容全部是 Angular 部分。</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>课程安排</strong>：今天的课之后，你就已经具备完成 A3 所需的全部内容。<br>A3 的截止日期推迟了两天——现在是 <strong>周三 11/11</strong>。</p>
+</blockquote>
+<p>本讲目标：区分并解释 Angular 组件、模块和服务的作用；在 Angular 中实现一个服务；理解 Angular 的文件结构。</p>
+<blockquote>
+<p>💡 <strong>关键点</strong>：与 <a href="/notes/in4matx-133/lec-10/zh-CN/">Lecture 10</a> 一样，Angular 无法在这些笔记的演示框中运行，因此每个演示都<strong>用纯 JavaScript 手动重写</strong>了 Angular 示例，并加以标注。Angular 代码本身位于代码块中。</p>
+</blockquote>
+<hr>
+<h2 id="1-运行-angular-项目">1. 运行 Angular 项目</h2>
+<p>要跟随演示（或开始 A3），打开终端并执行：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cd [foldername]</code></td>
+<td>进入一个文件夹——进入项目文件夹，<code>package.json</code> 就在那里</td>
+</tr>
+<tr>
+<td><code>ls</code>（mac）/ <code>dir</code>（windows）</td>
+<td>列出当前文件夹中的文件，帮助你导航</td>
+</tr>
+<tr>
+<td><code>npm install</code></td>
+<td>下载 <code>package.json</code> 中列出的包到项目中。这些包<strong>不</strong>在版本控制中，因此克隆之后必须运行此命令</td>
+</tr>
+<tr>
+<td><code>ng serve --open</code></td>
+<td>在本地运行应用；<code>--open</code> 会在准备就绪时打开 <code>http://localhost:4200/</code></td>
+</tr>
+</tbody></table>
+<p>对于本讲的演示，就是执行 <code>cd solution1</code>、<code>npm install</code>、<code>ng serve --open</code>。</p>
+<h2 id="2-大型客户端界面需要组件">2. 大型客户端界面需要组件</h2>
+<p>一个“大型”客户端界面（幻灯片的例子是 Instagram 的网页信息流）具有：</p>
+<ul>
+<li>数百个页面，以及在它们之间导航的多种方式，</li>
+<li>重复出现的 UI 元素——信息流中的状态更新——Angular 把它们实现为<strong>组件</strong>，</li>
+<li>为每个人显示的不同内容、链接等。</li>
+</ul>
+<p>加载大量库可能既慢又耗费资源，因此 Angular 允许应用的每个部分<strong>只导入它需要的组件</strong>。组件本身已在 <a href="/notes/in4matx-133/lec-10/zh-CN/#5-angular-%E7%BB%84%E4%BB%B6">Lecture 10</a> 中讲过；今天的内容是大型应用的各个部分如何分离：组件负责视图，路由负责页面，服务负责所有非视图的工作。</p>
+<h2 id="3-独立组件与根组件">3. 独立组件与根组件</h2>
+<p>你可以在<strong>一个组件内部导入另一个组件</strong>。这些“独立”（standalone）组件是 Angular 19（2024）中的新特性；此前，人们使用<em>模块</em>（<code>@NgModule</code>）来“包装”组件。你仍会在较旧的代码中看到模块——A3 的路由文件就是其中之一（见第 4 节）。</p>
+<p>根组件导入其模板所使用的组件（<code>app.component.ts</code>，幻灯片 8）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">FooterComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> ‘.</span><span style="color:#9CDCFE">footer</span><span style="color:#D4D4D4">/</span><span style="color:#9CDCFE">footer</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">component</span><span style="color:#D4D4D4">’;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HeaderComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> ‘.</span><span style="color:#9CDCFE">header</span><span style="color:#D4D4D4">/</span><span style="color:#9CDCFE">header</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">component</span><span style="color:#D4D4D4">’;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">HeaderComponent</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">FooterComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这两行 <code>import</code> 通过文件路径把类引入；<code>imports: [HeaderComponent, FooterComponent]</code> 则<strong>允许该组件使用</strong>它们，即在 <code>app.component.html</code> 中编写 <code>&lt;app-header&gt;</code> 和 <code>&lt;app-footer&gt;</code>。幻灯片的错误：路径使用了弯引号，并且缺少斜杠——应写为 <code>&#39;./footer/footer.component&#39;</code> 和 <code>&#39;./header/header.component&#39;</code>。</p>
+<p>演示仓库的根组件对它唯一的子组件也是这样做的：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// solution1/src/app/app.component.ts (top)</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './rig-dice.service'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './die/die.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>setup1</code> 的注释指出了根组件如何出现在页面上：<code>selector: &#39;app-root&#39;</code> 使该组件应用于每一处 <code>&lt;app-root&gt;</code> 标签，而 <code>index.html</code> 中只包含这一个标签——根组件导入显示网站所需的其余组件：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-root</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-root</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>main.ts</code> 使用 <code>bootstrapApplication(AppComponent, appConfig)</code> 启动它。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在模板中写入 <code>&lt;app-die&gt;</code>，但没有把 <code>DieComponent</code> 加入该组件的 <code>imports</code>，是行不通的——文件顶部的 import 语句本身是不够的。</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.ts">app.component.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/setup1/src/index.html">index.html (setup1)</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/main.ts">main.ts</a></p>
+</blockquote>
+<h2 id="4-angular-路由">4. Angular 路由</h2>
+<p>Angular 维护一个<strong>路由</strong>列表。一般而言，路由定义了哪些 URI 对应哪些端点；在 Angular 中，它定义了哪些 URI 对应哪些<strong>组件</strong>。</p>
+<h3 id="41-路由表">4.1 路由表</h3>
+<p>A3 的路由文件 <code>app-routing.module.ts</code>（在较新的 Angular 中称为 <code>app.routes.ts</code>），幻灯片 10：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">NgModule</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Routes</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ArtistPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/artist-page/artist-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">TrackPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/track-page/track-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">AlbumPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/album-page/album-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HomePageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/home-page/home-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">const</span><span style="color:#4FC1FF"> routes</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">Routes</span><span style="color:#D4D4D4"> = [</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'artist/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> ArtistPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'track/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> TrackPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'album/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> AlbumPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> ''</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> HomePageComponent</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">NgModule</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forRoot</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">routes</span><span style="color:#D4D4D4">)],</span></span>
+<span class="line"><span style="color:#9CDCFE">  exports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AppRoutingModule</span><span style="color:#D4D4D4"> { }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>每一项都是一个路径模式加上要显示的组件。<code>artist/:id</code> 会匹配任何形如 <code>artist/&lt;something&gt;</code> 的端点；<code>:id</code> 部分是一个<strong>路由参数</strong>，组件可以读取它（4.2）。<code>&#39;&#39;</code> 是空路径，即主页。</p>
+<p>在较新的布局（演示仓库）中，<code>app.routes.ts</code> 只导出数组——这里为空，因为骰子应用只有一个页面——而 <code>app.config.ts</code> 负责注册它：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// solution1/src/app/app.config.ts</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> const</span><span style="color:#4FC1FF"> appConfig</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ApplicationConfig</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  providers:</span><span style="color:#D4D4D4"> [</span><span style="color:#DCDCAA">provideZoneChangeDetection</span><span style="color:#D4D4D4">({ </span><span style="color:#9CDCFE">eventCoalescing:</span><span style="color:#569CD6"> true</span><span style="color:#D4D4D4"> }), </span><span style="color:#DCDCAA">provideRouter</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">routes</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">provideHttpClient</span><span style="color:#D4D4D4">()]</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="42-在组件中获取路由">4.2 在组件中获取路由</h3>
+<p><code>album-page.component.ts</code>（幻灯片 11）读取 <code>id</code>：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ActivatedRoute</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-album-page'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './album-page.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./album-page.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AlbumPageComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> route</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ActivatedRoute</span><span style="color:#D4D4D4">) { }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> albumId</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">route</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">snapshot</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">paramMap</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'id'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>constructor(private route: ActivatedRoute)</code> 就是<strong>“注入服务”</strong>（见第 5 节）：Angular 把描述当前 URI 的 <code>ActivatedRoute</code> 交给组件，而 <code>snapshot.paramMap.get(&#39;id&#39;)</code> 则从中取出 <code>:id</code>。与 Lecture 10 的规则一致，在 <code>ngOnInit()</code> 中读取它，而不是在构造函数中放置初始化代码。</p>
+<p>路由器一步步做了什么——幻灯片的路由表被手动对应到下面的演示中：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 10–11 · the routes table and paramMap.get(&#39;id&#39;), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;Current URI: &lt;code id=\&quot;uri\&quot;&gt;&lt;/code&gt;&lt;/p&gt;\n&lt;p&gt;Component shown: &lt;b id=\&quot;comp\&quot;&gt;&lt;/b&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } code { background: #eef; padding: 1px 4px; }&quot;, &quot;js&quot;: &quot;// const routes: Routes = [...]  (slide 10)\nconst routes = [\n  { path: &#39;artist/:id&#39;, component: &#39;ArtistPageComponent&#39; },\n  { path: &#39;track/:id&#39;,  component: &#39;TrackPageComponent&#39; },\n  { path: &#39;album/:id&#39;,  component: &#39;AlbumPageComponent&#39; },\n  { path: &#39;&#39;,           component: &#39;HomePageComponent&#39; }\n];\n\n// What the router does for you: find the route, collect :params\nfunction navigate(uri) {\n  const parts = uri.split(&#39;/&#39;).filter(p =&gt; p !== &#39;&#39;);\n  for (const r of routes) {\n    const pattern = r.path.split(&#39;/&#39;).filter(p =&gt; p !== &#39;&#39;);\n    if (pattern.length !== parts.length) continue;\n    const params = new Map();\n    const ok = pattern.every((p, i) =&gt; p.startsWith(&#39;:&#39;) ? (params.set(p.slice(1), parts[i]), true) : p === parts[i]);\n    if (ok) {\n      document.getElementById(&#39;uri&#39;).textContent = &#39;/&#39; + parts.join(&#39;/&#39;);\n      document.getElementById(&#39;comp&#39;).textContent = r.component;\n      // inside the component: this.route.snapshot.paramMap.get(&#39;id&#39;)\n      console.log(&#39;/&#39; + parts.join(&#39;/&#39;) + &#39; -&gt; &#39; + r.component + &#39;, id = &#39; + params.get(&#39;id&#39;));\n      return;\n    }\n  }\n  console.log(&#39;/&#39; + parts.join(&#39;/&#39;) + &#39; -&gt; no route&#39;);\n}\nnavigate(&#39;/&#39;);\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;An album URI: the :id part becomes the id parameter.&quot;, &quot;js&quot;: &quot;navigate(&#39;/album/1DFixLWuPkv3KT3TnV35m3&#39;);&quot;}, {&quot;note&quot;: &quot;Same pattern, different component.&quot;, &quot;js&quot;: &quot;navigate(&#39;/artist/0OdUWJ0sBjDrqHygGUXeCF&#39;);&quot;}, {&quot;note&quot;: &quot;A path with no matching route.&quot;, &quot;js&quot;: &quot;navigate(&#39;/playlist/123/extra&#39;);&quot;}], &quot;height&quot;: 110, &quot;interactive&quot;: true}</code></pre><p><code>/</code> 显示 <code>HomePageComponent</code>（其路径中没有 <code>id</code>）；<code>/album/1DFixLWuPkv3KT3TnV35m3</code> 显示 <code>AlbumPageComponent</code>，且 <code>id = 1DFixLWuPkv3KT3TnV35m3</code>；艺术家 URI 则进入 <code>ArtistPageComponent</code>；<code>/playlist/123/extra</code> 不匹配任何路由。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：路由参数的名字就是冒号后面的部分。<code>path: &#39;album/:id&#39;</code> 对应 <code>paramMap.get(&#39;id&#39;)</code>；如果写成 <code>get(&#39;albumId&#39;)</code>，结果将是 <code>null</code>。</p>
+</blockquote>
+<h2 id="5-angular-服务">5. Angular 服务</h2>
+<h3 id="51-服务中放什么">5.1 服务中放什么</h3>
+<p>任何<strong>与特定视图无关</strong>的内容都应当写成<strong>服务</strong>——例如从 API 获取数据，或解析用于路由的 URI 信息。这样可以让组件保持轻量：组件负责视图，服务负责工作。</p>
+<p>服务随后被<strong>注入</strong>到组件中：导入服务，并把它作为<strong>构造函数的参数</strong>取得。用下面的命令创建服务：</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> generate</span><span style="color:#CE9178"> service</span><span style="color:#D4D4D4"> [name]</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（演示中的 <code>rig-dice.service.ts</code> 和 <code>rig-dice.service.spec.ts</code> 就是用 <code>ng generate service rig-dice</code> 创建的。）</p>
+<h3 id="52-你已经用过一个activatedroute">5.2 你已经用过一个：ActivatedRoute</h3>
+<p>幻灯片 13 重新标注了 4.2 中的 album-page 代码：<code>import { ActivatedRoute } from &#39;@angular/router&#39;</code> 是<strong>导入服务</strong>，<code>constructor(private route: ActivatedRoute) { }</code> 是<strong>注入服务</strong>，而 <code>ngOnInit()</code> 中的 <code>this.route.snapshot…</code> 表明该服务<strong>可以在之后被引用</strong>——构造函数参数前的 <code>private</code> 会使它成为类的一个字段（这是 TypeScript 的简写，同时声明字段并完成赋值）。</p>
+<h3 id="53-定义服务">5.3 定义服务</h3>
+<p>A3 的 <code>spotify.service.ts</code>（幻灯片 14）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Injectable</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HttpClient</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">HttpHeaders</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/common/http'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Injectable</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  providedIn:</span><span style="color:#CE9178"> 'root'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> SpotifyService</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  baseUrl</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'http://localhost:8888'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">HttpClient</span><span style="color:#D4D4D4">) { }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#DCDCAA"> sendRequestToExpress</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">endpoint</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>@Injectable(...)</code> 把该类定义为可注入的（相当于组件上的 <code>@Component</code>）。</li>
+<li><code>providedIn: &#39;root&#39;</code> 说明哪些模块可以使用该服务——<code>&#39;root&#39;</code> 表示整个应用。</li>
+<li><code>constructor(private http:HttpClient)</code>：<strong>服务可以注入其他服务</strong>——这里注入的是 Angular 的 <code>HttpClient</code>，它负责发送 HTTP 请求（在 A3 中发送到端口 8888 上的 Express 服务器）。<code>HttpClient</code> 只有在应用提供它时才能工作：即 <code>app.config.ts</code> 中的 <code>provideHttpClient()</code>（4.1）。</li>
+</ul>
+<h3 id="54-导入自定义服务">5.4 导入自定义服务</h3>
+<p>你自己的服务通过<strong>文件结构</strong>导入，并且像其他服务一样被注入（幻灯片 15）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ActivatedRoute</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">SpotifyService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '../../services/spotify.service'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-album-page'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './album-page.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./album-page.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AlbumPageComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> route</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ActivatedRoute</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#9CDCFE"> spotifyService</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">SpotifyService</span><span style="color:#D4D4D4">) { }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Angular 的服务来自包名（<code>&#39;@angular/router&#39;</code>）；你自己的服务则来自相对路径（<code>&#39;../../services/spotify.service&#39;</code>——从 <code>pages/album-page/</code> 向上到 <code>app/</code>，再进入 <code>services/</code>，末尾不带 <code>.ts</code>）。你永远不需要写 <code>new SpotifyService(...)</code>：Angular 会查看构造函数参数的类型，并替你创建和传递对象。下面是 HttpClient → SpotifyService → AlbumPageComponent 这条链，注入器的工作被手动完成：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 13–15 · constructor injection (HttpClient → SpotifyService → AlbumPageComponent), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// Angular builds these objects for you and passes them to constructors.\nclass HttpClient {\n  get(url) { console.log(&#39;HttpClient.get &#39; + url); return Promise.resolve({ name: &#39;Album &#39; + url.split(&#39;/&#39;).pop() }); }\n}\n\n// @Injectable({ providedIn: &#39;root&#39; })\nclass SpotifyService {\n  baseUrl = &#39;http://localhost:8888&#39;;\n  constructor(http) { this.http = http; }            // HttpClient injected\n  getAlbum(id) { return this.http.get(this.baseUrl + &#39;/album/&#39; + id); }\n}\n\nclass ActivatedRoute {\n  constructor(id) { this.snapshot = { paramMap: new Map([[&#39;id&#39;, id]]) }; }\n}\n\n// The component stays lightweight: no fetching code of its own\nclass AlbumPageComponent {\n  constructor(route, spotifyService) { this.route = route; this.spotifyService = spotifyService; }\n  ngOnInit() {\n    var albumId = this.route.snapshot.paramMap.get(&#39;id&#39;);\n    this.spotifyService.getAlbum(albumId).then(album =&gt; console.log(&#39;page shows: &#39; + album.name));\n  }\n}\n\n// What the injector does:\nconst http = new HttpClient();\nconst spotify = new SpotifyService(http);\nconst page = new AlbumPageComponent(new ActivatedRoute(&#39;42&#39;), spotify);\npage.ngOnInit();\n&quot;, &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>控制台会打印 <code>HttpClient.get http://localhost:8888/album/42</code>，然后是 <code>page shows: Album 42</code>：组件请求了某个 id 的专辑，自己却从未接触 HTTP。演示中真正的服务 <code>RigDiceService</code> 将在 <a href="#93-%E6%BC%94%E7%A4%BA-1%E4%BD%BF%E7%94%A8%E6%9C%8D%E5%8A%A1%E6%8E%B7%E9%AA%B0%E5%AD%90%E5%B9%BB%E7%81%AF%E7%89%87-21--setup1--solution1">演示 1</a> 中详细讲解。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在 <code>constructor(private http:HttpClient)</code> 中忘记写 <code>private</code>（或 <code>public</code>），<code>http</code> 就只是一个普通的构造函数参数——在其他方法中将不存在 <code>this.http</code>。</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>练习</strong>：<a href="#93-%E6%BC%94%E7%A4%BA-1%E4%BD%BF%E7%94%A8%E6%9C%8D%E5%8A%A1%E6%8E%B7%E9%AA%B0%E5%AD%90%E5%B9%BB%E7%81%AF%E7%89%87-21--setup1--solution1">演示 1：使用服务掷骰子</a></p>
+</blockquote>
+<h2 id="6-普通类">6. 普通类</h2>
+<p>在 Angular 中也可以创建普通的类，用于任何数据的处理或“整理”（munging）。用 <code>ng generate class [name]</code> 创建：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dataparser</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  public</span><span style="color:#569CD6"> constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, world!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>通过文件结构导入它，并用 <code>new</code> <strong>像实例化其他类一样实例化它</strong>（幻灯片 17）：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Input</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Dataparser</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '../dataparser'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-day'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './day.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./day.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> DayComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#D4D4D4">  @</span><span style="color:#DCDCAA">Input</span><span style="color:#D4D4D4">() </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Dataparser</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>创建 <code>DayComponent</code> 时会打印 <code>Hello, world!</code>。与服务的区别在于：普通类由你在需要的地方用 <code>new</code> 创建；而服务带有 <code>@Injectable</code>，由 Angular 通过构造函数交给你。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：在启用了 <code>&quot;strict&quot;: true</code> 的项目中（演示仓库的 <code>tsconfig.json</code>），幻灯片中的 <code>@Input() today:string;</code> 无法编译，报错：<code>error TS2564: Property &#39;today&#39; has no initializer and is not definitely assigned in the constructor.</code> 为它提供默认值即可，如 Lecture 10 的 <code>week.ts</code> 那样：<code>@Input() today:string = &quot;&quot;;</code>。</p>
+</blockquote>
+<h2 id="7-导入库">7. 导入库</h2>
+<p>由于 Angular 使用 TypeScript，它可以使用<strong>任何 JavaScript 或 TypeScript 库</strong>。像平常一样用 npm 安装（<code>npm install [packagename]</code>）；如果你需要 TypeScript 的类型声明，别忘了也安装 <code>@types/[packagename]</code>。</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#9CDCFE"> chroma</span><span style="color:#C586C0"> from</span><span style="color:#CE9178"> 'chroma-js'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dataparser</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">chroma</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'royalblue'</span><span style="color:#D4D4D4">)); </span><span style="color:#6A9955">//'#4169e1'</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>注意语法的不同：<code>import chroma from &#39;chroma-js&#39;</code> 是<strong>默认导入</strong>（没有花括号），不同于选取命名导出的 <code>import { Component } from &#39;@angular/core&#39;</code>。之后，<code>chroma</code> 就可以在文件中的任何位置被引用。</p>
+<p>实际输出（chroma-js 3.2.0）：<code>console.log(chroma(&#39;royalblue&#39;))</code> 会打印 <code>Color</code> 对象，即 <code>Color { _rgb: [ 65, 105, 225, 1, … ] }</code>；<code>chroma(&#39;royalblue&#39;).hex()</code> 得到幻灯片中的 <code>&#39;#4169e1&#39;</code>。</p>
+<h2 id="8-angular-的文件结构">8. Angular 的文件结构</h2>
+<p>Angular 项目会生成<em>大量</em>文件——A3 的初始代码中约有 75 个——而其中大多数是样板文件。幻灯片 20 的目录树（较旧的 Angular 布局）展示了大致结构；本讲的 <code>solution1</code>（Angular 19）是当前的布局：</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>根目录</td>
+<td><code>package.json</code>、<code>package-lock.json</code></td>
+<td>依赖项（<code>npm install</code> 会读取它们）</td>
+</tr>
+<tr>
+<td>根目录</td>
+<td><code>angular.json</code></td>
+<td>Angular CLI 项目配置（构建/服务设置）</td>
+</tr>
+<tr>
+<td>根目录</td>
+<td><code>tsconfig.json</code>、<code>tsconfig.app.json</code>、<code>tsconfig.spec.json</code></td>
+<td>TypeScript 设置</td>
+</tr>
+<tr>
+<td>根目录</td>
+<td><code>.editorconfig</code>、<code>.gitignore</code>、<code>README.md</code></td>
+<td>编辑器、git、文档</td>
+</tr>
+<tr>
+<td>根目录</td>
+<td><code>node_modules/</code></td>
+<td>已安装的包——不在 git 中</td>
+</tr>
+<tr>
+<td><code>public/</code></td>
+<td><code>1.png</code> … <code>6.png</code>、<code>rigged_rolls.json</code>、<code>favicon.ico</code></td>
+<td>原样提供的静态文件（较旧的项目使用 <code>src/assets/</code>）</td>
+</tr>
+<tr>
+<td><code>src/</code></td>
+<td><code>index.html</code>、<code>main.ts</code>、<code>styles.css</code></td>
+<td>包含 <code>&lt;app-root&gt;</code> 的宿主页面、启动代码、全局样式</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>app.component.{ts,html,css,spec.ts}</code></td>
+<td>根组件</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>app.config.ts</code>、<code>app.routes.ts</code></td>
+<td>提供者（providers）和路由（较旧的是 <code>app.module.ts</code>、<code>app-routing.module.ts</code>）</td>
+</tr>
+<tr>
+<td><code>src/app/die/</code></td>
+<td><code>die.component.*</code></td>
+<td>一个子组件（每个组件一个文件夹）</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>rig-dice.service.ts</code>、<code>rig-dice.service.spec.ts</code></td>
+<td>一个服务</td>
+</tr>
+</tbody></table>
+<p>你真正编辑的文件几乎都在 <code>src/app/</code> 中。<code>.spec.ts</code> 文件是自动化测试（Lecture 10 中提到：基本可以忽略）；幻灯片 20 较旧的目录树还包括 <code>e2e/</code>、<code>karma.conf.js</code>、<code>polyfills.ts</code>、<code>test.ts</code> 和 <code>tslint.json</code>，而较新的 CLI 已不再生成这些文件。</p>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/tree/main/W6_L1_AngularServices/solution1">solution1/</a> · <a href="https://github.com/travislindenreid/INF33-Demos/tree/main/W6_L1_AngularServices/setup1">setup1/</a></p>
+</blockquote>
+<hr>
+<h2 id="9-课堂问题与演示附解答">9. 课堂问题与演示（附解答）</h2>
+<p>投票幻灯片只显示了提问部分（没有选项，也没有结果），因此下面的答案来自 <code>solution1</code>。</p>
+<h3 id="91-问题-1我们如何嵌入骰子组件幻灯片-22">9.1 问题 1：我们如何嵌入骰子组件？（幻灯片 22）</h3>
+<p><em>L11-Q1: How will we embed the die components?</em></p>
+<p>背景：<code>setup1</code> 已经有了 <code>DieComponent</code>（<code>selector: &#39;app-die&#39;</code>，带有 <code>@Input() value:number = 0;</code>），而 <code>AppComponent</code> 有两个字段 <code>die1</code> 和 <code>die2</code>。<code>app.component.html</code> 中有 <code>TODO 1: add two die apps</code>。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>solution1/src/app/app.component.html</code> 中的 TODO 1）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-die</span><span style="color:#9CDCFE"> [value]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"die1"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-die</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-die</span><span style="color:#9CDCFE"> [value]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"die2"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-die</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>让它生效的有两点：在父组件模板中放两次 <code>app-die</code> 选择器，并且在 <code>AppComponent</code> 的 <code>imports: [DieComponent]</code> 中列出 <code>DieComponent</code>（<a href="#3-%E7%8B%AC%E7%AB%8B%E7%BB%84%E4%BB%B6%E4%B8%8E%E6%A0%B9%E7%BB%84%E4%BB%B6">第 3 节</a>）。<code>[value]=&quot;die1&quot;</code> 是对子组件 <code>@Input()</code> 的属性绑定——使用方括号是因为 <code>die1</code> 是一个表达式（父组件的一个字段），而不是字面文本 &quot;die1&quot;（<a href="/notes/in4matx-133/lec-10/zh-CN/#102-%E8%BE%93%E5%85%A5">Lecture 10</a>）。</p>
+<h3 id="92-问题-2如何嵌入一个调用-rolldice-的按钮幻灯片-23">9.2 问题 2：如何嵌入一个调用 rollDice() 的按钮？（幻灯片 23）</h3>
+<p><em>L11-Q2: How will we embed a button that activates the <code>rollDice()</code> function?</em></p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>答案</strong>（<code>app.component.html</code> 中的 TODO 3）：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"rollDice()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Roll dice</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>这是一个<strong>事件绑定</strong>：<code>(click)</code> 把点击发送给组件，运行 <code>AppComponent</code> 中的 <code>rollDice()</code>。必须使用 <code>(click)</code>，而不是 <code>[click]</code>（那会是属性绑定）；语句必须调用该方法——即带括号的 <code>rollDice()</code>。返回 <a href="#3-%E7%8B%AC%E7%AB%8B%E7%BB%84%E4%BB%B6%E4%B8%8E%E6%A0%B9%E7%BB%84%E4%BB%B6">第 3 节</a>。</p>
+<h3 id="93-演示-1使用服务掷骰子幻灯片-21--setup1--solution1">9.3 演示 1：使用服务掷骰子（幻灯片 21 · setup1 → solution1）</h3>
+<p><strong>任务</strong>：起始代码是一个骰子模拟器——一个标题、一个用于放按钮的空位置、一个始终显示 <code>1.png</code> 的 <code>DieComponent</code>，以及一个用 <code>Math.random()</code> 掷骰子的 <code>AppComponent</code>。先把它们连接起来，然后把掷骰逻辑移入一个<strong>服务</strong>，该服务从 <code>public/rigged_rolls.json</code> 返回（作弊的）点数。<code>setup1</code> 中的 TODO 如下：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// setup1/src/app/app.component.ts</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">// TODO 4 [after creating die service]: import die service</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './die/die.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AppComponent</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  // TODO 5: add new die service to constructor</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //TODO 6: use the die roll service instead of Math.random()</span></span>
+<span class="line"><span style="color:#DCDCAA">  rollDice</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">()*</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">) + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">()*</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">) + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>app.component.html</code> 中有 TODO 1（两个骰子）和 TODO 3（按钮，以及显示总和）；<code>die.component.html</code> 中有 TODO 2（<code>&lt;img src=&quot;1.png&quot;&gt;</code> → 使用 <code>value</code> 输入）。</p>
+<blockquote>
+<p>✍️ <strong>先自己试一试。</strong></p>
+</blockquote>
+<p><strong>解答</strong>。TODO 1 和按钮即上面的问题 1–2。TODO 2 是骰子的视图——显示名称为其数值的图片，并且在第一次掷骰之前什么都不显示：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(value != 0) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"{{value}}.png"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>TODO 3，即骰子下方的总和：</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(die1 !=0 &#x26;&#x26; die2 != 0) {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Your rolled a total of: {{die1 + die2}}.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>（仓库中的文字是 &quot;Your rolled&quot;——应为 &quot;You rolled&quot;，这是一个拼写错误。）然后执行 <code>ng generate service rig-dice</code>，并在 <code>rig-dice.service.ts</code> 中填入：</p>
+<div class="code-collapse is-collapsed"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Injectable</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HttpClient</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/common/http'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">firstValueFrom</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> 'rxjs'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Injectable</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  providedIn:</span><span style="color:#CE9178"> 'root'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> RigDiceService</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[] = [];</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[] = [];</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1Index</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2Index</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">HttpClient</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">    //TODO: use the HTTP client to get the rigged die rolls from the JSON file in the assets folder</span></span>
+<span class="line"><span style="color:#6A9955">    //Add the values to the arrays for die1 and die2</span></span>
+<span class="line"><span style="color:#DCDCAA">    firstValueFrom</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'rigged_rolls.json'</span><span style="color:#D4D4D4">, {</span><span style="color:#9CDCFE">responseType:</span><span style="color:#CE9178"> 'json'</span><span style="color:#D4D4D4">})).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">      data</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'die1'</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'die2'</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">      });</span></span>
+<span class="line"><span style="color:#D4D4D4">    });</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //TODO: first, have the service roll fair dice by using Math.random() to roll.</span></span>
+<span class="line"><span style="color:#6A9955">  // return Math.floor(Math.random() * 6 + 1);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //Then, update the service to return the rigged die rolls in order.</span></span>
+<span class="line"><span style="color:#DCDCAA">  rollDie1</span><span style="color:#D4D4D4">():</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // first, use return this.die1[0] just to test loading first entry of array</span></span>
+<span class="line"><span style="color:#6A9955">    // then:</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">[(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1Index</span><span style="color:#D4D4D4">++)%</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  rollDie2</span><span style="color:#D4D4D4">():</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // first, use return this.die2[0] just to test loading first entry of array</span></span>
+<span class="line"><span style="color:#6A9955">    // then:</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">[(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2Index</span><span style="color:#D4D4D4">++)%</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>展开全部（40 行）</span></button><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>代码中的注释给出了课堂上的顺序：先让 <code>rollDie1()</code> 返回公平的 <code>Math.floor(Math.random() * 6 + 1)</code>，然后返回 <code>this.die1[0]</code> 以测试 JSON 是否加载成功，最后按顺序返回作弊的点数。<code>http.get(&#39;rigged_rolls.json&#39;)</code> 从 <code>public/</code> 获取文件（在网站根路径下提供）；<code>firstValueFrom(...)</code> 把 <code>HttpClient</code> 的 observable 转换为 Promise，因此可以使用 <code>.then</code>，与 <a href="/notes/in4matx-133/lec-08/zh-CN/">Lecture 8</a> 中一样。<code>(this.die1Index++) % this.die1.length</code> 遍历数组，并在 19 对点数之后回绕到开头。<code>HttpClient</code> 之所以可用，是因为 <code>app.config.ts</code> 中有 <code>provideHttpClient()</code>。</p>
+<p><code>AppComponent</code> 中的 TODO 4–6：</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './rig-dice.service'</span><span style="color:#D4D4D4">;      </span><span style="color:#6A9955">// TODO 4</span></span>
+<span class="line"><span style="color:#6A9955">// ...</span></span>
+<span class="line"><span style="color:#DCDCAA">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">private</span><span style="color:#9CDCFE"> rigDice</span><span style="color:#D4D4D4">:</span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4">) {           </span><span style="color:#6A9955">// TODO 5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  rollDice</span><span style="color:#D4D4D4">() {                                            </span><span style="color:#6A9955">// TODO 6</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">rigDice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">rollDie1</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">rigDice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">rollDie2</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="复制代码" aria-label="复制代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>组件的结构完全没有改变——它仍然设置 <code>die1</code> 和 <code>die2</code>，视图随之更新——变化的只是<em>数字从哪里来</em>，它们被移到了服务中。这正是本讲的重点。</p>
+<p>下面是用纯 JS 重新实现的完成版应用（JSON 数据已内联，骰子图片来自仓库）——可以点击三次，或自己按下按钮：</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 21 · solution1 (AppComponent + DieComponent + RigDiceService), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;div style=\&quot;text-align:center\&quot;&gt;&lt;h1&gt;Dice rolling Simulator&lt;/h1&gt;&lt;/div&gt;\n&lt;h2&gt;Push the button to roll the dice:&lt;/h2&gt;\n&lt;p&gt;&lt;button id=\&quot;roll\&quot;&gt;Roll dice&lt;/button&gt;&lt;/p&gt;\n&lt;p id=\&quot;dice\&quot;&gt;&lt;/p&gt;\n&lt;p id=\&quot;total\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } h1 { font-size: 1.4em; } h2 { font-size: 1.05em; } img { padding: 5px; width: 60px; height: 60px; }&quot;, &quot;js&quot;: &quot;const IMG = &#39;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W6_L1_AngularServices/solution1/public/&#39;;\nconst RIGGED = [{\&quot;die1\&quot;:5,\&quot;die2\&quot;:2},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:5,\&quot;die2\&quot;:2},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3}];  // public/rigged_rolls.json\n\n// RigDiceService (rig-dice.service.ts)\nclass RigDiceService {\n  die1 = []; die2 = []; die1Index = 0; die2Index = 0;\n  constructor() {\n    // stands in for firstValueFrom(this.http.get(&#39;rigged_rolls.json&#39;)).then(...)\n    Promise.resolve(RIGGED).then(data =&gt; {\n      data.forEach(dieRolls =&gt; { this.die1.push(dieRolls[&#39;die1&#39;]); this.die2.push(dieRolls[&#39;die2&#39;]); });\n      console.log(&#39;rigged rolls loaded: &#39; + data.length);\n    });\n  }\n  rollDie1() { return this.die1[(this.die1Index++) % this.die1.length]; }\n  rollDie2() { return this.die2[(this.die2Index++) % this.die2.length]; }\n}\n\n// DieComponent view: @if(value != 0) { &lt;img src=\&quot;{{value}}.png\&quot;&gt; }\nfunction appDie(value) { return value != 0 ? &#39;&lt;img src=\&quot;&#39; + IMG + value + &#39;.png\&quot;&gt;&#39; : &#39;&#39;; }\n\n// AppComponent\nconst rigDice = new RigDiceService();   // constructor(private rigDice:RigDiceService)\nlet die1 = 0, die2 = 0;\nfunction render() {\n  document.getElementById(&#39;dice&#39;).innerHTML = appDie(die1) + appDie(die2);\n  document.getElementById(&#39;total&#39;).textContent = (die1 != 0 &amp;&amp; die2 != 0) ? &#39;Your rolled a total of: &#39; + (die1 + die2) + &#39;.&#39; : &#39;&#39;;\n}\nfunction rollDice() {\n  die1 = rigDice.rollDie1();\n  die2 = rigDice.rollDie2();\n  console.log(die1 + &#39; + &#39; + die2 + &#39; = &#39; + (die1 + die2));\n  render();   // Angular re-renders for you\n}\ndocument.getElementById(&#39;roll&#39;).addEventListener(&#39;click&#39;, rollDice);  // (click)=\&quot;rollDice()\&quot;\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;First click: the service returns the first rigged pair.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}, {&quot;note&quot;: &quot;Second click: the next pair — still a total of 7.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}, {&quot;note&quot;: &quot;Third click: and again 7. Every pair in rigged_rolls.json adds to 7.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}], &quot;height&quot;: 270, &quot;interactive&quot;: true}</code></pre><p>结果是 <code>5 + 2 = 7</code>、<code>4 + 3 = 7</code>、<code>6 + 1 = 7</code>，……——<strong><code>rigged_rolls.json</code> 中的每一对点数之和都是 7</strong>，因此骰子的点数看起来是随机的，但总和永远不变。这就是“作弊”（rigging）。</p>
+<blockquote>
+<p>⚠️ <strong>易错点</strong>：JSON 是异步加载的。如果 <code>rollDice()</code> 在 <code>.then</code> 填充数组之前运行，那么 <code>this.die1.length</code> 为 0，<code>index % 0</code> 得到 <code>NaN</code>，<code>rollDie1()</code> 返回 <code>undefined</code>；而 <code>undefined != 0</code> 为 <code>true</code>，因此骰子会尝试显示 <code>undefined.png</code>，总和则会显示 <code>NaN</code>。真正的点击发生在那个很小的文件加载完成之后很久，但在应用启动时就掷骰子的代码会遇到这个问题。</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>演示文件</strong>：<a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/rig-dice.service.ts">rig-dice.service.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.ts">app.component.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.html">app.component.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/die/die.component.html">die.component.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/public/rigged_rolls.json">rigged_rolls.json</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/setup1/src/app/app.component.ts">setup1 app.component.ts</a></p>
+</blockquote>
+<p>返回 <a href="#5-angular-%E6%9C%8D%E5%8A%A1">第 5 节</a>。</p>
+<hr>
+<h2 id="10-速查与必记的-5-个要点">10. 速查与必记的 5 个要点</h2>
+<p><strong>各部分的作用</strong></p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>装饰器 / 文件</th>
+<th>作用</th>
+<th>如何获得</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>组件</td>
+<td><code>@Component({ selector, templateUrl, styleUrls, imports })</code></td>
+<td>一个视图（模板 + 样式 + 类）</td>
+<td>在父模板中写入其选择器标签，并把该类加入父组件的 <code>imports</code></td>
+</tr>
+<tr>
+<td>模块（较旧的 Angular）</td>
+<td><code>@NgModule({ imports, exports })</code></td>
+<td>“包装”组件和配置（在 Angular 19 的独立组件之前）</td>
+<td>例如 A3 的 <code>AppRoutingModule</code></td>
+</tr>
+<tr>
+<td>服务</td>
+<td><code>@Injectable({ providedIn: &#39;root&#39; })</code></td>
+<td>与视图无关的工作：API 数据、路由信息</td>
+<td>构造函数参数：<code>constructor(private s: MyService)</code></td>
+</tr>
+<tr>
+<td>普通类</td>
+<td><code>export class X { }</code></td>
+<td>数据处理</td>
+<td><code>new X()</code></td>
+</tr>
+<tr>
+<td>库</td>
+<td>npm 包</td>
+<td>npm 中的任何内容</td>
+<td><code>npm install pkg</code>（+ <code>@types/pkg</code>），然后 <code>import</code></td>
+</tr>
+</tbody></table>
+<p><strong>路由</strong></p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>路由表</td>
+<td><code>const routes: Routes = [{ path: &#39;album/:id&#39;, component: AlbumPageComponent }, { path: &#39;&#39;, component: HomePageComponent }];</code></td>
+</tr>
+<tr>
+<td>注册（新 / 旧）</td>
+<td><code>app.config.ts</code> 中的 <code>provideRouter(routes)</code> / <code>@NgModule</code> 中的 <code>RouterModule.forRoot(routes)</code></td>
+</tr>
+<tr>
+<td>读取参数</td>
+<td><code>constructor(private route: ActivatedRoute)</code> → <code>this.route.snapshot.paramMap.get(&#39;id&#39;)</code></td>
+</tr>
+</tbody></table>
+<p><strong>CLI 与导入</strong></p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>命令 / 语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装依赖 / 运行</td>
+<td><code>npm install</code> · <code>ng serve --open</code>（localhost:4200）</td>
+</tr>
+<tr>
+<td>生成</td>
+<td><code>ng generate service [name]</code> · <code>ng generate class [name]</code></td>
+</tr>
+<tr>
+<td>服务中的 HTTP</td>
+<td><code>app.config.ts</code> 中的 <code>provideHttpClient()</code>；<code>constructor(private http:HttpClient)</code></td>
+</tr>
+<tr>
+<td>命名导入与默认导入</td>
+<td><code>import { Component } from &#39;@angular/core&#39;</code> · <code>import chroma from &#39;chroma-js&#39;</code></td>
+</tr>
+<tr>
+<td>你自己的文件</td>
+<td>相对路径，不带 <code>.ts</code>：<code>import { SpotifyService } from &#39;../../services/spotify.service&#39;</code></td>
+</tr>
+</tbody></table>
+<p><strong>必记的 5 个要点</strong></p>
+<ol>
+<li>与特定视图无关的内容（获取 API 数据、解析 URI）应放入服务，使组件保持轻量。</li>
+<li>要使用服务，需导入它，并以带 <code>private</code> 的构造函数参数的形式获取——Angular 会创建并注入它；你永远不需要 <code>new</code> 一个服务。</li>
+<li>路由把 URI 模式映射到组件；路径中的 <code>:id</code> 在组件中通过 <code>this.route.snapshot.paramMap.get(&#39;id&#39;)</code> 读取。</li>
+<li>只有当某个类位于组件的 <code>imports</code> 数组中时，该组件才能使用它（独立组件，Angular 19+）；较旧的代码会把内容包装在 <code>@NgModule</code> 中。</li>
+<li>在模板中，<code>[value]=&quot;die1&quot;</code> 把子组件的输入绑定到一个表达式，而 <code>(click)=&quot;rollDice()&quot;</code> 把事件绑定到一个方法——方括号表示读取，圆括号表示监听。</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="笔记翻页" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/notes/in4matx-133/lec-10/zh-CN/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>上一篇 · 第 10 讲</span><span class="pager-title" data-astro-cid-gxyjxt6l>Angular 中的组件</span></a><a class="card interactive pager-card pager-next" href="/notes/in4matx-133/lec-12/zh-CN/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>第 12 讲 · 下一篇<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>混合与原生架构</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>快捷键<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> 上一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> 下一篇</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> 切换语言</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/notes/in4matx-133/lec-10/zh-CN/" title="上一篇: Angular 中的组件 ([)" aria-label="上一篇: 第 10 讲" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>第 10 讲</span></a><button type="button" class="rb-title" data-scroll-top title="回到顶部" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>第 11 讲</span></button><a class="rb-btn rb-lang" href="/notes/in4matx-133/lec-11/en-US/" data-lang-switch hreflang="en-US" lang="en-US" title="切换到 English (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>EN</span></a><a class="rb-btn rb-next" href="/notes/in4matx-133/lec-12/zh-CN/" title="下一篇: 混合与原生架构 (])" aria-label="下一篇: 第 12 讲" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>第 12 讲</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="目录" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>顶部</button><script type="module" src="/_astro/NoteReader.astro_astro_type_script_index_0_lang.GgOyItmQ.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/assets/js/bento.js" defer></script><script src="/assets/js/chat-widget.js" defer></script></body></html>

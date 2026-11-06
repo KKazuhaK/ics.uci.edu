@@ -1,0 +1,1 @@
+import{t as e}from"./lang-pref.DITGb1Ys.js";function t(t=document){let n=e();n&&t.querySelectorAll(`a[data-lang-links]`).forEach(e=>{let t=e.getAttribute(`data-href-${n}`);t&&(e.href=t)})}t();

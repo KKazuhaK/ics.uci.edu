@@ -1,0 +1,767 @@
+<!DOCTYPE html><html lang="en-US"><head><title>ICS 46 Trees | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Tree terminology (depth, height, degree), full vs complete binary trees, node-count and height bounds, the BinaryTree skeleton, level/pre/in/post-order traversals, and binary heaps: heap order, array representation, swim, insert and sink."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-10/en-US/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-10/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/ics-46/lec-10/zh-CN/"><link rel="stylesheet" href="/_astro/BaseLayout.CnlNRG6h.css"><link rel="stylesheet" href="/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/_astro/katex.mPfuf26R.css"><link rel="stylesheet" href="/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/assets/viz/" data-viz-version="1794007437" data-source-url="/notes/ics-46/lec-10/en-US/source.md" data-editor-url="/tools/md-editor/" data-alt-url="/notes/ics-46/lec-10/zh-CN/" data-prev-url="/notes/ics-46/lec-09/en-US/" data-next-url="/notes/ics-46/lec-11/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/notes/ics-46/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>ICS 46</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 10</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/notes/ics-46/lec-10/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 10 · Data Structures Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents ICS 46 Lecture 10 notes in a structured reading format so you can review C++ templates, pointers and ownership, algorithm analysis, and data structure implementations lecture by lecture. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on November 6, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="information-and-computer-science-46--lecture-10-trees">Information and Computer Science 46 — Lecture 10: Trees</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-trees-hierarchical-data">1. Trees: Hierarchical Data</a></li>
+<li><a href="#2-tree-terminology">2. Tree Terminology</a></li>
+<li><a href="#3-depth-level-and-height">3. Depth, Level and Height</a></li>
+<li><a href="#4-full-and-complete-binary-trees">4. Full and Complete Binary Trees</a></li>
+<li><a href="#5-counting-nodes-and-height-bounds">5. Counting Nodes and Height Bounds</a></li>
+<li><a href="#6-skeleton-implementation">6. Skeleton Implementation</a></li>
+<li><a href="#7-breadth-first-level-order-traversal">7. Breadth-First: Level-Order Traversal</a></li>
+<li><a href="#8-depth-first-pre--in--and-post-order">8. Depth-First: Pre-, In- and Post-Order</a></li>
+<li><a href="#9-heap-ordered-binary-trees">9. Heap-Ordered Binary Trees</a></li>
+<li><a href="#10-array-representation-of-a-binary-heap">10. Array Representation of a Binary Heap</a></li>
+<li><a href="#11-swim-promote-percolate-up">11. Swim (Promote, Percolate Up)</a></li>
+<li><a href="#12-heap-insertion">12. Heap Insertion</a></li>
+<li><a href="#13-sink-demote-top-down-heapify">13. Sink (Demote, Top-Down Heapify)</a></li>
+<li><a href="#14-complete-implementation">14. Complete Implementation</a></li>
+<li><a href="#15-in-class-activities-with-solutions">15. In-class Activities (with Solutions)</a></li>
+<li><a href="#16-quick-reference--top-5-things-to-remember">16. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI ICS 46: Data Structure Implementation and Analysis — Prof. Tom Yeh, Fall 2026, 10/29/26<br>Built from the Lecture 10 slides (which also carry the Trees section that first appeared at the end of the Lecture 9 deck), with algs4 §2.4 Priority Queues and §3.1 Symbol Tables as supplements. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Quiz 3 this Friday (Stacks, Queues, Deques) · HW 5 due Friday · Lab 4 due next Monday<br>Quiz 2 graded (avg 79.5, max 100); HW 3 graded; Lab 2 grades after manual grading<br>AI tool access needs the 2-part consent form (data storage is not used for academic integrity; research consent = 1% extra credit, alternative EC method later)</p>
+</blockquote>
+<hr>
+<h2 id="1-trees-hierarchical-data">1. Trees: Hierarchical Data</h2>
+<p>Lists, stacks and queues are <strong>linear</strong>: every element has at most one predecessor and one successor. A <strong>tree</strong> is an abstract data type that stores elements <strong>hierarchically</strong>: each element has a <strong>single parent</strong> (its immediate ancestor) and <strong>zero or more children</strong> (its immediate descendants). Examples from the slides: an organization chart (CEO → CFO, CMO, COO, CTO → …), a website&#39;s sitemap (Home → About, Products, …), and a file system (<code>/</code> → Documents, Downloads, Music → …).</p>
+<p>In CS we draw trees upside down: the <strong>root</strong> at the top, the <strong>leaves</strong> at the bottom.</p>
+<p><strong>Definition (slide 7).</strong> A tree <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span></span></span></span> is a set of nodes that store elements in a parent–child relationship such that</p>
+<ul>
+<li>if <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">T</span></span></span></span> is non-empty, it has a special node, the <strong>root</strong>, that has no parent;</li>
+<li>every node <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span> other than the root has a <strong>unique parent</strong>.</li>
+</ul>
+<p>Example (slide 7&#39;s tree diagram): root A; A&#39;s children B and C; B has only a right child D; C&#39;s children E and F; E has a left child G; F&#39;s children H and I. Step through it (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slide 7: the tree diagram&quot;, &quot;tree&quot;: &quot;A, B, C, -, D, E, F, -, -, -, -, G, -, H, I&quot;, &quot;views&quot;: &quot;root; parent:C; ancestors:G&quot;}</code></pre><h2 id="2-tree-terminology">2. Tree Terminology</h2>
+<p>All examples use the slides&#39; <strong>example tree</strong> (slides 8–9, 13–14, 18, 21–25):</p>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>K</th>
+<th>C</th>
+<th>N</th>
+<th>A</th>
+<th>F</th>
+<th>M</th>
+<th>V</th>
+<th>B</th>
+<th>D</th>
+<th>H</th>
+<th>U</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Left child</td>
+<td>C</td>
+<td>A</td>
+<td>M</td>
+<td>—</td>
+<td>D</td>
+<td>—</td>
+<td>U</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Right child</td>
+<td>N</td>
+<td>F</td>
+<td>V</td>
+<td>B</td>
+<td>H</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Edge</td>
+<td>a pair of connected nodes</td>
+<td>(K, C)</td>
+</tr>
+<tr>
+<td>Parent / child</td>
+<td>node directly above / below</td>
+<td>K is the parent of C and N</td>
+</tr>
+<tr>
+<td>Siblings</td>
+<td>nodes with the same parent</td>
+<td>A and F</td>
+</tr>
+<tr>
+<td>Ancestor / descendant</td>
+<td>anywhere above / below on the path to the root</td>
+<td>K is an ancestor of B; B is a descendant of K</td>
+</tr>
+<tr>
+<td>Subtree</td>
+<td>a node plus all of its descendants</td>
+<td>subtree at N = {N, M, V, U}</td>
+</tr>
+<tr>
+<td>Leaf (external node)</td>
+<td>no children</td>
+<td>{B, D, H, M, U}</td>
+</tr>
+<tr>
+<td>Internal node</td>
+<td>at least one child</td>
+<td>{K, C, N, A, F, V}</td>
+</tr>
+<tr>
+<td>Forest</td>
+<td>a set of disjoint trees</td>
+<td></td>
+</tr>
+<tr>
+<td>Simple path</td>
+<td>distinct nodes with an edge between each consecutive pair</td>
+<td>K-N-V-U</td>
+</tr>
+<tr>
+<td>Path length</td>
+<td>number of <strong>edges</strong> on the path</td>
+<td>K-C-A has length 2</td>
+</tr>
+<tr>
+<td>Height of a node</td>
+<td>length of the longest path from it down to a leaf</td>
+<td>height(C) = 2 (C-F-D)</td>
+</tr>
+<tr>
+<td>Height of the tree</td>
+<td>longest root-to-leaf path = height of the root</td>
+<td>3 (e.g. K-C-A-B)</td>
+</tr>
+<tr>
+<td>Degree of a node</td>
+<td>number of its children</td>
+<td>degree(C) = 2</td>
+</tr>
+<tr>
+<td>Degree (arity) of a tree</td>
+<td>max degree of any node</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Binary tree</td>
+<td>a tree with arity 2: each node has at most 2 children, each in a <strong>left</strong> or <strong>right</strong> slot</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>Each term on the example tree, one step per term:</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slides 8–9, 13: terminology on the example tree&quot;, &quot;tree&quot;: &quot;K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;views&quot;: &quot;parent:K; siblings:A; ancestors:B; subtree:N; leaves; internal; path:K-N-V-U; path:K-C-A; degree&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Slide 9&#39;s &quot;Quick Checks&quot; answer lists the leaves as {B, D, H, M, U, V} and the internal nodes as {K, C, N, A, F}. V has a child (U), so V is <strong>internal</strong>: leaves {B, D, H, M, U}, internal {K, C, N, A, F, V}.</p>
+</blockquote>
+<h2 id="3-depth-level-and-height">3. Depth, Level and Height</h2>
+<p><strong>Depth (= level)</strong> of a node: its distance (number of edges) from the root. The root is at depth/level 0. The <strong>depth of a binary tree</strong> is the maximum level of all its nodes, and a node with the maximum depth is always a leaf.</p>
+<p><strong>Height</strong> is measured the other way, from the bottom:</p>
+<ul>
+<li>a leaf has height 0;</li>
+<li>any other node has height 1 + the maximum height of its non-null children.</li>
+</ul>
+<p>The <strong>height of the tree</strong> is the height of its root. So depth counts down from the root, height counts up from the leaves, and for the whole tree the two agree (max depth = height of the root).</p>
+<p>Example (slides 11–12): in the slide&#39;s 10-node tree the leaves are labelled 0, their parents 1 and 2, and the root 3; the deepest leaves sit at depth 3, so tree depth = tree height = 3. In the example tree from §2: depth(F) = 2, height(F) = 1, height(K) = 3.</p>
+<p>Depth (badges counted down from the root) and height (counted up from the leaves) on the example tree — the slide&#39;s own 10-node tree has a node with three children, so it isn&#39;t a binary tree:</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slides 10–12: depth vs height&quot;, &quot;tree&quot;: &quot;K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;views&quot;: &quot;depth; height&quot;}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Depth and height are counted in <strong>edges</strong>, not nodes. A single-node tree has height 0; with the recursive formula an empty tree is given height −1 so that a leaf comes out as 1 + max(−1, −1) = 0 (see <code>height()</code> in §14).</p>
+</blockquote>
+<h2 id="4-full-and-complete-binary-trees">4. Full and Complete Binary Trees</h2>
+<ul>
+<li><strong>Full (proper)</strong> binary tree: every node has <strong>0 or 2</strong> children — never exactly one.</li>
+<li><strong>Complete</strong> binary tree: has minimal height — every level is full except possibly the last, and the nodes on the last level are <strong>as far left as possible</strong> (no holes in level order).</li>
+</ul>
+<p>The two properties are independent (slide 15 shows one tree of each kind):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Full</th>
+<th>Not full</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Complete</strong></td>
+<td>every level full, or last level left-packed with pairs</td>
+<td>last level ends with a lone left child</td>
+</tr>
+<tr>
+<td><strong>Not complete</strong></td>
+<td>some leaf missing on an upper level, or a gap on the last level, but no node with one child</td>
+<td>e.g. a node with one child <em>and</em> a gap</td>
+</tr>
+</tbody></table>
+<p>Slide 15&#39;s four shapes, then the example tree — nodes with one child are marked purple for <em>full</em>, gaps in level order show as dashed slots for <em>complete</em>:</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slide 15: complete and full&quot;, &quot;tree&quot;: &quot;Neither complete nor full = A, B, C, D, E, F, G, H, -, -, -, I, J | Complete but not full = A, B, C, D, E, F, G, H | Full but not complete = A, B, C, D, E, F, G, H, I, -, -, J, K | Complete and full = A, B, C, D, E, F, G, H, I | Example tree = K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;views&quot;: &quot;full; complete&quot;}</code></pre><p>The example tree from §2 is <strong>neither</strong>: A and V have one child each (not full), and its last level has a hole where A&#39;s left child would be (not complete).</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#152-practice-time-full-or-complete-slides-1617">Practice Time</a> — two trees to classify.</p>
+</blockquote>
+<h2 id="5-counting-nodes-and-height-bounds">5. Counting Nodes and Height Bounds</h2>
+<p><strong>Lemma.</strong> A binary tree has at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>k</mi></msup></mrow><annotation encoding="application/x-tex">2^k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span></span></span></span></span></span></span></span> nodes on level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> (each level can at most double). Level 2 of the example tree holds the maximum <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>2</mn></msup><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">2^2 = 4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">4</span></span></span></span>: A, F, M, V.</p>
+<p><strong>Theorem.</strong> A binary tree of height <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span> with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> nodes satisfies</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>h</mi><mo>+</mo><mn>1</mn><mo>≤</mo><mi>n</mi><mo>≤</mo><msup><mn>2</mn><mrow><mi>h</mi><mo>+</mo><mn>1</mn></mrow></msup><mo>−</mo><mn>1</mn><mspace width="2em"/><mo>⟺</mo><mspace width="2em"/><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>−</mo><mn>1</mn><mo>≤</mo><mi>h</mi><mo>≤</mo><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">h + 1 \le n \le 2^{h+1} - 1 \qquad\Longleftrightarrow\qquad \log_2(n+1) - 1 \le h \le n - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">h</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7804em;vertical-align:-0.136em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7719em;vertical-align:-0.136em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9824em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">h</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6684em;vertical-align:-0.024em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟺</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7804em;vertical-align:-0.136em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8304em;vertical-align:-0.136em;"></span><span class="mord mathnormal">h</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span></span></div>
+<ul>
+<li><strong>Minimum</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mi>h</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n = h + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">h</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>: a &quot;stick&quot; — every node has one child, the tree is a linked list. So the <strong>worst-case height is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>−</mo><mn>1</mn><mo>=</mo><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">n - 1 = O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span></strong>.</li>
+<li><strong>Maximum</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>1</mn><mo>+</mo><mn>2</mn><mo>+</mo><mn>4</mn><mo>+</mo><mo>⋯</mo><mo>+</mo><msup><mn>2</mn><mi>h</mi></msup><mo>=</mo><msup><mn>2</mn><mrow><mi>h</mi><mo>+</mo><mn>1</mn></mrow></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n = 1 + 2 + 4 + \dots + 2^h = 2^{h+1} - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">h</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9324em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">h</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>: every level full. So the <strong>best-case height is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(\log n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span></strong>, reached by compact (complete) trees.</li>
+</ul>
+<p>Example: 7 nodes can have height anywhere from 2 (all three levels full) to 6 (a stick).</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slide 18: fewest vs most nodes for the same height h = 2&quot;, &quot;tree&quot;: &quot;h = 2, most nodes (7) = A, B, C, D, E, F, G | h = 2, fewest nodes (3, a stick) = A, B, -, C&quot;, &quot;views&quot;: &quot;depth&quot;}</code></pre><blockquote>
+<p>💡 <strong>Key Insight</strong>: Every tree operation that walks one root-to-leaf path costs O(height) — between O(log n) and O(n). Keeping trees short is what balanced trees (Lec 13) and heaps (§9) are about.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Slide 18 labels the upper bound &quot;MAX (complete)&quot;. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mrow><mi>h</mi><mo>+</mo><mn>1</mn></mrow></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">2^{h+1} - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9324em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">h</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> nodes needs <strong>every</strong> level full (a <em>perfect</em> tree); a complete tree of height <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span> can have anywhere from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>h</mi></msup></mrow><annotation encoding="application/x-tex">2^h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">h</span></span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mrow><mi>h</mi><mo>+</mo><mn>1</mn></mrow></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">2^{h+1} - 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9324em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">h</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> nodes.</p>
+</blockquote>
+<h2 id="6-skeleton-implementation">6. Skeleton Implementation</h2>
+<p>Like the linked list, a binary tree is a set of <code>Node</code> objects linked by pointers, but each node has <strong>two</strong> links:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Item</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> BinaryTree</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#6A9955">    // Nested Node class</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        Item</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">      // Payload</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> left</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">     // Pointer to left child</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> right</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955">    // Pointer to right child</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">        // Node constructor</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> leftNode</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> rightNode</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Item</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">            : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">left</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftNode</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">right</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightNode</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4">;</span><span style="color:#6A9955"> // Pointer to the root node of the tree</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The picture on slide 19 names the parts: <code>root</code> points at the top node; each <code>left</code>/<code>right</code> pointer is a <strong>link</strong>; any node together with everything below it is a <strong>subtree</strong> (so every link points at a subtree — that&#39;s why tree code is naturally recursive); a <strong>leaf</strong> is a node whose two links are both <strong>null links</strong> (<code>nullptr</code>).</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Slide 19: root, subtree and null links&quot;, &quot;tree&quot;: &quot;K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;views&quot;: &quot;root; subtree:C; nulls&quot;}</code></pre><p>Example: a 3-node tree is <code>new Node(new Node(nullptr, nullptr, &quot;A&quot;), new Node(nullptr, nullptr, &quot;C&quot;), &quot;B&quot;)</code> — note the constructor takes the children <strong>first</strong> and the value last.</p>
+<h2 id="7-breadth-first-level-order-traversal">7. Breadth-First: Level-Order Traversal</h2>
+<p>Linear structures have one natural order; trees can be traversed in several (slide 20):</p>
+<ul>
+<li><strong>breadth-first</strong>: level order;</li>
+<li><strong>depth-first</strong>: pre-order, in-order, post-order (§8).</li>
+</ul>
+<p><strong>Level order</strong>: mark the nodes of level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> as visited, left to right, before any node of level <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">i + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7429em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>, starting at level 0. On the example tree: <strong>K C N A F M V B D H U</strong>.</p>
+<p>The slides give the order, not code; the standard implementation (mine) uses a FIFO queue from Lec 5: pop a node, visit it, push its children.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> levelorder</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">queue</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">*> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (!</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">empty</span><span style="color:#D4D4D4">()) {</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">front</span><span style="color:#D4D4D4">(); </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#DCDCAA">        visit</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">)  </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Step through it below (← / → keys work when the demo is focused):</p>
+<pre data-language="viz" data-viz="tree-traversal"><code>{&quot;title&quot;: &quot;Slide 21: level order of the example tree&quot;, &quot;tree&quot;: &quot;K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;order&quot;: &quot;level&quot;, &quot;interactive&quot;: true}</code></pre><p>Each node enters and leaves the queue once, so the traversal is O(n).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Slide 21 (level order) has the note &quot;provides sorted order for Binary Search Trees&quot;. That is <strong>in-order</strong> (slide 24, §8); level order of a BST is not sorted.</p>
+</blockquote>
+<h2 id="8-depth-first-pre--in--and-post-order">8. Depth-First: Pre-, In- and Post-Order</h2>
+<p>All three visit the root and recursively traverse the left subtree, then the right subtree. The prefix says <strong>when the root is marked visited</strong>: <strong>pre</strong> = before both subtrees, <strong>in</strong> = between them, <strong>post</strong> = after both.</p>
+<table>
+<thead>
+<tr>
+<th>Traversal</th>
+<th>Recursion</th>
+<th>Example tree</th>
+<th>Typical use (slides)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pre-order</td>
+<td>root, Preorder(left), Preorder(right)</td>
+<td>K C A B F D H N M V U</td>
+<td>process a parent before its children, e.g. <strong>copy</strong> a tree</td>
+</tr>
+<tr>
+<td>In-order</td>
+<td>Inorder(left), root, Inorder(right)</td>
+<td>A B C D F H K M N U V</td>
+<td>on a binary search tree gives <strong>sorted order</strong> (e.g. find the kth smallest)</td>
+</tr>
+<tr>
+<td>Post-order</td>
+<td>Postorder(left), Postorder(right), root</td>
+<td>B A D H F C M U V N K</td>
+<td>process both subtrees before the parent, e.g. <strong>deletion</strong></td>
+</tr>
+</tbody></table>
+<p>As code (mine — the slides give the recursion in words), only the position of <code>visit</code> changes:</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> preorder</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    visit</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">          // root first</span></span>
+<span class="line"><span style="color:#DCDCAA">    preorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">    preorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#6A9955">// inorder:   inorder(t->left);  visit(t->item);  inorder(t->right);</span></span>
+<span class="line"><span style="color:#6A9955">// postorder: postorder(t->left); postorder(t->right); visit(t->item);</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Step through the in-order traversal (the call stack is shown in orange):</p>
+<pre data-language="viz" data-viz="tree-traversal"><code>{&quot;title&quot;: &quot;Slide 24: in-order of the example tree&quot;, &quot;tree&quot;: &quot;K, C, N, A, F, M, V, -, B, D, H, -, -, U&quot;, &quot;order&quot;: &quot;in&quot;, &quot;interactive&quot;: true}</code></pre><p>Every node gets exactly one call (plus one call per null link), so each traversal is O(n) time; the call stack holds one frame per level, O(height) extra space.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: A quick way to check by hand: in pre-order the <strong>root is first</strong>, in post-order the <strong>root is last</strong>, and in in-order the root <strong>splits</strong> the left subtree&#39;s nodes from the right subtree&#39;s (A B C D F H | K | M N U V).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#151-activity-1-list-the-nodes-in-all-four-orders-slide-26">Activity 1</a> — all four orders of a new tree.</p>
+</blockquote>
+<h2 id="9-heap-ordered-binary-trees">9. Heap-Ordered Binary Trees</h2>
+<p><strong>Definition.</strong> A binary tree is <strong>heap-ordered</strong> if the key in each node is <strong>≥ the keys in its two children</strong> (if any). Equivalently, each node&#39;s key is ≤ its parent&#39;s key. Consequences (slide 27):</p>
+<ul>
+<li><strong>No child assumption</strong>: nothing says whether the left or the right child is smaller.</li>
+<li>Moving <strong>up</strong> from any node gives a <strong>non-decreasing</strong> sequence of keys; moving <strong>down</strong> gives a non-increasing one.</li>
+<li>So the <strong>largest key is at the root</strong>.</li>
+</ul>
+<p>That is a <strong>max-heap</strong>. Flip every comparison and you get a <strong>min-heap</strong> (parent ≤ children, smallest key at the root). Slide 28&#39;s examples:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Root</th>
+<th>Level 1</th>
+<th>Level 2</th>
+<th>Level 3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Max-heap</td>
+<td>100</td>
+<td>19, 28</td>
+<td>17, 3 (under 19) · 25, 1 (under 28)</td>
+<td>2, 7 (under 17)</td>
+</tr>
+<tr>
+<td>Min-heap</td>
+<td>1</td>
+<td>3, 2</td>
+<td>7, 19 (under 3) · 25, 28 (under 2)</td>
+<td>17, 100 (under 7)</td>
+</tr>
+</tbody></table>
+<p>Heap order only constrains each parent–child pair, not nodes on different paths: in the max-heap, 3 (level 2) is smaller than 7 (level 3), which is fine because 7 hangs under 17, not under 3.</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: In a heap of n keys about half the nodes (⌈n/2⌉) are leaves, and the <strong>minimum of a max-heap can be any of them</strong> — finding it takes O(n). A heap is only &quot;sorted&quot; along each root-to-leaf path. (algs4 §2.4 web exercises)</p>
+</blockquote>
+<h2 id="10-array-representation-of-a-binary-heap">10. Array Representation of a Binary Heap</h2>
+<p>A <strong>binary heap</strong> is a heap-ordered <strong>complete</strong> binary tree stored in an array in <strong>level order</strong>:</p>
+<ul>
+<li>nothing at index 0; the root is at index 1;</li>
+<li>the rest follow level by level, left to right;</li>
+<li>because the tree is complete there are no holes, so <strong>no wasted space</strong> and <strong>no pointers</strong> (a pointer-based tree spends three pointers — parent, left, right — per node).</li>
+</ul>
+<p><strong>Index math (1-based):</strong> for the node at index <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span></p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>parent</mtext><mo>=</mo><mo stretchy="false">⌊</mo><mi>k</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">⌋</mo><mo separator="true">,</mo><mspace width="2em"/><mtext>children</mtext><mo>=</mo><mn>2</mn><mi>k</mi><mtext> and </mtext><mn>2</mn><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\text{parent} = \lfloor k/2 \rfloor, \qquad \text{children} = 2k \text{ and } 2k + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">parent</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌊</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord">/2</span><span class="mclose">⌋</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">children</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mord text"><span class="mord"> and </span></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span></span></div>
+<p>Moving up or down the tree is just arithmetic on indices — direct indexed access is much faster than following pointers, the same advantage an ArrayList has over a linked list.</p>
+<p>Example (slide 29), max-heap 100 / 19, 36 / 17, 3, 25, 1 / 2, 7:</p>
+<table>
+<thead>
+<tr>
+<th>index</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pq[i]</td>
+<td>–</td>
+<td>100</td>
+<td>19</td>
+<td>36</td>
+<td>17</td>
+<td>3</td>
+<td>25</td>
+<td>1</td>
+<td>2</td>
+<td>7</td>
+</tr>
+</tbody></table>
+<p>Check: 17 is at index 4 → parent ⌊4/2⌋ = 2 (19), children 8 and 9 (2 and 7). Slide 30&#39;s letter heap is <code>– T S R P N O A E I H G</code> (T root; S, R; P, N, O, A; E, I, H, G).</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: An array sorted in <strong>decreasing</strong> order is always a valid max-heap: every parent index k is smaller than its children&#39;s indices 2k and 2k+1, so its key is at least as large. (algs4 §2.4 exercise)</p>
+</blockquote>
+<h2 id="11-swim-promote-percolate-up">11. Swim (Promote, Percolate Up)</h2>
+<p><strong>Scenario:</strong> a key becomes <strong>larger than its parent</strong>, violating heap order. <strong>Fix:</strong> exchange it with its parent, and repeat until heap order is restored (it reaches a larger parent, or the root). Also called <em>reheapify bottom-up</em>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> swim</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">)) {</span></span>
+<span class="line"><span style="color:#DCDCAA">        exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>less(i, j)</code> compares <code>pq[i] &lt; pq[j]</code> and <code>exch(i, j)</code> swaps them (the same helpers as in the sorting lectures). Slide 32–33&#39;s example: the key at index 5 becomes T in <code>– S P R G T O A E I H G</code>; T swaps with P (index 2), then with S (index 1):</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;Slides 32–33: swim(5)&quot;, &quot;heap&quot;: &quot;S, P, R, G, T, O, A, E, I, H, G&quot;, &quot;ops&quot;: &quot;swim(5)&quot;}</code></pre><p>Result: <code>– T S R G P O A E I H G</code>. Each iteration moves up one level, so swim is O(log n) (height of a complete tree).</p>
+<blockquote>
+<p>📘 <strong>Beyond the lecture</strong>: Why one exchange never breaks order <em>below</em>: after swapping, the risen key is larger than its old parent (that&#39;s why it moved) and therefore larger than the old parent&#39;s other child too. The only possible new violation is with the next parent up — which is exactly what the loop checks. (algs4 §2.4)</p>
+</blockquote>
+<h2 id="12-heap-insertion">12. Heap Insertion</h2>
+<p><strong>Insert:</strong> add the new key <strong>at the end of the bottom level</strong> (the next free array slot, which keeps the tree complete), then <strong>swim it up</strong>.</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> insert</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Key</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">    pq</span><span style="color:#D4D4D4">[++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">] = </span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">    swim</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Cost:</strong> at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>log</mi><mo>⁡</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\log n + 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> compares — one per level on the path to the root.</p>
+<p>Example (slide 34): insert S into <code>– T P R N H O A E I G</code>. S lands at index 11 (child of H); S &gt; H → exchange; S &gt; P → exchange; S &lt; T → stop. Result <code>– T S R N P O A E I G H</code>.</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;Slide 34: insert(S)&quot;, &quot;heap&quot;: &quot;T, P, R, N, H, O, A, E, I, G&quot;, &quot;ops&quot;: &quot;insert(S)&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: <code>pq[++n]</code> is <strong>pre</strong>-increment: n becomes the new size first, then the key goes into <code>pq[n]</code>. With <code>pq[n++] = x</code> the key would go into the old <code>pq[n]</code> and <strong>overwrite the last key</strong>, because the heap lives in <code>pq[1..n]</code> (index 0 unused).</p>
+</blockquote>
+<h2 id="13-sink-demote-top-down-heapify">13. Sink (Demote, Top-Down Heapify)</h2>
+<p><strong>Scenario:</strong> a key becomes <strong>smaller than one (or both) of its children</strong>. <strong>Fix:</strong> exchange it with its <strong>larger</strong> child, and repeat until heap order is restored (both children smaller, or it reaches the bottom).</p>
+<div class="code-wrap"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">void</span><span style="color:#DCDCAA"> sink</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">int</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">        int</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#9CDCFE">            j</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">))</span></span>
+<span class="line"><span style="color:#C586C0">            break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">        k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Line by line: <code>2*k &lt;= n</code> — k still has a left child; <code>j = 2*k</code> — start at the left child; <code>j &lt; n &amp;&amp; less(j, j+1)</code> — if a right child exists and is larger, use it; <code>!less(k, j)</code> — k is not smaller than its larger child, done; otherwise exchange and continue from j.</p>
+<p>Example (slide 36): in <code>– T H R P S O A E I N G</code> the key H at index 2 is smaller than its children P and S. H swaps with S (index 5), then with N (index 10), and stops at the bottom. Result <code>– T S R P N O A E I H G</code>.</p>
+<pre data-language="viz" data-viz="binary-heap"><code>{&quot;title&quot;: &quot;Slide 36: sink(2)&quot;, &quot;heap&quot;: &quot;T, H, R, P, S, O, A, E, I, N, G&quot;, &quot;ops&quot;: &quot;sink(2)&quot;}</code></pre><p>Sink also walks one root-to-leaf path: O(log n), with <strong>2 compares per level</strong> (pick the larger child, then compare with it).</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Exchange with the <strong>larger</strong> child, not the left one. If H swapped with P instead of S, P would end up above S — a new violation.</p>
+</blockquote>
+<blockquote>
+<p>➡️ <strong>Continued in <a href="/notes/ics-46/lec-11/en-US/">Lecture 11</a></strong>: the heap activities (insert 47, sink 7, delete max), <code>delMax()</code>, the runtime summary and the algs4 binary-heap demo — the Lecture 11 deck repeats them.</p>
+</blockquote>
+<h2 id="14-complete-implementation">14. Complete Implementation</h2>
+<div class="code-collapse is-collapsed"><pre data-language="cpp" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;algorithm></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;iostream></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;queue></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;string></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;utility></span></span>
+<span class="line"><span style="color:#C586C0">#include</span><span style="color:#CE9178"> &#x3C;vector></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Item</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> BinaryTree</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#569CD6">    class</span><span style="color:#4EC9B0"> Node</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">    public:</span></span>
+<span class="line"><span style="color:#4EC9B0">        Item</span><span style="color:#9CDCFE"> item</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> left</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> right</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        Node</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> leftNode</span><span style="color:#D4D4D4">, </span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> rightNode</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Item</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> value</span><span style="color:#D4D4D4">)</span></span>
+<span class="line"><span style="color:#D4D4D4">            : </span><span style="color:#DCDCAA">item</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">value</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">left</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">leftNode</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">right</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">rightNode</span><span style="color:#D4D4D4">) {}</span></span>
+<span class="line"><span style="color:#D4D4D4">    };</span></span>
+<span class="line"><span style="color:#4EC9B0">    Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> root</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">    // pos[1] = root, children of p at 2p, 2p+1, "-" = empty</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#4EC9B0"> Node</span><span style="color:#569CD6">*</span><span style="color:#DCDCAA"> build</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> pos</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> p</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> >= </span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() || </span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">] == </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#569CD6"> nullptr</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#C586C0"> new</span><span style="color:#DCDCAA"> Node</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">build</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">build</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4"> * </span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4"> + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">), </span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">p</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> void</span><span style="color:#DCDCAA"> destroy</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">          // post-order</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        destroy</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">        destroy</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        delete</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> void</span><span style="color:#DCDCAA"> preorder</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        preorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">        preorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> void</span><span style="color:#DCDCAA"> inorder</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        inorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        inorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> void</span><span style="color:#DCDCAA"> postorder</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        postorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#DCDCAA">        postorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> int</span><span style="color:#DCDCAA"> height</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">             // empty = -1, leaf = 0</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4">) </span><span style="color:#C586C0">return</span><span style="color:#D4D4D4"> -</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#B5CEA8"> 1</span><span style="color:#D4D4D4"> + </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">max</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">height</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">height</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">));</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    static</span><span style="color:#569CD6"> int</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">(</span><span style="color:#4EC9B0">Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        return</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4"> == </span><span style="color:#569CD6">nullptr</span><span style="color:#D4D4D4"> ? </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4"> : </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> + </span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">) + </span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    explicit</span><span style="color:#DCDCAA"> BinaryTree</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> pos</span><span style="color:#D4D4D4">) : </span><span style="color:#DCDCAA">root</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">build</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pos</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)) {}</span></span>
+<span class="line"><span style="color:#DCDCAA">    ~BinaryTree</span><span style="color:#D4D4D4">() { </span><span style="color:#DCDCAA">destroy</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#DCDCAA">    BinaryTree</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> BinaryTree</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">    BinaryTree</span><span style="color:#569CD6">&#x26;</span><span style="color:#C586C0"> operator=</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> BinaryTree</span><span style="color:#569CD6">&#x26;</span><span style="color:#D4D4D4">) = </span><span style="color:#569CD6">delete</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> preorder</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#DCDCAA">preorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> inorder</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#DCDCAA">inorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> postorder</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#DCDCAA">postorder</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> levelorder</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">queue</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Node</span><span style="color:#D4D4D4">*> </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (!</span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">empty</span><span style="color:#D4D4D4">()) {</span></span>
+<span class="line"><span style="color:#4EC9B0">            Node</span><span style="color:#569CD6">*</span><span style="color:#9CDCFE"> t</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">front</span><span style="color:#D4D4D4">(); </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">pop</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">            std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">item</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">)  </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">left</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">) </span><span style="color:#9CDCFE">q</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">-></span><span style="color:#9CDCFE">right</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#DCDCAA"> height</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> height</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#569CD6">    int</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#DCDCAA"> size</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">root</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">template</span><span style="color:#D4D4D4"> &#x3C;</span><span style="color:#569CD6">typename</span><span style="color:#4EC9B0"> Key</span><span style="color:#D4D4D4">></span></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> MaxHeap</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">private:</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">{</span><span style="color:#9CDCFE">Key</span><span style="color:#D4D4D4">{}};</span><span style="color:#6A9955">   // pq[0] unused</span></span>
+<span class="line"><span style="color:#569CD6">    size_t</span><span style="color:#9CDCFE"> n</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">    bool</span><span style="color:#DCDCAA"> less</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> { </span><span style="color:#C586C0">return</span><span style="color:#9CDCFE"> pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]; }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> exch</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4">, </span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4">) { </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">swap</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">], </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">]); }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> swim</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> > </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">)) {</span></span>
+<span class="line"><span style="color:#DCDCAA">            exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">            k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">/</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> sink</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#C586C0">        while</span><span style="color:#D4D4D4"> (</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#569CD6">            size_t</span><span style="color:#9CDCFE"> j</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">*</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4"> &#x3C; </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4"> &#x26;&#x26; </span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">+</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">)) </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">++;</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> (!</span><span style="color:#DCDCAA">less</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">)) </span><span style="color:#C586C0">break</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">            exch</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#9CDCFE">            k</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">j</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">        }</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">public:</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> insert</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> Key</span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> x</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push_back</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">x</span><span style="color:#D4D4D4">);</span><span style="color:#6A9955">              // slide: pq[++n] = x;</span></span>
+<span class="line"><span style="color:#D4D4D4">        ++</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#DCDCAA">        swim</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> print</span><span style="color:#D4D4D4">() </span><span style="color:#569CD6">const</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> i</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4"> &#x3C;= </span><span style="color:#9CDCFE">n</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">++) </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">[</span><span style="color:#9CDCFE">i</span><span style="color:#D4D4D4">] &#x3C;&#x3C; </span><span style="color:#CE9178">' '</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#4EC9B0">        std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> load</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">const</span><span style="color:#4EC9B0"> std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">vector</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">Key</span><span style="color:#D4D4D4">></span><span style="color:#569CD6">&#x26;</span><span style="color:#9CDCFE"> keys</span><span style="color:#D4D4D4">) {</span><span style="color:#6A9955">   // as-is, for the sink demo</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">assign</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Key</span><span style="color:#D4D4D4">{});</span></span>
+<span class="line"><span style="color:#9CDCFE">        pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">pq</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">begin</span><span style="color:#D4D4D4">(), </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">end</span><span style="color:#D4D4D4">());</span></span>
+<span class="line"><span style="color:#9CDCFE">        n</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">keys</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">    }</span></span>
+<span class="line"><span style="color:#569CD6">    void</span><span style="color:#DCDCAA"> sinkAt</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">size_t</span><span style="color:#9CDCFE"> k</span><span style="color:#D4D4D4">) { </span><span style="color:#DCDCAA">sink</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">k</span><span style="color:#D4D4D4">); }</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">int</span><span style="color:#DCDCAA"> main</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#4EC9B0">    BinaryTree</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">> </span><span style="color:#DCDCAA">t</span><span style="color:#D4D4D4">({</span><span style="color:#CE9178">""</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"K"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"C"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"N"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"A"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"F"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"M"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"V"</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">                               "-"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"B"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"D"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"H"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"-"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"U"</span><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"pre:   "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">preorder</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"in:    "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">inorder</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"post:  "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">postorder</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"level: "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">levelorder</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"size "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">size</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">", height "</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#9CDCFE">t</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">height</span><span style="color:#D4D4D4">() &#x3C;&#x3C; </span><span style="color:#CE9178">'</span><span style="color:#D7BA7D">\n</span><span style="color:#CE9178">'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxHeap</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">char</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> (</span><span style="color:#569CD6">char</span><span style="color:#9CDCFE"> c</span><span style="color:#D4D4D4"> : </span><span style="color:#4EC9B0">std</span><span style="color:#D4D4D4">::</span><span style="color:#DCDCAA">string</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">"TPRNHOAEIG"</span><span style="color:#D4D4D4">)) </span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">c</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"heap:  "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#9CDCFE">    h</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">insert</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'S'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"+S:    "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">h</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#4EC9B0">    MaxHeap</span><span style="color:#D4D4D4">&#x3C;</span><span style="color:#569CD6">char</span><span style="color:#D4D4D4">> </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">    s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">load</span><span style="color:#D4D4D4">({</span><span style="color:#CE9178">'T'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'H'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'R'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'P'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'S'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'O'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'A'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'E'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'I'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'N'</span><span style="color:#D4D4D4">,</span><span style="color:#CE9178">'G'</span><span style="color:#D4D4D4">});</span></span>
+<span class="line"><span style="color:#9CDCFE">    s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">sinkAt</span><span style="color:#D4D4D4">(</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#4EC9B0">    std</span><span style="color:#D4D4D4">::</span><span style="color:#9CDCFE">cout</span><span style="color:#D4D4D4"> &#x3C;&#x3C; </span><span style="color:#CE9178">"sink2: "</span><span style="color:#D4D4D4">; </span><span style="color:#9CDCFE">s</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="143"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 143 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Output (<code>g++ -std=c++17 -Wall -fsanitize=address,undefined</code>):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">pre:   K C A B F D H N M V U
+in:    A B C D F H K M N U V
+post:  B A D H F C M U V N K
+level: K C N A F M V B D H U
+size 11, height 3
+heap:  T P R N H O A E I G
++S:    T S R N P O A E I G H
+sink2: T S R P N O A E I H G</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The heap here uses a growing <code>std::vector</code> instead of a fixed array, and <code>size_t</code> for both <code>swim</code> and <code>sink</code> (the slides use <code>size_t</code> in <code>swim</code> but <code>int</code> in <code>sink</code>; mixing <code>int k</code> with a <code>size_t n</code> gives a signed/unsigned comparison warning).</p>
+<h2 id="15-in-class-activities-with-solutions">15. In-class Activities (with Solutions)</h2>
+<h3 id="151-activity-1-list-the-nodes-in-all-four-orders-slide-26">15.1 Activity 1: List the nodes in all four orders (slide 26)</h3>
+<p>List the nodes in pre-order, in-order, post-order, and level order:</p>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>8</th>
+<th>5</th>
+<th>4</th>
+<th>9</th>
+<th>7</th>
+<th>11</th>
+<th>1</th>
+<th>12</th>
+<th>3</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Left child</td>
+<td>5</td>
+<td>9</td>
+<td>—</td>
+<td>—</td>
+<td>1</td>
+<td>3</td>
+<td>—</td>
+<td>2</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Right child</td>
+<td>4</td>
+<td>7</td>
+<td>11</td>
+<td>—</td>
+<td>12</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>(Root 8; 5 has children 9 and 7; 7 has children 1 and 12; 12 has a left child 2; 4 has only a right child 11; 11 has a left child 3.)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong> Hint: 4 has no left child and 11 has no right child — when the recursion reaches them, the missing side returns immediately.</p>
+</blockquote>
+<p><strong>Solution</strong></p>
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Sequence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pre-order</td>
+<td>8 5 9 7 1 12 2 4 11 3</td>
+</tr>
+<tr>
+<td>In-order</td>
+<td>9 5 1 7 2 12 8 4 3 11</td>
+</tr>
+<tr>
+<td>Post-order</td>
+<td>9 1 2 12 7 5 3 11 4 8</td>
+</tr>
+<tr>
+<td>Level order</td>
+<td>8 5 4 9 7 11 1 12 3 2</td>
+</tr>
+</tbody></table>
+<p>Checks: pre-order starts with the root 8, post-order ends with it; in-order puts 8 between the left subtree (9 5 1 7 2 12) and the right subtree (4 3 11). In in-order, 4 comes <strong>before</strong> 3 and 11 because it has no left subtree; in level order, 3 (level 3, under 11) comes <strong>after</strong> 1 and 12 and 2 is last (level 4). Check the post-order here:</p>
+<pre data-language="viz" data-viz="tree-traversal"><code>{&quot;title&quot;: &quot;Activity 1 check: post-order&quot;, &quot;tree&quot;: &quot;8, 5, 4, 9, 7, -, 11, -, -, 1, 12, -, -, 3, -, -, -, -, -, -, -, 2&quot;, &quot;order&quot;: &quot;post&quot;}</code></pre><p>Back to <a href="#8-depth-first-pre--in--and-post-order">§8 Depth-first traversals</a>.</p>
+<h3 id="152-practice-time-full-or-complete-slides-1617">15.2 Practice Time: Full or complete? (slides 16–17)</h3>
+<p><strong>(a)</strong> A root with two children; the left child has two children (leaves); the right child has one child, on its left. Is the tree A: Full, B: Complete, C: Full and Complete, D: Neither Full nor Complete?</p>
+<p><strong>(b)</strong> A root with a single child, on its <strong>right</strong>. Same choices.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution</strong></p>
+<p><strong>(a) B: Complete.</strong> Levels 0 and 1 are full and the last level (three leaves) is packed to the left. Not full: the root&#39;s right child has exactly one child.</p>
+<p><strong>(b) D: Neither.</strong> The root has exactly one child (not full), and the last level&#39;s only node is on the right, leaving a hole on the left (not complete). A root whose only child is on the <strong>left</strong> would be complete.</p>
+<pre data-language="viz" data-viz="binary-tree"><code>{&quot;title&quot;: &quot;Practice check: (a) and (b)&quot;, &quot;tree&quot;: &quot;(a) = A, B, C, D, E, F | (b) = A, -, B&quot;, &quot;views&quot;: &quot;full; complete&quot;}</code></pre><p>Back to <a href="#4-full-and-complete-binary-trees">§4 Full and complete</a>.</p>
+<h2 id="16-quick-reference--top-5-things-to-remember">16. Quick Reference &amp; Top 5 Things to Remember</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Cost</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Pre/in/post/level-order traversal</td>
+<td>O(n)</td>
+<td>one visit per node</td>
+</tr>
+<tr>
+<td>Height of a binary tree with n nodes</td>
+<td>between ⌈log₂(n+1)⌉ − 1 and n − 1</td>
+<td>complete vs stick</td>
+</tr>
+<tr>
+<td>Max nodes on level k / in a tree of height h</td>
+<td>2^k / 2^(h+1) − 1</td>
+<td>each level doubles</td>
+</tr>
+<tr>
+<td>Heap: find max</td>
+<td>O(1)</td>
+<td>it&#39;s <code>pq[1]</code></td>
+</tr>
+<tr>
+<td>Heap: swim, sink</td>
+<td>O(log n)</td>
+<td>one root-to-leaf path in a complete tree</td>
+</tr>
+<tr>
+<td>Heap: insert</td>
+<td>O(log n), ≤ log n + 1 compares</td>
+<td>append + swim</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Heap index math (1-based)</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>parent of k</td>
+<td>⌊k/2⌋</td>
+</tr>
+<tr>
+<td>children of k</td>
+<td>2k, 2k + 1</td>
+</tr>
+<tr>
+<td>root / unused</td>
+<td>1 / 0</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Depth counts edges down from the root (root = 0); height counts edges up from the deepest leaf (leaf = 0); tree height = height of the root.</li>
+<li>Full = every node has 0 or 2 children; complete = all levels full except the last, which is filled from the left — they are independent.</li>
+<li>Pre = root first, in = root in the middle, post = root last; in-order of a BST is sorted, level order uses a queue.</li>
+<li>A binary heap is a complete, heap-ordered tree in an array from index 1: parent k/2, children 2k and 2k+1.</li>
+<li>Swim: swap with the parent while larger (used by insert); sink: swap with the <strong>larger</strong> child while smaller — both O(log n).</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/notes/ics-46/lec-09/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 9</span><span class="pager-title" data-astro-cid-gxyjxt6l>Quick Sort</span></a><a class="card interactive pager-card pager-next" href="/notes/ics-46/lec-11/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 11 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Heaps &amp; Priority Queues</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/notes/ics-46/lec-09/en-US/" title="Previous: Quick Sort ([)" aria-label="Previous: Lecture 9" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 9</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>ICS 46</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 10</span></button><a class="rb-btn rb-lang" href="/notes/ics-46/lec-10/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/notes/ics-46/lec-11/en-US/" title="Next: Heaps &amp; Priority Queues (])" aria-label="Next: Lecture 11" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 11</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/_astro/NoteReader.astro_astro_type_script_index_0_lang.GgOyItmQ.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/assets/js/bento.js" defer></script><script src="/assets/js/chat-widget.js" defer></script></body></html>

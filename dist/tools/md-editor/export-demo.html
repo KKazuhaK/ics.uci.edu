@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Export Designs Demo · Markdown Editor | Kazuha Mo — UC Irvine</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" href="../../favicon.ico" type="image/x-icon" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="../../assets/css/bento.css" />
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+		<script>
+			(function () {
+				try {
+					var saved = localStorage.getItem("kzh-theme");
+					var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+					document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+				} catch (e) {}
+			})();
+		</script>
+		<style>
+			:root {
+				--demo-ink: #23324a;
+				--demo-muted: #516074;
+				--demo-border: rgba(42, 79, 133, 0.16);
+				--demo-blue: #244f8f;
+				--demo-blue-bg: rgba(36, 79, 143, 0.10);
+				--demo-blue-border: rgba(36, 79, 143, 0.22);
+				--demo-blue-bg-strong: rgba(36, 79, 143, 0.17);
+				--demo-blue-hover: #183b73;
+				--demo-card-bg: linear-gradient(135deg, #ffffff 0%, #f6f9ff 58%, #fafcff 100%);
+				--demo-card-border: rgba(42, 79, 133, 0.16);
+				--demo-card-shadow: 0 22px 44px -32px rgba(36, 79, 143, 0.45);
+				--demo-toolbar-bg: #f8f9fb;
+				--demo-preview-bg: #ffffff;
+				--demo-h-color: #244f8f;
+				--demo-code-bg: #1e1e1e;
+				--demo-code-text: #d4d4d4;
+				--demo-toast-bg: #1e293b;
+			}
+			html[data-theme="dark"] {
+				--demo-ink: #e6edf7;
+				--demo-muted: #98a4b6;
+				--demo-border: rgba(170, 195, 230, 0.18);
+				--demo-blue: #7aa9e6;
+				--demo-blue-bg: rgba(122, 169, 230, 0.13);
+				--demo-blue-border: rgba(122, 169, 230, 0.30);
+				--demo-blue-bg-strong: rgba(122, 169, 230, 0.20);
+				--demo-blue-hover: #b6cef0;
+				--demo-card-bg: linear-gradient(135deg, #181d26 0%, #1a1f29 58%, #1c222c 100%);
+				--demo-card-border: rgba(170, 195, 230, 0.18);
+				--demo-card-shadow: 0 22px 44px -32px rgba(0, 0, 0, 0.65);
+				--demo-toolbar-bg: #181d26;
+				--demo-preview-bg: #12161d;
+				--demo-h-color: #7aa9e6;
+				--demo-toast-bg: #0e1626;
+			}
+
+			.demo-shell { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; color: var(--demo-ink); }
+			.demo-shell h1 { font-size: 1.5rem; margin: 0 0 0.4rem; }
+			.demo-shell .lede { color: var(--demo-muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+
+			/* Mock editor card */
+			.mock-card {
+				position: relative;
+				background: var(--demo-card-bg);
+				border: 1px solid var(--demo-card-border);
+				border-radius: 1.1rem;
+				box-shadow: var(--demo-card-shadow);
+				overflow: visible;
+				margin-bottom: 1rem;
+			}
+			.mock-toolbar {
+				background: var(--demo-toolbar-bg);
+				border-bottom: 1px solid var(--demo-border);
+				border-radius: 1.1rem 1.1rem 0 0;
+				padding: 0.5rem 0.75rem;
+				display: flex;
+				gap: 0.4rem;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.tb-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4rem;
+				padding: 0.42rem 0.85rem;
+				border: 1px solid var(--demo-blue-border);
+				border-radius: 999px;
+				background: var(--demo-blue-bg);
+				color: var(--demo-blue);
+				font: 600 0.82rem/1 "Inter", sans-serif;
+				cursor: pointer;
+				transition: background 0.15s ease, border-color 0.15s ease;
+			}
+			.tb-btn:hover { background: var(--demo-blue-bg-strong); border-color: var(--demo-blue); }
+			.tb-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+			.tb-spacer { flex: 1; }
+			.tb-stub {
+				display: inline-flex;
+				align-items: center;
+				width: 28px; height: 28px;
+				border: 0; background: transparent;
+				color: var(--demo-muted);
+				font: 600 0.78rem/1 "Inter", sans-serif;
+				justify-content: center;
+				border-radius: 0.3rem;
+			}
+
+			/* Export dropdown */
+			.export-wrap { position: relative; display: inline-block; }
+			.tb-btn.export-btn .caret {
+				width: 10px; height: 10px;
+				margin-left: 0.15rem;
+				transition: transform 0.18s ease;
+			}
+			.tb-btn.export-btn.open .caret { transform: rotate(180deg); }
+
+			.export-menu {
+				position: absolute;
+				top: calc(100% + 6px);
+				right: 0;
+				min-width: 280px;
+				background: var(--demo-card-bg);
+				border: 1px solid var(--demo-border);
+				border-radius: 0.7rem;
+				box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+				padding: 0.4rem;
+				z-index: 30;
+				display: flex;
+				flex-direction: column;
+				gap: 1px;
+				transform-origin: top right;
+				transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s ease;
+			}
+			.export-menu[hidden] {
+				display: flex !important;
+				opacity: 0; transform: scale(0.96); visibility: hidden; pointer-events: none;
+			}
+			.export-item {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.7rem;
+				padding: 0.6rem 0.7rem;
+				border-radius: 0.45rem;
+				cursor: pointer;
+				color: var(--demo-ink);
+				transition: background 0.12s ease;
+			}
+			.export-item:hover { background: var(--demo-blue-bg); }
+			.export-item .icon {
+				flex-shrink: 0;
+				width: 32px; height: 32px;
+				border-radius: 0.4rem;
+				display: inline-flex; align-items: center; justify-content: center;
+				background: var(--demo-blue-bg);
+				color: var(--demo-blue);
+			}
+			.export-item .icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+			.export-item .body { display: flex; flex-direction: column; gap: 0.18rem; min-width: 0; }
+			.export-item .label { font: 600 0.88rem/1.2 "Inter", sans-serif; }
+			.export-item .desc { font: 400 0.74rem/1.35 "Inter", sans-serif; color: var(--demo-muted); }
+			.export-divider { height: 1px; background: var(--demo-border); margin: 0.25rem 0.4rem; }
+
+			/* Preview area mockup (the content that gets exported) */
+			.mock-preview {
+				background: var(--demo-preview-bg);
+				color: var(--demo-ink);
+				padding: 1.5rem 2rem;
+				font: 400 1rem/1.7 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+				border-radius: 0 0 1.1rem 1.1rem;
+			}
+			.mock-preview h1 {
+				font-size: 1.75em;
+				padding-bottom: 0.5rem;
+				border-bottom: 3px solid var(--demo-border);
+				margin: 0 0 0.7rem;
+				color: var(--demo-h-color);
+				font-weight: 700;
+			}
+			.mock-preview h2 {
+				font-size: 1.35em;
+				padding-bottom: 0.35rem;
+				border-bottom: 1px solid var(--demo-border);
+				margin: 1.4rem 0 0.55rem;
+				color: var(--demo-h-color);
+				font-weight: 700;
+			}
+			.mock-preview h3 { font-size: 1.1em; margin: 1.2rem 0 0.5rem; color: var(--demo-h-color); font-weight: 600; }
+			.mock-preview p { margin: 0.45rem 0 1rem; }
+			.mock-preview code:not([class]) {
+				background: var(--demo-blue-bg);
+				color: var(--demo-blue);
+				padding: 0.12rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.86em/1 "Menlo", monospace;
+			}
+			.mock-preview pre {
+				background: var(--demo-code-bg);
+				color: var(--demo-code-text);
+				padding: 1rem;
+				border-radius: 0.5rem;
+				overflow-x: auto;
+				font: 400 0.86em/1.55 "Menlo", monospace;
+			}
+			.mock-preview pre .kw { color: #569cd6; }
+			.mock-preview pre .fn { color: #dcdcaa; }
+			.mock-preview pre .str { color: #ce9178; }
+			.mock-preview pre .num { color: #b5cea8; }
+			.mock-preview ul { padding-left: 1.5rem; margin: 0.45rem 0 1rem; }
+			.mock-preview li { margin: 0.18rem 0; }
+			.mock-preview .katex { font-size: 1.05em; }
+			.mock-preview blockquote {
+				margin: 0.9rem 0;
+				padding: 0.6rem 1rem;
+				border-left: 4px solid var(--demo-blue);
+				background: var(--demo-blue-bg);
+				color: var(--demo-muted);
+				border-radius: 0 0.4rem 0.4rem 0;
+			}
+
+			.demo-meta { font-size: 0.86rem; color: var(--demo-muted); margin: 0 0 1rem; line-height: 1.55; }
+			.demo-meta strong { color: var(--demo-ink); }
+			.demo-meta code {
+				background: var(--demo-blue-bg);
+				padding: 0.08rem 0.35rem;
+				border-radius: 0.25rem;
+				font: 500 0.85em/1 "Menlo", monospace;
+				color: var(--demo-blue);
+			}
+
+			/* Toast */
+			.toast {
+				position: fixed;
+				bottom: 1.5rem;
+				right: 1.5rem;
+				background: var(--demo-toast-bg);
+				color: #fff;
+				padding: 0.7rem 1rem;
+				border-radius: 0.5rem;
+				font: 500 0.86rem/1.4 "Inter", sans-serif;
+				box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+				z-index: 100;
+				transform: translateY(20px);
+				opacity: 0;
+				transition: transform 0.2s ease, opacity 0.2s ease;
+				pointer-events: none;
+				max-width: 360px;
+			}
+			.toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+			/* Print: hide everything except preview content */
+			@media print {
+				body * { visibility: hidden; }
+				.mock-preview, .mock-preview * { visibility: visible; }
+				.mock-preview {
+					position: absolute;
+					inset: 0;
+					padding: 1.2cm 1.5cm;
+					border-radius: 0;
+					background: #fff !important;
+					color: #000 !important;
+				}
+				.mock-preview pre { background: #f4f4f4 !important; color: #000 !important; }
+				.mock-preview pre .kw, .mock-preview pre .fn, .mock-preview pre .str, .mock-preview pre .num { color: #000 !important; }
+				@page { size: Letter; margin: 0; }
+			}
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<nav class="nav" aria-label="Primary">
+				<div class="nav-brand">
+					<a href="../../" class="nav-logo" aria-label="Home">K</a>
+					<span class="nav-name">Kazuha Mo</span>
+				</div>
+				<div class="nav-links">
+					<a href="../../" class="nav-link">Home</a>
+					<a href="../../notes/" class="nav-link">Notes</a>
+					<a href="../../tools/" class="nav-link">Tools</a>
+					<a href="../../about.html" class="nav-link">About</a>
+				</div>
+				<div class="nav-actions">
+					<button class="theme-btn" aria-label="Toggle theme">
+						<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+					</button>
+				</div>
+			</nav>
+
+			<main class="page">
+				<div class="demo-shell">
+					<h1>Export Designs · Demo</h1>
+					<p class="lede">把现有的 <code>HTML</code> 按钮换成 <code>Export ▾</code> 下拉，统一管理 4 种导出格式。每个选项都是真实可用的 —— 试试看。</p>
+
+					<div class="mock-card" id="card">
+						<div class="mock-toolbar">
+							<button class="tb-stub">B</button>
+							<button class="tb-stub">I</button>
+							<button class="tb-stub">S</button>
+							<span style="width:1px;height:18px;background:var(--demo-border);margin:0 0.2rem;"></span>
+							<button class="tb-stub">H1</button>
+							<button class="tb-stub">H2</button>
+							<button class="tb-stub">H3</button>
+							<span style="width:1px;height:18px;background:var(--demo-border);margin:0 0.2rem;"></span>
+							<button class="tb-stub">📑</button>
+							<button class="tb-stub">⛶</button>
+							<span class="tb-spacer"></span>
+							<button class="tb-btn">
+								<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+								Open
+							</button>
+							<button class="tb-btn">
+								<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+								Save
+							</button>
+							<div class="export-wrap">
+								<button class="tb-btn export-btn" id="exportBtn">
+									<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+									Export
+									<svg class="caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+								</button>
+								<div class="export-menu" id="exportMenu" hidden>
+									<div class="export-item" data-action="copy-html">
+										<span class="icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+										<div class="body">
+											<span class="label">Copy HTML</span>
+											<span class="desc">Copy rendered HTML to clipboard (paste into anywhere)</span>
+										</div>
+									</div>
+									<div class="export-item" data-action="download-html">
+										<span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+										<div class="body">
+											<span class="label">Download HTML</span>
+											<span class="desc">Save as a standalone .html file with styles</span>
+										</div>
+									</div>
+									<div class="export-divider"></div>
+									<div class="export-item" data-action="download-pdf">
+										<span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13v5"/><path d="M9 13h2a1.5 1.5 0 1 1 0 3H9"/></svg></span>
+										<div class="body">
+											<span class="label">Download PDF</span>
+											<span class="desc">One-click .pdf · text becomes raster (not searchable)</span>
+										</div>
+									</div>
+									<div class="export-item" data-action="print-pdf">
+										<span class="icon"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>
+										<div class="body">
+											<span class="label">Print → Save as PDF</span>
+											<span class="desc">Browser print dialog · vector text, searchable, smaller file</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<article class="mock-preview" id="preview">
+							<h1>ICS 45C Week 6: Inheritance &amp; Polymorphism</h1>
+							<p>This is a sample rendered preview that mimics the md-editor output. Try each export option to see how it handles headings, code, math, lists, and Chinese text.</p>
+
+							<h2>1. Class Inheritance</h2>
+							<p>In C++, a derived class inherits from a base class using the colon syntax. Access modifiers (<code>public</code>, <code>protected</code>, <code>private</code>) control how members are inherited.</p>
+
+							<pre><code><span class="kw">class</span> <span class="fn">Shape</span> {
+<span class="kw">public</span>:
+    <span class="kw">virtual</span> <span class="kw">double</span> <span class="fn">area</span>() <span class="kw">const</span> = <span class="num">0</span>;
+    <span class="kw">virtual</span> <span class="fn">~Shape</span>() = <span class="kw">default</span>;
+};
+
+<span class="kw">class</span> <span class="fn">Circle</span> : <span class="kw">public</span> <span class="fn">Shape</span> {
+    <span class="kw">double</span> r;
+<span class="kw">public</span>:
+    <span class="fn">Circle</span>(<span class="kw">double</span> r) : r(r) {}
+    <span class="kw">double</span> <span class="fn">area</span>() <span class="kw">const</span> <span class="kw">override</span> { <span class="kw">return</span> <span class="num">3.14159</span> * r * r; }
+};</code></pre>
+
+							<h2>2. Polymorphism with Virtual Functions</h2>
+							<p>Virtual functions enable runtime polymorphism via the <strong>vtable</strong> mechanism. The integral of a Gaussian is a classic example:</p>
+							<p style="text-align:center">
+								<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><msup><mi>e</mi><mrow><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup></mrow></msup><mi>d</mi><mi>x</mi><mo>=</mo><msqrt><mi>π</mi></msqrt></mrow></math></span>
+							</p>
+
+							<h3>Key takeaways</h3>
+							<ul>
+								<li><strong>Polymorphism</strong> 让基类指针调用派生类方法</li>
+								<li>每个含 virtual 函数的类都有一张 <code>vtable</code></li>
+								<li>对象首字段是 vptr（指向类的 vtable）</li>
+							</ul>
+
+							<blockquote><strong>Tip：</strong>使用 <code>override</code> 关键字让编译器帮你检查虚函数签名是否匹配基类。</blockquote>
+						</article>
+					</div>
+
+					<p class="demo-meta">
+						<strong>实现要点</strong>：<br>
+						• <strong>Copy HTML / Download HTML</strong> — 直接序列化 preview innerHTML<br>
+						• <strong>Print → PDF</strong> — <code>window.print()</code> + <code>@media print</code> CSS（隐藏 toolbar / nav 只留 preview）<br>
+						• <strong>Download PDF</strong> — 按需 CDN 加载 <code>html2pdf.js</code>（~150 KB），点击才下载，不增加初始页面大小<br>
+						• 菜单关闭：点外部 / 点选项 / Esc<br><br>
+						<strong>感受一下</strong>：试试 4 个选项。Print 那个会弹打印对话框；Download PDF 会真的生成 .pdf 让你下载；Copy / Download HTML 各自做你能想到的事。
+					</p>
+				</div>
+			</main>
+
+			<footer class="foot">
+				<span>© 2026 Kazuha Hub · Kazuha Mo</span>
+				<span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span>
+			</footer>
+		</div>
+
+		<div class="toast" id="toast"></div>
+
+		<script src="../../assets/js/bento.js" defer></script>
+		<script>
+			(function () {
+				var btn = document.getElementById('exportBtn');
+				var menu = document.getElementById('exportMenu');
+				var preview = document.getElementById('preview');
+				var toast = document.getElementById('toast');
+				var toastTimer = null;
+
+				function showToast(msg) {
+					toast.textContent = msg;
+					toast.classList.add('show');
+					if (toastTimer) clearTimeout(toastTimer);
+					toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 3500);
+				}
+
+				function openMenu() { menu.hidden = false; btn.classList.add('open'); }
+				function closeMenu() { menu.hidden = true; btn.classList.remove('open'); }
+
+				btn.addEventListener('click', function (e) {
+					e.stopPropagation();
+					if (menu.hidden) openMenu(); else closeMenu();
+				});
+				document.addEventListener('click', function (e) {
+					if (!menu.contains(e.target) && e.target !== btn) closeMenu();
+				});
+				document.addEventListener('keydown', function (e) {
+					if (e.key === 'Escape' && !menu.hidden) closeMenu();
+				});
+
+				function getStandaloneHtml() {
+					var katexCss = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">';
+					var styles = '<style>body{font-family:Source Sans Pro,sans-serif;max-width:800px;margin:2rem auto;padding:0 1.5rem;line-height:1.7}h1{border-bottom:3px solid #ddd;padding-bottom:0.5rem;color:#244f8f}h2{border-bottom:1px solid #ddd;padding-bottom:0.3rem;color:#244f8f}h3{color:#244f8f}code{background:#eef3fb;color:#244f8f;padding:0.1rem 0.3rem;border-radius:3px;font-family:Menlo,monospace}pre{background:#1e1e1e;color:#d4d4d4;padding:1rem;border-radius:6px;overflow-x:auto}pre code{background:transparent;color:inherit;padding:0}blockquote{border-left:4px solid #244f8f;background:#eef3fb;padding:0.6rem 1rem;margin:0.8rem 0;border-radius:0 4px 4px 0;color:#516074}</style>';
+					return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Exported Document</title>' + katexCss + styles + '</head><body>' + preview.innerHTML + '</body></html>';
+				}
+
+				var actions = {
+					'copy-html': function () {
+						navigator.clipboard.writeText(preview.innerHTML).then(function () {
+							showToast('✓ Rendered HTML copied to clipboard');
+						}).catch(function () {
+							showToast('✗ Clipboard write failed');
+						});
+					},
+					'download-html': function () {
+						var html = getStandaloneHtml();
+						var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+						var url = URL.createObjectURL(blob);
+						var a = document.createElement('a');
+						a.href = url;
+						a.download = 'document.html';
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						URL.revokeObjectURL(url);
+						showToast('✓ document.html downloaded');
+					},
+					'print-pdf': function () {
+						showToast('Opening print dialog… choose "Save as PDF"');
+						setTimeout(function () { window.print(); }, 200);
+					},
+					'download-pdf': function () {
+						showToast('Loading html2pdf.js… (first time ~150 KB)');
+						loadHtml2Pdf().then(function () {
+							showToast('Generating PDF… please wait');
+							var opts = {
+								margin: [10, 12, 10, 12],
+								filename: 'document.pdf',
+								image: { type: 'jpeg', quality: 0.96 },
+								html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+								jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+								pagebreak: { mode: ['css', 'legacy'] }
+							};
+							window.html2pdf().from(preview).set(opts).save().then(function () {
+								showToast('✓ document.pdf downloaded');
+							}).catch(function (err) {
+								showToast('✗ PDF generation failed: ' + (err && err.message || err));
+							});
+						}).catch(function () {
+							showToast('✗ Failed to load html2pdf.js');
+						});
+					}
+				};
+
+				var html2pdfReady = null;
+				function loadHtml2Pdf() {
+					if (html2pdfReady) return html2pdfReady;
+					html2pdfReady = new Promise(function (resolve, reject) {
+						if (window.html2pdf) return resolve();
+						var s = document.createElement('script');
+						s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js';
+						s.onload = function () { resolve(); };
+						s.onerror = function () { reject(); };
+						document.head.appendChild(s);
+					});
+					return html2pdfReady;
+				}
+
+				menu.addEventListener('click', function (e) {
+					var item = e.target.closest('.export-item');
+					if (!item) return;
+					var action = item.dataset.action;
+					closeMenu();
+					if (actions[action]) actions[action]();
+				});
+			})();
+		</script>
+	</body>
+</html>

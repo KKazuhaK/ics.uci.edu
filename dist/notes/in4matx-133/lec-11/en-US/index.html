@@ -1,0 +1,549 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 Separation in Angular | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Standalone components and the root component, routing and ActivatedRoute, services and dependency injection, plain classes and npm libraries, Angular's file structure, and the Rolling Dice service demo."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/en-US/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-11/zh-CN/"><link rel="stylesheet" href="/_astro/BaseLayout.CnlNRG6h.css"><link rel="stylesheet" href="/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/_astro/katex.mPfuf26R.css"><link rel="stylesheet" href="/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/assets/viz/" data-viz-version="1794007443" data-source-url="/notes/in4matx-133/lec-11/en-US/source.md" data-editor-url="/tools/md-editor/" data-alt-url="/notes/in4matx-133/lec-11/zh-CN/" data-prev-url="/notes/in4matx-133/lec-10/en-US/" data-next-url="/notes/in4matx-133/lec-12/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 11</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/notes/in4matx-133/lec-11/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 11 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 11 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on November 3, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-11-separation-in-angular--modeling-human-performance">IN4MATX 133: User Interface Software — Lecture 11: Separation in Angular &amp; Modeling human performance</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-running-an-angular-project">1. Running an Angular project</a></li>
+<li><a href="#2-large-client-interfaces-need-components">2. Large client interfaces need components</a></li>
+<li><a href="#3-standalone-components-and-the-root-component">3. Standalone components and the root component</a></li>
+<li><a href="#4-angular-routing">4. Angular routing</a></li>
+<li><a href="#5-angular-services">5. Angular services</a></li>
+<li><a href="#6-plain-classes">6. Plain classes</a></li>
+<li><a href="#7-importing-a-library">7. Importing a library</a></li>
+<li><a href="#8-angulars-file-structure">8. Angular&#39;s file structure</a></li>
+<li><a href="#9-in-class-questions--demos-with-solutions">9. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Tuesday 11/3 (Week 6)<br>Built from the Lecture 11 slides and the demo repo folder <code>W6_L1_AngularServices</code> (<code>setup1</code> → <code>solution1</code>). Organized by concept, not by source.<br>The deck&#39;s title also names &quot;Modeling human performance&quot;, but none of its slides cover that topic — everything here is the Angular half.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: After today&#39;s lecture you have everything you need to complete A3.<br>A3&#39;s deadline moved back two days — due <strong>Wednesday, Nov 11</strong>.</p>
+</blockquote>
+<p>Goals for today: differentiate and explain the roles of Angular components, modules and services; implement a service in Angular; navigate Angular&#39;s file structure.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: As in <a href="/notes/in4matx-133/lec-10/en-US/">Lecture 10</a>, Angular can&#39;t run inside these notes&#39; demo boxes, so each demo re-creates the Angular example <strong>by hand in plain JavaScript</strong>, labelled as such. The Angular code itself is in the code blocks.</p>
+</blockquote>
+<hr>
+<h2 id="1-running-an-angular-project">1. Running an Angular project</h2>
+<p>To follow the demos (or start A3), open a terminal and:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cd [foldername]</code></td>
+<td>Move into a folder — go into the project folder, where <code>package.json</code> lives</td>
+</tr>
+<tr>
+<td><code>ls</code> (mac) / <code>dir</code> (windows)</td>
+<td>List the files in the current folder, to help you navigate</td>
+</tr>
+<tr>
+<td><code>npm install</code></td>
+<td>Download the packages listed in <code>package.json</code> into the project. They are <strong>not</strong> in version control, so you must run this after cloning</td>
+</tr>
+<tr>
+<td><code>ng serve --open</code></td>
+<td>Run the app locally; <code>--open</code> opens <code>http://localhost:4200/</code> when it&#39;s ready</td>
+</tr>
+</tbody></table>
+<p>For this lecture&#39;s demo that means <code>cd solution1</code>, <code>npm install</code>, <code>ng serve --open</code>.</p>
+<h2 id="2-large-client-interfaces-need-components">2. Large client interfaces need components</h2>
+<p>A &quot;large&quot; client interface (the slide&#39;s example is Instagram&#39;s web feed) has:</p>
+<ul>
+<li>hundreds of pages and ways to navigate between them,</li>
+<li>repeated UI elements — the status updates in the feed — which Angular implements as <strong>components</strong>,</li>
+<li>different content, links, etc. displayed for each person.</li>
+</ul>
+<p>Loading lots of libraries can be slow and expensive, so Angular lets each part of the app <strong>import only the components it needs</strong>. Components themselves were <a href="/notes/in4matx-133/lec-10/en-US/#5-angular-components">Lecture 10</a>; today is about how the pieces of a large app are separated: components for views, routing for pages, services for everything that isn&#39;t a view.</p>
+<h2 id="3-standalone-components-and-the-root-component">3. Standalone components and the root component</h2>
+<p>You can import a component <strong>within another component</strong>. These &quot;standalone&quot; components are new in Angular 19 (2024); previously there were <em>modules</em> (<code>@NgModule</code>) to essentially &quot;wrap&quot; components. You&#39;ll still see modules in older code — A3&#39;s routing file is one (Section 4).</p>
+<p>The root component imports the components its template uses (<code>app.component.ts</code>, slide 8):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">FooterComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> ‘.</span><span style="color:#9CDCFE">footer</span><span style="color:#D4D4D4">/</span><span style="color:#9CDCFE">footer</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">component</span><span style="color:#D4D4D4">’;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HeaderComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#D4D4D4"> ‘.</span><span style="color:#9CDCFE">header</span><span style="color:#D4D4D4">/</span><span style="color:#9CDCFE">header</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">component</span><span style="color:#D4D4D4">’;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">HeaderComponent</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">FooterComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The two <code>import</code> lines bring the classes in by file path; <code>imports: [HeaderComponent, FooterComponent]</code> is what <strong>allows this component to use</strong> them, i.e. to write <code>&lt;app-header&gt;</code> and <code>&lt;app-footer&gt;</code> in <code>app.component.html</code>. Slide bugs: the paths use curly quotes and are missing a slash — write <code>&#39;./footer/footer.component&#39;</code> and <code>&#39;./header/header.component&#39;</code>.</p>
+<p>The demo repo&#39;s root component does the same with its one child:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// solution1/src/app/app.component.ts (top)</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './rig-dice.service'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './die/die.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>And <code>setup1</code>&#39;s comments point out how the root gets on the page: <code>selector: &#39;app-root&#39;</code> applies this component anywhere the <code>&lt;app-root&gt;</code> tag is used, and <code>index.html</code> contains only that tag — the root imports the rest of the components needed to display the site:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-root</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-root</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">body</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>main.ts</code> starts it with <code>bootstrapApplication(AppComponent, appConfig)</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Writing <code>&lt;app-die&gt;</code> in a template without adding <code>DieComponent</code> to that component&#39;s <code>imports</code> doesn&#39;t work — the import statement at the top of the file is not enough on its own.</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.ts">app.component.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/setup1/src/index.html">index.html (setup1)</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/main.ts">main.ts</a></p>
+</blockquote>
+<h2 id="4-angular-routing">4. Angular routing</h2>
+<p>Angular maintains a list of <strong>routes</strong>. In general, routing defines which URIs go to which endpoints; in Angular, it defines which URIs go to which <strong>components</strong>.</p>
+<h3 id="41-the-routes-table">4.1 The routes table</h3>
+<p>A3&#39;s routing file, <code>app-routing.module.ts</code> (called <code>app.routes.ts</code> in newer Angular), slide 10:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">NgModule</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Routes</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ArtistPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/artist-page/artist-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">TrackPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/track-page/track-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">AlbumPageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/album-page/album-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HomePageComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './pages/home-page/home-page.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">const</span><span style="color:#4FC1FF"> routes</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">Routes</span><span style="color:#D4D4D4"> = [</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'artist/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> ArtistPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'track/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> TrackPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> 'album/:id'</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> AlbumPageComponent</span><span style="color:#D4D4D4">},</span></span>
+<span class="line"><span style="color:#D4D4D4">  { </span><span style="color:#9CDCFE">path:</span><span style="color:#CE9178"> ''</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">component:</span><span style="color:#9CDCFE"> HomePageComponent</span><span style="color:#D4D4D4">}</span></span>
+<span class="line"><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">NgModule</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forRoot</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">routes</span><span style="color:#D4D4D4">)],</span></span>
+<span class="line"><span style="color:#9CDCFE">  exports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">RouterModule</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AppRoutingModule</span><span style="color:#D4D4D4"> { }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Each entry is a path pattern plus the component to show. <code>artist/:id</code> listens for any endpoint of the form <code>artist/&lt;something&gt;</code>; the <code>:id</code> part is a <strong>route parameter</strong> that the component can read (4.2). <code>&#39;&#39;</code> is the empty path, the home page.</p>
+<p>In the newer layout (the demo repo), <code>app.routes.ts</code> just exports the array — empty here, since the dice app has one page — and <code>app.config.ts</code> registers it:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// solution1/src/app/app.config.ts</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> const</span><span style="color:#4FC1FF"> appConfig</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ApplicationConfig</span><span style="color:#D4D4D4"> = {</span></span>
+<span class="line"><span style="color:#9CDCFE">  providers:</span><span style="color:#D4D4D4"> [</span><span style="color:#DCDCAA">provideZoneChangeDetection</span><span style="color:#D4D4D4">({ </span><span style="color:#9CDCFE">eventCoalescing:</span><span style="color:#569CD6"> true</span><span style="color:#D4D4D4"> }), </span><span style="color:#DCDCAA">provideRouter</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">routes</span><span style="color:#D4D4D4">), </span><span style="color:#DCDCAA">provideHttpClient</span><span style="color:#D4D4D4">()]</span></span>
+<span class="line"><span style="color:#D4D4D4">};</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<h3 id="42-retrieving-the-route-in-a-component">4.2 Retrieving the route in a component</h3>
+<p><code>album-page.component.ts</code> (slide 11) reads the <code>id</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ActivatedRoute</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-album-page'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './album-page.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./album-page.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AlbumPageComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> route</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ActivatedRoute</span><span style="color:#D4D4D4">) { }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> albumId</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">route</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">snapshot</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">paramMap</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'id'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>constructor(private route: ActivatedRoute)</code> is <strong>&quot;injecting a service&quot;</strong> (Section 5): Angular hands the component an <code>ActivatedRoute</code> describing the current URI, and <code>snapshot.paramMap.get(&#39;id&#39;)</code> retrieves the <code>:id</code> from it. Reading it in <code>ngOnInit()</code> follows Lecture 10&#39;s rule of putting setup code there rather than in the constructor.</p>
+<p>What the router does, step by step — the slide&#39;s routes table matched by hand:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 10–11 · the routes table and paramMap.get(&#39;id&#39;), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;Current URI: &lt;code id=\&quot;uri\&quot;&gt;&lt;/code&gt;&lt;/p&gt;\n&lt;p&gt;Component shown: &lt;b id=\&quot;comp\&quot;&gt;&lt;/b&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } code { background: #eef; padding: 1px 4px; }&quot;, &quot;js&quot;: &quot;// const routes: Routes = [...]  (slide 10)\nconst routes = [\n  { path: &#39;artist/:id&#39;, component: &#39;ArtistPageComponent&#39; },\n  { path: &#39;track/:id&#39;,  component: &#39;TrackPageComponent&#39; },\n  { path: &#39;album/:id&#39;,  component: &#39;AlbumPageComponent&#39; },\n  { path: &#39;&#39;,           component: &#39;HomePageComponent&#39; }\n];\n\n// What the router does for you: find the route, collect :params\nfunction navigate(uri) {\n  const parts = uri.split(&#39;/&#39;).filter(p =&gt; p !== &#39;&#39;);\n  for (const r of routes) {\n    const pattern = r.path.split(&#39;/&#39;).filter(p =&gt; p !== &#39;&#39;);\n    if (pattern.length !== parts.length) continue;\n    const params = new Map();\n    const ok = pattern.every((p, i) =&gt; p.startsWith(&#39;:&#39;) ? (params.set(p.slice(1), parts[i]), true) : p === parts[i]);\n    if (ok) {\n      document.getElementById(&#39;uri&#39;).textContent = &#39;/&#39; + parts.join(&#39;/&#39;);\n      document.getElementById(&#39;comp&#39;).textContent = r.component;\n      // inside the component: this.route.snapshot.paramMap.get(&#39;id&#39;)\n      console.log(&#39;/&#39; + parts.join(&#39;/&#39;) + &#39; -&gt; &#39; + r.component + &#39;, id = &#39; + params.get(&#39;id&#39;));\n      return;\n    }\n  }\n  console.log(&#39;/&#39; + parts.join(&#39;/&#39;) + &#39; -&gt; no route&#39;);\n}\nnavigate(&#39;/&#39;);\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;An album URI: the :id part becomes the id parameter.&quot;, &quot;js&quot;: &quot;navigate(&#39;/album/1DFixLWuPkv3KT3TnV35m3&#39;);&quot;}, {&quot;note&quot;: &quot;Same pattern, different component.&quot;, &quot;js&quot;: &quot;navigate(&#39;/artist/0OdUWJ0sBjDrqHygGUXeCF&#39;);&quot;}, {&quot;note&quot;: &quot;A path with no matching route.&quot;, &quot;js&quot;: &quot;navigate(&#39;/playlist/123/extra&#39;);&quot;}], &quot;height&quot;: 110, &quot;interactive&quot;: true}</code></pre><p><code>/</code> shows <code>HomePageComponent</code> (no <code>id</code> in its path); <code>/album/1DFixLWuPkv3KT3TnV35m3</code> shows <code>AlbumPageComponent</code> with <code>id = 1DFixLWuPkv3KT3TnV35m3</code>; the artist URI goes to <code>ArtistPageComponent</code>; <code>/playlist/123/extra</code> matches no route.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The route parameter&#39;s name is whatever follows the colon. <code>path: &#39;album/:id&#39;</code> → <code>paramMap.get(&#39;id&#39;)</code>; <code>get(&#39;albumId&#39;)</code> would give <code>null</code>.</p>
+</blockquote>
+<h2 id="5-angular-services">5. Angular services</h2>
+<h3 id="51-what-goes-in-a-service">5.1 What goes in a service</h3>
+<p>Anything <strong>not associated with a specific view</strong> should be turned into a <strong>service</strong> — e.g. getting data from an API, or parsing URIs for routing information. That keeps components lightweight: the component handles its view, the service does the work.</p>
+<p>Services are then <strong>injected</strong> into a component: import the service and retrieve it as a <strong>parameter in the constructor</strong>. Create one with:</p>
+<div class="code-wrap"><pre data-language="bash" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#DCDCAA">ng</span><span style="color:#CE9178"> generate</span><span style="color:#CE9178"> service</span><span style="color:#D4D4D4"> [name]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(<code>ng generate service rig-dice</code> is how the demo&#39;s <code>rig-dice.service.ts</code> and <code>rig-dice.service.spec.ts</code> were made.)</p>
+<h3 id="52-youve-already-used-one-activatedroute">5.2 You&#39;ve already used one: ActivatedRoute</h3>
+<p>Slide 13 re-labels the album-page code from 4.2: <code>import { ActivatedRoute } from &#39;@angular/router&#39;</code> is <strong>importing a service</strong>, <code>constructor(private route: ActivatedRoute) { }</code> is <strong>injecting it</strong>, and <code>this.route.snapshot…</code> in <code>ngOnInit()</code> shows the service <strong>can be referenced later</strong> — <code>private</code> in the constructor parameter makes it a field of the class (a TypeScript shorthand for declaring the field and assigning it).</p>
+<h3 id="53-defining-a-service">5.3 Defining a service</h3>
+<p>A3&#39;s <code>spotify.service.ts</code> (slide 14):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Injectable</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HttpClient</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">HttpHeaders</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/common/http'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Injectable</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  providedIn:</span><span style="color:#CE9178"> 'root'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> SpotifyService</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  baseUrl</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4"> = </span><span style="color:#CE9178">'http://localhost:8888'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">HttpClient</span><span style="color:#D4D4D4">) { }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#DCDCAA"> sendRequestToExpress</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">endpoint</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<ul>
+<li><code>@Injectable(...)</code> defines the class as injectable (where a component has <code>@Component</code>).</li>
+<li><code>providedIn: &#39;root&#39;</code> says which module(s) can use this service — <code>&#39;root&#39;</code> means the whole app.</li>
+<li><code>constructor(private http:HttpClient)</code>: <strong>services can inject other services</strong> — here Angular&#39;s <code>HttpClient</code>, which sends the HTTP requests (to the Express server on port 8888 in A3). <code>HttpClient</code> only works if the app provides it: <code>provideHttpClient()</code> in <code>app.config.ts</code> (4.1).</li>
+</ul>
+<h3 id="54-importing-a-custom-service">5.4 Importing a custom service</h3>
+<p>Your own service is imported <strong>via the file structure</strong> and injected like any other (slide 15):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">ActivatedRoute</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/router'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">SpotifyService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '../../services/spotify.service'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-album-page'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './album-page.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./album-page.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AlbumPageComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> route</span><span style="color:#D4D4D4">: </span><span style="color:#4EC9B0">ActivatedRoute</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#569CD6">  private</span><span style="color:#9CDCFE"> spotifyService</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">SpotifyService</span><span style="color:#D4D4D4">) { }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Angular services come from a package name (<code>&#39;@angular/router&#39;</code>); yours from a relative path (<code>&#39;../../services/spotify.service&#39;</code> — up from <code>pages/album-page/</code> to <code>app/</code>, then into <code>services/</code>, no <code>.ts</code>). You never write <code>new SpotifyService(...)</code>: Angular sees the constructor&#39;s parameter types and creates and passes the objects. The chain HttpClient → SpotifyService → AlbumPageComponent, with the injector&#39;s work done by hand:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slides 13–15 · constructor injection (HttpClient → SpotifyService → AlbumPageComponent), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;p&gt;See the console.&lt;/p&gt;&quot;, &quot;js&quot;: &quot;// Angular builds these objects for you and passes them to constructors.\nclass HttpClient {\n  get(url) { console.log(&#39;HttpClient.get &#39; + url); return Promise.resolve({ name: &#39;Album &#39; + url.split(&#39;/&#39;).pop() }); }\n}\n\n// @Injectable({ providedIn: &#39;root&#39; })\nclass SpotifyService {\n  baseUrl = &#39;http://localhost:8888&#39;;\n  constructor(http) { this.http = http; }            // HttpClient injected\n  getAlbum(id) { return this.http.get(this.baseUrl + &#39;/album/&#39; + id); }\n}\n\nclass ActivatedRoute {\n  constructor(id) { this.snapshot = { paramMap: new Map([[&#39;id&#39;, id]]) }; }\n}\n\n// The component stays lightweight: no fetching code of its own\nclass AlbumPageComponent {\n  constructor(route, spotifyService) { this.route = route; this.spotifyService = spotifyService; }\n  ngOnInit() {\n    var albumId = this.route.snapshot.paramMap.get(&#39;id&#39;);\n    this.spotifyService.getAlbum(albumId).then(album =&gt; console.log(&#39;page shows: &#39; + album.name));\n  }\n}\n\n// What the injector does:\nconst http = new HttpClient();\nconst spotify = new SpotifyService(http);\nconst page = new AlbumPageComponent(new ActivatedRoute(&#39;42&#39;), spotify);\npage.ngOnInit();\n&quot;, &quot;height&quot;: 60, &quot;interactive&quot;: true}</code></pre><p>The console prints <code>HttpClient.get http://localhost:8888/album/42</code> then <code>page shows: Album 42</code>: the component asked for an album by id and never touched HTTP itself. The demo&#39;s real service, <code>RigDiceService</code>, is worked through in <a href="#93-demo-1-rolling-dice-with-a-service-slide-21--setup1--solution1">Demo 1</a>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Forgetting <code>private</code> (or <code>public</code>) in <code>constructor(private http:HttpClient)</code> makes <code>http</code> a plain constructor parameter — <code>this.http</code> won&#39;t exist in other methods.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#93-demo-1-rolling-dice-with-a-service-slide-21--setup1--solution1">Demo 1: Rolling Dice with a service</a></p>
+</blockquote>
+<h2 id="6-plain-classes">6. Plain classes</h2>
+<p>Plain-old classes can also be made in Angular, for any processing or &quot;munging&quot; of data you need to do. Create one with <code>ng generate class [name]</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dataparser</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  public</span><span style="color:#569CD6"> constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'Hello, world!'</span><span style="color:#D4D4D4">);</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Import it via the file structure and <strong>instantiate it like any other class</strong>, with <code>new</code> (slide 17):</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">OnInit</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">Input</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Dataparser</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '../dataparser'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-day'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './day.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./day.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> DayComponent</span><span style="color:#569CD6"> implements</span><span style="color:#4EC9B0"> OnInit</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#D4D4D4">  @</span><span style="color:#DCDCAA">Input</span><span style="color:#D4D4D4">() </span><span style="color:#9CDCFE">today</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">string</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  days</span><span style="color:#D4D4D4"> = [</span><span style="color:#CE9178">"Sunday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Monday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Tuesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Wednesday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Thursday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Friday"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"Saturday"</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    var</span><span style="color:#9CDCFE"> data</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">new</span><span style="color:#DCDCAA"> Dataparser</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  ngOnInit</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Creating a <code>DayComponent</code> logs <code>Hello, world!</code>. The difference from a service: a class is created by you with <code>new</code> wherever you need one; a service is <code>@Injectable</code> and handed to you by Angular through the constructor.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: In a project with <code>&quot;strict&quot;: true</code> (the demo repo&#39;s <code>tsconfig.json</code>), the slide&#39;s <code>@Input() today:string;</code> fails to compile: <code>error TS2564: Property &#39;today&#39; has no initializer and is not definitely assigned in the constructor.</code> Give it a default, as Lecture 10&#39;s <code>week.ts</code> does: <code>@Input() today:string = &quot;&quot;;</code>.</p>
+</blockquote>
+<h2 id="7-importing-a-library">7. Importing a library</h2>
+<p>Since Angular is in TypeScript, it can use <strong>any JavaScript or TypeScript library</strong>. Install it as normal with npm (<code>npm install [packagename]</code>); if you want TypeScript typings, don&#39;t forget to install <code>@types/[packagename]</code> as well.</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#9CDCFE"> chroma</span><span style="color:#C586C0"> from</span><span style="color:#CE9178"> 'chroma-js'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> Dataparser</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#9CDCFE">    console</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">log</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">chroma</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'royalblue'</span><span style="color:#D4D4D4">)); </span><span style="color:#6A9955">//'#4169e1'</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Note the different syntax: <code>import chroma from &#39;chroma-js&#39;</code> is a <strong>default import</strong> (no braces), unlike <code>import { Component } from &#39;@angular/core&#39;</code>, which picks named exports. After that, <code>chroma</code> can be referenced anywhere in the file.</p>
+<p>What it really prints (chroma-js 3.2.0): <code>console.log(chroma(&#39;royalblue&#39;))</code> logs the <code>Color</code> object, <code>Color { _rgb: [ 65, 105, 225, 1, … ] }</code>; <code>chroma(&#39;royalblue&#39;).hex()</code> gives the slide&#39;s <code>&#39;#4169e1&#39;</code>.</p>
+<h2 id="8-angulars-file-structure">8. Angular&#39;s file structure</h2>
+<p>Angular projects generate a <em>lot</em> of files — about 75 in the A3 starter code — and most are boilerplate. Slide 20&#39;s tree (an older Angular layout) shows the shape; this lecture&#39;s <code>solution1</code> (Angular 19) is the current layout:</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>File(s)</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>root</td>
+<td><code>package.json</code>, <code>package-lock.json</code></td>
+<td>dependencies (<code>npm install</code> reads them)</td>
+</tr>
+<tr>
+<td>root</td>
+<td><code>angular.json</code></td>
+<td>Angular CLI project config (build/serve settings)</td>
+</tr>
+<tr>
+<td>root</td>
+<td><code>tsconfig.json</code>, <code>tsconfig.app.json</code>, <code>tsconfig.spec.json</code></td>
+<td>TypeScript settings</td>
+</tr>
+<tr>
+<td>root</td>
+<td><code>.editorconfig</code>, <code>.gitignore</code>, <code>README.md</code></td>
+<td>editor, git, docs</td>
+</tr>
+<tr>
+<td>root</td>
+<td><code>node_modules/</code></td>
+<td>installed packages — not in git</td>
+</tr>
+<tr>
+<td><code>public/</code></td>
+<td><code>1.png</code> … <code>6.png</code>, <code>rigged_rolls.json</code>, <code>favicon.ico</code></td>
+<td>static files served as-is (older projects: <code>src/assets/</code>)</td>
+</tr>
+<tr>
+<td><code>src/</code></td>
+<td><code>index.html</code>, <code>main.ts</code>, <code>styles.css</code></td>
+<td>host page with <code>&lt;app-root&gt;</code>, the bootstrap, global styles</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>app.component.{ts,html,css,spec.ts}</code></td>
+<td>the root component</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>app.config.ts</code>, <code>app.routes.ts</code></td>
+<td>providers and routes (older: <code>app.module.ts</code>, <code>app-routing.module.ts</code>)</td>
+</tr>
+<tr>
+<td><code>src/app/die/</code></td>
+<td><code>die.component.*</code></td>
+<td>a child component (one folder each)</td>
+</tr>
+<tr>
+<td><code>src/app/</code></td>
+<td><code>rig-dice.service.ts</code>, <code>rig-dice.service.spec.ts</code></td>
+<td>a service</td>
+</tr>
+</tbody></table>
+<p>The files you actually edit are almost all in <code>src/app/</code>. The <code>.spec.ts</code> files are automated tests (Lecture 10: mostly ignored); slide 20&#39;s older tree also has <code>e2e/</code>, <code>karma.conf.js</code>, <code>polyfills.ts</code>, <code>test.ts</code> and <code>tslint.json</code>, which newer CLIs no longer generate.</p>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/tree/main/W6_L1_AngularServices/solution1">solution1/</a> · <a href="https://github.com/travislindenreid/INF33-Demos/tree/main/W6_L1_AngularServices/setup1">setup1/</a></p>
+</blockquote>
+<hr>
+<h2 id="9-in-class-questions--demos-with-solutions">9. In-class Questions &amp; Demos (with Solutions)</h2>
+<p>The poll slides show only the prompts (no options and no results), so the answers come from <code>solution1</code>.</p>
+<h3 id="91-question-1-how-will-we-embed-the-die-components-slide-22">9.1 Question 1: How will we embed the die components? (slide 22)</h3>
+<p><em>L11-Q1: How will we embed the die components?</em></p>
+<p>Context: <code>setup1</code> already has <code>DieComponent</code> (<code>selector: &#39;app-die&#39;</code>, with <code>@Input() value:number = 0;</code>), and <code>AppComponent</code> has two fields, <code>die1</code> and <code>die2</code>. <code>app.component.html</code> has <code>TODO 1: add two die apps</code>.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (TODO 1 in <code>solution1/src/app/app.component.html</code>):</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-die</span><span style="color:#9CDCFE"> [value]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"die1"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-die</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">app-die</span><span style="color:#9CDCFE"> [value]</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"die2"</span><span style="color:#808080">>&#x3C;/</span><span style="color:#569CD6">app-die</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Two things make it work: the <code>app-die</code> selector placed twice in the parent&#39;s template, and <code>DieComponent</code> listed in <code>AppComponent</code>&#39;s <code>imports: [DieComponent]</code> (<a href="#3-standalone-components-and-the-root-component">Section 3</a>). <code>[value]=&quot;die1&quot;</code> is a property binding into the child&#39;s <code>@Input()</code> — brackets because <code>die1</code> is an expression (a field of the parent), not the literal text &quot;die1&quot; (<a href="/notes/in4matx-133/lec-10/en-US/#102-inputs">Lecture 10</a>).</p>
+<h3 id="92-question-2-how-will-we-embed-a-button-that-activates-rolldice-slide-23">9.2 Question 2: How will we embed a button that activates rollDice()? (slide 23)</h3>
+<p><em>L11-Q2: How will we embed a button that activates the <code>rollDice()</code> function?</em></p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (TODO 3 in <code>app.component.html</code>):</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#808080">&#x3C;</span><span style="color:#569CD6">button</span><span style="color:#9CDCFE"> (click)</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"rollDice()"</span><span style="color:#808080">></span><span style="color:#D4D4D4">Roll dice</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">button</span><span style="color:#808080">></span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>An <strong>event binding</strong>: <code>(click)</code> sends the click to the component, running <code>rollDice()</code> in <code>AppComponent</code>. It must be <code>(click)</code>, not <code>[click]</code> (that would be a property binding), and the statement must call the method — <code>rollDice()</code> with parentheses. Back to <a href="#3-standalone-components-and-the-root-component">Section 3</a>.</p>
+<h3 id="93-demo-1-rolling-dice-with-a-service-slide-21--setup1--solution1">9.3 Demo 1: Rolling Dice with a service (slide 21 · setup1 → solution1)</h3>
+<p><strong>Task</strong>: the starter is a dice simulator — a heading, an empty spot for a button, a <code>DieComponent</code> that always shows <code>1.png</code>, and an <code>AppComponent</code> that rolls with <code>Math.random()</code>. Wire it together, then move the rolling into a <strong>service</strong> that returns (rigged) rolls from <code>public/rigged_rolls.json</code>. The TODOs in <code>setup1</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#6A9955">// setup1/src/app/app.component.ts</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Component</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#6A9955">// TODO 4 [after creating die service]: import die service</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './die/die.component'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Component</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  selector:</span><span style="color:#CE9178"> 'app-root'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  imports:</span><span style="color:#D4D4D4"> [</span><span style="color:#9CDCFE">DieComponent</span><span style="color:#D4D4D4">],</span></span>
+<span class="line"><span style="color:#9CDCFE">  templateUrl:</span><span style="color:#CE9178"> './app.component.html'</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#9CDCFE">  styleUrls:</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">'./app.component.css'</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> AppComponent</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  // TODO 5: add new die service to constructor</span></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //TODO 6: use the die roll service instead of Math.random()</span></span>
+<span class="line"><span style="color:#DCDCAA">  rollDice</span><span style="color:#D4D4D4">() {</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">()*</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">) + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4"> = </span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">floor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">Math</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">random</span><span style="color:#D4D4D4">()*</span><span style="color:#B5CEA8">6</span><span style="color:#D4D4D4">) + </span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>app.component.html</code> has TODO 1 (two dice), TODO 3 (button, and print the total); <code>die.component.html</code> has TODO 2 (<code>&lt;img src=&quot;1.png&quot;&gt;</code> → use the <code>value</code> input).</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> TODO 1 and the button are Questions 1–2 above. TODO 2, the die&#39;s view — show the image whose name is the value, and nothing before the first roll:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(value != 0) {</span></span>
+<span class="line"><span style="color:#808080">    &#x3C;</span><span style="color:#569CD6">img</span><span style="color:#9CDCFE"> src</span><span style="color:#D4D4D4">=</span><span style="color:#CE9178">"{{value}}.png"</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>TODO 3, the total, under the dice:</p>
+<div class="code-wrap"><pre data-language="html" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#D4D4D4">@if(die1 !=0 &#x26;&#x26; die2 != 0) {</span></span>
+<span class="line"><span style="color:#808080">  &#x3C;</span><span style="color:#569CD6">p</span><span style="color:#808080">></span><span style="color:#D4D4D4">Your rolled a total of: {{die1 + die2}}.</span><span style="color:#808080">&#x3C;/</span><span style="color:#569CD6">p</span><span style="color:#808080">></span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(The repo&#39;s text says &quot;Your rolled&quot; — a typo for &quot;You rolled&quot;.) Then <code>ng generate service rig-dice</code> and fill in <code>rig-dice.service.ts</code>:</p>
+<div class="code-collapse is-collapsed"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">Injectable</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/core'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">HttpClient</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> '@angular/common/http'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">firstValueFrom</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> 'rxjs'</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">@</span><span style="color:#DCDCAA">Injectable</span><span style="color:#D4D4D4">({</span></span>
+<span class="line"><span style="color:#9CDCFE">  providedIn:</span><span style="color:#CE9178"> 'root'</span></span>
+<span class="line"><span style="color:#D4D4D4">})</span></span>
+<span class="line"><span style="color:#C586C0">export</span><span style="color:#569CD6"> class</span><span style="color:#4EC9B0"> RigDiceService</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[] = [];</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4">[] = [];</span></span>
+<span class="line"><span style="color:#9CDCFE">  die1Index</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"><span style="color:#9CDCFE">  die2Index</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> = </span><span style="color:#B5CEA8">0</span><span style="color:#D4D4D4">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">private</span><span style="color:#9CDCFE"> http</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">HttpClient</span><span style="color:#D4D4D4">) {</span></span>
+<span class="line"><span style="color:#6A9955">    //TODO: use the HTTP client to get the rigged die rolls from the JSON file in the assets folder</span></span>
+<span class="line"><span style="color:#6A9955">    //Add the values to the arrays for die1 and die2</span></span>
+<span class="line"><span style="color:#DCDCAA">    firstValueFrom</span><span style="color:#D4D4D4">(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">http</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">get</span><span style="color:#D4D4D4">(</span><span style="color:#CE9178">'rigged_rolls.json'</span><span style="color:#D4D4D4">, {</span><span style="color:#9CDCFE">responseType:</span><span style="color:#CE9178"> 'json'</span><span style="color:#D4D4D4">})).</span><span style="color:#DCDCAA">then</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">data</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#9CDCFE">      data</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">forEach</span><span style="color:#D4D4D4">((</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">:</span><span style="color:#4EC9B0">any</span><span style="color:#D4D4D4">) </span><span style="color:#569CD6">=></span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'die1'</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#569CD6">        this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">push</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">dieRolls</span><span style="color:#D4D4D4">[</span><span style="color:#CE9178">'die2'</span><span style="color:#D4D4D4">]);</span></span>
+<span class="line"><span style="color:#D4D4D4">      });</span></span>
+<span class="line"><span style="color:#D4D4D4">    });</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //TODO: first, have the service roll fair dice by using Math.random() to roll.</span></span>
+<span class="line"><span style="color:#6A9955">  // return Math.floor(Math.random() * 6 + 1);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A9955">  //Then, update the service to return the rigged die rolls in order.</span></span>
+<span class="line"><span style="color:#DCDCAA">  rollDie1</span><span style="color:#D4D4D4">():</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // first, use return this.die1[0] just to test loading first entry of array</span></span>
+<span class="line"><span style="color:#6A9955">    // then:</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">[(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1Index</span><span style="color:#D4D4D4">++)%</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  rollDie2</span><span style="color:#D4D4D4">():</span><span style="color:#4EC9B0">number</span><span style="color:#D4D4D4"> {</span></span>
+<span class="line"><span style="color:#6A9955">    // first, use return this.die2[0] just to test loading first entry of array</span></span>
+<span class="line"><span style="color:#6A9955">    // then:</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#569CD6"> this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">[(</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2Index</span><span style="color:#D4D4D4">++)%</span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">length</span><span style="color:#D4D4D4">];</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"><span style="color:#D4D4D4">}</span></span></code></pre><button type="button" class="code-collapse-btn" aria-expanded="false" data-lines="40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Show all 40 lines</span></button><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The comments give the in-class order: first make <code>rollDie1()</code> return a fair <code>Math.floor(Math.random() * 6 + 1)</code>, then <code>this.die1[0]</code> to test the JSON load, then the rigged rolls in order. <code>http.get(&#39;rigged_rolls.json&#39;)</code> fetches the file from <code>public/</code> (served at the site root); <code>firstValueFrom(...)</code> turns <code>HttpClient</code>&#39;s observable into a Promise, so <code>.then</code> works as in <a href="/notes/in4matx-133/lec-08/en-US/">Lecture 8</a>. <code>(this.die1Index++) % this.die1.length</code> walks the array and wraps back to the start after the last of the 19 pairs. <code>HttpClient</code> is available because <code>app.config.ts</code> has <code>provideHttpClient()</code>.</p>
+<p>TODOs 4–6, in <code>AppComponent</code>:</p>
+<div class="code-wrap"><pre data-language="typescript" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> { </span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4"> } </span><span style="color:#C586C0">from</span><span style="color:#CE9178"> './rig-dice.service'</span><span style="color:#D4D4D4">;      </span><span style="color:#6A9955">// TODO 4</span></span>
+<span class="line"><span style="color:#6A9955">// ...</span></span>
+<span class="line"><span style="color:#DCDCAA">  constructor</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">private</span><span style="color:#9CDCFE"> rigDice</span><span style="color:#D4D4D4">:</span><span style="color:#9CDCFE">RigDiceService</span><span style="color:#D4D4D4">) {           </span><span style="color:#6A9955">// TODO 5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#DCDCAA">  rollDice</span><span style="color:#D4D4D4">() {                                            </span><span style="color:#6A9955">// TODO 6</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die1</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">rigDice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">rollDie1</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#569CD6">    this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">die2</span><span style="color:#D4D4D4"> = </span><span style="color:#569CD6">this</span><span style="color:#D4D4D4">.</span><span style="color:#9CDCFE">rigDice</span><span style="color:#D4D4D4">.</span><span style="color:#DCDCAA">rollDie2</span><span style="color:#D4D4D4">();</span></span>
+<span class="line"><span style="color:#D4D4D4">  }</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The component didn&#39;t change shape at all — it still sets <code>die1</code> and <code>die2</code> and the view follows — only <em>where the numbers come from</em> moved into the service. That&#39;s the point of the lecture.</p>
+<p>The finished app, re-created in plain JS (the JSON data inlined, the dice images from the repo) — step through three clicks or press the button yourself:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Slide 21 · solution1 (AppComponent + DieComponent + RigDiceService), by hand in plain JS&quot;, &quot;html&quot;: &quot;&lt;div style=\&quot;text-align:center\&quot;&gt;&lt;h1&gt;Dice rolling Simulator&lt;/h1&gt;&lt;/div&gt;\n&lt;h2&gt;Push the button to roll the dice:&lt;/h2&gt;\n&lt;p&gt;&lt;button id=\&quot;roll\&quot;&gt;Roll dice&lt;/button&gt;&lt;/p&gt;\n&lt;p id=\&quot;dice\&quot;&gt;&lt;/p&gt;\n&lt;p id=\&quot;total\&quot;&gt;&lt;/p&gt;&quot;, &quot;css&quot;: &quot;body { font-family: system-ui, sans-serif; } h1 { font-size: 1.4em; } h2 { font-size: 1.05em; } img { padding: 5px; width: 60px; height: 60px; }&quot;, &quot;js&quot;: &quot;const IMG = &#39;https://raw.githubusercontent.com/travislindenreid/INF33-Demos/main/W6_L1_AngularServices/solution1/public/&#39;;\nconst RIGGED = [{\&quot;die1\&quot;:5,\&quot;die2\&quot;:2},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:6,\&quot;die2\&quot;:1},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:1,\&quot;die2\&quot;:6},{\&quot;die1\&quot;:2,\&quot;die2\&quot;:5},{\&quot;die1\&quot;:5,\&quot;die2\&quot;:2},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3},{\&quot;die1\&quot;:3,\&quot;die2\&quot;:4},{\&quot;die1\&quot;:4,\&quot;die2\&quot;:3}];  // public/rigged_rolls.json\n\n// RigDiceService (rig-dice.service.ts)\nclass RigDiceService {\n  die1 = []; die2 = []; die1Index = 0; die2Index = 0;\n  constructor() {\n    // stands in for firstValueFrom(this.http.get(&#39;rigged_rolls.json&#39;)).then(...)\n    Promise.resolve(RIGGED).then(data =&gt; {\n      data.forEach(dieRolls =&gt; { this.die1.push(dieRolls[&#39;die1&#39;]); this.die2.push(dieRolls[&#39;die2&#39;]); });\n      console.log(&#39;rigged rolls loaded: &#39; + data.length);\n    });\n  }\n  rollDie1() { return this.die1[(this.die1Index++) % this.die1.length]; }\n  rollDie2() { return this.die2[(this.die2Index++) % this.die2.length]; }\n}\n\n// DieComponent view: @if(value != 0) { &lt;img src=\&quot;{{value}}.png\&quot;&gt; }\nfunction appDie(value) { return value != 0 ? &#39;&lt;img src=\&quot;&#39; + IMG + value + &#39;.png\&quot;&gt;&#39; : &#39;&#39;; }\n\n// AppComponent\nconst rigDice = new RigDiceService();   // constructor(private rigDice:RigDiceService)\nlet die1 = 0, die2 = 0;\nfunction render() {\n  document.getElementById(&#39;dice&#39;).innerHTML = appDie(die1) + appDie(die2);\n  document.getElementById(&#39;total&#39;).textContent = (die1 != 0 &amp;&amp; die2 != 0) ? &#39;Your rolled a total of: &#39; + (die1 + die2) + &#39;.&#39; : &#39;&#39;;\n}\nfunction rollDice() {\n  die1 = rigDice.rollDie1();\n  die2 = rigDice.rollDie2();\n  console.log(die1 + &#39; + &#39; + die2 + &#39; = &#39; + (die1 + die2));\n  render();   // Angular re-renders for you\n}\ndocument.getElementById(&#39;roll&#39;).addEventListener(&#39;click&#39;, rollDice);  // (click)=\&quot;rollDice()\&quot;\nrender();\n&quot;, &quot;steps&quot;: [{&quot;note&quot;: &quot;First click: the service returns the first rigged pair.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}, {&quot;note&quot;: &quot;Second click: the next pair — still a total of 7.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}, {&quot;note&quot;: &quot;Third click: and again 7. Every pair in rigged_rolls.json adds to 7.&quot;, &quot;js&quot;: &quot;setTimeout(() =&gt; document.getElementById(&#39;roll&#39;).click());  // after the JSON has loaded&quot;}], &quot;height&quot;: 270, &quot;interactive&quot;: true}</code></pre><p>The rolls come out <code>5 + 2 = 7</code>, <code>4 + 3 = 7</code>, <code>6 + 1 = 7</code>, … — <strong>every pair in <code>rigged_rolls.json</code> adds up to 7</strong>, so the faces look random but the total never changes. That&#39;s the &quot;rigging&quot;.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The JSON loads asynchronously. If <code>rollDice()</code> ran before the <code>.then</code> filled the arrays, <code>this.die1.length</code> is 0, <code>index % 0</code> is <code>NaN</code>, and <code>rollDie1()</code> returns <code>undefined</code>; <code>undefined != 0</code> is <code>true</code>, so the die would try to show <code>undefined.png</code> and the total would read <code>NaN</code>. A real click comes long after the tiny file has loaded, but code that rolls on start-up would hit this.</p>
+</blockquote>
+<blockquote>
+<p>🧪 <strong>Demo files</strong>: <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/rig-dice.service.ts">rig-dice.service.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.ts">app.component.ts</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/app.component.html">app.component.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/src/app/die/die.component.html">die.component.html</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/solution1/public/rigged_rolls.json">rigged_rolls.json</a> · <a href="https://github.com/travislindenreid/INF33-Demos/blob/main/W6_L1_AngularServices/setup1/src/app/app.component.ts">setup1 app.component.ts</a></p>
+</blockquote>
+<p>Back to <a href="#5-angular-services">Section 5</a>.</p>
+<hr>
+<h2 id="10-quick-reference--top-5-things-to-remember">10. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Which piece does what</strong></p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Decorator / file</th>
+<th>Job</th>
+<th>How you get one</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Component</td>
+<td><code>@Component({ selector, templateUrl, styleUrls, imports })</code></td>
+<td>A view (template + style + class)</td>
+<td>Its selector tag in a parent template + the class in the parent&#39;s <code>imports</code></td>
+</tr>
+<tr>
+<td>Module (older Angular)</td>
+<td><code>@NgModule({ imports, exports })</code></td>
+<td>&quot;Wraps&quot; components and config (before Angular 19&#39;s standalone components)</td>
+<td>e.g. A3&#39;s <code>AppRoutingModule</code></td>
+</tr>
+<tr>
+<td>Service</td>
+<td><code>@Injectable({ providedIn: &#39;root&#39; })</code></td>
+<td>Work not tied to a view: API data, routing info</td>
+<td>Constructor parameter: <code>constructor(private s: MyService)</code></td>
+</tr>
+<tr>
+<td>Plain class</td>
+<td><code>export class X { }</code></td>
+<td>Data processing</td>
+<td><code>new X()</code></td>
+</tr>
+<tr>
+<td>Library</td>
+<td>npm package</td>
+<td>Anything from npm</td>
+<td><code>npm install pkg</code> (+ <code>@types/pkg</code>), then <code>import</code></td>
+</tr>
+</tbody></table>
+<p><strong>Routing</strong></p>
+<table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>Syntax</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Routes table</td>
+<td><code>const routes: Routes = [{ path: &#39;album/:id&#39;, component: AlbumPageComponent }, { path: &#39;&#39;, component: HomePageComponent }];</code></td>
+</tr>
+<tr>
+<td>Register (new / old)</td>
+<td><code>provideRouter(routes)</code> in <code>app.config.ts</code> / <code>RouterModule.forRoot(routes)</code> in an <code>@NgModule</code></td>
+</tr>
+<tr>
+<td>Read a parameter</td>
+<td><code>constructor(private route: ActivatedRoute)</code> → <code>this.route.snapshot.paramMap.get(&#39;id&#39;)</code></td>
+</tr>
+</tbody></table>
+<p><strong>CLI and imports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command / syntax</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Install dependencies / run</td>
+<td><code>npm install</code> · <code>ng serve --open</code> (localhost:4200)</td>
+</tr>
+<tr>
+<td>Generate</td>
+<td><code>ng generate service [name]</code> · <code>ng generate class [name]</code></td>
+</tr>
+<tr>
+<td>HTTP in a service</td>
+<td><code>provideHttpClient()</code> in <code>app.config.ts</code>; <code>constructor(private http:HttpClient)</code></td>
+</tr>
+<tr>
+<td>Named vs default import</td>
+<td><code>import { Component } from &#39;@angular/core&#39;</code> · <code>import chroma from &#39;chroma-js&#39;</code></td>
+</tr>
+<tr>
+<td>Your own file</td>
+<td>relative path, no <code>.ts</code>: <code>import { SpotifyService } from &#39;../../services/spotify.service&#39;</code></td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Anything not tied to a specific view (fetching API data, parsing URIs) belongs in a service, so components stay lightweight.</li>
+<li>To use a service, import it and take it as a constructor parameter with <code>private</code> — Angular creates and injects it; you never <code>new</code> a service.</li>
+<li>Routes map URI patterns to components; <code>:id</code> in a path is read in the component with <code>this.route.snapshot.paramMap.get(&#39;id&#39;)</code>.</li>
+<li>A component can use another component only if that class is in its <code>imports</code> array (standalone components, Angular 19+); older code wraps things in <code>@NgModule</code>s.</li>
+<li>In a template, <code>[value]=&quot;die1&quot;</code> binds a child input to an expression and <code>(click)=&quot;rollDice()&quot;</code> binds an event to a method — brackets read, parentheses listen.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/notes/in4matx-133/lec-10/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 10</span><span class="pager-title" data-astro-cid-gxyjxt6l>Components in Angular</span></a><a class="card interactive pager-card pager-next" href="/notes/in4matx-133/lec-12/en-US/" rel="next" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Lecture 12 · Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>Hybrid and Native Architectures</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/notes/in4matx-133/lec-10/en-US/" title="Previous: Components in Angular ([)" aria-label="Previous: Lecture 10" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 10</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 11</span></button><a class="rb-btn rb-lang" href="/notes/in4matx-133/lec-11/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><a class="rb-btn rb-next" href="/notes/in4matx-133/lec-12/en-US/" title="Next: Hybrid and Native Architectures (])" aria-label="Next: Lecture 12" data-astro-cid-gxyjxt6l><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 12</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/_astro/NoteReader.astro_astro_type_script_index_0_lang.GgOyItmQ.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/assets/js/bento.js" defer></script><script src="/assets/js/chat-widget.js" defer></script></body></html>

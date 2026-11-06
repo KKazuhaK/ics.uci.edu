@@ -1,0 +1,520 @@
+<!DOCTYPE html><html lang="en-US"><head><title>IN4MATX 133 Hybrid and Native Architectures | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Mobile-first design, the ways to build a mobile app (native, WebView, compiled hybrid, responsive), iOS and Android native toolchains, how to choose an approach, pros and cons of hybrid vs native, and how Ionic, Capacitor and Ionic's components fit in."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/en-US/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/in4matx-133/lec-12/zh-CN/"><link rel="stylesheet" href="/_astro/BaseLayout.CnlNRG6h.css"><link rel="stylesheet" href="/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/_astro/katex.mPfuf26R.css"><link rel="stylesheet" href="/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/assets/viz/" data-viz-version="1794007443" data-source-url="/notes/in4matx-133/lec-12/en-US/source.md" data-editor-url="/tools/md-editor/" data-alt-url="/notes/in4matx-133/lec-12/zh-CN/" data-prev-url="/notes/in4matx-133/lec-11/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/notes/in4matx-133/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>IN4MATX 133</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Lecture 12</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/notes/in4matx-133/lec-12/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Lecture 12 · User Interface Software Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents IN4MATX 133 Lecture 12 notes in a structured reading format so you can review HTML, CSS, JavaScript, the DOM, and UI tooling lecture by lecture, with live demos you can edit and run. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on November 5, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="in4matx-133-user-interface-software--lecture-12-hybrid-and-native-architectures">IN4MATX 133: User Interface Software — Lecture 12: Hybrid and Native Architectures</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-mobile-first-design">1. Mobile-first design</a></li>
+<li><a href="#2-ways-to-build-a-mobile-app">2. Ways to build a mobile app</a></li>
+<li><a href="#3-native-apps">3. Native apps</a></li>
+<li><a href="#4-hybrid-apps-one-codebase-many-platforms">4. Hybrid apps: one codebase, many platforms</a></li>
+<li><a href="#5-webview-apps">5. WebView apps</a></li>
+<li><a href="#6-compiled-hybrid-apps">6. Compiled hybrid apps</a></li>
+<li><a href="#7-choosing-a-development-approach">7. Choosing a development approach</a></li>
+<li><a href="#8-pros-and-cons-hybrid-vs-native">8. Pros and cons: hybrid vs native</a></li>
+<li><a href="#9-ionic-and-capacitor">9. Ionic and Capacitor</a></li>
+<li><a href="#10-testing-and-deploying-ionic-apps">10. Testing and deploying Ionic apps</a></li>
+<li><a href="#11-what-ionic-adds-over-angular-components">11. What Ionic adds over Angular: components</a></li>
+<li><a href="#12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI IN4MATX 133: User Interface Software — Prof. Travis Linden Reid, Fall 2026, Thursday 11/5 (Week 6)<br>Built from the Lecture 12 slides (53 pages). &quot;No code today!&quot; — this lecture has no demo folder in the course repo. Organized by concept, not by source.</p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: No code today — we&#39;re on to A4 concepts.<br>A2 grades will be posted early next week.<br>A3 is due this upcoming <strong>Wednesday, Nov 11</strong>.<br>A4 unlocks Tuesday; due <strong>Monday, Nov 23 at midnight</strong>.</p>
+</blockquote>
+<p>Goals for today: differentiate approaches to developing mobile interfaces; describe advantages and disadvantages of developing native, hybrid, and web applications; explain which approach Ionic takes to app development.</p>
+<hr>
+<h2 id="1-mobile-first-design">1. Mobile-first design</h2>
+<p>The deck opens by repeating the mobile-first idea from <a href="/notes/in4matx-133/lec-04/en-US/#6-mobile-first-design">Lecture 4</a>:</p>
+<ul>
+<li><strong>Plan your design for mobile.</strong></li>
+<li><strong>Then make your app <em>better</em> with more real estate</strong>: add more features, and make existing features easier to navigate.</li>
+<li>A lot of businesses make <strong>mobile-friendly websites before making dedicated apps</strong>.</li>
+</ul>
+<p>The slide&#39;s figure contrasts the two directions. <em>Mobile last</em> (desktop → tablet → phone → flip phone) is labelled &quot;degraded, shoe-horned, short-sighted, crappy&quot;; <em>mobile first</em> (flip phone → phone → tablet → desktop) is &quot;progressively enhanced, future-friendly, awesome&quot;.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/mobile-first-diagram.png" alt="Slide 4: "Mobile last" shrinks a desktop design down to smaller devices; "Mobile first" starts on the phone and enhances up to the desktop"></p>
+<p>In CSS, mobile-first means the base rules <em>are</em> the phone design, and <code>min-width</code> media queries add to it. In the example below (mine, not the slide&#39;s), the 375px page shows only the essentials with a menu button; from 768px up (shown at 1024px) the query shows the nav links (easier to navigate) and a sidebar (more features):</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;Mobile-first design (slide 4) · hand-made example&quot;, &quot;html&quot;: &quot;&lt;header&gt;\n  &lt;h1&gt;Anteater Eats&lt;/h1&gt;\n  &lt;button class=\&quot;menu\&quot;&gt;☰ Menu&lt;/button&gt;\n  &lt;nav&gt;&lt;a href=\&quot;#\&quot;&gt;Menu&lt;/a&gt; &lt;a href=\&quot;#\&quot;&gt;Order&lt;/a&gt; &lt;a href=\&quot;#\&quot;&gt;Hours&lt;/a&gt;&lt;/nav&gt;\n&lt;/header&gt;\n&lt;div class=\&quot;layout\&quot;&gt;\n  &lt;main&gt;\n    &lt;h2&gt;Today&#39;s special&lt;/h2&gt;\n    &lt;p&gt;Spicy tofu bowl — $9&lt;/p&gt;\n    &lt;button&gt;Order now&lt;/button&gt;\n  &lt;/main&gt;\n  &lt;aside&gt;\n    &lt;h2&gt;Extra for big screens&lt;/h2&gt;\n    &lt;p&gt;Weekly calendar, map, reviews…&lt;/p&gt;\n  &lt;/aside&gt;\n&lt;/div&gt;&quot;, &quot;css&quot;: &quot;/* Base styles = the phone design */\nbody { font-family: sans-serif; margin: 0; }\nheader { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #0064a4; color: white; }\nh1 { font-size: 18px; margin: 0; }\nnav { display: none; }           /* phone: links hidden behind the menu button */\nnav a { color: white; margin-left: 12px; }\nmain, aside { padding: 12px; }\naside { display: none; }         /* phone: no room for extras */\n\n/* Then make it better with more real estate */\n@media (min-width: 768px) {\n  .menu { display: none; }\n  nav { display: block; }        /* easier to navigate */\n  .layout { display: grid; grid-template-columns: 2fr 1fr; }\n  aside { display: block; background: #fff4cc; }  /* more features */\n}&quot;, &quot;width&quot;: 375, &quot;height&quot;: 260, &quot;steps&quot;: [{&quot;note&quot;: &quot;At 1024px the media query adds the visible nav links and the extra sidebar.&quot;, &quot;width&quot;: 1024}], &quot;interactive&quot;: true}</code></pre><p>The deck then asks why a business would want a mobile <em>app</em> over a mobile <em>website</em> — an open discussion; see <a href="#121-question-1-why-a-mobile-app-over-a-mobile-website-slide-5">Question 1</a>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-question-1-why-a-mobile-app-over-a-mobile-website-slide-5">Question 1</a><br>🔗 <strong>Go deeper</strong>: <a href="https://bradfrostweb.com/blog/web/mobile-first-responsive-web-design">Brad Frost: Mobile first responsive web design (source of the slide&#39;s figure)</a></p>
+</blockquote>
+<h2 id="2-ways-to-build-a-mobile-app">2. Ways to build a mobile app</h2>
+<p>There are a variety of ways to build mobile apps. The four <strong>mobile development methods</strong> the lecture compares:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What you build</th>
+<th>Where it&#39;s covered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Native</strong></td>
+<td>A separate app per platform, with the platform maker&#39;s tools and languages</td>
+<td><a href="#3-native-apps">Section 3</a></td>
+</tr>
+<tr>
+<td><strong>WebView</strong> (a kind of hybrid)</td>
+<td>A website, run inside a thin native app that opens the phone&#39;s browser</td>
+<td><a href="#5-webview-apps">Section 5</a></td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong> (slide 18 splits hybrid into WebView and compiled; this row is the compiled kind)</td>
+<td>One codebase compiled to a native app for each platform</td>
+<td><a href="#6-compiled-hybrid-apps">Section 6</a></td>
+</tr>
+<tr>
+<td><strong>Responsive</strong></td>
+<td>A website that adapts to the screen, opened in the phone&#39;s browser</td>
+<td><a href="/notes/in4matx-133/lec-04/en-US/#2-adaptive-vs-responsive-design">Lecture 4</a></td>
+</tr>
+</tbody></table>
+<pre data-language="mermaid"><code class="language-mermaid">flowchart LR
+  subgraph N[&quot;Native&quot;]
+    n1[&quot;Swift / Objective-C&quot;] --&gt; n2[&quot;iOS app&quot;]
+    n3[&quot;Java / Kotlin&quot;] --&gt; n4[&quot;Android app&quot;]
+  end
+  subgraph W[&quot;WebView hybrid&quot;]
+    w1[&quot;HTML / CSS / JS (one codebase)&quot;] --&gt; w2[&quot;native shell + WebView (iOS)&quot;]
+    w1 --&gt; w3[&quot;native shell + WebView (Android)&quot;]
+  end
+  subgraph C[&quot;Compiled hybrid&quot;]
+    c1[&quot;C# or JavaScript (one codebase)&quot;] --&gt;|&quot;compile&quot;| c2[&quot;native iOS app&quot;]
+    c1 --&gt;|&quot;compile&quot;| c3[&quot;native Android app&quot;]
+  end
+  subgraph R[&quot;Responsive web&quot;]
+    r1[&quot;HTML / CSS / JS&quot;] --&gt; r2[&quot;phone&#39;s browser&quot;]
+  end</code></pre><h2 id="3-native-apps">3. Native apps</h2>
+<h3 id="31-what-a-native-app-is">3.1 What a native app is</h3>
+<p>A <strong>native app</strong> is an app designed to work on a specific piece of hardware, usually built with tools created by the hardware or platform manufacturer:</p>
+<ul>
+<li><strong>Android Studio</strong> for Android, in <strong>Java</strong></li>
+<li><strong>Xcode</strong> for iOS, in <strong>Swift</strong> or <strong>Objective-C</strong></li>
+</ul>
+<p>Native apps as we think of them today <strong>started with the first iPhone</strong>: Apple released a development platform alongside the hardware (the slide shows the iPhone&#39;s introduction on stage).</p>
+<h3 id="32-ios">3.2 iOS</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>iOS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Languages</td>
+<td><strong>Objective-C</strong>, <strong>Swift</strong>, plus <strong>Cocoa Touch</strong> (the API)</td>
+</tr>
+<tr>
+<td>Tools</td>
+<td><strong>Xcode</strong>, the <strong>iOS Software Development Kit (SDK)</strong></td>
+</tr>
+<tr>
+<td>What the SDK gives you</td>
+<td>Access to the phone&#39;s storage, camera, sensors, etc.</td>
+</tr>
+</tbody></table>
+<p>These languages were either developed by, or pretty much only used by, Apple. The slide asks: <strong>developer lock-in is a… disadvantage? Advantage? Both?</strong> (One way to see it: lock-in means your iOS skills and code stay on Apple&#39;s platform — a cost if you want to leave, but everything is designed to fit together.)</p>
+<h3 id="33-android">3.3 Android</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Android</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Languages</td>
+<td>Primarily <strong>Java</strong>; <strong>C and C++</strong> via the <strong>Android Native Development Kit (NDK)</strong>; more recently <strong>Kotlin</strong></td>
+</tr>
+<tr>
+<td>Tools</td>
+<td><strong>Android Studio</strong>, the Android SDK (the slide spells it &quot;Android Source Development Kit&quot;), various IDEs like Rider or VS</td>
+</tr>
+</tbody></table>
+<p>Android&#39;s languages align more closely with languages used in other contexts — the slide asks whether that&#39;s an advantage or a disadvantage (one way to see it — the mirror image of iOS lock-in: easier to bring existing skills and code in, less tailored to the platform).</p>
+<h3 id="34-platform-specific-codebases">3.4 Platform-specific codebases</h3>
+<p>The catch with native: <strong>platform-specific codebases</strong>.</p>
+<ul>
+<li>Android is in Java, iOS is in Objective-C or Swift.</li>
+<li>Both use different libraries to communicate with the hardware.</li>
+<li>Supporting a platform usually requires <strong>starting to code from scratch</strong>.</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: &quot;Native&quot; means <em>per platform</em>. An iOS app and an Android app of the same product are two separate programs in two languages with two toolchains — which is exactly the cost hybrid apps try to avoid.</p>
+</blockquote>
+<h2 id="4-hybrid-apps-one-codebase-many-platforms">4. Hybrid apps: one codebase, many platforms</h2>
+<p>Two questions motivate the alternative:</p>
+<ul>
+<li>What if we already made a <strong>website</strong> for our app? Or have some other existing codebase?</li>
+<li>What if we want to <strong>share code across phone platforms</strong>?</li>
+</ul>
+<p><strong>Solution: hybrid apps</strong> — &quot;Use a common code base to deploy native-like apps on a wide range of platforms&quot;. There are two primary approaches:</p>
+<ol>
+<li><strong>WebView app</strong> (<a href="#5-webview-apps">Section 5</a>)</li>
+<li><strong>Compiled hybrid app</strong> (<a href="#6-compiled-hybrid-apps">Section 6</a>)</li>
+</ol>
+<h2 id="5-webview-apps">5. WebView apps</h2>
+<h3 id="51-how-a-webview-app-works">5.1 How a WebView app works</h3>
+<ul>
+<li><strong>Load the phone&#39;s internal browser</strong> in a lightweight native app.</li>
+<li><strong>Run a webpage</strong> written in HTML/CSS/JavaScript on that browser.</li>
+<li>Ideally, <strong>expose some native APIs</strong> to the browser.</li>
+</ul>
+<p>Essentially, <strong>the app is just a website</strong>. That allows the same or similar code to be used across an app and a website.</p>
+<h3 id="52-webview-app-frameworks">5.2 WebView app frameworks</h3>
+<p><strong>Ionic</strong> and <strong>NativeScript</strong>. These frameworks use web technologies (HTML, CSS, TypeScript, JavaScript) rather than platform-specific technologies.</p>
+<p>If WebView apps are just websites, what do these frameworks provide?</p>
+<ul>
+<li><strong>Common mobile interface elements</strong> like sliders and buttons (more on that next week)</li>
+<li><strong>The native app</strong> for running the website</li>
+<li><strong>Some APIs for communicating with platform SDKs</strong></li>
+</ul>
+<h2 id="6-compiled-hybrid-apps">6. Compiled hybrid apps</h2>
+<h3 id="61-how-compiled-hybrid-works">6.1 How compiled hybrid works</h3>
+<p>&quot;Write code in one language, such as C# or JavaScript, and compile it to native code supported by each platform.&quot;</p>
+<ul>
+<li><strong>Result</strong>: a native app for each platform.</li>
+<li><strong>Challenge</strong>: less freedom in development.</li>
+</ul>
+<h3 id="62-compiled-hybrid-app-frameworks">6.2 Compiled hybrid app frameworks</h3>
+<table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Language</th>
+<th>What the slides say</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Unity</strong></td>
+<td>C#</td>
+<td>Leading game development platform; supports consoles, web, and mobile (&quot;Build once, deploy anywhere&quot;); you will need to import or use platform-specific SDKs</td>
+</tr>
+<tr>
+<td><strong>React Native</strong></td>
+<td>JavaScript</td>
+<td>Uses <strong>React</strong>, a web framework similar to Angular; compiles a webpage to a native app. The slide&#39;s &quot;Who&#39;s using React Native?&quot; panel shows Facebook, Instagram, Airbnb, Skype, Tesla and Walmart among others</td>
+</tr>
+</tbody></table>
+<p>React is one of the frameworks named next to Angular in <a href="/notes/in4matx-133/lec-10/en-US/#1-small-vs-large-client-interfaces-and-frameworks">Lecture 10</a>.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: WebView and compiled hybrid both start from one codebase; the difference is what ends up on the phone. A WebView app ships a <em>website plus a browser shell</em>; a compiled hybrid app ships <em>native code</em>.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#122-question-2-best-and-worst-performance-slides-2729">Question 2</a> — which of native, WebView and compiled hybrid performs best and worst?</p>
+</blockquote>
+<h2 id="7-choosing-a-development-approach">7. Choosing a development approach</h2>
+<p>Performance is just one factor. How do we choose a development approach? The slides group the considerations three ways:</p>
+<table>
+<thead>
+<tr>
+<th>Business</th>
+<th>UX and design</th>
+<th>Technical</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Development time</td>
+<td>Consistency with platform</td>
+<td>Programming languages</td>
+</tr>
+<tr>
+<td>Development cost</td>
+<td>Device capabilities</td>
+<td>Integration with device</td>
+</tr>
+<tr>
+<td>Maintenance concerns</td>
+<td>Interaction models supported</td>
+<td>Performance</td>
+</tr>
+<tr>
+<td>Available infrastructure</td>
+<td>Performance and usability</td>
+<td>Upkeep and maintenance</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Flexibility</td>
+</tr>
+</tbody></table>
+<h2 id="8-pros-and-cons-hybrid-vs-native">8. Pros and cons: hybrid vs native</h2>
+<h3 id="81-hybrid-apps">8.1 Hybrid apps</h3>
+<table>
+<thead>
+<tr>
+<th>Strengths</th>
+<th>Weaknesses</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Can share a codebase between web and mobile</td>
+<td>Performance issues</td>
+</tr>
+<tr>
+<td>Can save time and effort (sometimes)</td>
+<td>Incongruence with platform</td>
+</tr>
+<tr>
+<td>Access to some device capabilities</td>
+<td>Limited access to device capabilities</td>
+</tr>
+</tbody></table>
+<h3 id="82-native-apps">8.2 Native apps</h3>
+<table>
+<thead>
+<tr>
+<th>Strengths</th>
+<th>Weaknesses</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Congruent experience with platform</td>
+<td>Need to support separate development for each platform</td>
+</tr>
+<tr>
+<td>Leverages full device capabilities</td>
+<td>Cost of app development and maintenance</td>
+</tr>
+<tr>
+<td>Uses native UI elements</td>
+<td>Need to learn/manage multiple programming languages</td>
+</tr>
+<tr>
+<td></td>
+<td>Need to manage multiple sets of tools</td>
+</tr>
+</tbody></table>
+<p>The native-UI example on the slide is the <strong>iOS context menu</strong> (long-press a photo: Copy, Share, Favorite, Show in All Photos, Remove). React Native and Unity do <strong>not</strong> have context menu capabilities — the exception being community-made packages.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ios-context-menu.png" alt="Slide 37: the iOS context menu — Copy, Share, Favorite, Show in All Photos, and Remove in red"></p>
+<h3 id="83-the-bottom-line">8.3 The bottom line</h3>
+<ul>
+<li><strong>Native apps are great when performance and consistency with the platform are major concerns.</strong></li>
+<li><strong>Hybrid apps are great when time or money is a concern and you need to deploy on multiple platforms.</strong></li>
+<li>But also: many apps are built <strong>partially native, partially hybrid</strong>.</li>
+</ul>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-question-3-what-would-you-build-for-an-open-ended-a5-slides-4041">Question 3</a></p>
+</blockquote>
+<h2 id="9-ionic-and-capacitor">9. Ionic and Capacitor</h2>
+<h3 id="91-ionic">9.1 Ionic</h3>
+<p>One hybrid (WebView) framework:</p>
+<ul>
+<li>A <strong>WebView app framework</strong>, launched in <strong>2013</strong></li>
+<li>Interface implemented in <strong>Angular</strong>; later added support for <strong>React and Vue</strong></li>
+<li><strong>Capacitor</strong> is the recommended hybrid app runtime for Ionic</li>
+</ul>
+<h3 id="92-capacitor">9.2 Capacitor</h3>
+<ul>
+<li>It provides <strong>the native app which opens the WebView</strong>.</li>
+<li>It also provides <strong>plugins for connecting to device resources</strong> — hundreds of them, both official and community.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Official plugin examples</th>
+<th>Community plugin examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Geolocation</td>
+<td>Facebook</td>
+</tr>
+<tr>
+<td>Push Notifications</td>
+<td>LinkedIn</td>
+</tr>
+<tr>
+<td>Camera</td>
+<td>WeChat</td>
+</tr>
+<tr>
+<td>Motion</td>
+<td>Apple Pay</td>
+</tr>
+<tr>
+<td>Haptic</td>
+<td>Google Maps</td>
+</tr>
+<tr>
+<td></td>
+<td>YouTube</td>
+</tr>
+</tbody></table>
+<p>So in the terms of <a href="#52-webview-app-frameworks">Section 5.2</a>: Ionic gives you the mobile interface elements, Capacitor gives you the native app and the APIs to the platform SDKs.</p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ionicframework.com/resources/articles/capacitor-vs-cordova-modern-hybrid-app-development">Ionic: Capacitor vs Cordova, modern hybrid app development</a> · <a href="https://capacitorjs.com/docs/apis">Capacitor: APIs (official plugins)</a> · <a href="https://github.com/capacitor-community/">Capacitor Community on GitHub</a> · <a href="https://ionicframework.com/docs/native/">Ionic: Native</a> · <a href="https://capacitorjs.com/docs/plugins/community">Capacitor: Community plugins</a></p>
+</blockquote>
+<h2 id="10-testing-and-deploying-ionic-apps">10. Testing and deploying Ionic apps</h2>
+<h3 id="101-ionic-dev-test-in-a-browser">10.1 Ionic Dev: test in a browser</h3>
+<p>Ionic Dev provides a WebView to open up Ionic apps and lets you <strong>test your Ionic app in a browser</strong>. The slide&#39;s screenshot shows the Ionic tabs starter at <code>localhost:8101/tabs/tab1</code> in Chrome&#39;s responsive mode (465 × 938), with the Elements panel open: the page is ordinary DOM — Ionic&#39;s components show up as elements such as <code>&lt;ion-router-outlet&gt;</code>, <code>&lt;ion-header&gt;</code>, <code>&lt;ion-content&gt;</code> and <code>&lt;ion-tab-bar&gt;</code>, plus the usual <code>runtime.js</code>, <code>polyfills.js</code>, <code>vendor.js</code>, <code>main.js</code> scripts.</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-serve-browser.png" alt="Slide 47: an Ionic app ("Tab 1 page", tab bar with Tab 1–3) served on localhost in Chrome's responsive mode, with DevTools showing the ion-* elements"></p>
+<p>Because a WebView app is just a web page, the same starter screen can be rebuilt with plain HTML, CSS and DOM events. Try the tabs, or edit the code and press Run:</p>
+<pre data-language="viz" data-viz="web-demo"><code>{&quot;title&quot;: &quot;A WebView app is just a web page: the Ionic tabs starter (slides 47, 49) re-created by hand in plain HTML/CSS/JS — not Ionic&quot;, &quot;html&quot;: &quot;&lt;div class=\&quot;app\&quot;&gt;\n  &lt;header id=\&quot;title\&quot;&gt;Tab 1&lt;/header&gt;\n  &lt;section class=\&quot;page\&quot;&gt;\n    &lt;strong id=\&quot;page\&quot;&gt;Tab 1 page&lt;/strong&gt;\n    &lt;span&gt;Explore &lt;a href=\&quot;#\&quot;&gt;UI Components&lt;/a&gt;&lt;/span&gt;\n  &lt;/section&gt;\n  &lt;footer class=\&quot;tabbar\&quot;&gt;\n    &lt;button class=\&quot;tab active\&quot; data-n=\&quot;1\&quot;&gt;▲&lt;br&gt;Tab 1&lt;/button&gt;\n    &lt;button class=\&quot;tab\&quot; data-n=\&quot;2\&quot;&gt;●&lt;br&gt;Tab 2&lt;/button&gt;\n    &lt;button class=\&quot;tab\&quot; data-n=\&quot;3\&quot;&gt;■&lt;br&gt;Tab 3&lt;/button&gt;\n  &lt;/footer&gt;\n&lt;/div&gt;&quot;, &quot;css&quot;: &quot;body { margin: 0; font-family: -apple-system, sans-serif; }\n.app { display: flex; flex-direction: column; height: 100vh; background: #121212; color: white; }\nheader { padding: 14px 16px; font-size: 20px; background: #1f1f1f; }\n.page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }\n.page span { color: #aaa; font-size: 14px; }\na { color: #4d8dff; text-decoration: none; }\n.tabbar { display: flex; background: #1f1f1f; }\n.tab { flex: 1; padding: 6px 0; border: none; background: none; color: #888; font-size: 12px; }\n.tab.active { color: #4d8dff; }&quot;, &quot;js&quot;: &quot;for (const tab of document.querySelectorAll(&#39;.tab&#39;)) {\n  tab.addEventListener(&#39;click&#39;, () =&gt; {\n    const n = tab.dataset.n;\n    document.querySelector(&#39;.tab.active&#39;).classList.remove(&#39;active&#39;);\n    tab.classList.add(&#39;active&#39;);\n    document.getElementById(&#39;title&#39;).textContent = &#39;Tab &#39; + n;\n    document.getElementById(&#39;page&#39;).textContent = &#39;Tab &#39; + n + &#39; page&#39;;\n    console.log(&#39;showing Tab &#39; + n);\n  });\n}&quot;, &quot;width&quot;: 375, &quot;height&quot;: 520, &quot;steps&quot;: [{&quot;note&quot;: &quot;Tap Tab 2: plain DOM code swaps the title and page — no native code involved.&quot;, &quot;js&quot;: &quot;document.querySelectorAll(&#39;.tab&#39;)[1].click();&quot;}], &quot;interactive&quot;: true}</code></pre><p>Tapping Tab 2 changes the header and the page text to &quot;Tab 2&quot; and logs <code>showing Tab 2</code>.</p>
+<h3 id="102-deploying-to-the-app-stores">10.2 Deploying to the app stores</h3>
+<ul>
+<li>Deploying involves <strong>packaging up an app and &quot;signing&quot; it</strong> as a developer.</li>
+<li>For <strong>Android</strong>, this requires installing <strong>Android Studio</strong>.</li>
+<li>For <strong>iOS</strong>, this requires installing <strong>Xcode</strong> and getting a <strong>developer account</strong>.</li>
+<li>You can then &quot;deploy&quot; the app to the app store.</li>
+<li>The iOS app store includes features for <strong>&quot;beta&quot; deployment</strong> with a small group of developers.</li>
+<li>This process is often a pain.</li>
+</ul>
+<h3 id="103-capacitor-embraces-the-native-tools">10.3 Capacitor embraces the native tools</h3>
+<p>&quot;The key mantra of Capacitor is that developers should embrace native tools like Android Studio and Xcode.&quot;</p>
+<ul>
+<li>Capacitor <strong>pre-builds projects</strong> to be used in Xcode and Android Studio.</li>
+<li>That lets you test your Ionic app on an <strong>actual device or emulators</strong>.</li>
+<li><strong>Emulators have limited use of plugins.</strong></li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-emulators.png" alt="Slide 49: the same Ionic tabs app emulated with Android Studio (left) and with Xcode (right)"></p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The browser (Ionic Dev) and emulators are for testing the interface. Plugins that talk to device hardware are limited in emulators, so test those on an actual device.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ionicframework.com/docs/cli/commands/serve">Ionic CLI: ionic serve</a> · <a href="https://ionicframework.com/docs/building/ios">Ionic: Building for iOS</a> · <a href="https://ionicframework.com/docs/building/android">Ionic: Building for Android</a> · <a href="https://ionicframework.com/docs/developing/starting">Ionic: Developing — starting</a></p>
+</blockquote>
+<h2 id="11-what-ionic-adds-over-angular-components">11. What Ionic adds over Angular: components</h2>
+<p>Ionic provides <strong>Angular-style components</strong> for a lot of interface elements common in mobile interfaces: <strong>lists, buttons, sliders, tabs, modal dialogs, search bars</strong>, and much more. These are the focus of the next lecture.</p>
+<p>The slide shows two of them: a <strong>List</strong> (&quot;Recent conversations&quot; / &quot;Online&quot; sections, each row with an avatar, a name and a preview line) and <strong>Range</strong> sliders (&quot;Adjust display&quot;, with icons at both ends).</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/KKazuhaK/assets@main/ics.uci.edu/in4matx-133/lec-12/ionic-components.png" alt="Slide 51: Ionic's List component (conversation rows with avatars) and Range component (sliders under "Adjust display")"></p>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ionicframework.com/docs/components/">Ionic: UI Components</a></p>
+</blockquote>
+<h2 id="12-in-class-questions--demos-with-solutions">12. In-class Questions &amp; Demos (with Solutions)</h2>
+<p>This lecture has no coding demos (&quot;No code today!&quot;). Slide 28 shows 0% on every option and slide 41 shows no responses yet, so no results were revealed; answers below come from the deck&#39;s own slides.</p>
+<h3 id="121-question-1-why-a-mobile-app-over-a-mobile-website-slide-5">12.1 Question 1: Why a mobile app over a mobile website? (slide 5)</h3>
+<p><em>Question: why might a business want a mobile app over a mobile website?</em> (open discussion, no answer options)</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong> (from the deck&#39;s later slides): an app — a native one especially — gets what a website in the phone&#39;s browser can&#39;t: <strong>device capabilities</strong> (storage, camera, sensors through the SDK; even hybrid apps get &quot;access to some device capabilities&quot;, slide 35), and, for native apps, <strong>native UI elements</strong> like the iOS context menu, an experience <strong>congruent with the platform</strong>, and the best performance (slides 11, 37, 39). The price is cost: separate development, tools and languages per platform (slide 38). That&#39;s why many businesses start with a mobile-friendly website and build a dedicated app later (slide 4). Back to <a href="#1-mobile-first-design">Section 1</a>.</p>
+<h3 id="122-question-2-best-and-worst-performance-slides-2729">12.2 Question 2: Best and worst performance (slides 27–29)</h3>
+<p><em>Which app will have the best and worst performance: a Native, WebView, and Compiled hybrid app?</em> (Performance broadly defined; page loading times, click latency, etc.)</p>
+<ul>
+<li>A. Compiled hybrid will perform best, WebView will perform worst</li>
+<li>B. WebView will perform best, Compiled hybrid will perform worst</li>
+<li>C. WebView will perform best, Native will perform worst</li>
+<li>D. Native will perform best, Compiled hybrid will perform worst</li>
+<li>E. Native will perform best, WebView will perform worst</li>
+</ul>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer: E.</strong> Native is built for the specific hardware with the platform&#39;s own tools, and the deck recommends native &quot;when performance … [is a] major concern&quot; (slide 39). A compiled hybrid app also ends up as native code for each platform (slide 23), so it sits in between. A WebView app is a website running inside the phone&#39;s browser, and &quot;performance issues&quot; is the first weakness of hybrid apps (slide 36) — so it&#39;s the slowest.</p>
+<ul>
+<li>A is wrong: compiled hybrid compiles <em>to</em> native code; it doesn&#39;t beat writing native directly.</li>
+<li>B and C put WebView first, but WebView adds a browser layer between your code and the device.</li>
+<li>D is the trap: compiled hybrid is the <em>middle</em> option, not the worst — it&#39;s the WebView app that doesn&#39;t become native code at all.</li>
+</ul>
+<p>Back to <a href="#6-compiled-hybrid-apps">Section 6</a>.</p>
+<h3 id="123-question-3-what-would-you-build-for-an-open-ended-a5-slides-4041">12.3 Question 3: What would you build for an open-ended A5? (slides 40–41)</h3>
+<p>(The slide labels this poll &quot;L12, Q2&quot;; the performance poll was the deck&#39;s first poll.)</p>
+<p><em>L12, Q2: If A5 was an open-ended web or app dev project, what would you build?</em> Assume you&#39;d use Angular or Ionic + Angular to build a website or app.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Answer</strong>: an opinion poll — there is no correct answer. To decide between a website (Angular) and an app (Ionic + Angular), use the considerations in <a href="#7-choosing-a-development-approach">Section 7</a> and the trade-offs in <a href="#8-pros-and-cons-hybrid-vs-native">Section 8</a>: does the idea need device capabilities (camera, geolocation — Capacitor plugins) or a mobile-app feel, or is a responsive website enough?</p>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Approaches</strong></p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Codebase</th>
+<th>What runs on the phone</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Native</td>
+<td>One per platform</td>
+<td>Native app</td>
+<td>Xcode + Swift/Objective-C; Android Studio + Java/Kotlin</td>
+</tr>
+<tr>
+<td>WebView hybrid</td>
+<td>One (HTML/CSS/TS/JS)</td>
+<td>Website in the phone&#39;s browser, inside a light native app</td>
+<td>Ionic (+ Capacitor), NativeScript</td>
+</tr>
+<tr>
+<td>Compiled hybrid</td>
+<td>One (C# or JavaScript)</td>
+<td>Native app per platform, compiled</td>
+<td>Unity (C#), React Native (JavaScript)</td>
+</tr>
+<tr>
+<td>Responsive web</td>
+<td>One</td>
+<td>Website in the browser</td>
+<td>Bootstrap-style sites (<a href="/notes/in4matx-133/lec-04/en-US/#10-the-bootstrap-grid-system">Lecture 4</a>)</td>
+</tr>
+</tbody></table>
+<p><strong>Platforms</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>iOS</th>
+<th>Android</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Languages</td>
+<td>Objective-C, Swift (Cocoa Touch API)</td>
+<td>Java, Kotlin; C/C++ via NDK</td>
+</tr>
+<tr>
+<td>Tools</td>
+<td>Xcode, iOS SDK</td>
+<td>Android Studio, Android SDK, Rider / VS</td>
+</tr>
+<tr>
+<td>To deploy</td>
+<td>Xcode + developer account; beta deployment available</td>
+<td>Android Studio</td>
+</tr>
+</tbody></table>
+<p><strong>Ionic stack</strong></p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ionic</td>
+<td>WebView framework (2013); Angular-style mobile components; also React and Vue</td>
+</tr>
+<tr>
+<td>Capacitor</td>
+<td>The native app that opens the WebView + plugins for device resources (official and community)</td>
+</tr>
+<tr>
+<td>Ionic Dev</td>
+<td>Test the app in a browser</td>
+</tr>
+<tr>
+<td>Xcode / Android Studio</td>
+<td>Projects pre-built by Capacitor; run on a device or emulator (limited plugins) and sign for the stores</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>Native = one app per platform with the maker&#39;s tools and languages: best performance and platform consistency, highest cost.</li>
+<li>Hybrid = one codebase for many platforms, in two flavours: WebView (a website in a native shell) and compiled hybrid (compiled to native code).</li>
+<li>Performance ranking: native best, compiled hybrid in between, WebView worst.</li>
+<li>Choose native when performance and consistency with the platform matter most; hybrid when time or money matters and you must ship on several platforms — and many real apps mix both.</li>
+<li>Ionic is a WebView framework built on Angular; Capacitor supplies the native app and the plugins, and Xcode / Android Studio are still needed to test on devices and deploy.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/notes/in4matx-133/lec-11/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Lecture 11</span><span class="pager-title" data-astro-cid-gxyjxt6l>Separation in Angular</span></a><a class="card interactive pager-card pager-next" href="/notes/in4matx-133/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Course hub<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>IN4MATX 133 · User Interface Software</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/notes/in4matx-133/lec-11/en-US/" title="Previous: Separation in Angular ([)" aria-label="Previous: Lecture 11" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Lecture 11</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>IN4MATX 133</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Lecture 12</span></button><a class="rb-btn rb-lang" href="/notes/in4matx-133/lec-12/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/_astro/NoteReader.astro_astro_type_script_index_0_lang.GgOyItmQ.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/assets/js/bento.js" defer></script><script src="/assets/js/chat-widget.js" defer></script></body></html>

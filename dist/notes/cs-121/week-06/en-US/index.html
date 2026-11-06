@@ -1,0 +1,990 @@
+<!DOCTYPE html><html lang="en-US"><head><title>CS 121 Inverted Index, Index Construction | Kazuha Mo — UC Irvine</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="The inverted index (dictionary and postings), the indexer's sort-and-merge steps, AND queries by merging postings, the Boolean retrieval model, the abstract model of ranking, postings with counts, positions, extents and scores, the simple in-memory indexer, docIDs, and the hardware limits that make in-memory indexing break."><link rel="canonical" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/en-US/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/assets/css/bento.css"><script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("kzh-theme");
+          var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {}
+      })();
+    </script><link rel="alternate" hreflang="en-US" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/en-US/"><link rel="alternate" hreflang="zh-CN" href="https://ics.uci.edu/~kazuhak/notes/cs-121/week-06/zh-CN/"><link rel="stylesheet" href="/_astro/BaseLayout.CnlNRG6h.css"><link rel="stylesheet" href="/_astro/Icon.jM-Mre54.css"><link rel="stylesheet" href="/_astro/katex.mPfuf26R.css"><link rel="stylesheet" href="/_astro/index.DDRCxMj7.css"></head><body data-nav-path="/notes/"><div class="app"><nav class="nav" aria-label="Primary"><div class="nav-brand"><a href="/" class="nav-logo" aria-label="Home">K</a><span class="nav-name">Kazuha Mo</span></div><div class="nav-links"><a href="/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Home</a><a href="/notes/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><rect width="16" height="20" x="4" y="2" rx="2"></rect><path d="M9.5 8h5"></path><path d="M9.5 12h5"></path><path d="M9.5 16H14"></path></svg>Notes</a><a href="/tools/" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Tools</a><a href="/about.html" class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>About</a></div><div class="nav-actions"><button class="theme-btn" aria-label="Toggle theme"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg></button></div></nav><main id="main" class="alt" data-note-reader data-lang="en-US" data-viz-base="/assets/viz/" data-viz-version="1794007439" data-source-url="/notes/cs-121/week-06/en-US/source.md" data-editor-url="/tools/md-editor/" data-alt-url="/notes/cs-121/week-06/zh-CN/" data-prev-url="/notes/cs-121/week-05/en-US/" data-astro-cid-gxyjxt6l><section id="one" data-astro-cid-gxyjxt6l><div class="inner notes-shell" data-astro-cid-gxyjxt6l><div class="notes-intro" id="notes-intro" data-astro-cid-gxyjxt6l><nav class="crumbs notes-breadcrumb" aria-label="Breadcrumb" data-astro-cid-gxyjxt6l><a href="/notes/" class="crumb" data-astro-cid-gxyjxt6l>Notes</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><a href="/notes/cs-121/" class="crumb" data-hub-link data-astro-cid-gxyjxt6l>CS 121</a><span class="crumb-sep" data-astro-cid-gxyjxt6l>›</span><span class="crumb crumb-current" data-astro-cid-gxyjxt6l>Week 6</span><div class="intro-actions" data-astro-cid-gxyjxt6l><a class="intro-pill pill-blue" href="/notes/cs-121/week-06/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>中文</a><button type="button" class="viewer-goto-btn" id="goto-heading-viewer" title="Go to heading… (Ctrl/Cmd+Shift+O)" aria-label="Go to heading" hidden data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-gxyjxt6l><path d="M15 6h6" data-astro-cid-gxyjxt6l></path><path d="M15 12h6" data-astro-cid-gxyjxt6l></path><path d="M15 18h6" data-astro-cid-gxyjxt6l></path><circle cx="6" cy="9" r="3" data-astro-cid-gxyjxt6l></circle><path d="m11 14-2.5-2.5" data-astro-cid-gxyjxt6l></path></svg><span data-astro-cid-gxyjxt6l>Headings</span></button><button type="button" class="intro-pill pill-green" data-open-editor data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Open in Editor</button></div></nav><h2 id="reader-heading" data-astro-cid-gxyjxt6l>Week 6 · Information Retrieval Reading Notes</h2><p id="reader-description" data-astro-cid-gxyjxt6l>This page presents CS 121 Week 6 notes in a structured reading format so you can review text processing, the web graph, SEO, web crawling, and how search engines index and rank pages week by week. The path below takes you back to Notes, Course Notes, the course page, or this note file. Hover over the ≡ icon on the right side to open the Table of Contents.</p><p class="notes-date" id="notes-date" data-astro-cid-gxyjxt6l>Last edited on November 4, 2026</p></div><div class="viewer-card" id="viewer-card" data-astro-cid-gxyjxt6l><article class="markdown-body" id="content" data-astro-cid-gxyjxt6l><h1 id="cs-121-information-retrieval--week-6-inverted-index-index-construction-query-processing">CS 121: Information Retrieval — Week 6: Inverted Index, Index Construction, Query Processing</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#1-where-we-are-from-the-matrix-to-the-index">1. Where We Are: From the Matrix to the Index</a></li>
+<li><a href="#2-the-inverted-index-dictionary-and-postings">2. The Inverted Index: Dictionary and Postings</a></li>
+<li><a href="#3-building-it-the-indexer-steps">3. Building It: The Indexer Steps</a></li>
+<li><a href="#4-does-the-index-fit-in-memory">4. Does the Index Fit in Memory?</a></li>
+<li><a href="#5-query-processing-and-by-merging-postings">5. Query Processing: AND by Merging Postings</a></li>
+<li><a href="#6-the-boolean-retrieval-model">6. The Boolean Retrieval Model</a></li>
+<li><a href="#7-indexes-and-ranking-the-abstract-model">7. Indexes and Ranking: The Abstract Model</a></li>
+<li><a href="#8-richer-postings-counts-positions-extents-scores">8. Richer Postings: Counts, Positions, Extents, Scores</a></li>
+<li><a href="#9-the-simple-in-memory-indexer-and-docids">9. The Simple In-Memory Indexer and DocIDs</a></li>
+<li><a href="#10-scaling-index-construction-hardware-basics">10. Scaling Index Construction: Hardware Basics</a></li>
+<li><a href="#11-in-class-notes--assignment-tips">11. In-class Notes &amp; Assignment Tips</a></li>
+<li><a href="#12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</a></li>
+<li><a href="#13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</a></li>
+</ul>
+<blockquote>
+<p>UCI CS 121 / IN4MATX 141: Information Retrieval — Prof. Alberto Krone-Martins, Fall 2026, week of Nov 4<br>Built from the Lecture 15 and 16 slides (the YuJa videos are not included; the in-class Lecture 14.5 deck wasn&#39;t posted). Organized by concept, not by lecture.<br>📖 Readings this week: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft et al., Ch 5 Ranking with Indexes</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">Manning, Raghavan &amp; Schütze, <em>Introduction to IR</em>, Ch 2 and 4</a></p>
+</blockquote>
+<blockquote>
+<p>📅 <strong>Class logistics</strong>: Online Quiz 2 is in class on <strong>Wednesday, Nov 4</strong> (bring your laptop).<br>Assignment 3 Milestone 1 (the indexer) is due <strong>Friday, Nov 6</strong>.<br>Next week: <strong>no in-person class on Nov 11</strong> (Veterans Day); Assignment 3 Milestone 2 is due <strong>Friday, Nov 13</strong>.</p>
+</blockquote>
+<hr>
+<h2 id="1-where-we-are-from-the-matrix-to-the-index">1. Where We Are: From the Matrix to the Index</h2>
+<p>Both decks open on the architecture diagram (L15 p2, p28 · L16 p2; the full diagram is in <a href="/notes/cs-121/week-01/en-US/#10-search-engine-architecture">Week 1 §10</a>). This week lives in two boxes: <strong>Index Creation</strong> (building the index from processed text) and the <strong>Querying Process</strong> side (using the index to answer a query).</p>
+<p>L15 starts by replaying the end of Lecture 14 (L15 p3–9): the Shakespeare query <em>Brutus AND Caesar but NOT Calpurnia</em>, the term-document <strong>incidence matrix</strong>, and answering it with <strong>bitwise AND</strong> over 0/1 rows (result <code>1 0 0 1 0 0</code> = <em>Antony and Cleopatra</em> and <em>Hamlet</em>). That&#39;s all in <a href="/notes/cs-121/week-05/en-US/#13-the-term-document-incidence-matrix">Week 5 §13</a>, with a demo.</p>
+<p>The &quot;Problem&quot; slide (L15 p9) is the bridge to this week: the matrix is <strong>unfeasible for a large number of documents</strong> because of its size — <strong>but the matrix is sparse</strong>. The numbers are in <a href="/notes/cs-121/week-05/en-US/#14-why-the-matrix-doesnt-scale">Week 5 §14</a>. &quot;So…&quot; → store only the 1s. That&#39;s the inverted index.</p>
+<hr>
+<h2 id="2-the-inverted-index-dictionary-and-postings">2. The Inverted Index: Dictionary and Postings</h2>
+<h3 id="21-one-list-per-term">2.1 One list per term</h3>
+<p><strong>For each term <em>t</em>, store a list of all documents that contain <em>t</em></strong> (L15 p10–13). Each document is identified by a <strong>docID</strong>, a document serial number.</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Brutus    → 1  2  4  11  31  45  173  174
+Caesar    → 1  2  4   5   6  16   57  132
+Calpurnia → 2  31 54 101</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The slide&#39;s question: <strong>can we use fixed-size arrays for this?</strong> What happens if the word <em>Caesar</em> is added to document 14? (Answer in <a href="#121-adding-caesar-to-document-14-l15-p1114">Worked Example 12.1</a>.) So we need <strong>variable-size postings lists</strong> (L15 p14):</p>
+<ul>
+<li><strong>On disk</strong>, a <strong>continuous run of postings</strong> is the optimal solution.</li>
+<li><strong>In memory</strong>, use linked lists, variable-length arrays, or associative arrays — with some <strong>trade-offs in size and ease of insertion</strong>.</li>
+</ul>
+<p>The vocabulary on that slide:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Dictionary</strong></td>
+<td>The terms (Brutus, Caesar, Calpurnia)</td>
+</tr>
+<tr>
+<td><strong>Postings</strong></td>
+<td>All the lists together</td>
+</tr>
+<tr>
+<td><strong>Posting</strong></td>
+<td>One entry of a list (one docID)</td>
+</tr>
+</tbody></table>
+<p>The lists are <strong>sorted by docID</strong> (&quot;more later on why&quot; — the reason is the merge in <a href="#5-query-processing-and-by-merging-postings">§5</a>).</p>
+<p>In code, the inverted index is normally a <strong>map/dictionary with the term as the key and the postings list as the value</strong> (L15 p15): <code>friend → 2, 4, …</code>, <code>roman → 1, 2, …</code>, <code>countryman → 13, 16</code>.</p>
+<h3 id="22-indexes-in-general-and-the-terminology">2.2 Indexes in general, and the terminology</h3>
+<p><strong>Indexes are data structures designed to make search faster</strong> (L15 p38–39 · L16 p3). Text search has unique requirements, which leads to unique data structures. The most common one is the <strong>inverted index</strong>:</p>
+<ul>
+<li>it&#39;s a <strong>general name for a class of structures</strong>, not one fixed layout;</li>
+<li>it&#39;s &quot;<strong>inverted</strong>&quot; because <strong>documents are associated with words</strong>, rather than words with documents — similar to a <strong>concordance</strong> (the index at the back of a book).</li>
+</ul>
+<p>Croft&#39;s terms (L15 p46):</p>
+<ul>
+<li>Each index term is associated with an <strong>inverted list</strong>. It contains lists of documents, or lists of word occurrences in documents, plus other information.</li>
+<li>Each entry is a <strong>posting</strong>. The part of the posting that refers to a specific document or location is the <strong>pointer</strong>.</li>
+<li>Each document in the collection gets a <strong>unique number</strong>.</li>
+<li>Lists are usually <strong>document-ordered</strong> (sorted by document number).</li>
+</ul>
+<h3 id="23-the-running-example-s1s4">2.3 The running example: S1–S4</h3>
+<p>The Croft example used in both decks (L15 p47 · L16 p9) indexes four sentences about tropical fish:</p>
+<ul>
+<li><strong>S1</strong> Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species.</li>
+<li><strong>S2</strong> Fishkeepers often use the term tropical fish to refer only those requiring fresh water, with saltwater tropical fish referred to as marine fish.</li>
+<li><strong>S3</strong> Tropical fish are popular aquarium fish, due to their often bright coloration.</li>
+<li><strong>S4</strong> In freshwater fish, this coloration typically derives from iridescence, while salt water fish are generally pigmented.</li>
+</ul>
+<p>Its <strong>simple inverted index</strong> (each posting = a sentence number; 46 terms):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">and          1          marine       2           species      1
+aquarium     3          often        2 3         term         2
+are          3 4        only         2           the          1 2
+around       1          pigmented    4           their        3
+as           2          popular      3           this         4
+both         1          refer        2           those        2
+bright       3          referred     2           to           2 3
+coloration   3 4        requiring    2           tropical     1 2 3
+derives      4          salt         1 4         typically    4
+due          3          saltwater    2           use          2
+environments 1          fish         1 2 3 4     water        1 2 4
+fishkeepers  2          found        1           while        4
+fresh        2          freshwater   1 4         with         2
+from         4          generally    4           world        1
+in           1 4        include      1
+including    1          iridescence  4</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The index never stores the 0s. <code>fish</code> has 4 postings, <code>marine</code> has 1 — space grows with the number of (term, document) pairs, not terms × documents.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#121-adding-caesar-to-document-14-l15-p1114">Worked Example 12.1</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.3 Inverted Indexes and §5.3.1 Documents (book p. 129, 131)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 1–2</a></p>
+</blockquote>
+<hr>
+<h2 id="3-building-it-the-indexer-steps">3. Building It: The Indexer Steps</h2>
+<h3 id="31-the-pipeline">3.1 The pipeline</h3>
+<p>Inverted index construction (L15 p16–19, built up one stage per frame):</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Documents to be indexed</td>
+<td><code>Friends, Romans, countrymen.</code></td>
+</tr>
+<tr>
+<td><strong>Tokenizer</strong> → token stream</td>
+<td><code>Friends</code> <code>Romans</code> <code>Countrymen</code></td>
+</tr>
+<tr>
+<td><strong>Text processing: linguistic modules</strong> → modified tokens</td>
+<td><code>friend</code> <code>roman</code> <code>countryman</code></td>
+</tr>
+<tr>
+<td><strong>Indexer</strong> → inverted index</td>
+<td><code>friend → 2 → 4</code>, <code>roman → 1 → 2</code>, <code>countryman → 13 → 16</code></td>
+</tr>
+</tbody></table>
+<p>The <strong>typical minimal stages of text processing</strong> (L15 p20) are the Week 5 topics: <strong>tokenization</strong> (cut the character sequence into word tokens; deal with &quot;John&#39;s&quot;, <em>a state-of-the-art solution</em>), <strong>normalization</strong> (map text and query terms to the same form: you want <em>U.S.A.</em> and <em>USA</em> to match), <strong>stemming, perhaps</strong> (<em>authorize</em>, <em>authorization</em>), and <strong>stop words, perhaps</strong> (<em>the, a, to, of</em> — may be omitted, or not). Details: <a href="/notes/cs-121/week-05/en-US/#3-the-tokenizing-process">Week 5 §3 Tokenizing</a>, <a href="/notes/cs-121/week-05/en-US/#4-stopping">§4 Stopping</a>, <a href="/notes/cs-121/week-05/en-US/#5-stemming">§5 Stemming</a>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: Whatever you do to document tokens, you must do to <strong>query</strong> terms too (that&#39;s what &quot;map text and query term to the same form&quot; means). Stem <em>authorization</em> in the index but not in the query, and the query misses.</p>
+</blockquote>
+<h3 id="32-token-sequence--sort--dictionary-and-postings">3.2 Token sequence → sort → dictionary and postings</h3>
+<p>The two documents (L15 p21):</p>
+<ul>
+<li><strong>Doc 1</strong>: <em>I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me.</em></li>
+<li><strong>Doc 2</strong>: <em>So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious</em></li>
+</ul>
+<ol>
+<li><strong>Token sequence</strong> (L15 p21): a sequence of <strong>(modified token, document ID) pairs</strong>, in text order — <code>(I, 1) (did, 1) (enact, 1) … (me, 1) (so, 2) … (ambitious, 2)</code>: 29 pairs.</li>
+<li><strong>Sort</strong> (L15 p22) by term, then by docID: <code>(ambitious, 2) (be, 2) (brutus, 1) (brutus, 2) (caesar, 1) (caesar, 2) (caesar, 2) (capitol, 1) …</code>.</li>
+<li><strong>Merge and split</strong> (L15 p22): multiple entries of a term in a single document are <strong>merged</strong>; the result is split into a <strong>dictionary</strong> and <strong>postings</strong>; <strong>document frequency</strong> (number of documents containing the term) is added to the dictionary. &quot;Why frequency? Will discuss later.&quot;</li>
+</ol>
+<p>Result: 22 terms. The ones with two postings are <code>brutus</code>, <code>caesar</code>, <code>the</code>, <code>was</code> (df = 2, postings <code>1 → 2</code>); every other term has df = 1.</p>
+<blockquote>
+<p>⚠️ <strong>Slide error</strong> (L15 p22): the sorted table lists <code>hath | 1</code>, but <em>hath</em> is only in Doc 2. The postings column on the same slide (and on p23) correctly shows <code>hath → 2</code>. The same table also lists <code>capitol</code> before <code>caesar</code>.</p>
+</blockquote>
+<p>Step through the construction — or type your own documents (<code>docID: text; docID: text</code>):</p>
+<pre data-language="viz" data-viz="inverted-index"><code>{&quot;title&quot;: &quot;Indexer steps on Doc 1 and Doc 2 (L15 p21–23)&quot;, &quot;docs&quot;: &quot;1: I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me. ; 2: So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious&quot;, &quot;postings&quot;: &quot;docs&quot;, &quot;interactive&quot;: true}</code></pre><h3 id="33-where-do-we-pay-in-storage">3.3 Where do we pay in storage?</h3>
+<p>L15 p23 points at the two parts of the result: the <strong>terms and counts</strong> (the dictionary) and the <strong>lists of docIDs</strong> (the postings). The two questions for IR system implementation: <strong>how do we index efficiently?</strong> and <strong>how much storage do we need?</strong> — <a href="#4-does-the-index-fit-in-memory">§4</a>, <a href="#9-the-simple-in-memory-indexer-and-docids">§9</a> and <a href="#10-scaling-index-construction-hardware-basics">§10</a>.</p>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#122-index-doc-1-and-doc-2-l15-p2123">Worked Example 12.2</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.6.1 Simple Construction (book p. 156)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 1, Ch 2</a></p>
+</blockquote>
+<hr>
+<h2 id="4-does-the-index-fit-in-memory">4. Does the Index Fit in Memory?</h2>
+<p><strong>Inverted index for small data</strong> (L15 p24–25). If it fits in memory, use Python&#39;s dictionaries <code>{}</code> (or Java&#39;s <code>HashMap</code>):</p>
+<ul>
+<li>fill it during indexing,</li>
+<li>write it to a file,</li>
+<li>load it back into the dict/HashMap for search.</li>
+</ul>
+<p>Very simple to implement… <strong>but this will not work in any realistic web search engine</strong>.</p>
+<p><strong>Inverted index for large data</strong> — a back-of-the-envelope calculation (L15 p26):</p>
+<table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Vocabulary</td>
+<td>50,000 tokens</td>
+</tr>
+<tr>
+<td>Average postings list size</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Postings</td>
+<td>50,000 × 20 = <strong>1,000,000</strong></td>
+</tr>
+<tr>
+<td>DocID = URL, average 50 characters</td>
+<td>≈ 100 bytes each (Python)</td>
+</tr>
+<tr>
+<td>Postings storage</td>
+<td>1,000,000 × 100 = <strong>100,000,000 bytes = 100 MB</strong></td>
+</tr>
+<tr>
+<td>Plus payload per posting (e.g. tf-idf), 4 bytes each</td>
+<td>many more MB</td>
+</tr>
+</tbody></table>
+<p>And the web comprises <strong>far more than 10⁶ documents</strong> (hosts alone are more than 10⁹). So <strong>usually the index does not fit in memory all at once</strong> → out-of-memory errors.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Two levers come out of this slide: make postings smaller (integer docIDs instead of URLs, <a href="#92-docids-urls-vs-integers">§9.2</a>) and stop assuming the whole index is in RAM (<a href="#10-scaling-index-construction-hardware-basics">§10</a>).</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#123-how-big-is-the-index-l15-p26">Worked Example 12.3</a></p>
+</blockquote>
+<hr>
+<h2 id="5-query-processing-and-by-merging-postings">5. Query Processing: AND by Merging Postings</h2>
+<p>&quot;The index we just built: how do we process a query?&quot; (L15 p27–29; <em>what kinds of queries can we process</em> comes later.)</p>
+<p>Query <strong>Brutus AND Caesar</strong> (L15 p30):</p>
+<ol>
+<li>Locate <em>Brutus</em> in the dictionary; retrieve its postings.</li>
+<li>Locate <em>Caesar</em> in the dictionary; retrieve its postings.</li>
+<li><strong>&quot;Merge&quot;</strong> the two postings: <strong>intersect</strong> the document sets.</li>
+</ol>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">Brutus → 2 → 4 → 8 → 16 → 32 → 64 → 128
+Caesar → 1 → 2 → 3 → 5 → 8 → 13 → 21 → 34
+answer:  2, 8</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>The merge</strong> (L15 p31): walk through the two postings <strong>simultaneously</strong>, in time <strong>linear in the total number of postings entries</strong>. If the list lengths are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi></mrow><annotation encoding="application/x-tex">x</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi></mrow><annotation encoding="application/x-tex">y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, the merge at query time takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> operations. <strong>Crucial: postings sorted by docID.</strong></p>
+<p>The algorithm (L15 p32):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">INTERSECT(p1, p2)
+ 1  answer ← ⟨ ⟩
+ 2  while p1 ≠ NIL and p2 ≠ NIL
+ 3  do if docID(p1) = docID(p2)
+ 4        then ADD(answer, docID(p1))
+ 5             p1 ← next(p1)
+ 6             p2 ← next(p2)
+ 7        else if docID(p1) &lt; docID(p2)
+ 8                then p1 ← next(p1)
+ 9                else p2 ← next(p2)
+10  return answer</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The same thing in Python, with list indexes as the pointers:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> intersect</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">p1</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">p2</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#CE9178">    """INTERSECT from L15 p32, on Python lists."""</span></span>
+<span class="line"><span style="color:#D4D4D4">    answer = []</span></span>
+<span class="line"><span style="color:#D4D4D4">    i = j = </span><span style="color:#B5CEA8">0</span></span>
+<span class="line"><span style="color:#C586C0">    while</span><span style="color:#D4D4D4"> i &#x3C; </span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(p1) </span><span style="color:#569CD6">and</span><span style="color:#D4D4D4"> j &#x3C; </span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(p2):</span></span>
+<span class="line"><span style="color:#C586C0">        if</span><span style="color:#D4D4D4"> p1[i] == p2[j]:</span></span>
+<span class="line"><span style="color:#D4D4D4">            answer.append(p1[i])</span></span>
+<span class="line"><span style="color:#D4D4D4">            i += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#D4D4D4">            j += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">        elif</span><span style="color:#D4D4D4"> p1[i] &#x3C; p2[j]:</span></span>
+<span class="line"><span style="color:#D4D4D4">            i += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">        else</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#D4D4D4">            j += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> answer</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">brutus = [</span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">4</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">16</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">32</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">64</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">128</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">caesar = [</span><span style="color:#B5CEA8">1</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">2</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">3</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">5</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">8</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">13</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">21</span><span style="color:#D4D4D4">, </span><span style="color:#B5CEA8">34</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(intersect(brutus, caesar))   </span><span style="color:#6A9955"># [2, 8]</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Why the smaller pointer may move: if <code>p1[i] &lt; p2[j]</code>, the other list has already passed <code>p1[i]</code> (it&#39;s sorted), so document <code>p1[i]</code> can&#39;t be in both. Try your own lists (<code>list1 | list2</code>):</p>
+<pre data-language="viz" data-viz="postings-intersect"><code>{&quot;title&quot;: &quot;Brutus AND Caesar (L15 p30–32)&quot;, &quot;lists&quot;: &quot;2 4 8 16 32 64 128 | 1 2 3 5 8 13 21 34&quot;, &quot;terms&quot;: &quot;Brutus, Caesar&quot;, &quot;interactive&quot;: true}</code></pre><blockquote>
+<p>⚠️ <strong>Pitfall</strong>: The <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> merge depends on both lists being <strong>sorted by docID</strong> (L15 p31) — that&#39;s the &quot;more later on why&quot; of L15 p14.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#124-brutus-and-caesar-by-merging-l15-p3032">Worked Example 12.4</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.7 Query Processing (book p. 165)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 1 (processing Boolean queries)</a></p>
+</blockquote>
+<hr>
+<h2 id="6-the-boolean-retrieval-model">6. The Boolean Retrieval Model</h2>
+<p><strong>Boolean queries: exact match</strong> (L15 p33–34):</p>
+<ul>
+<li>In the <strong>Boolean retrieval model</strong>, queries are Boolean expressions joining terms with <strong>AND, OR and NOT</strong>.</li>
+<li>It views each document as a <strong>set of words</strong>.</li>
+<li>It is <strong>precise</strong>: a document <strong>matches the condition or not</strong> — no ranking.</li>
+<li>Perhaps the simplest model to build an IR system on; the <strong>primary commercial retrieval tool for 3 decades</strong>.</li>
+<li>Many search systems are still Boolean: <strong>email, library catalogs, macOS Spotlight</strong>.</li>
+</ul>
+<p><strong>Example: WestLaw</strong> (L15 p35–37), the largest commercial (paying subscribers) legal search service: started 1975, ranking added 1992, federated search added 2010; tens of terabytes of data, ~700,000 users. The slide shows its Advanced Search page (fields for terms, connectors and expanders, date and citation restrictions). <strong>The majority of users still use Boolean queries</strong> — in law, it is important to have <strong>&quot;exact&quot;</strong> results.</p>
+<table>
+<thead>
+<tr>
+<th>Information need</th>
+<th>WestLaw query</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>What is the statute of limitations in cases involving the federal tort claims act?</td>
+<td><code>LIMIT! /3 STATUTE ACTION /S FEDERAL /2 TORT /3 CLAIM</code></td>
+</tr>
+<tr>
+<td>Requirements for disabled people to be able to access a workplace</td>
+<td><code>disabl! /p access! /s work-site work-place (employment /3 place</code></td>
+</tr>
+</tbody></table>
+<p><code>/3</code> = within 3 words, <code>/S</code> = in the same sentence. <strong>Note that SPACE is disjunction (OR), not conjunction!</strong></p>
+<p>These are long, precise queries with proximity operators, developed incrementally — <strong>not like web search</strong>. Many professional searchers still like Boolean search: <strong>you know exactly what you are getting</strong>.</p>
+<blockquote>
+<p>⚠️ <strong>Pitfall</strong>: In WestLaw, <code>work-site work-place</code> means work-site <strong>OR</strong> work-place. In Assignment 3 MS2 it&#39;s the opposite: <code>cristina lopes</code> means AND (<a href="#11-in-class-notes--assignment-tips">§11</a>). The space operator is a design choice of each system.</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="http://www.westlaw.com/">WestLaw (slide link)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 1 (the Boolean retrieval model)</a></p>
+</blockquote>
+<hr>
+<h2 id="7-indexes-and-ranking-the-abstract-model">7. Indexes and Ranking: The Abstract Model</h2>
+<p><strong>Indexes and ranking</strong> (L15 p40): indexes are designed to support search — <strong>faster response time, and updates</strong>. Web search engines use a particular form of search, <strong>ranking</strong>: documents are retrieved <strong>in sorted order</strong> according to a <strong>score</strong> computed from the document representation, the query and a ranking algorithm. A reasonable <strong>abstract model of ranking</strong> lets us discuss indexes without the details of a retrieval model.</p>
+<p><strong>Abstract model of ranking</strong> (L15 p41–44 · L16 p4–7, built up over four frames). The document is <em>Fred&#39;s Tropical Fish Shop</em> (&quot;…the best place to find tropical fish at low, low prices. Whether you&#39;re looking for a little fish or a big fish… We even have fake seaweed for your fishtank (and little surfboards too).&quot;).</p>
+<table>
+<thead>
+<tr>
+<th>Topical features (from the text)</th>
+<th>Quality features (about the document)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9.7 fish · 4.2 tropical · 22.1 tropical fish · 8.2 seaweed · 4.2 surfboards</td>
+<td>14 incoming links · 3 days since last update</td>
+</tr>
+</tbody></table>
+<p>A <strong>feature function</strong> maps text to a real number, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mtext>text</mtext><mo stretchy="false">)</mo><mo>→</mo><mi mathvariant="double-struck">R</mi></mrow><annotation encoding="application/x-tex">f(\text{text}) \to \mathbb{R}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord text"><span class="mord">text</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6889em;"></span><span class="mord mathbb">R</span></span></span></span> (L15 p43). The <strong>ranking function</strong> takes the features and the query (<em>tropical fish</em>) and produces a <strong>document score</strong> (24.5 in the abstract picture).</p>
+<p><strong>More concrete model</strong> (L15 p45 · L16 p8):</p>
+<div class="math-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q, D) = \sum_i g_i(Q)\, f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3277em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></span></div>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">f_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is a <strong>document feature function</strong>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">g_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is a <strong>query feature function</strong>, and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> runs over the features. The query <em>tropical fish</em> has its own feature values:</p>
+<table>
+<thead>
+<tr>
+<th>Feature <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span></th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">g_i(Q)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fish</td>
+<td>9.7</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>tropical</td>
+<td>4.2</td>
+<td>3.4</td>
+</tr>
+<tr>
+<td>tropical fish</td>
+<td>22.1</td>
+<td>9.9</td>
+</tr>
+<tr>
+<td>seaweed</td>
+<td>8.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>surfboards</td>
+<td>4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>chichlids</td>
+<td>—</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>barbs</td>
+<td>—</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>incoming links</td>
+<td>14</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>update count</td>
+<td>3</td>
+<td>0.9</td>
+</tr>
+</tbody></table>
+<p>Only features present on <strong>both</strong> sides contribute, giving the slide&#39;s <strong>document score 303.01</strong>.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: Ranking is a sum over features of (query weight × document value). The index&#39;s job is to make the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span> cheap to find — which is why <a href="#8-richer-postings-counts-positions-extents-scores">§8</a> puts more information into postings.</p>
+</blockquote>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#125-the-document-score-30301-l15-p45--l16-p8">Worked Example 12.5</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.2 Abstract Model of Ranking (book p. 126)</a></p>
+</blockquote>
+<hr>
+<h2 id="8-richer-postings-counts-positions-extents-scores">8. Richer Postings: Counts, Positions, Extents, Scores</h2>
+<p>L16 p9–18 takes the S1–S4 index from <a href="#23-the-running-example-s1s4">§2.3</a> and adds information to each posting, one kind at a time.</p>
+<h3 id="81-counts">8.1 Counts</h3>
+<p><strong>Inverted index with counts</strong> (L16 p10): each posting is <code>docID:count</code>, the number of times the term occurs in that document. It <strong>supports better ranking algorithms</strong>.</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">fish      1:2  2:3  3:2  4:2
+tropical  1:2  2:2  3:1
+to        2:2  3:1
+the       1:1  2:1</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>(every other term has count 1 in each of its documents).</p>
+<h3 id="82-positions-and-proximity-matches">8.2 Positions and proximity matches</h3>
+<p><strong>Inverted index with positions</strong> (L16 p11): each posting is <code>docID,position</code> (word number in the sentence), one posting per occurrence. It <strong>supports proximity matches</strong>.</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">tropical  1,1  1,7  2,6  2,17  3,1
+fish      1,2  1,4  2,7  2,18  2,23  3,2  3,6  4,3  4,13
+water     1,17  2,14  4,12</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><strong>Proximity matches</strong> (L16 p12–13): matching <strong>phrases</strong> (&quot;tropical fish&quot;) or <strong>words within a window</strong> (&quot;find <em>tropical</em> within 5 words of <em>fish</em>&quot;). An inverted index whose postings store positions — postings <code>[docID, word pos]</code> — makes these query features <strong>efficient</strong>: align the two lists and look for <code>fish</code> at position <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> after <code>tropical</code> at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span>, in the same document.</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">tropical  1,1        1,7  2,6  2,17        3,1
+fish      1,2  1,4        2,7  2,18  2,23  3,2  3,6  4,3  4,13</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>The phrase <em>tropical fish</em> occurs at 1,1–2 · 2,6–7 · 2,17–18 · 3,1–2 (S4 has no <em>tropical</em>). The full positional index, built step by step:</p>
+<pre data-language="viz" data-viz="inverted-index"><code>{&quot;title&quot;: &quot;Positional index of S1–S4 (L16 p11)&quot;, &quot;docs&quot;: &quot;1: Tropical fish include fish found in tropical environments around the world, including both freshwater and salt water species. ; 2: Fishkeepers often use the term tropical fish to refer only those requiring fresh water, with saltwater tropical fish referred to as marine fish. ; 3: Tropical fish are popular aquarium fish, due to their often bright coloration. ; 4: In freshwater fish, this coloration typically derives from iridescence, while salt water fish are generally pigmented.&quot;, &quot;postings&quot;: &quot;positions&quot;}</code></pre><h3 id="83-fields-and-extents">8.3 Fields and extents</h3>
+<p><strong>Document structure is useful in search</strong> (L16 p14–15; <a href="/notes/cs-121/week-05/en-US/#11-document-structure-and-markup">Week 5 §11</a>):</p>
+<ul>
+<li><strong>field restrictions</strong> — e.g. date, <code>from:</code>, etc.;</li>
+<li><strong>words in some fields are more important</strong> — e.g. the title!</li>
+</ul>
+<p>Options to capture this in the index:</p>
+<ol>
+<li><strong>separate inverted indexes for each field type</strong>;</li>
+<li><strong>add information about fields to postings</strong>;</li>
+<li>use <strong>extent lists</strong>.</li>
+</ol>
+<p><strong>Extent lists</strong> (L16 p16): an <strong>extent</strong> is a <strong>contiguous region of a document</strong>, represented with word positions. The inverted list for a <strong>field type</strong> records all extents of that field:</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">fish   1,2  1,4  2,7  2,18  2,23  3,2  3,6  4,3  4,13
+title  1:(1,3)  2:(1,5)  4:(9,15)</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p><code>1:(1,3)</code> = a title extent in document 1, given by word positions 1 and 3. To match <em>fish in the title</em>, align the two lists: <code>1,2</code> falls in <code>1:(1,3)</code> and <code>4,13</code> falls in <code>4:(9,15)</code>; document 2&#39;s title <code>(1,5)</code> contains no <code>fish</code> posting, and document 3 has no title extent.</p>
+<h3 id="84-scores-and-score-ordered-lists">8.4 Scores and score-ordered lists</h3>
+<p><strong>Other possibilities</strong> (L16 p17–18):</p>
+<ul>
+<li><strong>Store precomputed scores</strong> in the inverted list, e.g. the list for <em>fish</em> <code>[(1:3.6), (3:2.2)]</code>, where 3.6 is the total feature value for document 1. <strong>Improves speed but reduces flexibility</strong> (change the ranking and you must rebuild).</li>
+<li><strong>Create score-ordered lists</strong>: the query processing engine can <strong>focus only on the top part of each inverted list</strong>, where the highest-scoring documents are. <strong>Very efficient for single-word queries</strong>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Posting stores</th>
+<th>Example</th>
+<th>Enables</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>docID</td>
+<td><code>fish 1 2 3 4</code></td>
+<td>Boolean queries (AND/OR/NOT)</td>
+</tr>
+<tr>
+<td>docID:count</td>
+<td><code>fish 1:2 2:3 3:2 4:2</code></td>
+<td>better ranking (term frequency)</td>
+</tr>
+<tr>
+<td>docID,position</td>
+<td><code>fish 1,2 1,4 …</code></td>
+<td>phrases, proximity windows</td>
+</tr>
+<tr>
+<td>extent list per field</td>
+<td><code>title 1:(1,3) …</code></td>
+<td>field restrictions, title boosts</td>
+</tr>
+<tr>
+<td>docID:score</td>
+<td><code>fish (1:3.6) (3:2.2)</code></td>
+<td>fast ranking; less flexible</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#126-find-the-phrase-tropical-fish-l16-p1113">Worked Example 12.6</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.3.2 Counts (p. 133), §5.3.3 Positions (p. 134), §5.3.4 Fields and Extents (p. 136), §5.3.5 Scores (p. 138), §5.3.6 Ordering (p. 139)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 2 (positional postings and phrase queries)</a></p>
+</blockquote>
+<hr>
+<h2 id="9-the-simple-in-memory-indexer-and-docids">9. The Simple In-Memory Indexer and DocIDs</h2>
+<h3 id="91-buildindex">9.1 BuildIndex</h3>
+<p><strong>Simple in-memory indexer</strong> (L16 p19–22; later frames highlight parts of it):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">procedure BuildIndex(D)                      ▷ D is a set of text documents
+    I ← HashTable()                          ▷ Inverted list storage
+    n ← 0                                    ▷ Document numbering
+    for all documents d ∈ D do
+        n ← n + 1
+        T ← Parse(d)                         ▷ Parse document into tokens
+        Remove duplicates from T
+        for all tokens t ∈ T do
+            if I_t ∉ I then
+                I_t ← List&lt;Posting&gt;()
+            end if
+            I_t.append(Posting(n))
+        end for
+    end for
+    return I
+end procedure</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>What the highlights point at:</p>
+<ul>
+<li><code>n ← 0</code> / <code>n ← n + 1</code> (L16 p22): <strong>document numbering</strong> — docIDs are a counter, not the URL (<a href="#92-docids-urls-vs-integers">§9.2</a>).</li>
+<li><code>List&lt;Posting&gt;()</code> / <code>Posting(n)</code> (L16 p29): what&#39;s inside a posting (<a href="#93-what-a-posting-holds">§9.3</a>).</li>
+<li><code>I ← HashTable()</code> and <code>return I</code> (L16 p32): the whole index lives in one in-memory hash table. &quot;What happens if you run out of memory?&quot; (L16 p33) → <a href="#10-scaling-index-construction-hardware-basics">§10</a>.</li>
+</ul>
+<p>A runnable Python version, with the slide&#39;s <code>Posting</code> class (L16 p31) holding a frequency count:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#C586C0">import</span><span style="color:#D4D4D4"> re</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Posting</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> __init__</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">docid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tfidf</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">fields</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.docid = docid</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.tfidf = tfidf  </span><span style="color:#6A9955"># use freq counts for now</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.fields = fields</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> parse</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">text</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> re.findall(</span><span style="color:#569CD6">r</span><span style="color:#D16969">"</span><span style="color:#CE9178">[</span><span style="color:#D16969">a-z0-9'</span><span style="color:#CE9178">]</span><span style="color:#D7BA7D">+</span><span style="color:#D16969">"</span><span style="color:#D4D4D4">, text.lower())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#569CD6">def</span><span style="color:#DCDCAA"> build_index</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">docs</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#CE9178">    """BuildIndex(D) from L16 p20, with docIDs 1, 2, ..."""</span></span>
+<span class="line"><span style="color:#D4D4D4">    index = {}                          </span><span style="color:#6A9955"># I &#x3C;- HashTable()</span></span>
+<span class="line"><span style="color:#D4D4D4">    n = </span><span style="color:#B5CEA8">0</span><span style="color:#6A9955">                               # document numbering</span></span>
+<span class="line"><span style="color:#C586C0">    for</span><span style="color:#D4D4D4"> d </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> docs:</span></span>
+<span class="line"><span style="color:#D4D4D4">        n += </span><span style="color:#B5CEA8">1</span></span>
+<span class="line"><span style="color:#D4D4D4">        tokens = parse(d)               </span><span style="color:#6A9955"># T &#x3C;- Parse(d)</span></span>
+<span class="line"><span style="color:#C586C0">        for</span><span style="color:#D4D4D4"> t </span><span style="color:#C586C0">in</span><span style="color:#4EC9B0"> set</span><span style="color:#D4D4D4">(tokens):           </span><span style="color:#6A9955"># remove duplicates</span></span>
+<span class="line"><span style="color:#C586C0">            if</span><span style="color:#D4D4D4"> t </span><span style="color:#569CD6">not</span><span style="color:#569CD6"> in</span><span style="color:#D4D4D4"> index:</span></span>
+<span class="line"><span style="color:#D4D4D4">                index[t] = []           </span><span style="color:#6A9955"># List&#x3C;Posting>()</span></span>
+<span class="line"><span style="color:#D4D4D4">            index[t].append(Posting(n, tokens.count(t), []))</span></span>
+<span class="line"><span style="color:#C586C0">    return</span><span style="color:#D4D4D4"> index</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D4D4D4">docs = [</span><span style="color:#CE9178">"I did enact Julius Caesar I was killed i' the Capitol; Brutus killed me."</span><span style="color:#D4D4D4">,</span></span>
+<span class="line"><span style="color:#CE9178">        "So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious"</span><span style="color:#D4D4D4">]</span></span>
+<span class="line"><span style="color:#D4D4D4">index = build_index(docs)</span></span>
+<span class="line"><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> term </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> [</span><span style="color:#CE9178">"brutus"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"caesar"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"killed"</span><span style="color:#D4D4D4">, </span><span style="color:#CE9178">"hath"</span><span style="color:#D4D4D4">]:</span></span>
+<span class="line"><span style="color:#DCDCAA">    print</span><span style="color:#D4D4D4">(term, [(p.docid, p.tfidf) </span><span style="color:#C586C0">for</span><span style="color:#D4D4D4"> p </span><span style="color:#C586C0">in</span><span style="color:#D4D4D4"> index[term]])</span></span>
+<span class="line"><span style="color:#DCDCAA">print</span><span style="color:#D4D4D4">(</span><span style="color:#DCDCAA">len</span><span style="color:#D4D4D4">(index), </span><span style="color:#CE9178">"terms"</span><span style="color:#D4D4D4">)</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">brutus [(1, 1), (2, 1)]
+caesar [(1, 1), (2, 2)]
+killed [(1, 2)]
+hath [(2, 1)]
+22 terms</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Same 22 terms as the sort-based steps of <a href="#32-token-sequence--sort--dictionary-and-postings">§3.2</a>. Documents are processed in docID order, so each list comes out sorted by docID without a sort.</p>
+<h3 id="92-docids-urls-vs-integers">9.2 DocIDs: URLs vs integers</h3>
+<p><strong>If docIDs are URLs</strong> (L16 p23): <code>https://www.ics.uci.edu/~aburtsev/238P/lectures/lecture03-calling-conventions</code> is <strong>77 characters</strong> — 77 bytes in C++, 126 bytes in Python 3, 352 bytes in Java. DocIDs are used in postings lists, and depending on the posting structure can appear <strong>several times in the same list</strong>. <strong>Strings are very wasteful to store and to compare.</strong></p>
+<p><strong>Map URLs to integers as you process documents</strong> (L16 p24):</p>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">0 → https://www.ics.uci.edu/~aburtsev/238P/lectures/lecture03-calling-conventions
+1 → https://www.ics.uci.edu/~goodrich/teach/ics247/notes
+2 → https://www.ics.uci.edu/~thornton/ics184/MidtermSolutions.html
+…</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>Integers are <strong>4 bytes in C, C++ and Java</strong>, <strong>28 bytes in Python</strong> — almost always the same size, independent of the string.</p>
+<p>The estimate for Python 3 (L16 p25–27): 10,000 index terms, <del>20 postings per term, average URL 51 characters (</del>100 bytes):</p>
+<table>
+<thead>
+<tr>
+<th>DocIDs as</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URLs</td>
+<td>10,000 × 20 × 100 ≈ <strong>20,000,000 bytes (20 MB)</strong></td>
+</tr>
+<tr>
+<td>integers</td>
+<td>10,000 × 20 × 28 ≈ <strong>5,600,000 bytes (5.6 MB)</strong></td>
+</tr>
+</tbody></table>
+<p><strong>Reduced to 28%</strong> of the string version → about <strong>4× more postings fit in memory</strong>, and it is <strong>significantly faster to sort</strong>.</p>
+<p><strong>You must keep that mapping stored somewhere</strong> (L16 p28): you need it to show the search results (users want URLs, not numbers). It&#39;s typically <strong>not part of the inverted index itself</strong>, but an <strong>auxiliary bookkeeping structure, serialized to a file</strong> (more on auxiliary structures later).</p>
+<blockquote>
+<p>⚠️ <strong>Slide note</strong> (L16 p24): the &quot;converts integers to longs when they overflow&quot; remark describes Python 2; Python 3 has a single arbitrary-precision <code>int</code>.</p>
+</blockquote>
+<h3 id="93-what-a-posting-holds">9.3 What a posting holds</h3>
+<p><strong>Postings contain the context of the term occurrence in a document</strong> (L16 p30–31): the <strong>doc id</strong>, a <strong>frequency count or TF-IDF</strong>, <strong>fields</strong>, <strong>positions</strong>, … The whole list is bracketed <strong>&quot;Required for Project 3&quot;</strong>, and L16 p30 highlights doc id and frequency count / TF-IDF in red:</p>
+<div class="code-wrap"><pre data-language="python" class="shiki dark-plus" style="background-color:#1E1E1E;color:#D4D4D4" tabindex="0"><code><span class="line"><span style="color:#569CD6">class</span><span style="color:#4EC9B0"> Posting</span><span style="color:#D4D4D4">:</span></span>
+<span class="line"><span style="color:#569CD6">    def</span><span style="color:#DCDCAA"> __init__</span><span style="color:#D4D4D4">(</span><span style="color:#9CDCFE">self</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">docid</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">tfidf</span><span style="color:#D4D4D4">, </span><span style="color:#9CDCFE">fields</span><span style="color:#D4D4D4">):</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.docid = docid</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.tfidf = tfidf  </span><span style="color:#6A9955"># use freq counts for now</span></span>
+<span class="line"><span style="color:#569CD6">        self</span><span style="color:#D4D4D4">.fields = fields</span></span></code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<blockquote>
+<p>📝 <strong>Practice</strong>: <a href="#127-docids-as-urls-vs-integers-l16-p2327">Worked Example 12.7</a></p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.5 Auxiliary Structures (p. 154), §5.6 Index Construction (p. 156)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 4 (index construction)</a></p>
+</blockquote>
+<hr>
+<h2 id="10-scaling-index-construction-hardware-basics">10. Scaling Index Construction: Hardware Basics</h2>
+<p><strong>In-memory index construction does not scale</strong> (L16 p33–37): you can&#39;t fit the entire collection into memory. How do we construct an index for very large collections — <strong>taking into account hardware constraints</strong>: memory, disk, speed, etc.?</p>
+<p><strong>Hardware basics</strong> (L16 p38–42):</p>
+<ul>
+<li>Servers used in IR systems typically have <strong>several GB of main memory</strong>, sometimes hundreds of GB. Available <strong>disk space is 2–3 orders of magnitude larger</strong>.</li>
+<li>But <strong>fault tolerance is very expensive</strong>: it&#39;s much cheaper to use <strong>many regular machines</strong> rather than one fault-tolerant machine — and regular machines have <strong>much smaller RAM</strong>.</li>
+<li>Large-scale storage is based on <strong>spinning disks</strong>. Access to data in memory is <strong>much</strong> faster than access to data on disk.</li>
+<li><strong>Disk seeks</strong>: no data is transferred while the disk head is being positioned. So transferring <strong>one large chunk</strong> from disk to memory is faster than transferring <strong>many small chunks</strong>.</li>
+<li><strong>Disk I/O is block-based</strong>: whole blocks are read and written, not smaller chunks. Block sizes: <strong>8 KB to 256 KB</strong>.</li>
+</ul>
+<p>Jeff Dean&#39;s <strong>&quot;Latency Numbers Every Programmer Should Know&quot;</strong> (L16 p43, 2020 update):</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>L1 cache reference</td>
+<td>0.5–1.5 ns</td>
+</tr>
+<tr>
+<td>L2 cache reference</td>
+<td>5–7 ns</td>
+</tr>
+<tr>
+<td>L3 cache reference</td>
+<td>16–25 ns</td>
+</tr>
+<tr>
+<td>Mutex lock/unlock</td>
+<td>25 ns</td>
+</tr>
+<tr>
+<td>64 MB main memory reference</td>
+<td>50–75 ns</td>
+</tr>
+<tr>
+<td>Send 4 KB over 100 Gbps HPC fabric</td>
+<td>1,040 ns</td>
+</tr>
+<tr>
+<td>Compress 1 KB with Zippy</td>
+<td>2,000 ns (2 µs)</td>
+</tr>
+<tr>
+<td>Read 1 MB sequentially from memory</td>
+<td>3,000 ns (3 µs)</td>
+</tr>
+<tr>
+<td>Send 4 KB over 10 Gbps ethernet</td>
+<td>10,000 ns (10 µs)</td>
+</tr>
+<tr>
+<td>Read 1 MB sequentially from SSD</td>
+<td>49,000 ns (49 µs)</td>
+</tr>
+<tr>
+<td>Read 1 MB sequentially from HDD</td>
+<td>825,000 ns (825 µs)</td>
+</tr>
+<tr>
+<td>Disk seek (up to)</td>
+<td>2,000,000 ns (2,000 µs)</td>
+</tr>
+<tr>
+<td>Send packet CA → Netherlands → CA</td>
+<td>150,000,000 ns (150,000 µs)</td>
+</tr>
+</tbody></table>
+<p>So back to the indexer&#39;s <code>I ← HashTable()</code>: <strong>could this be a file, directly?</strong> (L16 p36, p44) <strong>NO.</strong> Compare a disk seek of up to 2 ms with a 50–75 ns memory reference in the table above.</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: A disk seek costs tens of thousands of memory references, and one large chunk transfers faster than many small ones (L16 p41). How to build an index that doesn&#39;t fit in memory comes next (Week 7 in the Schedule: distributed indexing).</p>
+</blockquote>
+<blockquote>
+<p>🔗 <strong>Go deeper</strong>: <a href="https://ai.google/research/people/jeff/">Jeff Dean (slide link)</a> · <a href="http://norvig.com/21-days.html#answers">Original numbers (Norvig)</a> · <a href="https://gist.github.com/eshelman/343a1c46cb3fba142c1afdcdeec17646">2019 version (gist)</a> · <a href="https://colin-scott.github.io/personal_website/research/interactive_latency.html">2020 interactive version</a> · <a href="https://ciir.cs.umass.edu/downloads/SEIRiP.pdf">Croft §5.6.2 Merging (book p. 157)</a> · <a href="https://nlp.stanford.edu/IR-book/pdf/irbookonlinereading.pdf">IIR Ch 4 (hardware basics)</a></p>
+</blockquote>
+<hr>
+<h2 id="11-in-class-notes--assignment-tips">11. In-class Notes &amp; Assignment Tips</h2>
+<p>&quot;On Assignment 3&quot; (L16 p45–48) — the search engine, in three milestones.</p>
+<p><strong>MS1: a simple indexer</strong> (L16 p46). <strong>Start with a small set of files — short development cycle!</strong></p>
+<ul>
+<li>traversing folders and reading JSON;</li>
+<li>opening and reading <strong>one file at a time</strong>;</li>
+<li>parsing (dealing with <strong>broken HTML</strong>!);</li>
+<li>tokenization &amp; stemming;</li>
+<li>a simple <strong>in-memory</strong> inverted index;</li>
+<li>simple index <strong>serialization to disk</strong>.</li>
+</ul>
+<p><strong>Expand gradually!! No need to scale up yet…</strong></p>
+<p><strong>MS2: simple Boolean retrieval — AND only</strong> (L16 p47). Every query&#39;s words are ANDed: <code>cristina lopes</code>, <code>eppstein Wikipedia</code>, <code>master of software engineering</code> each mean AND. <strong>Required: a text interface.</strong> Bonus points for a web GUI in MS3. No speed restrictions yet…</p>
+<p><strong>MS3: ranked retrieval</strong> (L16 p48). <strong>Scale up</strong>; a completely different approach (covered in future lectures); may benefit from <strong>positional information</strong>. <strong>Must perform under 300 ms</strong>, ideally ~100 ms, with no penalty for anything under 300 ms. Add a <strong>timer</strong> to your code that prints the time between the arrival of the query and the production of the result (not counting the rendering of a web GUI).</p>
+<blockquote>
+<p>💡 <strong>Key Insight</strong>: The milestones follow this week&#39;s slides — MS1&#39;s in-memory index is exactly <a href="#91-buildindex">§9.1</a>, MS2&#39;s AND is <a href="#5-query-processing-and-by-merging-postings">§5</a>, and MS3&#39;s scale-up is the problem of <a href="#10-scaling-index-construction-hardware-basics">§10</a>. Postings need doc id and frequency (or TF-IDF) at least (<a href="#93-what-a-posting-holds">§9.3</a>).</p>
+</blockquote>
+<hr>
+<h2 id="12-worked-examples-with-solutions">12. Worked Examples (with Solutions)</h2>
+<h3 id="121-adding-caesar-to-document-14-l15-p1114">12.1 Adding Caesar to document 14 (L15 p11–14)</h3>
+<p>Caesar&#39;s postings are stored in a fixed-size array <code>1 2 4 5 6 16 57 132</code>. Then <em>Caesar</em> is added to document 14. What happens?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> The list must stay sorted by docID, so 14 belongs between 6 and 16: <code>1 2 4 5 6 14 16 57 132</code>. In a fixed-size array that means <strong>shifting</strong> 16, 57 and 132 one slot right — and if the array is full (Caesar&#39;s has 8 slots and 8 entries), you need a <strong>bigger array</strong>. Lists grow and shrink by term, so fixed-size arrays don&#39;t work: we need <strong>variable-size postings lists</strong> (L15 p14) — a continuous run on disk, and linked lists / variable-length arrays / associative arrays in memory, trading size against ease of insertion.</p>
+<h3 id="122-index-doc-1-and-doc-2-l15-p2123">12.2 Index Doc 1 and Doc 2 (L15 p21–23)</h3>
+<p>Doc 1: <em>I did enact Julius Caesar I was killed i&#39; the Capitol; Brutus killed me.</em> Doc 2: <em>So let it be with Caesar. The noble Brutus hath told you Caesar was ambitious</em>. Build the dictionary (with doc. frequency) and postings.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong></p>
+<ol>
+<li>Token sequence: 29 (term, docID) pairs, 14 from Doc 1 and 15 from Doc 2 (<code>I</code> counted twice, <code>killed</code> twice, <code>caesar</code> twice in Doc 2).</li>
+<li>Sort by term, then docID.</li>
+<li>Merge repeats within a document, count documents:</li>
+</ol>
+<div class="code-wrap"><pre data-language="text"><code class="language-text">term       df  postings     term       df  postings
+ambitious  1   2            julius     1   1
+be         1   2            killed     1   1
+brutus     2   1 → 2        let        1   2
+caesar     2   1 → 2        me         1   1
+capitol    1   1            noble      1   2
+did        1   1            so         1   2
+enact      1   1            the        2   1 → 2
+hath       1   2            told       1   2
+i          1   1            was        2   1 → 2
+i&#39;         1   1            with       1   2
+it         1   2            you        1   2</code></pre><button type="button" class="code-copy-btn" title="Copy code" aria-label="Copy code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button></div>
+<p>22 terms. <code>killed</code> occurs twice in Doc 1 but has df = 1 and one posting — merging is per document. (The slide&#39;s sorted table shows <code>hath | 1</code>; it&#39;s 2.)</p>
+<h3 id="123-how-big-is-the-index-l15-p26">12.3 How big is the index? (L15 p26)</h3>
+<p>Vocabulary 50,000 tokens, average postings list size 20, docID = URL of about 50 characters ≈ 100 bytes in Python. How much memory do the postings take?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Postings: 50,000 × 20 = 1,000,000. Bytes: 1,000,000 × 100 = 100,000,000 ≈ <strong>100 MB</strong> — before any payload (tf-idf, 4 bytes each, adds more). That&#39;s for 10⁶ postings; the web has far more than 10⁶ documents, so the index usually <strong>does not fit in memory all at once</strong>.</p>
+<h3 id="124-brutus-and-caesar-by-merging-l15-p3032">12.4 Brutus AND Caesar by merging (L15 p30–32)</h3>
+<p>Brutus → <code>2 4 8 16 32 64 128</code>, Caesar → <code>1 2 3 5 8 13 21 34</code>. Run INTERSECT.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Pointer pairs (Brutus, Caesar):</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Compare</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2 vs 1</td>
+<td>1 &lt; 2 → advance Caesar</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2 vs 2</td>
+<td>equal → <strong>add 2</strong>, advance both</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4 vs 3</td>
+<td>3 &lt; 4 → advance Caesar</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4 vs 5</td>
+<td>4 &lt; 5 → advance Brutus</td>
+</tr>
+<tr>
+<td>5</td>
+<td>8 vs 5</td>
+<td>5 &lt; 8 → advance Caesar</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8 vs 8</td>
+<td>equal → <strong>add 8</strong>, advance both</td>
+</tr>
+<tr>
+<td>7</td>
+<td>16 vs 13</td>
+<td>13 &lt; 16 → advance Caesar</td>
+</tr>
+<tr>
+<td>8</td>
+<td>16 vs 21</td>
+<td>16 &lt; 21 → advance Brutus</td>
+</tr>
+<tr>
+<td>9</td>
+<td>32 vs 21</td>
+<td>21 &lt; 32 → advance Caesar</td>
+</tr>
+<tr>
+<td>10</td>
+<td>32 vs 34</td>
+<td>32 &lt; 34 → advance Brutus</td>
+</tr>
+<tr>
+<td>11</td>
+<td>64 vs 34</td>
+<td>34 &lt; 64 → advance Caesar → Caesar exhausted, stop</td>
+</tr>
+</tbody></table>
+<p>Answer <strong>[2, 8]</strong> after 11 comparisons, within the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>+</mo><mi>y</mi><mo>=</mo><mn>7</mn><mo>+</mo><mn>8</mn><mo>=</mo><mn>15</mn></mrow><annotation encoding="application/x-tex">x + y = 7 + 8 = 15</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">15</span></span></span></span> bound. 128 is never looked at.</p>
+<h3 id="125-the-document-score-30301-l15-p45--l16-p8">12.5 The document score 303.01 (L15 p45 · L16 p8)</h3>
+<p>Use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q,D) = \sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span> with the table in <a href="#7-indexes-and-ranking-the-abstract-model">§7</a>.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> Only features with both an <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">f_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">g_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> count (seaweed and surfboards have no query weight; chichlids and barbs aren&#39;t in the document):</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">g_i(Q) \cdot f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fish</td>
+<td>5.2 × 9.7 = 50.44</td>
+</tr>
+<tr>
+<td>tropical</td>
+<td>3.4 × 4.2 = 14.28</td>
+</tr>
+<tr>
+<td>tropical fish</td>
+<td>9.9 × 22.1 = 218.79</td>
+</tr>
+<tr>
+<td>incoming links</td>
+<td>1.2 × 14 = 16.80</td>
+</tr>
+<tr>
+<td>update count</td>
+<td>0.9 × 3 = 2.70</td>
+</tr>
+</tbody></table>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mn>50.44</mn><mo>+</mo><mn>14.28</mn><mo>+</mo><mn>218.79</mn><mo>+</mo><mn>16.80</mn><mo>+</mo><mn>2.70</mn><mo>=</mo><mn mathvariant="bold">303.01</mn></mrow><annotation encoding="application/x-tex">R = 50.44 + 14.28 + 218.79 + 16.80 + 2.70 = \mathbf{303.01}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">50.44</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14.28</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">218.79</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16.80</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2.70</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord"><span class="mord mathbf">303.01</span></span></span></span></span>, the slide&#39;s document score. The phrase feature <em>tropical fish</em> contributes most of it.</p>
+<h3 id="126-find-the-phrase-tropical-fish-l16-p1113">12.6 Find the phrase &quot;tropical fish&quot; (L16 p11–13)</h3>
+<p>tropical → <code>1,1 1,7 2,6 2,17 3,1</code>; fish → <code>1,2 1,4 2,7 2,18 2,23 3,2 3,6 4,3 4,13</code>. Where does the phrase occur?</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> A phrase match needs <code>fish</code> at position <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> in the same document as <code>tropical</code> at <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi></mrow><annotation encoding="application/x-tex">p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span>:</p>
+<table>
+<thead>
+<tr>
+<th>tropical</th>
+<th>needs fish at</th>
+<th>found?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1,1</td>
+<td>1,2</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>1,7</td>
+<td>1,8</td>
+<td>✗ (S1 word 8 is <em>environments</em>)</td>
+</tr>
+<tr>
+<td>2,6</td>
+<td>2,7</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>2,17</td>
+<td>2,18</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>3,1</td>
+<td>3,2</td>
+<td>✓</td>
+</tr>
+</tbody></table>
+<p>The phrase occurs <strong>4 times</strong>, in <strong>documents 1, 2 and 3</strong>. Document 4 contains <em>fish</em> but not <em>tropical</em>, so a document-only index (<code>tropical 1 2 3</code>, <code>fish 1 2 3 4</code>) can&#39;t tell the phrase from the two words appearing anywhere — that&#39;s what positions buy.</p>
+<h3 id="127-docids-as-urls-vs-integers-l16-p2327">12.7 DocIDs as URLs vs integers (L16 p23–27)</h3>
+<p>10,000 index terms, <del>20 postings per term, average URL 51 characters (</del>100 bytes in Python 3), Python int 28 bytes. Compare the postings size.</p>
+<blockquote>
+<p>✍️ <strong>Try it first.</strong></p>
+</blockquote>
+<p><strong>Solution.</strong> URLs: 10,000 × 20 × 100 = 20,000,000 bytes ≈ <strong>20 MB</strong>. Integers: 10,000 × 20 × 28 = 5,600,000 bytes ≈ <strong>5.6 MB</strong> — 28% of the URL version, so roughly 4× (100 / 28 ≈ 3.6) more postings fit in the same memory, and integers are much faster to sort and compare. The price: an auxiliary docID → URL map, saved to a file, to show results.</p>
+<hr>
+<h2 id="13-quick-reference--top-5-things-to-remember">13. Quick Reference &amp; Top 5 Things to Remember</h2>
+<p><strong>Index vocabulary</strong></p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dictionary</td>
+<td>The set of terms (with doc. frequency)</td>
+</tr>
+<tr>
+<td>Postings list / inverted list</td>
+<td>The docIDs (and more) for one term, sorted by docID</td>
+</tr>
+<tr>
+<td>Posting</td>
+<td>One entry; its document part is the <em>pointer</em></td>
+</tr>
+<tr>
+<td>Document frequency (df)</td>
+<td>Number of documents containing the term</td>
+</tr>
+<tr>
+<td>Extent</td>
+<td>Contiguous region of a document (a field), as word positions</td>
+</tr>
+</tbody></table>
+<p><strong>Indexer steps</strong></p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tokenize + linguistic modules</td>
+<td>modified tokens</td>
+</tr>
+<tr>
+<td>Emit pairs</td>
+<td>(term, docID) in text order</td>
+</tr>
+<tr>
+<td>Sort</td>
+<td>by term, then docID</td>
+</tr>
+<tr>
+<td>Merge</td>
+<td>one dictionary entry per term + df + postings</td>
+</tr>
+</tbody></table>
+<p><strong>Query processing</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Cost</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>t1 AND t2</code> (INTERSECT)</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x + y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></td>
+<td>postings sorted by docID</td>
+</tr>
+<tr>
+<td>Phrase <code>&quot;t1 t2&quot;</code></td>
+<td>merge on docID, then position <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo separator="true">,</mo><mi>p</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p, p+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span></td>
+<td>positional postings</td>
+</tr>
+<tr>
+<td>Ranking</td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>D</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">R(Q,D) = \sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span></td>
+<td>features in the index (counts, positions, scores)</td>
+</tr>
+</tbody></table>
+<p><strong>Sizes and latencies</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fact</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1M postings with URL docIDs (Python)</td>
+<td>~100 MB (L15 p26)</td>
+</tr>
+<tr>
+<td>URL vs int docIDs, 200K postings</td>
+<td>20 MB vs 5.6 MB (28%)</td>
+</tr>
+<tr>
+<td>Int size</td>
+<td>4 bytes C/C++/Java, 28 bytes Python</td>
+</tr>
+<tr>
+<td>Memory reference vs disk seek</td>
+<td>50–75 ns vs up to 2 ms</td>
+</tr>
+<tr>
+<td>Disk block size</td>
+<td>8–256 KB</td>
+</tr>
+</tbody></table>
+<p><strong>Top 5 things to remember</strong></p>
+<ol>
+<li>An inverted index maps each <strong>term → postings list of docIDs</strong>, stores only the 1s of the sparse matrix, and keeps lists <strong>sorted by docID</strong>.</li>
+<li>The indexer emits <strong>(term, docID) pairs, sorts by term then docID, and merges</strong> repeats within a document; <strong>df</strong> = number of documents, not occurrences.</li>
+<li><strong>AND = intersect two sorted postings</strong> with two pointers in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(x+y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>; on a mismatch, advance the pointer on the <strong>smaller</strong> docID.</li>
+<li>Postings can carry <strong>counts</strong> (ranking), <strong>positions</strong> (phrases, proximity), <strong>extents</strong> (fields) or <strong>precomputed scores</strong> (speed vs flexibility); the score is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>Q</mi><mo stretchy="false">)</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>D</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\sum_i g_i(Q) f_i(D)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mclose">)</span></span></span></span>.</li>
+<li>Use <strong>integer docIDs</strong> with an auxiliary URL map, and don&#39;t build the index directly in a file (L16 p44: <strong>NO</strong>) — <strong>a disk seek costs tens of thousands of memory references</strong>, and in-memory construction doesn&#39;t scale either.</li>
+</ol>
+</article></div><nav class="note-pager" aria-label="Note navigation" data-astro-cid-gxyjxt6l><a class="card interactive pager-card pager-prev" href="/notes/cs-121/week-05/en-US/" rel="prev" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Previous · Week 5</span><span class="pager-title" data-astro-cid-gxyjxt6l>Text Processing, Term-Document Matrices</span></a><a class="card interactive pager-card pager-next" href="/notes/cs-121/" data-astro-cid-gxyjxt6l><span class="pager-dir" data-astro-cid-gxyjxt6l>Course hub<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="pager-title" data-astro-cid-gxyjxt6l>CS 121 · Information Retrieval</span></a></nav><p class="pager-hint" data-astro-cid-gxyjxt6l>Shortcuts<span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>[</kbd> Previous</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>]</kbd> Next</span><span data-astro-cid-gxyjxt6l><kbd data-astro-cid-gxyjxt6l>L</kbd> Switch language</span></p></div></section></main><div class="reading-bar" data-reading-bar hidden data-astro-cid-gxyjxt6l><a class="rb-btn rb-prev" href="/notes/cs-121/week-05/en-US/" title="Previous: Text Processing, Term-Document Matrices ([)" aria-label="Previous: Week 5" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span class="rb-text" data-astro-cid-gxyjxt6l>Week 5</span></a><button type="button" class="rb-title" data-scroll-top title="Back to top" data-astro-cid-gxyjxt6l><span class="rb-course" data-astro-cid-gxyjxt6l>CS 121</span><span class="rb-dot" data-astro-cid-gxyjxt6l>·</span><span class="rb-label" data-astro-cid-gxyjxt6l>Week 6</span></button><a class="rb-btn rb-lang" href="/notes/cs-121/week-06/zh-CN/" data-lang-switch hreflang="zh-CN" lang="zh-CN" title="Switch to 中文 (L)" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span data-astro-cid-gxyjxt6l>中</span></a><span class="rb-btn rb-disabled" aria-hidden="true" data-astro-cid-gxyjxt6l><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span><span class="rb-progress" data-reading-progress data-astro-cid-gxyjxt6l></span></div><div id="toc-sidebar" hidden data-astro-cid-gxyjxt6l><div class="toc-marks" id="toc-marks" data-astro-cid-gxyjxt6l><div class="toc-marks-icon" title="Table of Contents" data-astro-cid-gxyjxt6l>≡</div><div class="toc-marks-track" id="toc-marks-track" data-astro-cid-gxyjxt6l></div></div><div class="toc-panel" id="toc-panel" data-astro-cid-gxyjxt6l></div></div><button id="back-to-top" aria-label="Back to top" data-astro-cid-gxyjxt6l><svg viewBox="0 0 24 24" data-astro-cid-gxyjxt6l><polyline points="18 15 12 9 6 15" data-astro-cid-gxyjxt6l></polyline></svg>Top</button><script type="module" src="/_astro/NoteReader.astro_astro_type_script_index_0_lang.GgOyItmQ.js"></script><footer class="foot"><span>© 2026 Kazuha Hub · Kazuha Mo</span><span>Email: <a href="mailto:kazuhak@uci.edu">kazuhak@uci.edu</a> · <a href="https://github.com/KKazuhaK" target="_blank" rel="noopener">GitHub</a></span></footer></div><script src="/assets/js/bento.js" defer></script><script src="/assets/js/chat-widget.js" defer></script></body></html>
